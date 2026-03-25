@@ -1,6 +1,14 @@
 package com.spisokryadom.app.ui.productcard
 
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,11 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,20 +42,33 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.ShopDepartmentEntity
 import com.spisokryadom.app.data.entity.ShopEntity
+import com.spisokryadom.app.ui.components.ConfirmDialog
 import com.spisokryadom.app.ui.components.DropdownSelector
+import com.spisokryadom.app.ui.components.EditableSection
 import com.spisokryadom.app.ui.components.InputDialog
 import com.spisokryadom.app.ui.components.PurchaseTypeSelector
 import com.spisokryadom.app.ui.components.QuantityUnitInputWithSuggestions
-import com.spisokryadom.app.ui.components.SectionHeader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,10 +82,15 @@ fun ProductCardScreen(
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) onNavigateBack()
     }
+    LaunchedEffect(state.isDeleted) {
+        if (state.isDeleted) onNavigateBack()
+    }
 
     var showNewGroupDialog by remember { mutableStateOf(false) }
     var showNewRecipientDialog by remember { mutableStateOf(false) }
     var showAddShopLinkDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var isShopLinksEditing by remember { mutableStateOf(false) }
 
     if (showNewGroupDialog) {
         InputDialog(
@@ -84,6 +113,18 @@ fun ProductCardScreen(
                 showNewRecipientDialog = false
             },
             onDismiss = { showNewRecipientDialog = false }
+        )
+    }
+
+    if (showDeleteConfirm) {
+        ConfirmDialog(
+            title = "Удалить товар",
+            message = "Вы уверены, что хотите удалить товар «${state.name}»? Связи с магазинами и записи в списке покупок будут удалены.",
+            onConfirm = {
+                viewModel.deleteProduct()
+                showDeleteConfirm = false
+            },
+            onDismiss = { showDeleteConfirm = false }
         )
     }
 
@@ -113,6 +154,15 @@ fun ProductCardScreen(
                     }
                 },
                 actions = {
+                    if (!state.isNew) {
+                        IconButton(onClick = { showDeleteConfirm = true }) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "Удалить товар",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                     TextButton(
                         onClick = { viewModel.save() },
                         enabled = state.name.isNotBlank()
@@ -182,6 +232,31 @@ fun ProductCardScreen(
                 maxLines = 4
             )
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = state.priceValue,
+                    onValueChange = { value ->
+                        if (value.isEmpty() || value.matches(Regex("^\\d*\\.?\\d*$"))) {
+                            viewModel.updatePriceValue(value)
+                        }
+                    },
+                    label = { Text("Цена, ₽") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = state.priceDate,
+                    onValueChange = { viewModel.updatePriceDate(it) },
+                    label = { Text("Дата цены") },
+                    placeholder = { Text("дд.мм.гггг") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
             PurchaseTypeSelector(
                 selectedType = state.purchaseType,
                 onTypeChange = { viewModel.updatePurchaseType(it) }
@@ -204,63 +279,98 @@ fun ProductCardScreen(
                 )
             }
 
-            OutlinedTextField(
-                value = state.photoUri,
-                onValueChange = { viewModel.updatePhotoUri(it) },
-                label = { Text("Фото (URI)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+            PhotoPickerBlock(
+                photoPath = state.photoUri,
+                onPhotoSelected = { path -> viewModel.updatePhotoUri(path) },
+                onPhotoRemoved = { viewModel.updatePhotoUri("") }
             )
 
             // Shop links section (only for existing products)
             if (!state.isNew) {
-                SectionHeader("Привязанные магазины")
-
-                state.shopLinks.forEach { linkUi ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    linkUi.shopName,
-                                    style = MaterialTheme.typography.bodyLarge
+                EditableSection(
+                    title = "Привязанные магазины",
+                    isEditing = isShopLinksEditing,
+                    onToggleEdit = { isShopLinksEditing = it },
+                    isEmpty = state.shopLinks.isEmpty(),
+                    emptyMessage = "Нет привязанных магазинов",
+                    viewContent = {
+                        state.shopLinks.forEach { linkUi ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
-                                val details = buildList {
-                                    add("Приоритет: ${linkUi.link.priority}")
-                                    linkUi.departmentName?.let { add("Отдел: $it") }
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp)
+                                ) {
+                                    Text(
+                                        linkUi.shopName,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    val details = buildList {
+                                        add("Приоритет: ${linkUi.link.priority}")
+                                        linkUi.departmentName?.let { add("Группа магазина: $it") }
+                                    }
+                                    Text(
+                                        details.joinToString(" \u2022 "),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                                Text(
-                                    details.joinToString(" \u2022 "),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            IconButton(onClick = { viewModel.removeShopLink(linkUi.link) }) {
-                                Icon(
-                                    Icons.Filled.Close,
-                                    contentDescription = "Удалить связь"
-                                )
                             }
                         }
-                    }
-                }
+                    },
+                    editContent = {
+                        state.shopLinks.forEach { linkUi ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            linkUi.shopName,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        val details = buildList {
+                                            add("Приоритет: ${linkUi.link.priority}")
+                                            linkUi.departmentName?.let { add("Группа магазина: $it") }
+                                        }
+                                        Text(
+                                            details.joinToString(" \u2022 "),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    IconButton(onClick = { viewModel.removeShopLink(linkUi.link) }) {
+                                        Icon(
+                                            Icons.Filled.Close,
+                                            contentDescription = "Удалить связь"
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
-                OutlinedButton(
-                    onClick = { showAddShopLinkDialog = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = null)
-                    Text("  Добавить магазин")
-                }
+                        OutlinedButton(
+                            onClick = { showAddShopLinkDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Filled.Add, contentDescription = null)
+                            Text("  Добавить магазин")
+                        }
+                    }
+                )
             } else {
                 Text(
                     "Привязка к магазинам будет доступна после сохранения товара",
@@ -271,6 +381,117 @@ fun ProductCardScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+private fun PhotoPickerBlock(
+    photoPath: String,
+    onPhotoSelected: (String) -> Unit,
+    onPhotoRemoved: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val imageBitmap by produceState<ImageBitmap?>(null, photoPath) {
+        value = if (photoPath.isBlank()) null else {
+            withContext(Dispatchers.IO) {
+                runCatching { BitmapFactory.decodeFile(photoPath)?.asImageBitmap() }.getOrNull()
+            }
+        }
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { selectedUri ->
+            scope.launch(Dispatchers.IO) {
+                val newPath = copyImageToLocalStorage(
+                    context, selectedUri, photoPath.ifBlank { null }
+                )
+                newPath?.let { withContext(Dispatchers.Main) { onPhotoSelected(it) } }
+            }
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Фото товара",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap!!,
+                contentDescription = "Фото товара",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Фото не выбрано",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
+                onClick = { launcher.launch("image/*") },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Filled.PhotoCamera, contentDescription = null)
+                Text(if (photoPath.isBlank()) "  Выбрать фото" else "  Заменить фото")
+            }
+            if (photoPath.isNotBlank()) {
+                OutlinedButton(
+                    onClick = {
+                        scope.launch(Dispatchers.IO) {
+                            File(photoPath).delete()
+                            withContext(Dispatchers.Main) { onPhotoRemoved() }
+                        }
+                    }
+                ) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = "Удалить фото",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun copyImageToLocalStorage(
+    context: Context,
+    sourceUri: Uri,
+    oldPath: String?
+): String? {
+    return try {
+        oldPath?.let { File(it).delete() }
+        val photosDir = File(context.filesDir, "product_photos")
+        photosDir.mkdirs()
+        val destFile = File(photosDir, "${UUID.randomUUID()}.jpg")
+        context.contentResolver.openInputStream(sourceUri)?.use { input ->
+            destFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        destFile.absolutePath
+    } catch (e: Exception) {
+        null
     }
 }
 
@@ -328,7 +549,7 @@ private fun AddShopLinkDialog(
 
                     if (departmentsForShop.isNotEmpty()) {
                         DropdownSelector(
-                            label = "Отдел",
+                            label = "Группа магазина",
                             items = departmentsForShop,
                             selectedItem = departmentsForShop.find { it.id == selectedDepartmentId },
                             itemLabel = { it.name },

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,8 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.ShopDepartmentEntity
+import com.spisokryadom.app.ui.components.ConfirmDialog
+import com.spisokryadom.app.ui.components.EditableSection
 import com.spisokryadom.app.ui.components.InputDialog
-import com.spisokryadom.app.ui.components.SectionHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,19 +56,36 @@ fun ShopCardScreen(
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) onNavigateBack()
     }
+    LaunchedEffect(state.isDeleted) {
+        if (state.isDeleted) onNavigateBack()
+    }
 
     var showAddDepartmentDialog by remember { mutableStateOf(false) }
     var editingDepartment by remember { mutableStateOf<ShopDepartmentEntity?>(null) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var isDepartmentsEditing by remember { mutableStateOf(false) }
 
     if (showAddDepartmentDialog) {
         InputDialog(
-            title = "Новый отдел",
-            label = "Название отдела",
+            title = "Новая группа магазина",
+            label = "Название группы",
             onConfirm = { name ->
                 viewModel.addDepartment(name)
                 showAddDepartmentDialog = false
             },
             onDismiss = { showAddDepartmentDialog = false }
+        )
+    }
+
+    if (showDeleteConfirm) {
+        ConfirmDialog(
+            title = "Удалить магазин",
+            message = "Вы уверены, что хотите удалить магазин «${state.name}»? Все группы магазина будут удалены.",
+            onConfirm = {
+                viewModel.deleteShop()
+                showDeleteConfirm = false
+            },
+            onDismiss = { showDeleteConfirm = false }
         )
     }
 
@@ -93,6 +112,15 @@ fun ShopCardScreen(
                     }
                 },
                 actions = {
+                    if (!state.isNew) {
+                        IconButton(onClick = { showDeleteConfirm = true }) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "Удалить магазин",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                     TextButton(
                         onClick = { viewModel.save() },
                         enabled = state.name.isNotBlank()
@@ -150,62 +178,83 @@ fun ShopCardScreen(
 
             // Departments section (only for saved shops)
             if (!state.isNew) {
-                SectionHeader("Отделы магазина")
-
-                if (state.departments.isEmpty()) {
-                    Text(
-                        "Нет отделов",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                state.departments.forEach { dept ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${dept.displayOrder}. ${dept.name}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = { editingDepartment = dept }) {
-                                Icon(
-                                    Icons.Filled.Edit,
-                                    contentDescription = "Редактировать",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                EditableSection(
+                    title = "Группы магазина",
+                    isEditing = isDepartmentsEditing,
+                    onToggleEdit = { isDepartmentsEditing = it },
+                    isEmpty = state.departments.isEmpty(),
+                    emptyMessage = "Нет групп",
+                    viewContent = {
+                        state.departments.forEach { dept ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
-                            }
-                            IconButton(onClick = { viewModel.deleteDepartment(dept) }) {
-                                Icon(
-                                    Icons.Filled.Close,
-                                    contentDescription = "Удалить",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${dept.displayOrder}. ${dept.name}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                             }
                         }
-                    }
-                }
+                    },
+                    editContent = {
+                        state.departments.forEach { dept ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${dept.displayOrder}. ${dept.name}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    IconButton(onClick = { editingDepartment = dept }) {
+                                        Icon(
+                                            Icons.Filled.Edit,
+                                            contentDescription = "Редактировать",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    IconButton(onClick = { viewModel.deleteDepartment(dept) }) {
+                                        Icon(
+                                            Icons.Filled.Close,
+                                            contentDescription = "Удалить",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
-                OutlinedButton(
-                    onClick = { showAddDepartmentDialog = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = null)
-                    Text("  Добавить отдел")
-                }
+                        OutlinedButton(
+                            onClick = { showAddDepartmentDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Filled.Add, contentDescription = null)
+                            Text("  Добавить группу")
+                        }
+                    }
+                )
             } else {
                 Text(
-                    "Отделы можно добавить после сохранения магазина",
+                    "Группы магазина можно добавить после сохранения магазина",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -227,13 +276,13 @@ private fun EditDepartmentDialog(
 
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Редактировать отдел") },
+        title = { Text("Редактировать группу") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Название") },
+                    label = { Text("Название группы") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )

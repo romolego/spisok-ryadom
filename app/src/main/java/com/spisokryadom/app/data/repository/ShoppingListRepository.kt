@@ -8,6 +8,7 @@ class ShoppingListRepository(
     private val entryDao: ShoppingListEntryDao
 ) {
     fun getAllEntries(): Flow<List<ShoppingListEntryEntity>> = entryDao.getAll()
+    fun getEntriesByShop(shopId: Long): Flow<List<ShoppingListEntryEntity>> = entryDao.getByShopId(shopId)
     suspend fun getEntryById(id: Long): ShoppingListEntryEntity? = entryDao.getById(id)
     suspend fun addEntry(entry: ShoppingListEntryEntity): Long = entryDao.insert(entry)
     suspend fun updateEntry(entry: ShoppingListEntryEntity) = entryDao.update(entry)

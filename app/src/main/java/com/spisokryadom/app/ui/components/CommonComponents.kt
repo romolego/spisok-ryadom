@@ -1,18 +1,28 @@
 package com.spisokryadom.app.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
@@ -303,4 +313,84 @@ fun SectionHeader(
         color = MaterialTheme.colorScheme.primary,
         modifier = modifier.padding(vertical = 8.dp)
     )
+}
+
+/**
+ * Унифицированный блок с режимами просмотра и редактирования.
+ *
+ * В обычном режиме отображается только [viewContent] — без управляющих действий.
+ * По нажатию кнопки-карандаша пользователь входит в режим редактирования,
+ * где отображается [editContent] с полным набором действий.
+ */
+@Composable
+fun EditableSection(
+    title: String,
+    isEditing: Boolean,
+    onToggleEdit: (Boolean) -> Unit,
+    viewContent: @Composable () -> Unit,
+    editContent: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    emptyMessage: String? = null,
+    isEmpty: Boolean = false
+) {
+    Column(modifier = modifier) {
+        // Header with edit toggle
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(
+                onClick = { onToggleEdit(!isEditing) },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = if (isEditing) Icons.Filled.Check else Icons.Filled.Edit,
+                    contentDescription = if (isEditing) "Готово" else "Редактировать",
+                    tint = if (isEditing)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        if (isEmpty && !isEditing && emptyMessage != null) {
+            Text(
+                emptyMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // View mode content
+        AnimatedVisibility(
+            visible = !isEditing,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                viewContent()
+            }
+        }
+
+        // Edit mode content
+        AnimatedVisibility(
+            visible = isEditing,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                editContent()
+            }
+        }
+    }
 }

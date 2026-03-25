@@ -20,6 +20,13 @@ interface ShoppingListEntryDao {
     @Query("SELECT * FROM shopping_list_entries WHERE id = :id")
     suspend fun getById(id: Long): ShoppingListEntryEntity?
 
+    @Query("""
+        SELECT * FROM shopping_list_entries
+        WHERE assignedShopId = :shopId
+        ORDER BY isBought ASC, isUrgent DESC, createdAt DESC
+    """)
+    fun getByShopId(shopId: Long): Flow<List<ShoppingListEntryEntity>>
+
     @Query("UPDATE shopping_list_entries SET isBought = 1, updatedAt = :now WHERE id = :id")
     suspend fun markBought(id: Long, now: Long = System.currentTimeMillis())
 
@@ -34,6 +41,12 @@ interface ShoppingListEntryDao {
 
     @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId IS NULL")
     suspend fun clearBoughtWithoutShop()
+
+    @Query("SELECT * FROM shopping_list_entries ORDER BY createdAt ASC")
+    suspend fun getAllSync(): List<ShoppingListEntryEntity>
+
+    @Query("DELETE FROM shopping_list_entries")
+    suspend fun deleteAll()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entry: ShoppingListEntryEntity): Long

@@ -62,6 +62,7 @@ data class ShoppingListUiState(
     val allEntries: List<ShoppingListEntryUi> = emptyList(),
     val shops: List<ShopEntity> = emptyList(),
     val showOnlyUrgent: Boolean = false,
+    val showUrgentInCollapsedShops: Boolean = false,
     val hasBoughtEntries: Boolean = false,
     val viewMode: ViewMode = ViewMode.BY_SHOPS,
     val isLoading: Boolean = true
@@ -86,6 +87,7 @@ class ShoppingListViewModel(
     private val _showOnlyUrgent = MutableStateFlow(false)
     private val _viewMode = MutableStateFlow(loadViewMode())
     private val _collapsedShopIds = MutableStateFlow(loadCollapsedShopIds())
+    private val _showUrgentInCollapsedShops = MutableStateFlow(loadShowUrgentInCollapsedShops())
 
     init {
         viewModelScope.launch {
@@ -130,6 +132,8 @@ class ShoppingListViewModel(
                 data.copy(viewMode = viewMode)
             }.combine(_collapsedShopIds) { data, collapsedIds ->
                 data.copy(collapsedShopIds = collapsedIds)
+            }.combine(_showUrgentInCollapsedShops) { data, showUrgentInCollapsed ->
+                data.copy(showUrgentInCollapsedShops = showUrgentInCollapsed)
             }.collect { data ->
                 _uiState.value = buildUiState(data)
             }
@@ -145,7 +149,8 @@ class ShoppingListViewModel(
         val groups: Map<Long, ProductGroupEntity> = emptyMap(),
         val recipients: Map<Long, RecipientEntity> = emptyMap(),
         val viewMode: ViewMode = ViewMode.BY_SHOPS,
-        val collapsedShopIds: Set<Long> = emptySet()
+        val collapsedShopIds: Set<Long> = emptySet(),
+        val showUrgentInCollapsedShops: Boolean = false
     )
 
     private fun buildUiState(data: CombinedData): ShoppingListUiState {
@@ -162,7 +167,7 @@ class ShoppingListViewModel(
         }
 
         val filtered = if (data.onlyUrgent) {
-            allEntryUis.filter { it.entry.isUrgent || it.entry.isBought }
+            allEntryUis.filter { it.entry.isUrgent && !it.entry.isBought }
         } else {
             allEntryUis
         }
@@ -179,6 +184,7 @@ class ShoppingListViewModel(
             allEntries = allEntryUis,
             shops = data.shops.values.sortedBy { it.displayOrder },
             showOnlyUrgent = data.onlyUrgent,
+            showUrgentInCollapsedShops = data.showUrgentInCollapsedShops,
             hasBoughtEntries = allEntryUis.any { it.entry.isBought },
             viewMode = data.viewMode,
             isLoading = false
@@ -328,6 +334,12 @@ class ShoppingListViewModel(
 
     fun toggleUrgentFilter() {
         _showOnlyUrgent.value = !_showOnlyUrgent.value
+    }
+
+    fun toggleShowUrgentInCollapsedShops() {
+        val newValue = !_showUrgentInCollapsedShops.value
+        _showUrgentInCollapsedShops.value = newValue
+        prefs.edit().putBoolean(PREF_SHOW_URGENT_IN_COLLAPSED_SHOPS, newValue).apply()
     }
 
     fun markBought(entryId: Long) {
@@ -499,9 +511,15 @@ class ShoppingListViewModel(
         prefs.edit().putStringSet(PREF_COLLAPSED_SHOPS, ids.map { it.toString() }.toSet()).apply()
     }
 
+    private fun loadShowUrgentInCollapsedShops(): Boolean {
+        return prefs.getBoolean(PREF_SHOW_URGENT_IN_COLLAPSED_SHOPS, false)
+    }
+
     companion object {
         private const val PREF_VIEW_MODE = "shopping_list_view_mode"
         private const val PREF_COLLAPSED_SHOPS = "shopping_list_collapsed_shops"
+        private const val PREF_SHOW_URGENT_IN_COLLAPSED_SHOPS =
+            "shopping_list_show_urgent_in_collapsed_shops"
         private const val PREFS_NAME = "shopping_list_prefs"
         private const val COLLAPSED_NO_SHOP_ID = -999L
 

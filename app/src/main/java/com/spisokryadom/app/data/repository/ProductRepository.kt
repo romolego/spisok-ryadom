@@ -21,6 +21,9 @@ class ProductRepository(
     fun getShopLinksForProduct(productId: Long): Flow<List<ProductShopLinkEntity>> =
         linkDao.getLinksForProduct(productId)
 
+    fun getShopLinksForShop(shopId: Long): Flow<List<ProductShopLinkEntity>> =
+        linkDao.getLinksForShop(shopId)
+
     suspend fun getShopLinksForProductSync(productId: Long): List<ProductShopLinkEntity> =
         linkDao.getLinksForProductSync(productId)
 

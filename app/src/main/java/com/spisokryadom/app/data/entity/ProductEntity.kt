@@ -39,5 +39,7 @@ data class ProductEntity(
     val purchaseType: String = "offline",
     val sellerUrl: String? = null,
     val productUrl: String? = null,
-    val photoUri: String? = null
+    val photoUri: String? = null,
+    val priceValue: Double? = null,
+    val priceDate: String? = null
 )

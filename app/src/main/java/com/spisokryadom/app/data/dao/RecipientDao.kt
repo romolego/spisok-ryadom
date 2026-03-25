@@ -17,6 +17,12 @@ interface RecipientDao {
     @Query("SELECT * FROM recipients WHERE id = :id")
     suspend fun getById(id: Long): RecipientEntity?
 
+    @Query("SELECT * FROM recipients ORDER BY name ASC")
+    suspend fun getAllSync(): List<RecipientEntity>
+
+    @Query("DELETE FROM recipients")
+    suspend fun deleteAll()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(recipient: RecipientEntity): Long
 

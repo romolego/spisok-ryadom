@@ -23,6 +23,12 @@ interface ProductDao {
     @Query("SELECT DISTINCT defaultUnit FROM products WHERE defaultUnit IS NOT NULL AND defaultUnit != '' ORDER BY defaultUnit ASC")
     fun getDistinctUnits(): Flow<List<String>>
 
+    @Query("SELECT * FROM products ORDER BY name ASC")
+    suspend fun getAllSync(): List<ProductEntity>
+
+    @Query("DELETE FROM products")
+    suspend fun deleteAll()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(product: ProductEntity): Long
 

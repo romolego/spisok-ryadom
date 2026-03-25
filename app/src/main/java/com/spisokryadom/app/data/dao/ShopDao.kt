@@ -17,6 +17,12 @@ interface ShopDao {
     @Query("SELECT * FROM shops WHERE id = :id")
     suspend fun getById(id: Long): ShopEntity?
 
+    @Query("SELECT * FROM shops ORDER BY displayOrder ASC, name ASC")
+    suspend fun getAllSync(): List<ShopEntity>
+
+    @Query("DELETE FROM shops")
+    suspend fun deleteAll()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(shop: ShopEntity): Long
 

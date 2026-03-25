@@ -24,7 +24,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.spisokryadom.app.ui.productcard.ProductCardScreen
 import com.spisokryadom.app.ui.productdb.ProductDatabaseScreen
+import com.spisokryadom.app.ui.settings.SettingsScreen
 import com.spisokryadom.app.ui.shopcard.ShopCardScreen
+import com.spisokryadom.app.ui.shopcontent.ShopContentScreen
 import com.spisokryadom.app.ui.shoplist.ShopListScreen
 import com.spisokryadom.app.ui.shoppinglist.ShoppingListScreen
 
@@ -89,6 +91,9 @@ fun AppNavGraph() {
                     },
                     onNavigateToProductCard = { productId ->
                         navController.navigate(Routes.ProductCard.createRoute(productId))
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate(Routes.Settings.route)
                     }
                 )
             }
@@ -106,11 +111,28 @@ fun AppNavGraph() {
 
             composable(Routes.ShopList.route) {
                 ShopListScreen(
+                    onNavigateToShopContent = { shopId ->
+                        navController.navigate(Routes.ShopContent.createRoute(shopId))
+                    },
                     onNavigateToShopCard = { shopId ->
                         navController.navigate(Routes.ShopCard.createRoute(shopId))
                     },
                     onCreateNewShop = {
                         navController.navigate(Routes.ShopCard.createRoute(-1L))
+                    }
+                )
+            }
+
+            composable(
+                route = Routes.ShopContent.route,
+                arguments = listOf(navArgument("shopId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val shopId = backStackEntry.arguments?.getLong("shopId") ?: -1L
+                ShopContentScreen(
+                    shopId = shopId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToProductCard = { productId ->
+                        navController.navigate(Routes.ProductCard.createRoute(productId))
                     }
                 )
             }
@@ -133,6 +155,12 @@ fun AppNavGraph() {
                 val shopId = backStackEntry.arguments?.getLong("shopId") ?: -1L
                 ShopCardScreen(
                     shopId = shopId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Routes.Settings.route) {
+                SettingsScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

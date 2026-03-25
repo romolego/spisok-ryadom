@@ -17,6 +17,12 @@ interface ProductGroupDao {
     @Query("SELECT * FROM product_groups WHERE id = :id")
     suspend fun getById(id: Long): ProductGroupEntity?
 
+    @Query("SELECT * FROM product_groups ORDER BY name ASC")
+    suspend fun getAllSync(): List<ProductGroupEntity>
+
+    @Query("DELETE FROM product_groups")
+    suspend fun deleteAll()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(group: ProductGroupEntity): Long
 

@@ -16,10 +16,13 @@ import com.spisokryadom.app.data.entity.ShopEntity
 import com.spisokryadom.app.data.repository.ClassifierRepository
 import com.spisokryadom.app.data.repository.ProductRepository
 import com.spisokryadom.app.data.repository.ShopRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 data class ShopLinkUi(
     val link: ProductShopLinkEntity,
@@ -39,6 +42,8 @@ data class ProductCardUiState(
     val sellerUrl: String = "",
     val productUrl: String = "",
     val photoUri: String = "",
+    val priceValue: String = "",
+    val priceDate: String = "",
     val shopLinks: List<ShopLinkUi> = emptyList(),
     val groups: List<ProductGroupEntity> = emptyList(),
     val recipients: List<RecipientEntity> = emptyList(),
@@ -46,6 +51,7 @@ data class ProductCardUiState(
     val unitSuggestions: List<String> = emptyList(),
     val departmentsForSelectedShop: List<ShopDepartmentEntity> = emptyList(),
     val isSaved: Boolean = false,
+    val isDeleted: Boolean = false,
     val isLoading: Boolean = true
 )
 
@@ -102,6 +108,10 @@ class ProductCardViewModel(
                     sellerUrl = product.sellerUrl ?: "",
                     productUrl = product.productUrl ?: "",
                     photoUri = product.photoUri ?: "",
+                    priceValue = product.priceValue?.let { v ->
+                        if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
+                    } ?: "",
+                    priceDate = product.priceDate ?: "",
                     isLoading = false
                 )
             }
@@ -169,6 +179,14 @@ class ProductCardViewModel(
         _uiState.value = _uiState.value.copy(photoUri = uri)
     }
 
+    fun updatePriceValue(value: String) {
+        _uiState.value = _uiState.value.copy(priceValue = value)
+    }
+
+    fun updatePriceDate(date: String) {
+        _uiState.value = _uiState.value.copy(priceDate = date)
+    }
+
     fun loadDepartmentsForShop(shopId: Long) {
         viewModelScope.launch {
             val depts = shopRepository.getDepartmentsByShopIdSync(shopId)
@@ -192,7 +210,9 @@ class ProductCardViewModel(
                 purchaseType = state.purchaseType,
                 sellerUrl = state.sellerUrl.trim().ifBlank { null },
                 productUrl = state.productUrl.trim().ifBlank { null },
-                photoUri = state.photoUri.trim().ifBlank { null }
+                photoUri = state.photoUri.trim().ifBlank { null },
+                priceValue = state.priceValue.trim().ifBlank { null }?.toDoubleOrNull(),
+                priceDate = state.priceDate.trim().ifBlank { null }
             )
 
             if (state.isNew) {
@@ -235,6 +255,21 @@ class ProductCardViewModel(
         viewModelScope.launch {
             val id = classifierRepository.insertRecipient(RecipientEntity(name = name))
             _uiState.value = _uiState.value.copy(recipientId = id)
+        }
+    }
+
+    fun deleteProduct() {
+        if (_uiState.value.isNew || productId <= 0) return
+        viewModelScope.launch {
+            val product = productRepository.getProductById(productId) ?: return@launch
+            // Удаляем файл фотографии с диска, если он есть
+            product.photoUri?.let { path ->
+                withContext(Dispatchers.IO) {
+                    runCatching { File(path).delete() }
+                }
+            }
+            productRepository.deleteProduct(product)
+            _uiState.value = _uiState.value.copy(isDeleted = true)
         }
     }
 

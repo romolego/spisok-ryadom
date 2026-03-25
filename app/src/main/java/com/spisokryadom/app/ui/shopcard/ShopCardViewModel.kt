@@ -23,6 +23,7 @@ data class ShopCardUiState(
     val displayOrder: String = "0",
     val departments: List<ShopDepartmentEntity> = emptyList(),
     val isSaved: Boolean = false,
+    val isDeleted: Boolean = false,
     val isLoading: Boolean = true
 )
 
@@ -127,6 +128,15 @@ class ShopCardViewModel(
     fun deleteDepartment(department: ShopDepartmentEntity) {
         viewModelScope.launch {
             shopRepository.deleteDepartment(department)
+        }
+    }
+
+    fun deleteShop() {
+        if (_uiState.value.isNew || currentShopId <= 0) return
+        viewModelScope.launch {
+            val shop = shopRepository.getShopById(currentShopId) ?: return@launch
+            shopRepository.deleteShop(shop)
+            _uiState.value = _uiState.value.copy(isDeleted = true)
         }
     }
 

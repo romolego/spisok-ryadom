@@ -23,6 +23,12 @@ interface ShopDepartmentDao {
     @Query("SELECT * FROM shop_departments WHERE shopId = :shopId ORDER BY displayOrder ASC, name ASC")
     suspend fun getByShopIdSync(shopId: Long): List<ShopDepartmentEntity>
 
+    @Query("SELECT * FROM shop_departments ORDER BY shopId, displayOrder ASC")
+    suspend fun getAllSync(): List<ShopDepartmentEntity>
+
+    @Query("DELETE FROM shop_departments")
+    suspend fun deleteAll()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(department: ShopDepartmentEntity): Long
 

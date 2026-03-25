@@ -31,11 +31,12 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FormatListBulleted
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PriorityHigh
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
@@ -59,10 +60,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,13 +77,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.ShopEntity
 import com.spisokryadom.app.ui.components.ConfirmDialog
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingListScreen(
     onNavigateToProducts: () -> Unit,
     onNavigateToProductCard: (Long) -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     viewModel: ShoppingListViewModel = viewModel(factory = ShoppingListViewModel.Factory)
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -165,6 +166,9 @@ fun ShoppingListScreen(
                             )
                         }
                     }
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Резервная копия")
+                    }
                 }
             )
         },
@@ -217,25 +221,43 @@ fun ShoppingListScreen(
                 // Urgent filter chip
                 item(key = "urgent_filter") {
                     val urgentCount = state.allEntries.count { it.entry.isUrgent && !it.entry.isBought }
-                    if (urgentCount > 0) {
+                    val canToggleUrgentInCollapsed = state.viewMode == ViewMode.BY_SHOPS
+                    if (urgentCount > 0 || canToggleUrgentInCollapsed) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
                                 .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.Start
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            FilterChip(
-                                selected = state.showOnlyUrgent,
-                                onClick = { viewModel.toggleUrgentFilter() },
-                                label = { Text("Только срочные ($urgentCount)") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Filled.FilterList,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            )
+                            if (urgentCount > 0) {
+                                FilterChip(
+                                    selected = state.showOnlyUrgent,
+                                    onClick = { viewModel.toggleUrgentFilter() },
+                                    label = { Text("Только срочные ($urgentCount)") },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Filled.FilterList,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                )
+                            }
+                            if (canToggleUrgentInCollapsed) {
+                                FilterChip(
+                                    selected = state.showUrgentInCollapsedShops,
+                                    onClick = { viewModel.toggleShowUrgentInCollapsedShops() },
+                                    label = { Text("Срочные в свернутых") },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Filled.PriorityHigh,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -269,9 +291,19 @@ fun ShoppingListScreen(
                         }
                     }
 
-                    if (!group.isCollapsed) {
+                    val visibleEntries = if (group.isCollapsed) {
+                        if (state.showUrgentInCollapsedShops) {
+                            group.entries.filter { it.entry.isUrgent && !it.entry.isBought }
+                        } else {
+                            emptyList()
+                        }
+                    } else {
+                        group.entries
+                    }
+
+                    if (visibleEntries.isNotEmpty()) {
                         items(
-                            items = group.entries,
+                            items = visibleEntries,
                             key = { it.entry.id }
                         ) { entryUi ->
                             ShoppingListItem(
@@ -614,18 +646,12 @@ private fun EditEntryDialog(
     onSave: (quantity: Double, shopId: Long?, note: String?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    var linkedShops by remember { mutableStateOf<List<ShopEntity>>(emptyList()) }
-    var loaded by remember { mutableStateOf(false) }
-
-    if (!loaded) {
-        scope.launch {
-            linkedShops = viewModel.getLinkedShopsForProduct(entryUi.entry.productId)
-            loaded = true
-        }
+    var linkedShops by remember(entryUi.entry.productId) { mutableStateOf<List<ShopEntity>>(emptyList()) }
+    LaunchedEffect(entryUi.entry.productId) {
+        linkedShops = viewModel.getLinkedShopsForProduct(entryUi.entry.productId)
     }
 
-    var quantity by remember {
+    var quantity by remember(entryUi.entry.id) {
         mutableStateOf(
             if (entryUi.entry.quantity > 0) {
                 if (entryUi.entry.quantity == entryUi.entry.quantity.toLong().toDouble()) {
@@ -636,8 +662,8 @@ private fun EditEntryDialog(
             } else ""
         )
     }
-    var selectedShopId by remember { mutableStateOf(entryUi.entry.assignedShopId) }
-    var note by remember { mutableStateOf(entryUi.entry.note ?: "") }
+    var selectedShopId by remember(entryUi.entry.id) { mutableStateOf(entryUi.entry.assignedShopId) }
+    var note by remember(entryUi.entry.id) { mutableStateOf(entryUi.entry.note ?: "") }
     var shopExpanded by remember { mutableStateOf(false) }
 
     val unitLabel = entryUi.entry.unit.ifBlank { null }
@@ -857,15 +883,9 @@ private fun ChangeShopDialog(
     onConfirm: (Long?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    var linkedShops by remember { mutableStateOf<List<ShopEntity>>(emptyList()) }
-    var loaded by remember { mutableStateOf(false) }
-
-    if (!loaded) {
-        scope.launch {
-            linkedShops = viewModel.getLinkedShopsForProduct(entryUi.entry.productId)
-            loaded = true
-        }
+    var linkedShops by remember(entryUi.entry.productId) { mutableStateOf<List<ShopEntity>>(emptyList()) }
+    LaunchedEffect(entryUi.entry.productId) {
+        linkedShops = viewModel.getLinkedShopsForProduct(entryUi.entry.productId)
     }
 
     val currentShopId = entryUi.entry.assignedShopId

@@ -1,6 +1,7 @@
 package com.spisokryadom.app.ui.shoplist
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import com.spisokryadom.app.data.entity.ShopEntity
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShopListScreen(
+    onNavigateToShopContent: (Long) -> Unit,
     onNavigateToShopCard: (Long) -> Unit,
     onCreateNewShop: () -> Unit,
     viewModel: ShopListViewModel = viewModel(factory = ShopListViewModel.Factory)
@@ -87,7 +89,8 @@ fun ShopListScreen(
                 items(state.shops, key = { it.id }) { shop ->
                     ShopListItem(
                         shop = shop,
-                        onTap = { onNavigateToShopCard(shop.id) }
+                        onTap = { onNavigateToShopContent(shop.id) },
+                        onLongPress = { onNavigateToShopCard(shop.id) }
                     )
                 }
                 item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -96,15 +99,20 @@ fun ShopListScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ShopListItem(
     shop: ShopEntity,
-    onTap: () -> Unit
+    onTap: () -> Unit,
+    onLongPress: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onTap() },
+            .combinedClickable(
+                onClick = onTap,
+                onLongClick = onLongPress
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
