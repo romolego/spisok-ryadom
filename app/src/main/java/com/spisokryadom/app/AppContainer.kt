@@ -27,7 +27,8 @@ class AppContainer(context: Context) {
 
     val classifierRepository = ClassifierRepository(
         database.productGroupDao(),
-        database.recipientDao()
+        database.recipientDao(),
+        database.unitDao()
     )
 
     val backupManager = BackupManager(
@@ -39,6 +40,7 @@ class AppContainer(context: Context) {
         shopDao = database.shopDao(),
         shopDepartmentDao = database.shopDepartmentDao(),
         productShopLinkDao = database.productShopLinkDao(),
-        shoppingListEntryDao = database.shoppingListEntryDao()
+        shoppingListEntryDao = database.shoppingListEntryDao(),
+        unitDao = database.unitDao()
     )
 }

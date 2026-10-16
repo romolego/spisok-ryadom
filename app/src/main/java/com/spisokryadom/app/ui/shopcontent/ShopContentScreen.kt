@@ -17,18 +17,27 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,8 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.spisokryadom.app.data.entity.ProductEntity
-import com.spisokryadom.app.ui.components.QuantityUnitInputWithSuggestions
+import com.spisokryadom.app.ui.components.InlineQuantityControl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,20 +58,21 @@ fun ShopContentScreen(
     shopId: Long,
     onNavigateBack: () -> Unit,
     onNavigateToProductCard: (Long) -> Unit,
+    onCreateNewProduct: () -> Unit,
     viewModel: ShopContentViewModel = viewModel(factory = ShopContentViewModel.factory(shopId))
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var addToListProduct by remember { mutableStateOf<ProductEntity?>(null) }
+    var fabExpanded by remember { mutableStateOf(false) }
 
-    addToListProduct?.let { product ->
-        AddToListFromShopDialog(
-            product = product,
-            unitSuggestions = state.unitSuggestions,
-            onConfirm = { qty, unit ->
-                viewModel.addToShoppingList(product, qty, unit)
-                addToListProduct = null
-            },
-            onDismiss = { addToListProduct = null }
+    // Pick products fullscreen dialog
+    if (state.showPickProducts) {
+        PickProductsDialog(
+            shopName = state.shop?.name ?: "",
+            searchQuery = state.pickSearchQuery,
+            products = state.pickProducts,
+            onSearchQueryChange = { viewModel.setPickSearchQuery(it) },
+            onToggleProduct = { viewModel.toggleProductLink(it) },
+            onDismiss = { viewModel.closePickProducts() }
         )
     }
 
@@ -77,34 +86,94 @@ fun ShopContentScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            if (state.products.isNotEmpty()) {
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (fabExpanded) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Добавить из базы",
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            SmallFloatingActionButton(
+                                onClick = {
+                                    fabExpanded = false
+                                    viewModel.openPickProducts()
+                                }
+                            ) {
+                                Icon(Icons.Filled.Inventory2, contentDescription = "Добавить из базы")
+                            }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Создать новый товар",
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            SmallFloatingActionButton(
+                                onClick = {
+                                    fabExpanded = false
+                                    onCreateNewProduct()
+                                }
+                            ) {
+                                Icon(Icons.Filled.Add, contentDescription = "Создать новый товар")
+                            }
+                        }
+                    }
+                    FloatingActionButton(onClick = { fabExpanded = !fabExpanded }) {
+                        Icon(
+                            if (fabExpanded) Icons.Filled.Close else Icons.Filled.Add,
+                            contentDescription = "Добавить товар"
+                        )
+                    }
+                }
+            }
         }
     ) { padding ->
         if (state.products.isEmpty() && !state.isLoading) {
+            // Empty state with actionable buttons
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                ) {
                     Icon(
                         Icons.Filled.Store,
                         contentDescription = null,
-                        modifier = Modifier.height(48.dp),
+                        modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        "Нет товаров в этом магазине",
+                        "В этом магазине пока нет товаров",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "Привяжите товары к этому магазину через карточку товара",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    OutlinedButton(
+                        onClick = onCreateNewProduct,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Создать новый товар")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = { viewModel.openPickProducts() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Filled.Inventory2, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Добавить из базы товаров")
+                    }
                 }
             }
         } else {
@@ -119,12 +188,203 @@ fun ShopContentScreen(
                 items(state.products, key = { it.link.id }) { productUi ->
                     ShopProductItem(
                         productUi = productUi,
-                        onTap = { addToListProduct = productUi.product },
+                        onCartClick = { viewModel.quickAddToShoppingList(productUi.product) },
+                        onIncrement = { viewModel.incrementQuantity(productUi.product.id) },
+                        onDecrement = { viewModel.decrementQuantity(productUi.product.id) },
+                        onSetQuantity = { qty -> viewModel.setQuantity(productUi.product.id, qty) },
                         onLongPress = { onNavigateToProductCard(productUi.product.id) }
                     )
                 }
-                item { Spacer(modifier = Modifier.height(16.dp)) }
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PickProductsDialog(
+    shopName: String,
+    searchQuery: String,
+    products: List<PickProductUi>,
+    onSearchQueryChange: (String) -> Unit,
+    onToggleProduct: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Добавить товары в «$shopName»") },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Filled.Close, contentDescription = "Закрыть")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                placeholder = { Text("Поиск по названию...") },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { onSearchQueryChange("") }) {
+                            Icon(Icons.Filled.Clear, contentDescription = "Очистить")
+                        }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            val linkedCount = products.count { it.isLinked }
+            val totalCount = products.size
+
+            if (totalCount > 0) {
+                Text(
+                    text = "Привязано: $linkedCount из $totalCount",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+            }
+
+            if (products.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        if (searchQuery.isNotEmpty()) "Ничего не найдено" else "Нет товаров в базе",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                val linked = products.filter { it.isLinked }
+                val unlinked = products.filter { !it.isLinked }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    if (linked.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Привязаны к магазину",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+                            )
+                        }
+                        items(linked, key = { it.product.id }) { pickUi ->
+                            PickProductItem(
+                                pickUi = pickUi,
+                                onToggle = { onToggleProduct(pickUi.product.id) }
+                            )
+                        }
+                    }
+                    if (unlinked.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Доступные для добавления",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+                            )
+                        }
+                        items(unlinked, key = { it.product.id }) { pickUi ->
+                            PickProductItem(
+                                pickUi = pickUi,
+                                onToggle = { onToggleProduct(pickUi.product.id) }
+                            )
+                        }
+                    }
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PickProductItem(
+    pickUi: PickProductUi,
+    onToggle: () -> Unit
+) {
+    val product = pickUi.product
+
+    val bgColor = if (pickUi.isLinked) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = product.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (pickUi.isLinked) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "(привязан)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                val details = buildList {
+                    if (!product.defaultUnit.isNullOrBlank()) {
+                        val qty = product.defaultQuantity?.let { q ->
+                            if (q == q.toLong().toDouble()) q.toLong().toString()
+                            else q.toString()
+                        }
+                        val unitStr = if (qty != null) "$qty ${product.defaultUnit}" else product.defaultUnit
+                        add(unitStr)
+                    }
+                    if (product.purchaseType == "online") add("онлайн")
+                }
+                if (details.isNotEmpty()) {
+                    Text(
+                        text = details.joinToString(" \u2022 "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            Checkbox(
+                checked = pickUi.isLinked,
+                onCheckedChange = { onToggle() }
+            )
         }
     }
 }
@@ -133,7 +393,10 @@ fun ShopContentScreen(
 @Composable
 private fun ShopProductItem(
     productUi: ShopProductUi,
-    onTap: () -> Unit,
+    onCartClick: () -> Unit,
+    onIncrement: () -> Unit,
+    onDecrement: () -> Unit,
+    onSetQuantity: (Double) -> Unit,
     onLongPress: () -> Unit
 ) {
     val product = productUi.product
@@ -149,7 +412,7 @@ private fun ShopProductItem(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = onTap,
+                onClick = { },
                 onLongClick = onLongPress
             ),
         colors = CardDefaults.cardColors(containerColor = bgColor),
@@ -204,53 +467,23 @@ private fun ShopProductItem(
                 }
             }
 
-            Icon(
-                Icons.Filled.AddShoppingCart,
-                contentDescription = "Добавить в список",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(8.dp)
-            )
+            if (isInList && productUi.listQuantity != null) {
+                InlineQuantityControl(
+                    quantity = productUi.listQuantity,
+                    unit = productUi.listUnit ?: "",
+                    onIncrement = onIncrement,
+                    onDecrement = onDecrement,
+                    onSetQuantity = onSetQuantity
+                )
+            } else {
+                IconButton(onClick = onCartClick) {
+                    Icon(
+                        Icons.Filled.AddShoppingCart,
+                        contentDescription = "Добавить в список",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
-}
-
-@Composable
-private fun AddToListFromShopDialog(
-    product: ProductEntity,
-    unitSuggestions: List<String>,
-    onConfirm: (Double, String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var quantity by remember {
-        mutableStateOf(
-            product.defaultQuantity?.let { q ->
-                if (q == q.toLong().toDouble()) q.toLong().toString()
-                else q.toString()
-            } ?: ""
-        )
-    }
-    var unit by remember { mutableStateOf(product.defaultUnit ?: "") }
-
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("В список: ${product.name}") },
-        text = {
-            QuantityUnitInputWithSuggestions(
-                quantity = quantity,
-                unit = unit,
-                onQuantityChange = { quantity = it },
-                onUnitChange = { unit = it },
-                unitSuggestions = unitSuggestions
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val qty = quantity.toDoubleOrNull() ?: 0.0
-                onConfirm(qty, unit.trim())
-            }) { Text("Добавить") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
 }

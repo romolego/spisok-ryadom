@@ -11,12 +11,22 @@ class ProductRepository(
     private val linkDao: ProductShopLinkDao
 ) {
     fun getAllProducts(): Flow<List<ProductEntity>> = productDao.getAll()
+    fun getAllProductsIncludingTemporary(): Flow<List<ProductEntity>> = productDao.getAllIncludingTemporary()
     fun searchProducts(query: String): Flow<List<ProductEntity>> = productDao.searchByName(query)
     fun getDistinctUnits(): Flow<List<String>> = productDao.getDistinctUnits()
+    fun getProductsByRecipientId(recipientId: Long): Flow<List<ProductEntity>> =
+        productDao.getByRecipientId(recipientId)
+    fun getProductsByGroupId(groupId: Long): Flow<List<ProductEntity>> =
+        productDao.getByGroupId(groupId)
+    fun getProductsByUnit(unit: String): Flow<List<ProductEntity>> = productDao.getByUnit(unit)
+    suspend fun renameUnit(oldUnit: String, newUnit: String) = productDao.renameUnit(oldUnit, newUnit)
+    suspend fun clearUnit(unit: String) = productDao.clearUnit(unit)
     suspend fun getProductById(id: Long): ProductEntity? = productDao.getById(id)
     suspend fun insertProduct(product: ProductEntity): Long = productDao.insert(product)
     suspend fun updateProduct(product: ProductEntity) = productDao.update(product)
     suspend fun deleteProduct(product: ProductEntity) = productDao.delete(product)
+
+    fun getAllShopLinks(): Flow<List<ProductShopLinkEntity>> = linkDao.getAll()
 
     fun getShopLinksForProduct(productId: Long): Flow<List<ProductShopLinkEntity>> =
         linkDao.getLinksForProduct(productId)

@@ -10,5 +10,11 @@ data class ShopEntity(
     val name: String,
     val address: String? = null,
     val note: String? = null,
-    val displayOrder: Int = 0
+    val displayOrder: Int = 0,
+    /** null = use global default, true/false = local override */
+    val showUrgentInCollapsed: Boolean? = null,
+    /** null = use global default, true/false = local override */
+    val boostUrgentShop: Boolean? = null,
+    /** true if user manually reordered this shop — suppresses auto-boost */
+    val manualOrderOverride: Boolean = false
 )

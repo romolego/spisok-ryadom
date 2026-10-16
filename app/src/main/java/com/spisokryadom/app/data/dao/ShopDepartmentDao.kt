@@ -35,6 +35,18 @@ interface ShopDepartmentDao {
     @Update
     suspend fun update(department: ShopDepartmentEntity)
 
+    @Query("SELECT DISTINCT name FROM shop_departments ORDER BY name ASC")
+    fun getDistinctNames(): Flow<List<String>>
+
     @Delete
     suspend fun delete(department: ShopDepartmentEntity)
+
+    @Update
+    suspend fun updateAll(departments: List<ShopDepartmentEntity>)
+
+    @Query("UPDATE shop_departments SET name = :newName WHERE name = :oldName")
+    suspend fun renameAll(oldName: String, newName: String)
+
+    @Query("DELETE FROM shop_departments WHERE name = :name")
+    suspend fun deleteAllByName(name: String)
 }

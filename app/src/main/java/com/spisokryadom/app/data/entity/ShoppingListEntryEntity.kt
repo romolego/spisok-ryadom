@@ -44,6 +44,7 @@ data class ShoppingListEntryEntity(
     val isBought: Boolean = false,
     val isUrgent: Boolean = false,
     val note: String? = null,
+    val comment: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

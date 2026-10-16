@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.spisokryadom.app.ui.addtolist.AddToListScreen
 import com.spisokryadom.app.ui.productcard.ProductCardScreen
 import com.spisokryadom.app.ui.productdb.ProductDatabaseScreen
 import com.spisokryadom.app.ui.settings.SettingsScreen
@@ -86,8 +87,11 @@ fun AppNavGraph() {
         ) {
             composable(Routes.ShoppingList.route) {
                 ShoppingListScreen(
-                    onNavigateToProducts = {
-                        navController.navigate(Routes.ProductDatabase.route)
+                    onNavigateToAddToList = {
+                        navController.navigate(Routes.AddToList.createRoute())
+                    },
+                    onNavigateToAddToShop = { shopId ->
+                        navController.navigate(Routes.AddToList.createRoute(preselectedShopId = shopId))
                     },
                     onNavigateToProductCard = { productId ->
                         navController.navigate(Routes.ProductCard.createRoute(productId))
@@ -133,17 +137,28 @@ fun AppNavGraph() {
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToProductCard = { productId ->
                         navController.navigate(Routes.ProductCard.createRoute(productId))
+                    },
+                    onCreateNewProduct = {
+                        navController.navigate(Routes.ProductCard.createRoute(-1L, preselectedShopId = shopId))
                     }
                 )
             }
 
             composable(
                 route = Routes.ProductCard.route,
-                arguments = listOf(navArgument("productId") { type = NavType.LongType })
+                arguments = listOf(
+                    navArgument("productId") { type = NavType.LongType },
+                    navArgument("preselectedShopId") {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    }
+                )
             ) { backStackEntry ->
                 val productId = backStackEntry.arguments?.getLong("productId") ?: -1L
+                val preselectedShopId = backStackEntry.arguments?.getLong("preselectedShopId") ?: -1L
                 ProductCardScreen(
                     productId = productId,
+                    preselectedShopId = preselectedShopId,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
@@ -155,6 +170,22 @@ fun AppNavGraph() {
                 val shopId = backStackEntry.arguments?.getLong("shopId") ?: -1L
                 ShopCardScreen(
                     shopId = shopId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Routes.AddToList.route,
+                arguments = listOf(
+                    navArgument("preselectedShopId") {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    }
+                )
+            ) { backStackEntry ->
+                val preselectedShopId = backStackEntry.arguments?.getLong("preselectedShopId") ?: -1L
+                AddToListScreen(
+                    preselectedShopId = if (preselectedShopId > 0) preselectedShopId else null,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

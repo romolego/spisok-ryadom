@@ -41,5 +41,6 @@ data class ProductEntity(
     val productUrl: String? = null,
     val photoUri: String? = null,
     val priceValue: Double? = null,
-    val priceDate: String? = null
+    val priceDate: String? = null,
+    val isTemporary: Boolean = false
 )

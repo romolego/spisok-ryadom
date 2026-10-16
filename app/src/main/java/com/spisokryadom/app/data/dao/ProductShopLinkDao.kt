@@ -27,6 +27,9 @@ interface ProductShopLinkDao {
     suspend fun getById(id: Long): ProductShopLinkEntity?
 
     @Query("SELECT * FROM product_shop_links")
+    fun getAll(): Flow<List<ProductShopLinkEntity>>
+
+    @Query("SELECT * FROM product_shop_links")
     suspend fun getAllSync(): List<ProductShopLinkEntity>
 
     @Query("DELETE FROM product_shop_links WHERE productId = :productId")

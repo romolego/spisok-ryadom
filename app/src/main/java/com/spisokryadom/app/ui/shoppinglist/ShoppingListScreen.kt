@@ -20,19 +20,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FormatListBulleted
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PriorityHigh
@@ -73,6 +74,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.ShopEntity
@@ -81,24 +83,39 @@ import com.spisokryadom.app.ui.components.ConfirmDialog
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingListScreen(
-    onNavigateToProducts: () -> Unit,
+    onNavigateToAddToList: () -> Unit,
+    onNavigateToAddToShop: (Long) -> Unit = {},
     onNavigateToProductCard: (Long) -> Unit,
     onNavigateToSettings: () -> Unit = {},
     viewModel: ShoppingListViewModel = viewModel(factory = ShoppingListViewModel.Factory)
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+    var scrollTargetShopId by remember { mutableStateOf<Long?>(null) }
     var showClearDialog by remember { mutableStateOf(false) }
     var showEditEntryFor by remember { mutableStateOf<ShoppingListEntryUi?>(null) }
     var showContextMenuFor by remember { mutableStateOf<ShoppingListEntryUi?>(null) }
     var showChangeShopFor by remember { mutableStateOf<ShoppingListEntryUi?>(null) }
+    var showDeleteConfirmFor by remember { mutableStateOf<ShoppingListEntryUi?>(null) }
+
+    // After the groups list updates, scroll to keep the moved shop group header visible
+    LaunchedEffect(state.groups) {
+        val targetId = scrollTargetShopId ?: return@LaunchedEffect
+        val groupIndex = state.groups.indexOfFirst { it.groupId == targetId }
+        if (groupIndex >= 0) {
+            val flatIndex = computeGroupHeaderFlatIndex(state.groups, state.viewMode, state.totalCount, groupIndex)
+            listState.animateScrollToItem(flatIndex)
+        }
+        scrollTargetShopId = null
+    }
 
     showEditEntryFor?.let { entryUi ->
         EditEntryDialog(
             entryUi = entryUi,
             allShops = state.shops,
             viewModel = viewModel,
-            onSave = { qty, shopId, note ->
-                viewModel.updateEntryDetails(entryUi.entry.id, qty, shopId, note)
+            onSave = { qty, shopId, note, comment ->
+                viewModel.updateEntryDetails(entryUi.entry.id, qty, shopId, note, comment)
                 showEditEntryFor = null
             },
             onDismiss = { showEditEntryFor = null }
@@ -121,8 +138,8 @@ fun ShoppingListScreen(
                 showContextMenuFor = null
             },
             onRemove = {
-                viewModel.removeEntry(entryUi.entry.id)
                 showContextMenuFor = null
+                showDeleteConfirmFor = entryUi
             },
             onDismiss = { showContextMenuFor = null }
         )
@@ -137,6 +154,18 @@ fun ShoppingListScreen(
                 showClearDialog = false
             },
             onDismiss = { showClearDialog = false }
+        )
+    }
+
+    showDeleteConfirmFor?.let { entryUi ->
+        ConfirmDialog(
+            title = "Удалить из списка",
+            message = "Удалить «${entryUi.productName}» из списка покупок?",
+            onConfirm = {
+                viewModel.removeEntry(entryUi.entry.id)
+                showDeleteConfirmFor = null
+            },
+            onDismiss = { showDeleteConfirmFor = null }
         )
     }
 
@@ -173,12 +202,12 @@ fun ShoppingListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToProducts) {
-                Icon(Icons.Filled.Add, contentDescription = "Добавить товар")
+            FloatingActionButton(onClick = onNavigateToAddToList) {
+                Icon(Icons.Filled.Add, contentDescription = "Добавить в список")
             }
         }
     ) { padding ->
-        val totalEntries = state.allEntries.size
+        val totalEntries = state.totalCount
         val isEmpty = totalEntries == 0 && !state.isLoading
 
         if (isEmpty) {
@@ -204,6 +233,7 @@ fun ShoppingListScreen(
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
@@ -211,54 +241,17 @@ fun ShoppingListScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 // View mode switcher
-                item(key = "view_mode_switcher") {
+                item(key = "view_mode_switcher", contentType = "switcher") {
                     ViewModeSwitcher(
                         currentMode = state.viewMode,
                         onModeSelected = { viewModel.setViewMode(it) }
                     )
                 }
 
-                // Urgent filter chip
-                item(key = "urgent_filter") {
-                    val urgentCount = state.allEntries.count { it.entry.isUrgent && !it.entry.isBought }
-                    val canToggleUrgentInCollapsed = state.viewMode == ViewMode.BY_SHOPS
-                    if (urgentCount > 0 || canToggleUrgentInCollapsed) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState())
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            if (urgentCount > 0) {
-                                FilterChip(
-                                    selected = state.showOnlyUrgent,
-                                    onClick = { viewModel.toggleUrgentFilter() },
-                                    label = { Text("Только срочные ($urgentCount)") },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Filled.FilterList,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                )
-                            }
-                            if (canToggleUrgentInCollapsed) {
-                                FilterChip(
-                                    selected = state.showUrgentInCollapsedShops,
-                                    onClick = { viewModel.toggleShowUrgentInCollapsedShops() },
-                                    label = { Text("Срочные в свернутых") },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Filled.PriorityHigh,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                )
-                            }
-                        }
+                // Summary line
+                if (totalEntries > 0) {
+                    item(key = "summary", contentType = "summary") {
+                        ListSummary(totalCount = totalEntries, boughtCount = state.boughtCount)
                     }
                 }
 
@@ -267,7 +260,7 @@ fun ShoppingListScreen(
                 val isByShops = state.viewMode == ViewMode.BY_SHOPS
                 state.groups.forEachIndexed { groupIndex, group ->
                     if (showGroupHeaders) {
-                        item(key = "header_${state.viewMode}_${group.groupName}") {
+                        item(key = "header_${state.viewMode}_${group.groupName}", contentType = "group_header") {
                             EntryGroupHeader(
                                 group = group,
                                 viewMode = state.viewMode,
@@ -278,21 +271,30 @@ fun ShoppingListScreen(
                                     { viewModel.toggleShopCollapsed(group.groupId) }
                                 } else null,
                                 onMoveUp = if (isByShops && group.groupId != null && groupIndex > 0) {
-                                    { viewModel.moveShopUp(group.groupId) }
+                                    {
+                                        viewModel.moveShopUp(group.groupId)
+                                        scrollTargetShopId = group.groupId
+                                    }
                                 } else null,
                                 onMoveDown = if (isByShops && group.groupId != null && groupIndex < state.groups.lastIndex) {
                                     // Don't allow moving below "Без магазина" (groupId == null is always last)
                                     val nextIsNoShop = state.groups.getOrNull(groupIndex + 1)?.groupId == null
                                     if (!nextIsNoShop) {
-                                        { viewModel.moveShopDown(group.groupId) }
+                                        {
+                                            viewModel.moveShopDown(group.groupId)
+                                            scrollTargetShopId = group.groupId
+                                        }
                                     } else null
+                                } else null,
+                                onAddToShop = if (isByShops && group.groupId != null) {
+                                    { onNavigateToAddToShop(group.groupId!!) }
                                 } else null
                             )
                         }
                     }
 
                     val visibleEntries = if (group.isCollapsed) {
-                        if (state.showUrgentInCollapsedShops) {
+                        if (group.showUrgentWhenCollapsed) {
                             group.entries.filter { it.entry.isUrgent && !it.entry.isBought }
                         } else {
                             emptyList()
@@ -301,10 +303,57 @@ fun ShoppingListScreen(
                         group.entries
                     }
 
-                    if (visibleEntries.isNotEmpty()) {
+                    // Compact urgency indicator: shown when shop is collapsed,
+                    // urgent items are hidden, but there ARE urgent items inside
+                    if (group.isCollapsed && !group.showUrgentWhenCollapsed && group.urgentCount > 0) {
+                        item(key = "urgent_indicator_${group.groupId}", contentType = "urgent_indicator") {
+                            UrgentHiddenIndicator(urgentCount = group.urgentCount)
+                        }
+                    }
+
+                    // In shop view (expanded), show dept sub-group headers when there are
+                    // multiple dept groups within the shop
+                    val useDeptSubGroups = isByShops
+                            && !group.isCollapsed
+                            && group.deptSubGroups.size > 1
+
+                    if (useDeptSubGroups) {
+                        group.deptSubGroups.forEach { subGroup ->
+                            if (subGroup.entries.isNotEmpty()) {
+                                item(key = "dept_${group.groupId}_${subGroup.deptId}", contentType = "dept_header") {
+                                    DeptSubGroupHeader(
+                                        name = subGroup.deptName ?: "Без группы магазина"
+                                    )
+                                }
+                                items(
+                                    items = subGroup.entries,
+                                    key = { it.entry.id },
+                                    contentType = { "entry" }
+                                ) { entryUi ->
+                                    ShoppingListItem(
+                                        entryUi = entryUi,
+                                        viewMode = state.viewMode,
+                                        onToggleBought = {
+                                            if (entryUi.entry.isBought) {
+                                                viewModel.markNotBought(entryUi.entry.id)
+                                            } else {
+                                                viewModel.markBought(entryUi.entry.id)
+                                            }
+                                        },
+                                        onToggleUrgent = { viewModel.toggleUrgent(entryUi.entry.id) },
+                                        onEditEntry = { showEditEntryFor = entryUi },
+                                        onLongPress = { showContextMenuFor = entryUi },
+                                        onIncreaseQuantity = { viewModel.increaseQuantity(entryUi.entry.id) },
+                                        onDecreaseQuantity = { viewModel.decreaseQuantity(entryUi.entry.id) }
+                                    )
+                                }
+                            }
+                        }
+                    } else if (visibleEntries.isNotEmpty()) {
                         items(
                             items = visibleEntries,
-                            key = { it.entry.id }
+                            key = { it.entry.id },
+                            contentType = { "entry" }
                         ) { entryUi ->
                             ShoppingListItem(
                                 entryUi = entryUi,
@@ -318,13 +367,15 @@ fun ShoppingListScreen(
                                 },
                                 onToggleUrgent = { viewModel.toggleUrgent(entryUi.entry.id) },
                                 onEditEntry = { showEditEntryFor = entryUi },
-                                onLongPress = { showContextMenuFor = entryUi }
+                                onLongPress = { showContextMenuFor = entryUi },
+                                onIncreaseQuantity = { viewModel.increaseQuantity(entryUi.entry.id) },
+                                onDecreaseQuantity = { viewModel.decreaseQuantity(entryUi.entry.id) }
                             )
                         }
                     }
                 }
 
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+                item(contentType = "spacer") { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
@@ -359,11 +410,109 @@ private fun ViewModeSwitcher(
     }
 }
 
+@Composable
+private fun ListSummary(totalCount: Int, boughtCount: Int) {
+    val activeCount = totalCount - boughtCount
+    val text = if (boughtCount > 0) {
+        "В списке: $totalCount · куплено $boughtCount"
+    } else {
+        "В списке: $totalCount"
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+    )
+}
+
+/** Computes the flat LazyColumn item index of a group header at [targetGroupIndex]. */
+private fun computeGroupHeaderFlatIndex(
+    groups: List<EntryGroup>,
+    viewMode: ViewMode,
+    totalCount: Int,
+    targetGroupIndex: Int
+): Int {
+    var idx = 1 // view_mode_switcher at position 0
+    if (totalCount > 0) idx++ // summary item
+
+    val isByShops = viewMode == ViewMode.BY_SHOPS
+
+    for (i in 0 until targetGroupIndex) {
+        val group = groups[i]
+        idx++ // group header
+
+        if (group.isCollapsed) {
+            if (!group.showUrgentWhenCollapsed && group.urgentCount > 0) {
+                idx++ // urgent indicator
+            }
+            if (group.showUrgentWhenCollapsed) {
+                idx += group.entries.count { it.entry.isUrgent && !it.entry.isBought }
+            }
+        } else {
+            val useDeptSubGroups = isByShops && group.deptSubGroups.size > 1
+            if (useDeptSubGroups) {
+                group.deptSubGroups.forEach { subGroup ->
+                    if (subGroup.entries.isNotEmpty()) {
+                        idx++ // dept sub-group header
+                        idx += subGroup.entries.size
+                    }
+                }
+            } else {
+                idx += group.entries.size
+            }
+        }
+    }
+    return idx
+}
+
 private fun viewModeIcon(mode: ViewMode): ImageVector = when (mode) {
     ViewMode.BY_SHOPS -> Icons.Filled.Store
     ViewMode.BY_GROUPS -> Icons.Filled.Label
     ViewMode.BY_RECIPIENTS -> Icons.Filled.Person
     ViewMode.FLAT -> Icons.Filled.FormatListBulleted
+}
+
+/** Compact indicator shown when a collapsed shop has urgent items but they are hidden */
+@Composable
+private fun UrgentHiddenIndicator(urgentCount: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .background(
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Filled.PriorityHigh,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = "Срочных внутри: $urgentCount",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.error
+        )
+    }
+}
+
+/** Sub-group header for a shop department within the shop block */
+@Composable
+private fun DeptSubGroupHeader(name: String) {
+    Text(
+        text = name,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp, top = 10.dp, bottom = 2.dp, end = 8.dp)
+    )
 }
 
 @Composable
@@ -373,7 +522,8 @@ private fun EntryGroupHeader(
     onClearBought: () -> Unit,
     onToggleCollapsed: (() -> Unit)? = null,
     onMoveUp: (() -> Unit)? = null,
-    onMoveDown: (() -> Unit)? = null
+    onMoveDown: (() -> Unit)? = null,
+    onAddToShop: (() -> Unit)? = null
 ) {
     var showClearDialog by remember { mutableStateOf(false) }
 
@@ -427,6 +577,17 @@ private fun EntryGroupHeader(
             modifier = Modifier.weight(1f)
         )
 
+        // Compact urgent badge in header when collapsed and showing urgent
+        if (group.isCollapsed && group.showUrgentWhenCollapsed && group.urgentCount > 0) {
+            Icon(
+                Icons.Filled.PriorityHigh,
+                contentDescription = "Есть срочные",
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+        }
+
         // Count info
         val countText = if (group.boughtCount > 0) {
             "$activeCount / ${group.totalCount}"
@@ -439,30 +600,48 @@ private fun EntryGroupHeader(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // Reorder buttons (only in shop view for real shops)
-        if (onMoveUp != null) {
+        // Add product to this shop
+        if (onAddToShop != null) {
             IconButton(
-                onClick = onMoveUp,
+                onClick = onAddToShop,
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
-                    Icons.Filled.KeyboardArrowUp,
-                    contentDescription = "Переместить вверх",
+                    Icons.Filled.Add,
+                    contentDescription = "Добавить товар в ${group.groupName}",
                     modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
-        if (onMoveDown != null) {
+
+        // Reorder buttons (always rendered in shop view for real shops to prevent layout shift)
+        val showMoveSlots = viewMode == ViewMode.BY_SHOPS && group.groupId != null
+        if (showMoveSlots) {
             IconButton(
-                onClick = onMoveDown,
+                onClick = { onMoveUp?.invoke() },
+                enabled = onMoveUp != null,
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
-                    Icons.Filled.KeyboardArrowDown,
+                    Icons.Filled.ArrowUpward,
+                    contentDescription = "Переместить вверх",
+                    modifier = Modifier.size(18.dp),
+                    tint = if (onMoveUp != null) MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
+                )
+            }
+            IconButton(
+                onClick = { onMoveDown?.invoke() },
+                enabled = onMoveDown != null,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Filled.ArrowDownward,
                     contentDescription = "Переместить вниз",
                     modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (onMoveDown != null) MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
                 )
             }
         }
@@ -492,11 +671,14 @@ private fun ShoppingListItem(
     onToggleBought: () -> Unit,
     onToggleUrgent: () -> Unit,
     onEditEntry: () -> Unit,
-    onLongPress: () -> Unit
+    onLongPress: () -> Unit,
+    onIncreaseQuantity: () -> Unit,
+    onDecreaseQuantity: () -> Unit
 ) {
     val entry = entryUi.entry
     val isBought = entry.isBought
     val isUrgent = entry.isUrgent
+    val quantityStep = entryUi.defaultQuantity?.takeIf { it > 0.0 } ?: 1.0
 
     val bgColor by animateColorAsState(
         targetValue = when {
@@ -592,8 +774,11 @@ private fun ShoppingListItem(
                 if (detailParts.isNotEmpty()) {
                     Text(
                         text = detailParts.joinToString(" \u2022 "),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -608,21 +793,40 @@ private fun ShoppingListItem(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+
+                if (!entry.comment.isNullOrBlank()) {
+                    Text(
+                        text = "💬 ${entry.comment}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
-            // Right side: quantity badge
+            // Right side: inline quantity control
             Spacer(modifier = Modifier.width(4.dp))
-            Box(
+            Row(
                 modifier = Modifier
-                    .widthIn(min = 44.dp)
                     .background(
                         if (!isBought) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                         else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                         RoundedCornerShape(8.dp)
-                    )
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                contentAlignment = Alignment.Center
+                    ),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(
+                    onClick = onDecreaseQuantity,
+                    enabled = !isBought && entry.quantity > quantityStep,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Remove,
+                        contentDescription = "Уменьшить",
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
                 Text(
                     text = badgeText ?: "\u2014",
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -630,8 +834,21 @@ private fun ShoppingListItem(
                     ),
                     color = if (badgeText != null) MaterialTheme.colorScheme.onPrimaryContainer
                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    maxLines = 1
+                    maxLines = 1,
+                    modifier = Modifier.widthIn(min = 24.dp).padding(horizontal = 2.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
+                IconButton(
+                    onClick = onIncreaseQuantity,
+                    enabled = !isBought,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = "Увеличить",
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }
@@ -643,7 +860,7 @@ private fun EditEntryDialog(
     entryUi: ShoppingListEntryUi,
     allShops: List<ShopEntity>,
     viewModel: ShoppingListViewModel,
-    onSave: (quantity: Double, shopId: Long?, note: String?) -> Unit,
+    onSave: (quantity: Double, shopId: Long?, note: String?, comment: String?) -> Unit,
     onDismiss: () -> Unit
 ) {
     var linkedShops by remember(entryUi.entry.productId) { mutableStateOf<List<ShopEntity>>(emptyList()) }
@@ -664,6 +881,7 @@ private fun EditEntryDialog(
     }
     var selectedShopId by remember(entryUi.entry.id) { mutableStateOf(entryUi.entry.assignedShopId) }
     var note by remember(entryUi.entry.id) { mutableStateOf(entryUi.entry.note ?: "") }
+    var comment by remember(entryUi.entry.id) { mutableStateOf(entryUi.entry.comment ?: "") }
     var shopExpanded by remember { mutableStateOf(false) }
 
     val unitLabel = entryUi.entry.unit.ifBlank { null }
@@ -763,12 +981,24 @@ private fun EditEntryDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // One-time comment for this specific purchase
+                OutlinedTextField(
+                    value = comment,
+                    onValueChange = { comment = it },
+                    label = { Text("Комментарий к покупке") },
+                    placeholder = { Text("Уточнение для этой покупки") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                val qty = quantity.toDoubleOrNull() ?: 0.0
-                onSave(qty, selectedShopId, note.ifBlank { null })
+                val qty = (quantity.toDoubleOrNull() ?: 1.0).coerceAtLeast(1.0)
+                onSave(qty, selectedShopId, note.ifBlank { null }, comment.ifBlank { null })
             }) { Text("Сохранить") }
         },
         dismissButton = {
@@ -794,18 +1024,21 @@ private fun EntryContextMenuDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onOpenProductCard() }
+                        .clickable { onToggleUrgent() }
                         .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Filled.Edit,
+                        Icons.Filled.PriorityHigh,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = if (entryUi.entry.isUrgent) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Карточка товара")
+                    Text(
+                        if (entryUi.entry.isUrgent) "Снять срочность" else "Сделать срочным"
+                    )
                 }
 
                 Row(
@@ -828,21 +1061,18 @@ private fun EntryContextMenuDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onToggleUrgent() }
+                        .clickable { onOpenProductCard() }
                         .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Filled.PriorityHigh,
+                        Icons.Filled.Edit,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = if (entryUi.entry.isUrgent) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        if (entryUi.entry.isUrgent) "Снять срочность" else "Сделать срочным"
-                    )
+                    Text("Карточка товара")
                 }
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))

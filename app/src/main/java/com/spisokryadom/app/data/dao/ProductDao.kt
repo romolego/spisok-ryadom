@@ -11,10 +11,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductDao {
-    @Query("SELECT * FROM products ORDER BY name ASC")
+    @Query("SELECT * FROM products WHERE isTemporary = 0 ORDER BY name ASC")
     fun getAll(): Flow<List<ProductEntity>>
 
-    @Query("SELECT * FROM products WHERE name LIKE '%' || :query || '%' ORDER BY name ASC")
+    @Query("SELECT * FROM products ORDER BY name ASC")
+    fun getAllIncludingTemporary(): Flow<List<ProductEntity>>
+
+    @Query("SELECT * FROM products WHERE isTemporary = 0 AND name LIKE '%' || :query || '%' ORDER BY name ASC")
     fun searchByName(query: String): Flow<List<ProductEntity>>
 
     @Query("SELECT * FROM products WHERE id = :id")
@@ -22,6 +25,21 @@ interface ProductDao {
 
     @Query("SELECT DISTINCT defaultUnit FROM products WHERE defaultUnit IS NOT NULL AND defaultUnit != '' ORDER BY defaultUnit ASC")
     fun getDistinctUnits(): Flow<List<String>>
+
+    @Query("SELECT * FROM products WHERE recipientId = :recipientId ORDER BY name ASC")
+    fun getByRecipientId(recipientId: Long): Flow<List<ProductEntity>>
+
+    @Query("SELECT * FROM products WHERE productGroupId = :groupId ORDER BY name ASC")
+    fun getByGroupId(groupId: Long): Flow<List<ProductEntity>>
+
+    @Query("SELECT * FROM products WHERE defaultUnit = :unit ORDER BY name ASC")
+    fun getByUnit(unit: String): Flow<List<ProductEntity>>
+
+    @Query("UPDATE products SET defaultUnit = :newUnit WHERE defaultUnit = :oldUnit")
+    suspend fun renameUnit(oldUnit: String, newUnit: String)
+
+    @Query("UPDATE products SET defaultUnit = NULL WHERE defaultUnit = :unit")
+    suspend fun clearUnit(unit: String)
 
     @Query("SELECT * FROM products ORDER BY name ASC")
     suspend fun getAllSync(): List<ProductEntity>

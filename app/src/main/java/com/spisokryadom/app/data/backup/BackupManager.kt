@@ -11,12 +11,14 @@ import com.spisokryadom.app.data.dao.RecipientDao
 import com.spisokryadom.app.data.dao.ShopDao
 import com.spisokryadom.app.data.dao.ShopDepartmentDao
 import com.spisokryadom.app.data.dao.ShoppingListEntryDao
+import com.spisokryadom.app.data.dao.UnitDao
 import com.spisokryadom.app.data.entity.ProductEntity
 import com.spisokryadom.app.data.entity.ProductGroupEntity
 import com.spisokryadom.app.data.entity.ProductShopLinkEntity
 import com.spisokryadom.app.data.entity.RecipientEntity
 import com.spisokryadom.app.data.entity.ShopDepartmentEntity
 import com.spisokryadom.app.data.entity.ShopEntity
+import com.spisokryadom.app.data.entity.UnitEntity
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -53,7 +55,8 @@ class BackupManager(
     private val shopDao: ShopDao,
     private val shopDepartmentDao: ShopDepartmentDao,
     private val productShopLinkDao: ProductShopLinkDao,
-    private val shoppingListEntryDao: ShoppingListEntryDao
+    private val shoppingListEntryDao: ShoppingListEntryDao,
+    private val unitDao: UnitDao
 ) {
 
     private val photosDir: File
@@ -66,8 +69,9 @@ class BackupManager(
         val recipients = recipientDao.getAllSync()
         val shops = shopDao.getAllSync()
         val departments = shopDepartmentDao.getAllSync()
-        val products = productDao.getAllSync()
+        val products = productDao.getAllSync().filter { !it.isTemporary }
         val links = productShopLinkDao.getAllSync()
+        val units = unitDao.getAllSync()
 
         val data = JSONObject().apply {
             put("productGroups", groupsToJson(groups))
@@ -76,6 +80,7 @@ class BackupManager(
             put("shopDepartments", departmentsToJson(departments))
             put("products", productsToJson(products))
             put("productShopLinks", linksToJson(links))
+            put("units", unitsToJson(units))
         }
 
         val timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
@@ -114,6 +119,7 @@ class BackupManager(
         val departments = data.getJSONArray("shopDepartments").toShopDepartments()
         val productsWithPhotos = data.getJSONArray("products").toProductsWithPhotos()
         val links = data.getJSONArray("productShopLinks").toProductShopLinks()
+        val units = if (data.has("units")) data.getJSONArray("units").toUnits() else emptyList()
 
         // Восстанавливаем фото-файлы до транзакции
         deleteAllProductPhotos()
@@ -141,10 +147,12 @@ class BackupManager(
             shopDao.deleteAll()
             productGroupDao.deleteAll()
             recipientDao.deleteAll()
+            unitDao.deleteAll()
 
             // Порядок вставки: сначала родительские таблицы
             groups.forEach { productGroupDao.insert(it) }
             recipients.forEach { recipientDao.insert(it) }
+            units.forEach { unitDao.insert(it) }
             shops.forEach { shopDao.insert(it) }
             departments.forEach { shopDepartmentDao.insert(it) }
             products.forEach { productDao.insert(it) }
@@ -195,6 +203,7 @@ class BackupManager(
             arr.put(JSONObject().apply {
                 put("id", g.id)
                 put("name", g.name)
+                put("displayOrder", g.displayOrder)
             })
         }
     }
@@ -204,6 +213,7 @@ class BackupManager(
             arr.put(JSONObject().apply {
                 put("id", r.id)
                 put("name", r.name)
+                put("displayOrder", r.displayOrder)
             })
         }
     }
@@ -216,6 +226,9 @@ class BackupManager(
                 putOpt("address", s.address)
                 putOpt("note", s.note)
                 put("displayOrder", s.displayOrder)
+                if (s.showUrgentInCollapsed != null) put("showUrgentInCollapsed", s.showUrgentInCollapsed)
+                if (s.boostUrgentShop != null) put("boostUrgentShop", s.boostUrgentShop)
+                put("manualOrderOverride", s.manualOrderOverride)
             })
         }
     }
@@ -256,6 +269,16 @@ class BackupManager(
         }
     }
 
+    private fun unitsToJson(list: List<UnitEntity>) = JSONArray().also { arr ->
+        list.forEach { u ->
+            arr.put(JSONObject().apply {
+                put("id", u.id)
+                put("name", u.name)
+                put("displayOrder", u.displayOrder)
+            })
+        }
+    }
+
     private fun linksToJson(list: List<ProductShopLinkEntity>) = JSONArray().also { arr ->
         list.forEach { l ->
             arr.put(JSONObject().apply {
@@ -272,12 +295,20 @@ class BackupManager(
 
     private fun JSONArray.toProductGroups() = (0 until length()).map { i ->
         val o = getJSONObject(i)
-        ProductGroupEntity(id = o.getLong("id"), name = o.getString("name"))
+        ProductGroupEntity(
+            id = o.getLong("id"),
+            name = o.getString("name"),
+            displayOrder = o.optInt("displayOrder", 0)
+        )
     }
 
     private fun JSONArray.toRecipients() = (0 until length()).map { i ->
         val o = getJSONObject(i)
-        RecipientEntity(id = o.getLong("id"), name = o.getString("name"))
+        RecipientEntity(
+            id = o.getLong("id"),
+            name = o.getString("name"),
+            displayOrder = o.optInt("displayOrder", 0)
+        )
     }
 
     private fun JSONArray.toShops() = (0 until length()).map { i ->
@@ -287,7 +318,10 @@ class BackupManager(
             name = o.getString("name"),
             address = o.optString("address").ifEmpty { null },
             note = o.optString("note").ifEmpty { null },
-            displayOrder = o.optInt("displayOrder", 0)
+            displayOrder = o.optInt("displayOrder", 0),
+            showUrgentInCollapsed = if (o.has("showUrgentInCollapsed")) o.getBoolean("showUrgentInCollapsed") else null,
+            boostUrgentShop = if (o.has("boostUrgentShop")) o.getBoolean("boostUrgentShop") else null,
+            manualOrderOverride = o.optBoolean("manualOrderOverride", false)
         )
     }
 
@@ -327,6 +361,15 @@ class BackupManager(
             product to photoBase64
         }
 
+    private fun JSONArray.toUnits() = (0 until length()).map { i ->
+        val o = getJSONObject(i)
+        UnitEntity(
+            id = o.getLong("id"),
+            name = o.getString("name"),
+            displayOrder = o.optInt("displayOrder", 0)
+        )
+    }
+
     private fun JSONArray.toProductShopLinks() = (0 until length()).map { i ->
         val o = getJSONObject(i)
         ProductShopLinkEntity(
@@ -339,7 +382,7 @@ class BackupManager(
     }
 
     companion object {
-        const val BACKUP_VERSION = 2
+        const val BACKUP_VERSION = 3
         const val BACKUP_FILE_MIME = "application/json"
         const val BACKUP_FILE_NAME_PREFIX = "spisok_ryadom_backup"
     }

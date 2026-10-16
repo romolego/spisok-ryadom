@@ -11,6 +11,7 @@ class ShopRepository(
     private val departmentDao: ShopDepartmentDao
 ) {
     fun getAllShops(): Flow<List<ShopEntity>> = shopDao.getAllOrdered()
+    suspend fun getAllShopsSync(): List<ShopEntity> = shopDao.getAllSync()
     suspend fun getShopById(id: Long): ShopEntity? = shopDao.getById(id)
     suspend fun insertShop(shop: ShopEntity): Long = shopDao.insert(shop)
     suspend fun updateShop(shop: ShopEntity) = shopDao.update(shop)
@@ -27,5 +28,16 @@ class ShopRepository(
     suspend fun insertDepartment(dept: ShopDepartmentEntity): Long = departmentDao.insert(dept)
     suspend fun updateDepartment(dept: ShopDepartmentEntity) = departmentDao.update(dept)
     suspend fun deleteDepartment(dept: ShopDepartmentEntity) = departmentDao.delete(dept)
+    fun getDistinctDepartmentNames(): Flow<List<String>> = departmentDao.getDistinctNames()
+
+    suspend fun updateDepartments(departments: List<ShopDepartmentEntity>) =
+        departmentDao.updateAll(departments)
+
     suspend fun updateShops(shops: List<ShopEntity>) = shopDao.updateAll(shops)
+
+    suspend fun renameDepartmentGlobally(oldName: String, newName: String) =
+        departmentDao.renameAll(oldName, newName)
+
+    suspend fun deleteDepartmentGlobally(name: String) =
+        departmentDao.deleteAllByName(name)
 }

@@ -9,6 +9,7 @@ import com.spisokryadom.app.data.entity.RecipientEntity
 import com.spisokryadom.app.data.entity.ShopDepartmentEntity
 import com.spisokryadom.app.data.entity.ShopEntity
 import com.spisokryadom.app.data.entity.ShoppingListEntryEntity
+import com.spisokryadom.app.data.entity.UnitEntity
 
 /**
  * Поставщик демонстрационных данных для первого запуска приложения.
@@ -58,6 +59,13 @@ object DemoDataProvider {
         val productDao = db.productDao()
         val linkDao = db.productShopLinkDao()
         val entryDao = db.shoppingListEntryDao()
+        val unitDao = db.unitDao()
+
+        // === Единицы измерения ===
+        unitDao.insert(UnitEntity(name = "шт", displayOrder = 0))
+        unitDao.insert(UnitEntity(name = "кг", displayOrder = 1))
+        unitDao.insert(UnitEntity(name = "г", displayOrder = 2))
+        unitDao.insert(UnitEntity(name = "л", displayOrder = 3))
 
         // === Товарные группы ===
         val gMilk = groupDao.insert(ProductGroupEntity(name = "Молочные продукты"))

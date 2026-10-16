@@ -5,8 +5,10 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -24,7 +27,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +59,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,10 +81,14 @@ import java.util.UUID
 @Composable
 fun ProductCardScreen(
     productId: Long,
+    preselectedShopId: Long = -1L,
     onNavigateBack: () -> Unit,
-    viewModel: ProductCardViewModel = viewModel(factory = ProductCardViewModel.factory(productId))
+    viewModel: ProductCardViewModel = viewModel(factory = ProductCardViewModel.factory(productId, preselectedShopId))
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    val itemScrollPx = with(LocalDensity.current) { 64.dp.toPx() }
 
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) onNavigateBack()
@@ -87,10 +98,15 @@ fun ProductCardScreen(
     }
 
     var showNewGroupDialog by remember { mutableStateOf(false) }
-    var showNewRecipientDialog by remember { mutableStateOf(false) }
     var showAddShopLinkDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    var isShopLinksEditing by remember { mutableStateOf(false) }
+    // For new products, start in edit mode so the user can add shops immediately
+    var isShopLinksEditing by remember { mutableStateOf(productId == -1L) }
+    // Department editing state
+    var editingPendingLinkId by remember { mutableStateOf<Long?>(null) }
+    var editingExistingLinkId by remember { mutableStateOf<Long?>(null) }
+
+    // --- Dialogs ---
 
     if (showNewGroupDialog) {
         InputDialog(
@@ -101,18 +117,6 @@ fun ProductCardScreen(
                 showNewGroupDialog = false
             },
             onDismiss = { showNewGroupDialog = false }
-        )
-    }
-
-    if (showNewRecipientDialog) {
-        InputDialog(
-            title = "Новый получатель",
-            label = "Название",
-            onConfirm = { name ->
-                viewModel.createRecipient(name)
-                showNewRecipientDialog = false
-            },
-            onDismiss = { showNewRecipientDialog = false }
         )
     }
 
@@ -129,24 +133,89 @@ fun ProductCardScreen(
     }
 
     if (showAddShopLinkDialog) {
+        val existingShopIds = if (state.isNew) {
+            state.pendingShopLinks.map { it.shopId }.toSet()
+        } else {
+            state.shopLinks.map { it.link.shopId }.toSet()
+        }
         AddShopLinkDialog(
             shops = state.shops,
-            existingShopIds = state.shopLinks.map { it.link.shopId }.toSet(),
-            onConfirm = { shopId, priority, departmentId ->
-                viewModel.addShopLink(shopId, priority, departmentId)
+            existingShopIds = existingShopIds,
+            onConfirm = { shopId, departmentId ->
+                if (state.isNew) {
+                    viewModel.addPendingShopLink(shopId, departmentId)
+                } else {
+                    viewModel.addShopLink(shopId, departmentId)
+                }
                 showAddShopLinkDialog = false
             },
             onDismiss = { showAddShopLinkDialog = false },
             onLoadDepartments = { shopId -> viewModel.loadDepartmentsForShop(shopId) },
-            departmentsForShop = state.departmentsForSelectedShop
+            departmentsForShop = state.departmentsForSelectedShop,
+            suggestedDepartmentId = state.suggestedDepartmentId,
+            suggestedDepartmentReason = state.suggestedDepartmentReason
         )
     }
+
+    // Department editing dialog for pending links
+    editingPendingLinkId?.let { tempId ->
+        val pendingLink = state.pendingShopLinks.find { it.tempId == tempId }
+        if (pendingLink != null) {
+            DepartmentSelectDialog(
+                shopName = pendingLink.shopName,
+                departments = state.departmentsForSelectedShop,
+                currentDepartmentId = pendingLink.departmentId,
+                suggestedDepartmentId = state.suggestedDepartmentId,
+                suggestedDepartmentReason = state.suggestedDepartmentReason,
+                onConfirm = { deptId ->
+                    viewModel.updatePendingShopLinkDepartment(tempId, deptId)
+                    editingPendingLinkId = null
+                },
+                onDismiss = { editingPendingLinkId = null }
+            )
+        }
+    }
+
+    // Department editing dialog for existing links
+    editingExistingLinkId?.let { linkId ->
+        val linkUi = state.shopLinks.find { it.link.id == linkId }
+        if (linkUi != null) {
+            DepartmentSelectDialog(
+                shopName = linkUi.shopName,
+                departments = state.departmentsForSelectedShop,
+                currentDepartmentId = linkUi.link.departmentId,
+                suggestedDepartmentId = state.suggestedDepartmentId,
+                suggestedDepartmentReason = state.suggestedDepartmentReason,
+                onConfirm = { deptId ->
+                    viewModel.updateShopLinkDepartment(linkUi.link, deptId)
+                    editingExistingLinkId = null
+                },
+                onDismiss = { editingExistingLinkId = null }
+            )
+        }
+    }
+
+    // --- Main content ---
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(if (state.isNew) "Новый товар" else "Редактирование товара")
+                    if (state.isNew) {
+                        Text("Новый товар")
+                    } else {
+                        Column {
+                            Text(
+                                text = state.name.ifBlank { "Товар" },
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = "Редактирование",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -178,7 +247,7 @@ fun ProductCardScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedTextField(
@@ -207,10 +276,7 @@ fun ProductCardScreen(
                 selectedItem = state.recipients.find { it.id == state.recipientId },
                 itemLabel = { it.name },
                 onSelect = { viewModel.updateRecipient(it?.id) },
-                modifier = Modifier.fillMaxWidth(),
-                allowCreate = true,
-                onCreateNew = { showNewRecipientDialog = true },
-                createLabel = "Новый получатель..."
+                modifier = Modifier.fillMaxWidth()
             )
 
             QuantityUnitInputWithSuggestions(
@@ -285,103 +351,387 @@ fun ProductCardScreen(
                 onPhotoRemoved = { viewModel.updatePhotoUri("") }
             )
 
-            // Shop links section (only for existing products)
-            if (!state.isNew) {
-                EditableSection(
-                    title = "Привязанные магазины",
-                    isEditing = isShopLinksEditing,
-                    onToggleEdit = { isShopLinksEditing = it },
-                    isEmpty = state.shopLinks.isEmpty(),
-                    emptyMessage = "Нет привязанных магазинов",
-                    viewContent = {
-                        state.shopLinks.forEach { linkUi ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp)
-                                ) {
-                                    Text(
-                                        linkUi.shopName,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    val details = buildList {
-                                        add("Приоритет: ${linkUi.link.priority}")
-                                        linkUi.departmentName?.let { add("Группа магазина: $it") }
-                                    }
-                                    Text(
-                                        details.joinToString(" \u2022 "),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    editContent = {
-                        state.shopLinks.forEach { linkUi ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            linkUi.shopName,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                        val details = buildList {
-                                            add("Приоритет: ${linkUi.link.priority}")
-                                            linkUi.departmentName?.let { add("Группа магазина: $it") }
-                                        }
-                                        Text(
-                                            details.joinToString(" \u2022 "),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    IconButton(onClick = { viewModel.removeShopLink(linkUi.link) }) {
-                                        Icon(
-                                            Icons.Filled.Close,
-                                            contentDescription = "Удалить связь"
-                                        )
-                                    }
-                                }
-                            }
-                        }
+            // --- Unified shop links section ---
+            val sortedPendingLinks = state.pendingShopLinks.sortedBy { it.displayOrder }
+            val sortedExistingLinks = state.shopLinks.sortedBy { it.link.priority }
+            val hasAnyLinks = if (state.isNew) sortedPendingLinks.isNotEmpty() else sortedExistingLinks.isNotEmpty()
 
-                        OutlinedButton(
-                            onClick = { showAddShopLinkDialog = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Filled.Add, contentDescription = null)
-                            Text("  Добавить магазин")
+            EditableSection(
+                title = "Привязанные магазины",
+                isEditing = isShopLinksEditing,
+                onToggleEdit = { isShopLinksEditing = it },
+                isEmpty = !hasAnyLinks,
+                emptyMessage = "Нет привязанных магазинов",
+                viewContent = {
+                    if (state.isNew) {
+                        sortedPendingLinks.forEachIndexed { index, pendingLink ->
+                            ShopLinkViewCard(
+                                orderNumber = index + 1,
+                                shopName = pendingLink.shopName,
+                                departmentName = pendingLink.departmentName
+                            )
+                        }
+                    } else {
+                        sortedExistingLinks.forEachIndexed { index, linkUi ->
+                            ShopLinkViewCard(
+                                orderNumber = index + 1,
+                                shopName = linkUi.shopName,
+                                departmentName = linkUi.departmentName,
+                                onEditDepartment = {
+                                    editingExistingLinkId = linkUi.link.id
+                                    viewModel.loadDepartmentsForShop(linkUi.link.shopId)
+                                }
+                            )
                         }
                     }
-                )
-            } else {
-                Text(
-                    "Привязка к магазинам будет доступна после сохранения товара",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                },
+                editContent = {
+                    if (state.isNew) {
+                        sortedPendingLinks.forEachIndexed { index, pendingLink ->
+                            ShopLinkEditCard(
+                                orderNumber = index + 1,
+                                shopName = pendingLink.shopName,
+                                departmentName = pendingLink.departmentName,
+                                isFirst = index == 0,
+                                isLast = index == sortedPendingLinks.size - 1,
+                                onMoveUp = {
+                                    viewModel.movePendingShopLinkUp(pendingLink.tempId)
+                                    scope.launch { scrollState.animateScrollBy(-itemScrollPx) }
+                                },
+                                onMoveDown = {
+                                    viewModel.movePendingShopLinkDown(pendingLink.tempId)
+                                    scope.launch { scrollState.animateScrollBy(itemScrollPx) }
+                                },
+                                onRemove = { viewModel.removePendingShopLink(pendingLink.tempId) },
+                                onEditDepartment = {
+                                    editingPendingLinkId = pendingLink.tempId
+                                    viewModel.loadDepartmentsForShop(pendingLink.shopId)
+                                }
+                            )
+                        }
+                    } else {
+                        sortedExistingLinks.forEachIndexed { index, linkUi ->
+                            ShopLinkEditCard(
+                                orderNumber = index + 1,
+                                shopName = linkUi.shopName,
+                                departmentName = linkUi.departmentName,
+                                isFirst = index == 0,
+                                isLast = index == sortedExistingLinks.size - 1,
+                                onMoveUp = {
+                                    viewModel.moveShopLinkUp(linkUi.link)
+                                    scope.launch { scrollState.animateScrollBy(-itemScrollPx) }
+                                },
+                                onMoveDown = {
+                                    viewModel.moveShopLinkDown(linkUi.link)
+                                    scope.launch { scrollState.animateScrollBy(itemScrollPx) }
+                                },
+                                onRemove = { viewModel.removeShopLink(linkUi.link) },
+                                onEditDepartment = {
+                                    editingExistingLinkId = linkUi.link.id
+                                    viewModel.loadDepartmentsForShop(linkUi.link.shopId)
+                                }
+                            )
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = { showAddShopLinkDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = null)
+                        Text("  Добавить магазин")
+                    }
+                }
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+@Composable
+private fun ShopLinkViewCard(
+    orderNumber: Int,
+    shopName: String,
+    departmentName: String?,
+    onEditDepartment: (() -> Unit)? = null
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onEditDepartment != null) Modifier.clickable { onEditDepartment() } else Modifier),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Text(
+                "$orderNumber. $shopName",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                if (departmentName != null) "Группа магазина: $departmentName"
+                else "Нажмите для выбора группы",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (departmentName != null)
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                else
+                    MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShopLinkEditCard(
+    orderNumber: Int,
+    shopName: String,
+    departmentName: String?,
+    isFirst: Boolean,
+    isLast: Boolean,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onRemove: () -> Unit,
+    onEditDepartment: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onEditDepartment() }
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    "$orderNumber. $shopName",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    if (departmentName != null) "Группа: $departmentName"
+                    else "Нажмите для выбора группы",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (departmentName != null)
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    else
+                        MaterialTheme.colorScheme.primary
+                )
+            }
+            IconButton(
+                onClick = onMoveUp,
+                enabled = !isFirst,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.Filled.KeyboardArrowUp,
+                    contentDescription = "Вверх",
+                    tint = if (!isFirst)
+                        MaterialTheme.colorScheme.onSurface
+                    else
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                )
+            }
+            IconButton(
+                onClick = onMoveDown,
+                enabled = !isLast,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.Filled.KeyboardArrowDown,
+                    contentDescription = "Вниз",
+                    tint = if (!isLast)
+                        MaterialTheme.colorScheme.onSurface
+                    else
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                )
+            }
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = "Удалить связь"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddShopLinkDialog(
+    shops: List<ShopEntity>,
+    existingShopIds: Set<Long>,
+    onConfirm: (shopId: Long, departmentId: Long?) -> Unit,
+    onDismiss: () -> Unit,
+    onLoadDepartments: (Long) -> Unit,
+    departmentsForShop: List<ShopDepartmentEntity>,
+    suggestedDepartmentId: Long?,
+    suggestedDepartmentReason: String?
+) {
+    val availableShops = shops.filter { it.id !in existingShopIds }
+    var selectedShopId by remember { mutableLongStateOf(availableShops.firstOrNull()?.id ?: 0L) }
+    var selectedDepartmentId by remember { mutableStateOf<Long?>(null) }
+    var suggestionApplied by remember { mutableStateOf(false) }
+
+    // Load departments when shop changes
+    LaunchedEffect(selectedShopId) {
+        if (selectedShopId > 0) {
+            onLoadDepartments(selectedShopId)
+            selectedDepartmentId = null
+            suggestionApplied = false
+        }
+    }
+
+    // Auto-select suggested department when it appears (user can change it)
+    LaunchedEffect(suggestedDepartmentId) {
+        if (suggestedDepartmentId != null && !suggestionApplied) {
+            selectedDepartmentId = suggestedDepartmentId
+            suggestionApplied = true
+        }
+    }
+
+    val alreadyLinkedShops = shops.filter { it.id in existingShopIds }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Добавить магазин") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (availableShops.isEmpty()) {
+                    Text("Все магазины уже привязаны")
+                } else {
+                    DropdownSelector(
+                        label = "Магазин",
+                        items = availableShops,
+                        selectedItem = availableShops.find { it.id == selectedShopId },
+                        itemLabel = { it.name },
+                        onSelect = { shop ->
+                            shop?.let { selectedShopId = it.id }
+                        }
+                    )
+
+                    if (departmentsForShop.isNotEmpty()) {
+                        DropdownSelector(
+                            label = "Группа магазина",
+                            items = departmentsForShop,
+                            selectedItem = departmentsForShop.find { it.id == selectedDepartmentId },
+                            itemLabel = { it.name },
+                            onSelect = { dept -> selectedDepartmentId = dept?.id }
+                        )
+
+                        if (suggestedDepartmentReason != null && selectedDepartmentId == suggestedDepartmentId) {
+                            Text(
+                                text = "Подсказка: $suggestedDepartmentReason",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                if (alreadyLinkedShops.isNotEmpty()) {
+                    Text(
+                        text = "Уже привязаны: ${alreadyLinkedShops.joinToString(", ") { it.name }}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (selectedShopId > 0) {
+                        onConfirm(selectedShopId, selectedDepartmentId)
+                    }
+                },
+                enabled = availableShops.isNotEmpty() && selectedShopId > 0
+            ) { Text("Добавить") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Отмена") }
+        }
+    )
+}
+
+@Composable
+private fun DepartmentSelectDialog(
+    shopName: String,
+    departments: List<ShopDepartmentEntity>,
+    currentDepartmentId: Long?,
+    suggestedDepartmentId: Long?,
+    suggestedDepartmentReason: String?,
+    onConfirm: (Long?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var selectedDepartmentId by remember { mutableStateOf(currentDepartmentId) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Группа магазина") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    shopName,
+                    style = MaterialTheme.typography.titleSmall
+                )
+
+                if (departments.isEmpty()) {
+                    Text(
+                        "В этом магазине нет групп",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    DropdownSelector(
+                        label = "Группа магазина",
+                        items = departments,
+                        selectedItem = departments.find { it.id == selectedDepartmentId },
+                        itemLabel = { it.name },
+                        onSelect = { dept -> selectedDepartmentId = dept?.id }
+                    )
+
+                    if (suggestedDepartmentReason != null && suggestedDepartmentId != null) {
+                        val suggestedName = departments.find { it.id == suggestedDepartmentId }?.name
+                        if (suggestedName != null) {
+                            Text(
+                                text = "Подсказка: $suggestedDepartmentReason",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = if (selectedDepartmentId != suggestedDepartmentId) {
+                                    Modifier.clickable { selectedDepartmentId = suggestedDepartmentId }
+                                } else {
+                                    Modifier
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selectedDepartmentId) }) {
+                Text("Применить")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Отмена") }
+        }
+    )
 }
 
 @Composable
@@ -456,12 +806,7 @@ private fun PhotoPickerBlock(
             }
             if (photoPath.isNotBlank()) {
                 OutlinedButton(
-                    onClick = {
-                        scope.launch(Dispatchers.IO) {
-                            File(photoPath).delete()
-                            withContext(Dispatchers.Main) { onPhotoRemoved() }
-                        }
-                    }
+                    onClick = { onPhotoRemoved() }
                 ) {
                     Icon(
                         Icons.Filled.Delete,
@@ -477,10 +822,10 @@ private fun PhotoPickerBlock(
 private fun copyImageToLocalStorage(
     context: Context,
     sourceUri: Uri,
-    oldPath: String?
+    @Suppress("UNUSED_PARAMETER") oldPath: String?
 ): String? {
     return try {
-        oldPath?.let { File(it).delete() }
+        // Old file deletion is deferred to ViewModel.save() to avoid data loss on cancel
         val photosDir = File(context.filesDir, "product_photos")
         photosDir.mkdirs()
         val destFile = File(photosDir, "${UUID.randomUUID()}.jpg")
@@ -493,88 +838,4 @@ private fun copyImageToLocalStorage(
     } catch (e: Exception) {
         null
     }
-}
-
-@Composable
-private fun AddShopLinkDialog(
-    shops: List<ShopEntity>,
-    existingShopIds: Set<Long>,
-    onConfirm: (shopId: Long, priority: Int, departmentId: Long?) -> Unit,
-    onDismiss: () -> Unit,
-    onLoadDepartments: (Long) -> Unit,
-    departmentsForShop: List<ShopDepartmentEntity>
-) {
-    val availableShops = shops.filter { it.id !in existingShopIds }
-    var selectedShopId by remember { mutableLongStateOf(availableShops.firstOrNull()?.id ?: 0L) }
-    var priority by remember { mutableStateOf("1") }
-    var selectedDepartmentId by remember { mutableStateOf<Long?>(null) }
-
-    // Load departments when shop changes
-    LaunchedEffect(selectedShopId) {
-        if (selectedShopId > 0) {
-            onLoadDepartments(selectedShopId)
-            selectedDepartmentId = null
-        }
-    }
-
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Добавить магазин") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (availableShops.isEmpty()) {
-                    Text("Нет доступных магазинов для привязки")
-                } else {
-                    DropdownSelector(
-                        label = "Магазин",
-                        items = availableShops,
-                        selectedItem = availableShops.find { it.id == selectedShopId },
-                        itemLabel = { it.name },
-                        onSelect = { shop ->
-                            shop?.let { selectedShopId = it.id }
-                        }
-                    )
-
-                    OutlinedTextField(
-                        value = priority,
-                        onValueChange = { value ->
-                            if (value.isEmpty() || value.matches(Regex("^\\d+$"))) {
-                                priority = value
-                            }
-                        },
-                        label = { Text("Приоритет (1 = наивысший)") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    if (departmentsForShop.isNotEmpty()) {
-                        DropdownSelector(
-                            label = "Группа магазина",
-                            items = departmentsForShop,
-                            selectedItem = departmentsForShop.find { it.id == selectedDepartmentId },
-                            itemLabel = { it.name },
-                            onSelect = { dept -> selectedDepartmentId = dept?.id }
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (selectedShopId > 0) {
-                        onConfirm(
-                            selectedShopId,
-                            priority.toIntOrNull() ?: 1,
-                            selectedDepartmentId
-                        )
-                    }
-                },
-                enabled = availableShops.isNotEmpty() && selectedShopId > 0
-            ) { Text("Добавить") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
 }

@@ -35,6 +35,10 @@
 
 Пользовательские сущности для фиксации того, для кого покупается товар.
 
+### Единицы измерения
+
+Справочник `UnitEntity` с собственным порядком `displayOrder`. Таблица `units` добавлена миграцией Room 6→7; значения в товарах и записях списка остаются строковыми, без внешнего ключа на справочник.
+
 ## Ключевые связи между сущностями
 
 - Один товар может быть связан с несколькими магазинами.
@@ -73,34 +77,41 @@ com.spisokryadom.app/
   SpisokRyadomApp.kt, AppContainer.kt, MainActivity.kt
   navigation/ — Routes.kt, NavGraph.kt
   data/db/ — AppDatabase.kt
-  data/entity/ — 7 Room-сущностей
-  data/dao/ — 7 DAO-интерфейсов
+  data/entity/ — 8 Room-сущностей
+  data/dao/ — 8 DAO-интерфейсов
   data/repository/ — ProductRepository, ShopRepository, ShoppingListRepository, ClassifierRepository
   data/ — DemoDataProvider.kt (демо-данные для первого запуска)
   ui/theme/ — Theme.kt, Color.kt, Type.kt
   ui/shoppinglist/ — ShoppingListScreen.kt, ShoppingListViewModel.kt (ViewMode, EntryGroup, ShoppingListEntryUi, ShoppingListUiState)
-  ui/productdb/ — ProductDatabaseScreen.kt, ProductDatabaseViewModel.kt
-  ui/productcard/ — ProductCardScreen.kt, ProductCardViewModel.kt
+  ui/productdb/ — ProductDatabaseScreen.kt, ProductDatabaseViewModel.kt (ProductViewMode, ProductSection, ProductDatabaseUiState)
+  ui/productcard/ — ProductCardScreen.kt, ProductCardViewModel.kt (ShopLinkUi, PendingShopLink, ProductCardUiState)
   ui/shoplist/ — ShopListScreen.kt, ShopListViewModel.kt
   ui/shopcard/ — ShopCardScreen.kt, ShopCardViewModel.kt
+  ui/addtolist/ — AddToListScreen.kt, AddToListViewModel.kt (AddToListUiState)
+  ui/shopcontent/ — ShopContentScreen.kt, ShopContentViewModel.kt
+  ui/settings/ — SettingsScreen.kt, SettingsViewModel.kt
   ui/components/ — CommonComponents.kt (ConfirmDialog, InputDialog, DropdownSelector, QuantityUnitInput, QuantityUnitInputWithSuggestions, PurchaseTypeSelector, SectionHeader)
+  util/ — FuzzySearch.kt (приблизительный поиск по названиям)
 ```
 
 ### Room-сущности и их поля
 
-- **ProductEntity** (products): id, name, productGroupId?, recipientId?, defaultUnit?, defaultQuantity?, note?, purchaseType, sellerUrl?, productUrl?, photoUri?
-- **ShopEntity** (shops): id, name, address?, note?, displayOrder
+- **ProductEntity** (products): id, name, productGroupId?, recipientId?, defaultUnit?, defaultQuantity?, note?, purchaseType, sellerUrl?, productUrl?, photoUri?, priceValue?, priceDate?, isTemporary
+- **ShopEntity** (shops): id, name, address?, note?, displayOrder, showUrgentInCollapsed?, boostUrgentShop?, manualOrderOverride
 - **ShopDepartmentEntity** (shop_departments): id, shopId (FK → shops, CASCADE), name, displayOrder
 - **ProductShopLinkEntity** (product_shop_links): id, productId (FK → products, CASCADE), shopId (FK → shops, CASCADE), priority, departmentId? (FK → shop_departments, SET_NULL)
-- **ShoppingListEntryEntity** (shopping_list_entries): id, productId (FK → products, CASCADE), quantity, unit, assignedShopId? (FK → shops, SET_NULL), assignedDepartmentId? (FK → shop_departments, SET_NULL), isBought, isUrgent, note?, createdAt, updatedAt
-- **ProductGroupEntity** (product_groups): id, name
-- **RecipientEntity** (recipients): id, name
+- **ShoppingListEntryEntity** (shopping_list_entries): id, productId (FK → products, CASCADE), quantity, unit, assignedShopId? (FK → shops, SET_NULL), assignedDepartmentId? (FK → shop_departments, SET_NULL), isBought, isUrgent, note?, comment?, createdAt, updatedAt
+- **ProductGroupEntity** (product_groups): id, name, displayOrder
+- **RecipientEntity** (recipients): id, name, displayOrder
+- **UnitEntity** (units): id, name, displayOrder
 
 ### Навигация
 
 - Bottom bar: Список (ShoppingList), Товары (ProductDatabase), Магазины (ShopList)
-- Detail screens: ProductCard(productId), ShopCard(shopId)
+- Detail screens: ProductCard(productId, preselectedShopId?), ShopCard(shopId), AddToList
 - -1L означает создание нового объекта
+- preselectedShopId — опциональный параметр для автоматической привязки магазина при создании товара из экрана магазина
+- AddToList — самостоятельный экран быстрого добавления позиции в текущий список, вызывается по FAB «+» с главной
 
 ## Что можно достраивать позже
 
