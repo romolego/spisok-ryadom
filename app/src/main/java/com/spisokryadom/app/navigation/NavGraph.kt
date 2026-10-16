@@ -96,6 +96,7 @@ fun AppNavGraph() {
                     onNavigateToProductCard = { productId ->
                         navController.navigate(Routes.ProductCard.createRoute(productId))
                     },
+                    onNavigateToBulk = { navController.navigate("bulk") },
                     onNavigateToSettings = {
                         navController.navigate(Routes.Settings.route)
                     }
@@ -189,6 +190,8 @@ fun AppNavGraph() {
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
+
+            composable("bulk") { com.spisokryadom.app.ui.bulk.BulkScreen(onBack={navController.popBackStack()}) }
 
             composable(Routes.Settings.route) {
                 SettingsScreen(

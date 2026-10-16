@@ -30,7 +30,8 @@ import androidx.room.PrimaryKey
     indices = [
         Index("productId"),
         Index("shopId"),
-        Index("departmentId")
+        Index("departmentId"),
+        Index(value = ["productId", "shopId"], unique = true)
     ]
 )
 data class ProductShopLinkEntity(

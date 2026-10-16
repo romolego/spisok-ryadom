@@ -32,6 +32,9 @@ interface RecipientDao {
     @Query("SELECT COALESCE(MAX(displayOrder), 0) FROM recipients")
     suspend fun getMaxDisplayOrder(): Int
 
+    @Update
+    suspend fun updateAll(values: List<RecipientEntity>)
+
     @Delete
     suspend fun delete(recipient: RecipientEntity)
 }

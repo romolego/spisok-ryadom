@@ -97,6 +97,7 @@ fun ProductCardScreen(
         if (state.isDeleted) onNavigateBack()
     }
 
+    state.error?.let { message -> androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,title={Text("Проверьте товар")},text={Text(message)},confirmButton={TextButton(onClick=viewModel::clearError){Text("Понятно")}}) }
     var showNewGroupDialog by remember { mutableStateOf(false) }
     var showAddShopLinkDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -234,7 +235,7 @@ fun ProductCardScreen(
                     }
                     TextButton(
                         onClick = { viewModel.save() },
-                        enabled = state.name.isNotBlank()
+                        enabled = state.name.isNotBlank() && !state.isSaving
                     ) {
                         Text("Сохранить")
                     }
@@ -250,6 +251,7 @@ fun ProductCardScreen(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if(state.isTemporary)TextButton(onClick=viewModel::keepInCatalog){Text("Сохранить разовую позицию в базе")}
             OutlinedTextField(
                 value = state.name,
                 onValueChange = { viewModel.updateName(it) },
@@ -305,7 +307,7 @@ fun ProductCardScreen(
                 OutlinedTextField(
                     value = state.priceValue,
                     onValueChange = { value ->
-                        if (value.isEmpty() || value.matches(Regex("^\\d*\\.?\\d*$"))) {
+                        if (value.isEmpty() || value.matches(Regex("^\\d*[.,]?\\d*$"))) {
                             viewModel.updatePriceValue(value)
                         }
                     },
@@ -743,10 +745,12 @@ private fun PhotoPickerBlock(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    var photoError by remember { mutableStateOf<String?>(null) }
+    var photoBusy by remember { mutableStateOf(false) }
     val imageBitmap by produceState<ImageBitmap?>(null, photoPath) {
         value = if (photoPath.isBlank()) null else {
             withContext(Dispatchers.IO) {
-                runCatching { BitmapFactory.decodeFile(photoPath)?.asImageBitmap() }.getOrNull()
+                runCatching { com.spisokryadom.app.util.PhotoStore.load(photoPath)?.asImageBitmap() }.getOrNull()
             }
         }
     }
@@ -755,16 +759,19 @@ private fun PhotoPickerBlock(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let { selectedUri ->
+            photoBusy=true;photoError=null
             scope.launch(Dispatchers.IO) {
                 val newPath = copyImageToLocalStorage(
                     context, selectedUri, photoPath.ifBlank { null }
                 )
-                newPath?.let { withContext(Dispatchers.Main) { onPhotoSelected(it) } }
+                withContext(Dispatchers.Main) { photoBusy=false;if(newPath!=null)onPhotoSelected(newPath)else photoError="Не удалось прочитать фото. Выберите другой файл." }
             }
         }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        photoError?.let { Text(it,color=MaterialTheme.colorScheme.error) }
+        if(photoBusy)androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
         Text(
             text = "Фото товара",
             style = MaterialTheme.typography.labelMedium,
@@ -799,6 +806,7 @@ private fun PhotoPickerBlock(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
                 onClick = { launcher.launch("image/*") },
+                enabled = !photoBusy,
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Filled.PhotoCamera, contentDescription = null)
@@ -824,18 +832,5 @@ private fun copyImageToLocalStorage(
     sourceUri: Uri,
     @Suppress("UNUSED_PARAMETER") oldPath: String?
 ): String? {
-    return try {
-        // Old file deletion is deferred to ViewModel.save() to avoid data loss on cancel
-        val photosDir = File(context.filesDir, "product_photos")
-        photosDir.mkdirs()
-        val destFile = File(photosDir, "${UUID.randomUUID()}.jpg")
-        context.contentResolver.openInputStream(sourceUri)?.use { input ->
-            destFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-        destFile.absolutePath
-    } catch (e: Exception) {
-        null
-    }
+    return runCatching { com.spisokryadom.app.util.PhotoStore.importPhoto(context,sourceUri) }.getOrNull()
 }

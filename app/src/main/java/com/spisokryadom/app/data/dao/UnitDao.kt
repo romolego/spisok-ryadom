@@ -35,6 +35,9 @@ interface UnitDao {
     @Query("SELECT COALESCE(MAX(displayOrder), 0) FROM units")
     suspend fun getMaxDisplayOrder(): Int
 
+    @Update
+    suspend fun updateAll(values: List<UnitEntity>)
+
     @Delete
     suspend fun delete(unit: UnitEntity)
 }

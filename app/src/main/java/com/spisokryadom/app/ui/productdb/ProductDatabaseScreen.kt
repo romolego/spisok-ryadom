@@ -62,9 +62,10 @@ fun ProductDatabaseScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    state.error?.let { message -> androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={androidx.compose.material3.TextButton(onClick=viewModel::clearError){Text("Понятно")}}) }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("База товаров") })
+            TopAppBar(title = { Column { Text("База товаров"); com.spisokryadom.app.ui.components.CityPicker() } })
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onCreateNewProduct) {
@@ -133,7 +134,7 @@ fun ProductDatabaseScreen(
                 ) {
                     state.sections.forEachIndexed { sectionIndex, section ->
                         // Section header — key includes index to prevent duplicates if two sections share the same name
-                        stickyHeader(key = "header_${sectionIndex}_${section.name}") {
+                        stickyHeader(key = "header_${section.key}") {
                             SectionHeader(
                                 title = section.name,
                                 count = section.products.size
@@ -142,7 +143,7 @@ fun ProductDatabaseScreen(
 
                         // Key includes section name to prevent duplicate keys when the same product
                         // appears in multiple sections (e.g. BY_SHOPS mode with multi-shop products)
-                        items(section.products, key = { "${section.name}_${it.id}" }) { product ->
+                        items(section.products, key = { "${section.key}_${it.id}" }, contentType = { "product" }) { product ->
                             ProductListItem(
                                 product = product,
                                 shoppingListInfo = state.shoppingListMap[product.id],
@@ -245,7 +246,7 @@ private fun ProductListItem(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = { },
+                onClick = onLongPress,
                 onLongClick = onLongPress
             ),
         colors = CardDefaults.cardColors(containerColor = bgColor),

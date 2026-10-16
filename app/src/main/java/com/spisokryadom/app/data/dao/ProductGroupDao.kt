@@ -32,6 +32,9 @@ interface ProductGroupDao {
     @Query("SELECT COALESCE(MAX(displayOrder), 0) FROM product_groups")
     suspend fun getMaxDisplayOrder(): Int
 
+    @Update
+    suspend fun updateAll(values: List<ProductGroupEntity>)
+
     @Delete
     suspend fun delete(group: ProductGroupEntity)
 }

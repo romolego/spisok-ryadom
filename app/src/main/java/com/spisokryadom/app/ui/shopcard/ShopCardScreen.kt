@@ -64,6 +64,7 @@ fun ShopCardScreen(
     viewModel: ShopCardViewModel = viewModel(factory = ShopCardViewModel.factory(shopId))
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    state.error?.let { message -> androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={TextButton(onClick=viewModel::clearError){Text("Понятно")}}) }
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     val itemScrollPx = with(LocalDensity.current) { 52.dp.toPx() }
@@ -148,7 +149,7 @@ fun ShopCardScreen(
                     }
                     TextButton(
                         onClick = { viewModel.save() },
-                        enabled = state.name.isNotBlank()
+                        enabled = state.name.isNotBlank() && !state.isSaving && !state.isLoading
                     ) {
                         Text("Сохранить")
                     }
@@ -172,7 +173,8 @@ fun ShopCardScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
+            com.spisokryadom.app.ui.components.CityField(state.cityId,viewModel::updateCity)
+                OutlinedTextField(
                 value = state.address,
                 onValueChange = { viewModel.updateAddress(it) },
                 label = { Text("Адрес") },

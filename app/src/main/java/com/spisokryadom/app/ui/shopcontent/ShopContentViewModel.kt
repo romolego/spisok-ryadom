@@ -21,6 +21,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOn
+import com.spisokryadom.app.util.FuzzySearch
 
 /**
  * Товар, доступный в магазине (из базы привязок ProductShopLink).
@@ -48,7 +54,8 @@ data class ShopContentUiState(
     val isLoading: Boolean = true,
     val showPickProducts: Boolean = false,
     val pickSearchQuery: String = "",
-    val pickProducts: List<PickProductUi> = emptyList()
+    val pickProducts: List<PickProductUi> = emptyList(),
+    val error:String?=null
 )
 
 class ShopContentViewModel(
@@ -67,39 +74,42 @@ class ShopContentViewModel(
     private val _shoppingListEntries = MutableStateFlow<Map<Long, ShoppingListEntryEntity>>(emptyMap())
     private val _shops = MutableStateFlow<Map<Long, ShopEntity>>(emptyMap())
 
+    private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(error=e.message?:"Операция не выполнена")}
+    fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
+    private var searchJob:Job?=null
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             val shop = shopRepository.getShopById(shopId)
             _uiState.value = _uiState.value.copy(shop = shop)
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             productRepository.getAllProducts().collect { products ->
                 _allProducts.value = products.associateBy { it.id }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             shopRepository.getAllDepartments().collect { departments ->
                 _departments.value = departments.associateBy { it.id }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             shoppingListRepository.getAllEntries().collect { entries ->
                 _shoppingListEntries.value = entries
-                    .filter { !it.isBought }
+                    .filter { !it.isBought && it.assignedShopId==shopId }.sortedBy{it.id}.distinctBy{it.productId}
                     .associateBy { it.productId }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             shopRepository.getAllShops().collect { shops ->
                 _shops.value = shops.associateBy { it.id }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             classifierRepository.getOrderedUnitNames().collect { units ->
                 _uiState.value = _uiState.value.copy(unitSuggestions = units)
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             combine(
                 productRepository.getShopLinksForShop(shopId),
                 _allProducts,
@@ -121,63 +131,16 @@ class ShopContentViewModel(
                         listShopName = entry?.assignedShopId?.let { shopMap[it]?.name }
                     )
                 }
-            }.collect { productUis ->
+            }.flowOn(Dispatchers.Default).collect { productUis ->
                 _uiState.value = _uiState.value.copy(products = productUis, isLoading = false)
             }
         }
     }
 
-    /** Quick-add product to the list with its default quantity/unit (no dialog). */
-    fun quickAddToShoppingList(product: ProductEntity) {
-        viewModelScope.launch {
-            val qty = product.defaultQuantity ?: 1.0
-            val unit = product.defaultUnit ?: "шт"
-            val link = productRepository.getShopLinksForProductSync(product.id)
-                .find { it.shopId == shopId }
-
-            val entry = ShoppingListEntryEntity(
-                productId = product.id,
-                quantity = qty,
-                unit = unit,
-                assignedShopId = shopId,
-                assignedDepartmentId = link?.departmentId,
-                createdAt = System.currentTimeMillis(),
-                updatedAt = System.currentTimeMillis()
-            )
-            shoppingListRepository.addOrMergeEntry(entry)
-        }
-    }
-
-    fun incrementQuantity(productId: Long) {
-        viewModelScope.launch {
-            val entry = shoppingListRepository.findActiveByProductId(productId) ?: return@launch
-            val step = _allProducts.value[productId]?.defaultQuantity?.takeIf { it > 0.0 } ?: 1.0
-            shoppingListRepository.updateQuantityByProductId(productId, entry.quantity + step)
-        }
-    }
-
-    fun decrementQuantity(productId: Long) {
-        viewModelScope.launch {
-            val entry = shoppingListRepository.findActiveByProductId(productId) ?: return@launch
-            val step = _allProducts.value[productId]?.defaultQuantity?.takeIf { it > 0.0 } ?: 1.0
-            val newQty = entry.quantity - step
-            if (newQty <= 0.0) {
-                shoppingListRepository.removeByProductId(productId)
-            } else {
-                shoppingListRepository.updateQuantityByProductId(productId, newQty)
-            }
-        }
-    }
-
-    fun setQuantity(productId: Long, quantity: Double) {
-        viewModelScope.launch {
-            if (quantity <= 0.0) {
-                shoppingListRepository.removeByProductId(productId)
-            } else {
-                shoppingListRepository.updateQuantityByProductId(productId, quantity)
-            }
-        }
-    }
+    fun quickAddToShoppingList(product:ProductEntity){viewModelScope.launch(errors){shoppingListRepository.addProduct(product.id,choice=com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT,shopId=shopId)}}
+    fun incrementQuantity(productId:Long){viewModelScope.launch(errors){val entry=_shoppingListEntries.value[productId]?:return@launch;shoppingListRepository.adjustQuantity(entry.id,_allProducts.value[productId]?.defaultQuantity?:1.0)}}
+    fun decrementQuantity(productId:Long){viewModelScope.launch(errors){val entry=_shoppingListEntries.value[productId]?:return@launch;shoppingListRepository.adjustQuantity(entry.id,-(_allProducts.value[productId]?.defaultQuantity?:1.0))}}
+    fun setQuantity(productId:Long,quantity:Double){viewModelScope.launch(errors){val entry=_shoppingListEntries.value[productId]?:return@launch;if(quantity<=0)shoppingListRepository.removeEntry(entry.id)else shoppingListRepository.updateQuantity(entry.id,quantity)}}
 
     // --- Pick existing products mode ---
 
@@ -185,9 +148,10 @@ class ShopContentViewModel(
 
     init {
         // Track which product IDs are linked to this shop (updates reactively)
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             productRepository.getShopLinksForShop(shopId).collect { links ->
                 _linkedProductIds.value = links.map { it.productId }.toSet()
+                if(_uiState.value.showPickProducts)refreshPickList()
             }
         }
     }
@@ -207,51 +171,18 @@ class ShopContentViewModel(
     }
 
     private fun refreshPickList() {
-        viewModelScope.launch {
-            val query = _uiState.value.pickSearchQuery
-            val allProducts = _allProducts.value.values.toList()
-            val linked = _linkedProductIds.value
-            val filtered = if (query.isBlank()) {
-                allProducts
-            } else {
-                allProducts.filter { it.name.contains(query, ignoreCase = true) }
+        searchJob?.cancel()
+        searchJob=viewModelScope.launch(errors){
+            val query=_uiState.value.pickSearchQuery;val all=_allProducts.value.values.toList();val linked=_linkedProductIds.value
+            delay(120)
+            val result=withContext(Dispatchers.Default){
+                val filtered=if(query.isBlank())all.sortedWith(compareBy<ProductEntity>{it.id !in linked}.thenBy{FuzzySearch.normalize(it.name)})else FuzzySearch.rank(all,query,{it.name})
+                filtered.map{PickProductUi(it,it.id in linked)}
             }
-            val pickList = filtered
-                .map { product ->
-                    PickProductUi(
-                        product = product,
-                        isLinked = product.id in linked
-                    )
-                }
-                .sortedWith(compareBy<PickProductUi> { !it.isLinked }.thenBy { it.product.name.lowercase() })
-            _uiState.value = _uiState.value.copy(pickProducts = pickList)
+            _uiState.value=_uiState.value.copy(pickProducts=result)
         }
     }
-
-    fun toggleProductLink(productId: Long) {
-        viewModelScope.launch {
-            val linked = _linkedProductIds.value
-            if (productId in linked) {
-                // Remove link
-                val links = productRepository.getShopLinksForProductSync(productId)
-                links.find { it.shopId == shopId }?.let { productRepository.deleteShopLink(it) }
-            } else {
-                // Add link with next available priority for this product
-                val existingLinks = productRepository.getShopLinksForProductSync(productId)
-                val nextPriority = (existingLinks.maxOfOrNull { it.priority } ?: 0) + 1
-                productRepository.insertShopLink(
-                    ProductShopLinkEntity(
-                        productId = productId,
-                        shopId = shopId,
-                        priority = nextPriority,
-                        departmentId = null
-                    )
-                )
-            }
-            // Refresh pick list after change
-            refreshPickList()
-        }
-    }
+    fun toggleProductLink(productId:Long){viewModelScope.launch(errors){productRepository.toggleShopLink(productId,shopId)}}
 
     companion object {
         fun factory(shopId: Long): ViewModelProvider.Factory = viewModelFactory {

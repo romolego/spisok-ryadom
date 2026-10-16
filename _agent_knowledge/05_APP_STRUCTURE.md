@@ -80,7 +80,7 @@ com.spisokryadom.app/
   data/entity/ — 8 Room-сущностей
   data/dao/ — 8 DAO-интерфейсов
   data/repository/ — ProductRepository, ShopRepository, ShoppingListRepository, ClassifierRepository
-  data/ — DemoDataProvider.kt (демо-данные для первого запуска)
+  data/ — DemoDataProvider.kt (старый поставщик демо; автоматический вызов отключён)
   ui/theme/ — Theme.kt, Color.kt, Type.kt
   ui/shoppinglist/ — ShoppingListScreen.kt, ShoppingListViewModel.kt (ViewMode, EntryGroup, ShoppingListEntryUi, ShoppingListUiState)
   ui/productdb/ — ProductDatabaseScreen.kt, ProductDatabaseViewModel.kt (ProductViewMode, ProductSection, ProductDatabaseUiState)
@@ -116,3 +116,13 @@ com.spisokryadom.app/
 ## Что можно достраивать позже
 
 В общей концепции уже присутствуют история изменений списка и справочник «Не покупать», но они не являются текущим центром минимального каркаса первой практической реализации. Их нужно учитывать как согласованный контекст, но не тянуть раньше времени в базовый Android-скелет.
+
+## Текущие дополнения, 17 октября 2026
+
+Актуальная схема — Room 8: `CityEntity/cities`, `ShopEntity.cityId`, уникальная `ProductEntity.stableId`, уникальная пара productId/shopId. City FK проверяется командами репозиториев и валидатором импорта, старые таблицы магазинов не пересоздавались. Внешние ключи старых сущностей сохранены.
+
+`LocationRepository` управляет городом и активными магазинами; `ShoppingListRepository` — единственная бизнес-логика добавления, атомарных количеств, пакета/отмены и переноса некупленных. `ProductRepository.saveWithLinks` и `ShopRepository.saveWithDepartments` сохраняют карточки транзакционно. `ClassifierRepository` содержит согласованные операции переименования единиц и порядка.
+
+Новые компоненты: `CityPicker`, `ui/bulk/BulkScreen/BulkViewModel`, `ShoppingTextParser`, `Quantities`, `PhotoStore`, `BackupJson`. Резервная копия: streaming ZIP v4 вместо JSON с Base64 всего каталога в памяти; JSON v1–3 остаётся импортом каталога. Тесты и fixtures находятся в `app/src/test`, Room schema в `app/schemas`.
+
+Build flavors standard/parallel различаются applicationId и названием; UI/логика общие. Детали текущего состояния и проверки: `01_CURRENT_STATE.md`, `16_IMPLEMENTATION_VERIFICATION.md`.

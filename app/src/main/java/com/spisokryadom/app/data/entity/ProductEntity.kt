@@ -24,7 +24,8 @@ import androidx.room.PrimaryKey
     indices = [
         Index("productGroupId"),
         Index("recipientId"),
-        Index("name")
+        Index("name"),
+        Index(value = ["stableId"], unique = true)
     ]
 )
 data class ProductEntity(
@@ -42,5 +43,6 @@ data class ProductEntity(
     val photoUri: String? = null,
     val priceValue: Double? = null,
     val priceDate: String? = null,
-    val isTemporary: Boolean = false
+    val isTemporary: Boolean = false,
+    val stableId: String = java.util.UUID.randomUUID().toString()
 )

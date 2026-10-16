@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -89,7 +90,7 @@ fun InputDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var text by remember { mutableStateOf(initialValue) }
+    var text by rememberSaveable(title,initialValue) { mutableStateOf(initialValue) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -128,7 +129,7 @@ fun InputDialogWithSuggestions(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var text by remember { mutableStateOf(initialValue) }
+    var text by rememberSaveable(title,initialValue) { mutableStateOf(initialValue) }
     var expanded by remember { mutableStateOf(false) }
     val filteredSuggestions = remember(text, suggestions) {
         if (text.isBlank()) suggestions
@@ -415,7 +416,7 @@ fun QuantityUnitInput(
         OutlinedTextField(
             value = quantity,
             onValueChange = { value ->
-                if (value.isEmpty() || value.matches(Regex("^\\d*\\.?\\d*$"))) {
+                if (value.isEmpty() || value.matches(Regex("^\\d*[.,]?\\d*$"))) {
                     onQuantityChange(value)
                 }
             },
@@ -460,7 +461,7 @@ fun QuantityUnitInputWithSuggestions(
         OutlinedTextField(
             value = quantity,
             onValueChange = { value ->
-                if (value.isEmpty() || value.matches(Regex("^\\d*\\.?\\d*$"))) {
+                if (value.isEmpty() || value.matches(Regex("^\\d*[.,]?\\d*$"))) {
                     onQuantityChange(value)
                 }
             },
@@ -701,7 +702,7 @@ fun InlineQuantityControl(
                     ),
                     keyboardActions = KeyboardActions(
                         onDone = {
-                            val newQty = textFieldValue.text.toDoubleOrNull()
+                            val newQty = com.spisokryadom.app.util.Quantities.parse(textFieldValue.text)
                             if (newQty != null) {
                                 onSetQuantity(newQty)
                             }
@@ -719,7 +720,7 @@ fun InlineQuantityControl(
                         .focusRequester(focusRequester)
                         .onFocusChanged { state ->
                             if (!state.isFocused && isEditing) {
-                                val newQty = textFieldValue.text.toDoubleOrNull()
+                                val newQty = com.spisokryadom.app.util.Quantities.parse(textFieldValue.text)
                                 if (newQty != null) {
                                     onSetQuantity(newQty)
                                 }

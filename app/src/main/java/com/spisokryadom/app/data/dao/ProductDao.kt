@@ -55,4 +55,8 @@ interface ProductDao {
 
     @Delete
     suspend fun delete(product: ProductEntity)
+    @Query("DELETE FROM products WHERE isTemporary=1 AND id NOT IN (SELECT productId FROM shopping_list_entries)")
+    suspend fun deleteUnusedTemporary()
+    @Query("SELECT * FROM products WHERE stableId=:stableId LIMIT 1")
+    suspend fun getByStableId(stableId: String): ProductEntity?
 }

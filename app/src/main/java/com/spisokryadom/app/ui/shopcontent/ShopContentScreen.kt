@@ -62,6 +62,7 @@ fun ShopContentScreen(
     viewModel: ShopContentViewModel = viewModel(factory = ShopContentViewModel.factory(shopId))
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    state.error?.let{message->androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={androidx.compose.material3.TextButton(onClick=viewModel::clearError){Text("Понятно")}})}
     var fabExpanded by remember { mutableStateOf(false) }
 
     // Pick products fullscreen dialog

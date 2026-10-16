@@ -34,4 +34,6 @@ interface ShopDao {
 
     @Delete
     suspend fun delete(shop: ShopEntity)
+    @Query("UPDATE shops SET manualOrderOverride=1 WHERE id=:id")
+    suspend fun markManualOrderOverride(id: Long)
 }

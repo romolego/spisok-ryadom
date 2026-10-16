@@ -55,6 +55,7 @@ fun ShopListScreen(
     viewModel: ShopListViewModel = viewModel(factory = ShopListViewModel.Factory)
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    state.error?.let{message->androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={androidx.compose.material3.TextButton(onClick=viewModel::clearError){Text("Понятно")}})}
     val listState = rememberLazyListState()
     var scrollTargetShopId by remember { mutableStateOf<Long?>(null) }
 
@@ -72,7 +73,7 @@ fun ShopListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Магазины") },
+                title = { Column { Text("Магазины"); com.spisokryadom.app.ui.components.CityPicker() } },
                 actions = {
                     if (state.shops.size > 1) {
                         IconButton(onClick = { viewModel.toggleEditing() }) {

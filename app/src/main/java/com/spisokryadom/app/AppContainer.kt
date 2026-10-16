@@ -1,6 +1,7 @@
 package com.spisokryadom.app
 
 import android.content.Context
+import com.spisokryadom.app.data.repository.LocationRepository
 import com.spisokryadom.app.data.backup.BackupManager
 import com.spisokryadom.app.data.db.AppDatabase
 import com.spisokryadom.app.data.repository.ClassifierRepository
@@ -11,36 +12,27 @@ import com.spisokryadom.app.data.repository.ShoppingListRepository
 class AppContainer(context: Context) {
     val database = AppDatabase.getInstance(context)
 
+    val locations = LocationRepository(database.cityDao(), database.shopDao(), context.getSharedPreferences("location_prefs", Context.MODE_PRIVATE))
+
     val productRepository = ProductRepository(
         database.productDao(),
-        database.productShopLinkDao()
+        database.productShopLinkDao(), database
     )
 
     val shopRepository = ShopRepository(
         database.shopDao(),
-        database.shopDepartmentDao()
+        database.shopDepartmentDao(), locations, database
     )
 
     val shoppingListRepository = ShoppingListRepository(
-        database.shoppingListEntryDao()
+        database.shoppingListEntryDao(), database, locations
     )
 
     val classifierRepository = ClassifierRepository(
         database.productGroupDao(),
         database.recipientDao(),
-        database.unitDao()
+        database.unitDao(), database
     )
 
-    val backupManager = BackupManager(
-        context = context,
-        db = database,
-        productDao = database.productDao(),
-        productGroupDao = database.productGroupDao(),
-        recipientDao = database.recipientDao(),
-        shopDao = database.shopDao(),
-        shopDepartmentDao = database.shopDepartmentDao(),
-        productShopLinkDao = database.productShopLinkDao(),
-        shoppingListEntryDao = database.shoppingListEntryDao(),
-        unitDao = database.unitDao()
-    )
+    val backupManager = BackupManager(context,database)
 }

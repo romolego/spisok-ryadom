@@ -17,7 +17,8 @@ import kotlinx.coroutines.launch
 data class ShopListUiState(
     val shops: List<ShopEntity> = emptyList(),
     val isLoading: Boolean = true,
-    val isEditing: Boolean = false
+    val isEditing: Boolean = false,
+    val error:String?=null
 )
 
 class ShopListViewModel(
@@ -27,56 +28,26 @@ class ShopListViewModel(
     private val _uiState = MutableStateFlow(ShopListUiState())
     val uiState: StateFlow<ShopListUiState> = _uiState.asStateFlow()
 
+    private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(error=e.message?:"Операция не выполнена")}
+    fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
     init {
-        viewModelScope.launch {
-            shopRepository.getAllShops().collect { shops ->
+        viewModelScope.launch(errors) {
+            shopRepository.getCityShops().collect { shops ->
                 _uiState.value = _uiState.value.copy(shops = shops, isLoading = false)
             }
         }
     }
 
     fun deleteShop(shop: ShopEntity) {
-        viewModelScope.launch { shopRepository.deleteShop(shop) }
+        viewModelScope.launch(errors) { shopRepository.deleteShop(shop) }
     }
 
     fun toggleEditing() {
         _uiState.value = _uiState.value.copy(isEditing = !_uiState.value.isEditing)
     }
 
-    fun moveShopUp(shop: ShopEntity) {
-        viewModelScope.launch {
-            val shops = _uiState.value.shops
-            val index = shops.indexOfFirst { it.id == shop.id }
-            if (index <= 0) return@launch
-            swapShopOrder(shops, index, index - 1)
-        }
-    }
-
-    fun moveShopDown(shop: ShopEntity) {
-        viewModelScope.launch {
-            val shops = _uiState.value.shops
-            val index = shops.indexOfFirst { it.id == shop.id }
-            if (index < 0 || index >= shops.size - 1) return@launch
-            swapShopOrder(shops, index, index + 1)
-        }
-    }
-
-    private suspend fun swapShopOrder(
-        shops: List<ShopEntity>,
-        indexA: Int,
-        indexB: Int
-    ) {
-        val shopA = shops[indexA]
-        val shopB = shops[indexB]
-        val orderA = shopA.displayOrder
-        val orderB = shopB.displayOrder
-        val newOrderA = if (orderA == orderB) indexB else orderB
-        val newOrderB = if (orderA == orderB) indexA else orderA
-        shopRepository.updateShops(listOf(
-            shopA.copy(displayOrder = newOrderA),
-            shopB.copy(displayOrder = newOrderB)
-        ))
-    }
+    fun moveShopUp(shop:ShopEntity){viewModelScope.launch(errors){shopRepository.moveShop(shop.id,-1)}}
+    fun moveShopDown(shop:ShopEntity){viewModelScope.launch(errors){shopRepository.moveShop(shop.id,1)}}
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

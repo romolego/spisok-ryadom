@@ -21,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -65,6 +67,9 @@ data class ProductCardUiState(
     val suggestedDepartmentReason: String? = null,
     val isSaved: Boolean = false,
     val isDeleted: Boolean = false,
+    val isTemporary: Boolean = false,
+    val isSaving: Boolean = false,
+    val error: String? = null,
     val isLoading: Boolean = true
 )
 
@@ -85,22 +90,25 @@ class ProductCardViewModel(
     private var originalPhotoUri: String? = null
     private var nextTempId: Long = 1L
     private var preselectedShopAdded = false
+    private var productLoaded = productId == -1L
+    private var linksLoaded = productId == -1L
+    private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(error=e.message?:"Операция не выполнена",isLoading=false,isSaving=false)}
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             classifierRepository.getAllGroups().collect { groups ->
                 _uiState.value = _uiState.value.copy(groups = groups)
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             classifierRepository.getAllRecipients().collect { recipients ->
                 _uiState.value = _uiState.value.copy(recipients = recipients)
             }
         }
-        viewModelScope.launch {
-            shopRepository.getAllShops().collect { shops ->
+        viewModelScope.launch(errors) {
+            shopRepository.getAllShops().combine(shopRepository.locations.activeCity){shops,city->shops to city}.collect { (shops,city) ->
                 _shopMap.value = shops.associateBy { it.id }
-                _uiState.value = _uiState.value.copy(shops = shops)
+                _uiState.value = _uiState.value.copy(shops = shops.filter{it.cityId==city.id})
 
                 // Auto-add preselected shop as first pending link for new products
                 if (_uiState.value.isNew && preselectedShopId > 0 && !preselectedShopAdded) {
@@ -123,18 +131,20 @@ class ProductCardViewModel(
                 }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             classifierRepository.getOrderedUnitNames().collect { units ->
                 _uiState.value = _uiState.value.copy(unitSuggestions = units)
             }
         }
 
         if (productId != -1L) {
-            viewModelScope.launch {
-                val product = productRepository.getProductById(productId) ?: return@launch
+            viewModelScope.launch(errors) {
+                val product = productRepository.getProductById(productId) ?: error("Товар удалён")
+                productLoaded=true
                 originalPhotoUri = product.photoUri
                 _uiState.value = _uiState.value.copy(
                     isNew = false,
+                    isTemporary = product.isTemporary,
                     name = product.name,
                     productGroupId = product.productGroupId,
                     recipientId = product.recipientId,
@@ -151,12 +161,12 @@ class ProductCardViewModel(
                         if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
                     } ?: "",
                     priceDate = product.priceDate ?: "",
-                    isLoading = false
+                    isLoading = !linksLoaded
                 )
             }
-            viewModelScope.launch {
-                productRepository.getShopLinksForProduct(productId).collect { links ->
-                    val shops = _shopMap.value
+            viewModelScope.launch(errors) {
+                productRepository.getShopLinksForProduct(productId).take(1).collect { links ->
+                    val shops = shopRepository.getAllShopsSync().associateBy{it.id}
                     val linkUis = links.map { link ->
                         val deptName = link.departmentId?.let { deptId ->
                             if (!_departmentCache.containsKey(deptId)) {
@@ -170,7 +180,8 @@ class ProductCardViewModel(
                             departmentName = deptName
                         )
                     }
-                    _uiState.value = _uiState.value.copy(shopLinks = linkUis)
+                    linksLoaded=true
+                    _uiState.value = _uiState.value.copy(shopLinks = linkUis,isLoading = !productLoaded)
                 }
             }
         } else {
@@ -227,7 +238,7 @@ class ProductCardViewModel(
     }
 
     fun loadDepartmentsForShop(shopId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             val depts = shopRepository.getDepartmentsByShopIdSync(shopId)
 
             // Compute smart suggestion based on departments already used in other links
@@ -369,151 +380,74 @@ class ProductCardViewModel(
     // --- Existing product shop links ---
 
     fun addShopLink(shopId: Long, departmentId: Long?) {
-        if (productId == -1L) return
-        viewModelScope.launch {
-            val nextPriority = (_uiState.value.shopLinks.maxOfOrNull { it.link.priority } ?: 0) + 1
-            productRepository.insertShopLink(
-                ProductShopLinkEntity(
-                    productId = productId,
-                    shopId = shopId,
-                    priority = nextPriority,
-                    departmentId = departmentId
-                )
-            )
-            renumberShopLinkPriorities()
-        }
+        if(_uiState.value.shopLinks.any{it.link.shopId==shopId})return
+        val name=_shopMap.value[shopId]?.name ?: return
+        val dept=_uiState.value.departmentsForSelectedShop.find{it.id==departmentId}?.name
+        val link=ProductShopLinkEntity(id=-(nextTempId++),productId=productId,shopId=shopId,priority=_uiState.value.shopLinks.size+1,departmentId=departmentId)
+        _uiState.value=_uiState.value.copy(shopLinks=_uiState.value.shopLinks+ShopLinkUi(link,name,dept))
     }
-
     fun removeShopLink(link: ProductShopLinkEntity) {
-        viewModelScope.launch {
-            productRepository.deleteShopLink(link)
-            renumberShopLinkPriorities()
-        }
+        _uiState.value=_uiState.value.copy(shopLinks=_uiState.value.shopLinks.filter{it.link.id!=link.id})
     }
-
     fun updateShopLinkDepartment(link: ProductShopLinkEntity, departmentId: Long?) {
-        viewModelScope.launch {
-            productRepository.updateShopLink(link.copy(departmentId = departmentId))
-            if (departmentId != null) {
-                _departmentCache[departmentId] = shopRepository.getDepartmentById(departmentId)
-            }
-        }
+        val name=_uiState.value.departmentsForSelectedShop.find{it.id==departmentId}?.name
+        _uiState.value=_uiState.value.copy(shopLinks=_uiState.value.shopLinks.map{if(it.link.id==link.id)it.copy(link=it.link.copy(departmentId=departmentId),departmentName=name)else it})
     }
-
-    fun moveShopLinkUp(link: ProductShopLinkEntity) {
-        viewModelScope.launch {
-            val sorted = _uiState.value.shopLinks.sortedBy { it.link.priority }
-            val index = sorted.indexOfFirst { it.link.id == link.id }
-            if (index <= 0) return@launch
-            val other = sorted[index - 1].link
-            // Swap priorities: give each the other's position
-            productRepository.updateShopLink(link.copy(priority = index))
-            productRepository.updateShopLink(other.copy(priority = index + 1))
-            renumberShopLinkPriorities()
-        }
-    }
-
-    fun moveShopLinkDown(link: ProductShopLinkEntity) {
-        viewModelScope.launch {
-            val sorted = _uiState.value.shopLinks.sortedBy { it.link.priority }
-            val index = sorted.indexOfFirst { it.link.id == link.id }
-            if (index < 0 || index >= sorted.size - 1) return@launch
-            val other = sorted[index + 1].link
-            // Swap priorities: give each the other's position
-            productRepository.updateShopLink(link.copy(priority = index + 2))
-            productRepository.updateShopLink(other.copy(priority = index + 1))
-            renumberShopLinkPriorities()
-        }
-    }
-
-    /**
-     * Renumber all shop link priorities sequentially (1, 2, 3, ...)
-     * to guarantee no duplicates and no gaps.
-     */
-    private suspend fun renumberShopLinkPriorities() {
-        if (productId == -1L) return
-        val links = productRepository.getShopLinksForProductSync(productId)
-        links.sortedBy { it.priority }.forEachIndexed { index, link ->
-            val newPriority = index + 1
-            if (link.priority != newPriority) {
-                productRepository.updateShopLink(link.copy(priority = newPriority))
-            }
-        }
+    fun moveShopLinkUp(link: ProductShopLinkEntity)=moveLink(link,-1)
+    fun moveShopLinkDown(link: ProductShopLinkEntity)=moveLink(link,1)
+    private fun moveLink(link: ProductShopLinkEntity, delta: Int) {
+        val links=_uiState.value.shopLinks.sortedBy{it.link.priority}.toMutableList()
+        val i=links.indexOfFirst{it.link.id==link.id};val j=i+delta
+        if(i<0||j !in links.indices)return
+        val item=links.removeAt(i);links.add(j,item)
+        _uiState.value=_uiState.value.copy(shopLinks=links.mapIndexed{idx,ui->ui.copy(link=ui.link.copy(priority=idx+1))})
     }
 
     // --- General ---
 
     fun save() {
-        val state = _uiState.value
-        if (state.name.isBlank()) return
-
-        viewModelScope.launch {
-            val newPhotoUri = state.photoUri.trim().ifBlank { null }
-            val product = ProductEntity(
-                id = if (state.isNew) 0 else productId,
-                name = state.name.trim(),
-                productGroupId = state.productGroupId,
-                recipientId = state.recipientId,
-                defaultUnit = state.defaultUnit.trim().ifBlank { null },
-                defaultQuantity = state.defaultQuantity.toDoubleOrNull(),
-                note = state.note.trim().ifBlank { null },
-                purchaseType = state.purchaseType,
-                sellerUrl = state.sellerUrl.trim().ifBlank { null },
-                productUrl = state.productUrl.trim().ifBlank { null },
-                photoUri = newPhotoUri,
-                priceValue = state.priceValue.trim().ifBlank { null }?.toDoubleOrNull(),
-                priceDate = state.priceDate.trim().ifBlank { null }
-            )
-
-            if (state.isNew) {
-                val newId = productRepository.insertProduct(product)
-                // Save all pending shop links with sequential priorities
-                for (pending in state.pendingShopLinks.sortedBy { it.displayOrder }) {
-                    productRepository.insertShopLink(
-                        ProductShopLinkEntity(
-                            productId = newId,
-                            shopId = pending.shopId,
-                            priority = pending.displayOrder,
-                            departmentId = pending.departmentId
-                        )
-                    )
-                }
-            } else {
-                productRepository.updateProduct(product)
+        val state=_uiState.value
+        if(state.isSaving||state.isLoading||state.name.isBlank())return
+        _uiState.value=state.copy(isSaving=true,error=null)
+        viewModelScope.launch(errors) {
+            try {
+                val existing=if(state.isNew)null else productRepository.getProductById(productId)
+                val quantity=if(state.defaultQuantity.isBlank())null else com.spisokryadom.app.util.Quantities.parse(state.defaultQuantity) ?: error("Проверьте количество")
+                val price=if(state.priceValue.isBlank())null else state.priceValue.replace(',','.').toDoubleOrNull()?.takeIf{it.isFinite()&&it>=0} ?: error("Проверьте цену")
+                val product=ProductEntity(id=if(state.isNew)0 else productId,name=state.name.trim(),productGroupId=state.productGroupId,recipientId=state.recipientId,
+                    defaultUnit=com.spisokryadom.app.util.Quantities.unit(state.defaultUnit).ifBlank{null},defaultQuantity=quantity,note=state.note.trim().ifBlank{null},purchaseType=state.purchaseType,
+                    sellerUrl=state.sellerUrl.trim().ifBlank{null},productUrl=state.productUrl.trim().ifBlank{null},photoUri=state.photoUri.ifBlank{null},priceValue=price,priceDate=state.priceDate.ifBlank{null},
+                    isTemporary=state.isTemporary,stableId=existing?.stableId ?: java.util.UUID.randomUUID().toString())
+                val links=if(state.isNew)state.pendingShopLinks.map{ProductShopLinkEntity(productId=0,shopId=it.shopId,priority=it.displayOrder,departmentId=it.departmentId)} else state.shopLinks.map{it.link}
+                productRepository.saveWithLinks(product,links)
+                val old=originalPhotoUri
+                if(old!=null&&old!=product.photoUri)withContext(Dispatchers.IO){runCatching{File(old).delete()}}
+                _uiState.value=_uiState.value.copy(isSaving=false,isSaved=true)
+            } catch(e: Exception) {
+                if(e is kotlinx.coroutines.CancellationException)throw e
+                _uiState.value=_uiState.value.copy(isSaving=false,error=e.message ?: "Не удалось сохранить товар")
             }
-
-            // Clean up old photo file if photoUri changed (replaced or removed)
-            val oldPath = originalPhotoUri
-            if (oldPath != null && oldPath != newPhotoUri) {
-                withContext(Dispatchers.IO) {
-                    runCatching { File(oldPath).delete() }
-                }
-            }
-
-            _uiState.value = _uiState.value.copy(isSaved = true)
         }
     }
+    fun keepInCatalog(){_uiState.value=_uiState.value.copy(isTemporary=false)}
+    fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
 
     fun createGroup(name: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             val id = classifierRepository.insertGroup(ProductGroupEntity(name = name))
             _uiState.value = _uiState.value.copy(productGroupId = id)
         }
     }
 
     fun deleteProduct() {
-        if (_uiState.value.isNew || productId <= 0) return
-        viewModelScope.launch {
-            val product = productRepository.getProductById(productId) ?: return@launch
-            // Удаляем файл фотографии с диска, если он есть
-            product.photoUri?.let { path ->
-                withContext(Dispatchers.IO) {
-                    runCatching { File(path).delete() }
-                }
-            }
+        if(_uiState.value.isNew||productId<=0||_uiState.value.isSaving)return
+        _uiState.value=_uiState.value.copy(isSaving=true)
+        viewModelScope.launch(errors) {try{
+            val product=productRepository.getProductById(productId)?:error("Товар удалён")
             productRepository.deleteProduct(product)
-            _uiState.value = _uiState.value.copy(isDeleted = true)
-        }
+            product.photoUri?.let{path->withContext(Dispatchers.IO){runCatching{File(path).delete()}}}
+            _uiState.value=_uiState.value.copy(isSaving=false,isDeleted=true)
+        }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isSaving=false,error=e.message?:"Не удалось удалить товар")}}
     }
 
     companion object {

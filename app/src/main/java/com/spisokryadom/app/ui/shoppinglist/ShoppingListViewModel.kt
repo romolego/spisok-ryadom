@@ -25,6 +25,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 enum class ViewMode {
     BY_SHOPS, BY_GROUPS, BY_RECIPIENTS, FLAT;
@@ -47,7 +51,9 @@ data class ShoppingListEntryUi(
     val groupName: String?,
     val recipientName: String?,
     /** Default quantity from the product card — used as the increment/decrement step */
-    val defaultQuantity: Double? = null
+    val defaultQuantity: Double? = null,
+    val productGroupId: Long? = null,
+    val recipientId: Long? = null
 )
 
 /** Sub-group of entries within a shop, grouped by shop department (группа магазина) */
@@ -84,6 +90,8 @@ data class ShoppingListUiState(
     val boughtCount: Int = 0,
     val hasBoughtEntries: Boolean = false,
     val viewMode: ViewMode = ViewMode.BY_SHOPS,
+    val foreignPendingCount: Int = 0,
+    val error: String? = null,
     val isLoading: Boolean = true
 )
 
@@ -97,6 +105,7 @@ class ShoppingListViewModel(
 
     private val _uiState = MutableStateFlow(ShoppingListUiState())
     val uiState: StateFlow<ShoppingListUiState> = _uiState.asStateFlow()
+    private val errors=CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(error=e.message?:"Операция не выполнена")}
 
     private val _products = MutableStateFlow<Map<Long, ProductEntity>>(emptyMap())
     private val _shops = MutableStateFlow<Map<Long, ShopEntity>>(emptyMap())
@@ -110,6 +119,8 @@ class ShoppingListViewModel(
 
     private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
+            PREF_VIEW_MODE -> _viewMode.value=loadViewMode()
+            PREF_COLLAPSED_SHOPS -> _collapsedShopIds.value=loadCollapsedShopIds()
             PREF_GLOBAL_SHOW_URGENT_IN_COLLAPSED ->
                 _cachedGlobalShowUrgent.value = prefs.getBoolean(PREF_GLOBAL_SHOW_URGENT_IN_COLLAPSED, true)
             PREF_GLOBAL_BOOST_URGENT_SHOP ->
@@ -119,32 +130,32 @@ class ShoppingListViewModel(
 
     init {
         prefs.registerOnSharedPreferenceChangeListener(prefsListener)
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             productRepository.getAllProductsIncludingTemporary().collect { products ->
                 _products.value = products.associateBy { it.id }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             shopRepository.getAllShops().collect { shops ->
                 _shops.value = shops.associateBy { it.id }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             shopRepository.getAllDepartments().collect { departments ->
                 _departments.value = departments.associateBy { it.id }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             classifierRepository.getAllGroups().collect { groups ->
                 _groups.value = groups.associateBy { it.id }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             classifierRepository.getAllRecipients().collect { recipients ->
                 _recipients.value = recipients.associateBy { it.id }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             combine(
                 shoppingListRepository.getAllEntries(),
                 _products,
@@ -164,8 +175,10 @@ class ShoppingListViewModel(
                 data.copy(globalShowUrgent = showUrgent)
             }.combine(_cachedGlobalBoostUrgent) { data, boostUrgent ->
                 data.copy(globalBoostUrgent = boostUrgent)
-            }.collect { data ->
-                _uiState.value = buildUiState(data)
+            }.combine(shopRepository.locations.activeCity) { data,city -> data.copy(cityId=city.id) }
+                .combine(shopRepository.locations.cities){data,cities->data.copy(cityNames=cities.associate{it.id to it.name})}
+                .map(::buildUiState).flowOn(Dispatchers.Default).collect { state ->
+                _uiState.value = state.copy(error=_uiState.value.error)
             }
         }
     }
@@ -180,7 +193,9 @@ class ShoppingListViewModel(
         val viewMode: ViewMode = ViewMode.BY_SHOPS,
         val collapsedShopIds: Set<Long> = emptySet(),
         val globalShowUrgent: Boolean = true,
-        val globalBoostUrgent: Boolean = true
+        val globalBoostUrgent: Boolean = true,
+        val cityId: Long = 1,
+        val cityNames: Map<Long,String> = emptyMap()
     )
 
     /** Resolve whether to show urgent items in collapsed state for a given shop */
@@ -208,14 +223,15 @@ class ShoppingListViewModel(
                 departmentName = entry.assignedDepartmentId?.let { data.departments[it]?.name },
                 groupName = product?.productGroupId?.let { data.groups[it]?.name },
                 recipientName = product?.recipientId?.let { data.recipients[it]?.name },
-                defaultQuantity = product?.defaultQuantity
+                defaultQuantity = product?.defaultQuantity,
+                productGroupId = product?.productGroupId, recipientId=product?.recipientId
             )
         }
 
         val entryGroups = when (data.viewMode) {
-            ViewMode.BY_SHOPS -> buildShopGroups(allEntryUis, data.shops, data.departments, data.collapsedShopIds, data.globalShowUrgent, data.globalBoostUrgent)
-            ViewMode.BY_GROUPS -> buildProductGroupGroups(allEntryUis)
-            ViewMode.BY_RECIPIENTS -> buildRecipientGroups(allEntryUis)
+            ViewMode.BY_SHOPS -> buildShopGroups(allEntryUis, data.shops, data.departments, data.collapsedShopIds, data.globalShowUrgent, data.globalBoostUrgent, data.cityId, data.cityNames)
+            ViewMode.BY_GROUPS -> buildProductGroupGroups(allEntryUis, data.groups)
+            ViewMode.BY_RECIPIENTS -> buildRecipientGroups(allEntryUis, data.recipients)
             ViewMode.FLAT -> buildFlatGroup(allEntryUis)
         }
 
@@ -223,7 +239,8 @@ class ShoppingListViewModel(
 
         return ShoppingListUiState(
             groups = entryGroups,
-            shops = data.shops.values.sortedBy { it.displayOrder },
+            shops = data.shops.values.filter{it.cityId==data.cityId}.sortedBy { it.displayOrder },
+            foreignPendingCount=allEntryUis.count{!it.entry.isBought&&it.entry.assignedShopId!=null&&data.shops[it.entry.assignedShopId]?.cityId!=data.cityId},
             totalCount = allEntryUis.size,
             boughtCount = boughtCount,
             hasBoughtEntries = boughtCount > 0,
@@ -238,10 +255,11 @@ class ShoppingListViewModel(
         departments: Map<Long, ShopDepartmentEntity>,
         collapsedShopIds: Set<Long>,
         globalShowUrgent: Boolean,
-        globalBoostUrgent: Boolean
+        globalBoostUrgent: Boolean,
+        cityId: Long, cityNames: Map<Long,String>
     ): List<EntryGroup> {
         val grouped = entries.groupBy { it.entry.assignedShopId }
-        val shopOrder = shops.values.sortedBy { it.displayOrder }
+        val shopOrder = shops.values.sortedWith(compareBy<ShopEntity>{it.cityId!=cityId}.thenBy{it.displayOrder})
         val result = mutableListOf<EntryGroup>()
 
         for (shop in shopOrder) {
@@ -253,7 +271,7 @@ class ShoppingListViewModel(
             val showUrgentWhenCollapsed = resolveShowUrgentInCollapsed(shop, globalShowUrgent)
             result.add(EntryGroup(
                 groupId = shop.id,
-                groupName = shop.name,
+                groupName = if(shop.cityId==cityId)shop.name else "${shop.name} · ${cityNames[shop.cityId] ?: "Другой город"}",
                 entries = sorted,
                 deptSubGroups = deptSubGroups,
                 hasBoughtEntries = boughtCount > 0,
@@ -273,6 +291,7 @@ class ShoppingListViewModel(
         for (group in result) {
             val shop = group.groupId?.let { shops[it] }
             val shouldBoost = shop != null
+                    && shop.cityId == cityId
                     && group.urgentCount > 0
                     && resolveBoostUrgentShop(shop, globalBoostUrgent)
                     && !shop.manualOrderOverride
@@ -344,19 +363,19 @@ class ShoppingListViewModel(
     }
 
     private fun buildProductGroupGroups(
-        entries: List<ShoppingListEntryUi>
+        entries: List<ShoppingListEntryUi>, classifiers: Map<Long,ProductGroupEntity>
     ): List<EntryGroup> {
-        val grouped = entries.groupBy { it.groupName }
+        val grouped = entries.groupBy { it.productGroupId }
 
         val result = mutableListOf<EntryGroup>()
 
         // Named groups sorted alphabetically
-        val namedGroups = grouped.filterKeys { it != null }.toSortedMap(compareBy { it })
-        for ((groupName, groupEntries) in namedGroups) {
+        val namedGroups = grouped.filterKeys { it != null }.entries.sortedWith(compareBy({ classifiers[it.key]?.displayOrder ?: Int.MAX_VALUE }, { it.key }))
+        for ((groupId, groupEntries) in namedGroups) {
             val sorted = sortEntries(groupEntries)
             result.add(EntryGroup(
-                groupId = null,
-                groupName = groupName ?: "",
+                groupId = groupId,
+                groupName = classifiers[groupId]?.name ?: "Без группы",
                 entries = sorted,
                 hasBoughtEntries = sorted.any { it.entry.isBought }
             ))
@@ -377,18 +396,18 @@ class ShoppingListViewModel(
     }
 
     private fun buildRecipientGroups(
-        entries: List<ShoppingListEntryUi>
+        entries: List<ShoppingListEntryUi>, classifiers: Map<Long,RecipientEntity>
     ): List<EntryGroup> {
-        val grouped = entries.groupBy { it.recipientName }
+        val grouped = entries.groupBy { it.recipientId }
         val result = mutableListOf<EntryGroup>()
 
         // Named recipients sorted alphabetically
-        val namedGroups = grouped.filterKeys { it != null }.toSortedMap(compareBy { it })
-        for ((recipientName, groupEntries) in namedGroups) {
+        val namedGroups = grouped.filterKeys { it != null }.entries.sortedWith(compareBy({ classifiers[it.key]?.displayOrder ?: Int.MAX_VALUE }, { it.key }))
+        for ((recipientId, groupEntries) in namedGroups) {
             val sorted = sortEntries(groupEntries)
             result.add(EntryGroup(
-                groupId = null,
-                groupName = recipientName ?: "",
+                groupId = recipientId,
+                groupName = classifiers[recipientId]?.name ?: "Без получателя",
                 entries = sorted,
                 hasBoughtEntries = sorted.any { it.entry.isBought }
             ))
@@ -442,23 +461,23 @@ class ShoppingListViewModel(
     }
 
     fun markBought(entryId: Long) {
-        viewModelScope.launch { shoppingListRepository.markBought(entryId) }
+        viewModelScope.launch(errors) { shoppingListRepository.markBought(entryId) }
     }
 
     fun markNotBought(entryId: Long) {
-        viewModelScope.launch { shoppingListRepository.markNotBought(entryId) }
+        viewModelScope.launch(errors) { shoppingListRepository.markNotBought(entryId) }
     }
 
     fun removeEntry(entryId: Long) {
-        viewModelScope.launch { shoppingListRepository.removeEntry(entryId) }
+        viewModelScope.launch(errors) { shoppingListRepository.removeEntry(entryId) }
     }
 
     fun clearBought() {
-        viewModelScope.launch { shoppingListRepository.clearBoughtEntries() }
+        viewModelScope.launch(errors) { shoppingListRepository.clearBoughtEntries() }
     }
 
     fun clearBoughtByShop(shopId: Long?) {
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             if (shopId != null) {
                 shoppingListRepository.clearBoughtByShop(shopId)
             } else {
@@ -467,17 +486,12 @@ class ShoppingListViewModel(
         }
     }
 
-    fun toggleUrgent(entryId: Long) {
-        viewModelScope.launch {
-            val entry = shoppingListRepository.getEntryById(entryId) ?: return@launch
-            shoppingListRepository.updateEntry(
-                entry.copy(isUrgent = !entry.isUrgent, updatedAt = System.currentTimeMillis())
-            )
-        }
-    }
+    fun toggleUrgent(entryId: Long) { viewModelScope.launch(errors){shoppingListRepository.toggleUrgent(entryId)} }
+    fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
+    fun movePendingToCurrentCity(){viewModelScope.launch(errors){shoppingListRepository.movePendingToCurrentCity()}}
 
     fun changeShop(entryId: Long, newShopId: Long?, newDepartmentId: Long?) {
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             val entry = shoppingListRepository.getEntryById(entryId) ?: return@launch
 
             var resolvedDeptId = newDepartmentId
@@ -512,11 +526,12 @@ class ShoppingListViewModel(
     suspend fun getLinkedShopsForProduct(productId: Long): List<ShopEntity> {
         val links = productRepository.getShopLinksForProductSync(productId)
         val shopMap = _shops.value
-        return links.mapNotNull { link -> shopMap[link.shopId] }
+        val city=shopRepository.locations.currentId()
+        return links.mapNotNull { link -> shopMap[link.shopId] }.filter{it.cityId==city}
     }
 
     fun updateEntryDetails(entryId: Long, quantity: Double, shopId: Long?, note: String?, comment: String?) {
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             val entry = shoppingListRepository.getEntryById(entryId) ?: return@launch
 
             var resolvedDeptId = entry.assignedDepartmentId
@@ -555,36 +570,23 @@ class ShoppingListViewModel(
     }
 
     fun updateEntry(entry: ShoppingListEntryEntity) {
-        viewModelScope.launch {
+        viewModelScope.launch(errors) {
             shoppingListRepository.updateEntry(
                 entry.copy(updatedAt = System.currentTimeMillis())
             )
         }
     }
 
-    fun increaseQuantity(entryId: Long) {
-        viewModelScope.launch {
-            val entry = shoppingListRepository.getEntryById(entryId) ?: return@launch
-            val step = _products.value[entry.productId]?.defaultQuantity?.takeIf { it > 0.0 } ?: 1.0
-            val newQty = entry.quantity + step
-            shoppingListRepository.updateEntry(
-                entry.copy(quantity = newQty, updatedAt = System.currentTimeMillis())
-            )
-        }
-    }
-
-    fun decreaseQuantity(entryId: Long) {
-        viewModelScope.launch {
-            val entry = shoppingListRepository.getEntryById(entryId) ?: return@launch
-            val step = _products.value[entry.productId]?.defaultQuantity?.takeIf { it > 0.0 } ?: 1.0
-            val newQty = (entry.quantity - step).coerceAtLeast(step)
-            if (newQty != entry.quantity) {
-                shoppingListRepository.updateEntry(
-                    entry.copy(quantity = newQty, updatedAt = System.currentTimeMillis())
-                )
-            }
-        }
-    }
+    fun increaseQuantity(entryId: Long) { viewModelScope.launch(errors) {
+        val entry=shoppingListRepository.getEntryById(entryId) ?: return@launch
+        val step=_products.value[entry.productId]?.defaultQuantity?.takeIf{it>0}?:1.0
+        shoppingListRepository.adjustQuantity(entryId,step)
+    } }
+    fun decreaseQuantity(entryId: Long) { viewModelScope.launch(errors) {
+        val entry=shoppingListRepository.getEntryById(entryId) ?: return@launch
+        val step=_products.value[entry.productId]?.defaultQuantity?.takeIf{it>0}?:1.0
+        shoppingListRepository.adjustQuantity(entryId,-step)
+    } }
 
     fun toggleShopCollapsed(groupId: Long?) {
         val key = groupId ?: COLLAPSED_NO_SHOP_ID
@@ -594,48 +596,8 @@ class ShoppingListViewModel(
         saveCollapsedShopIds(current)
     }
 
-    fun moveShopUp(shopId: Long) {
-        viewModelScope.launch {
-            val shops = _shops.value.values.sortedBy { it.displayOrder }
-            val index = shops.indexOfFirst { it.id == shopId }
-            if (index <= 0) return@launch
-            swapShopOrder(shops, index, index - 1)
-            // Mark the moved shop as manually overridden (suppresses auto-boost)
-            markManualOrderOverride(shopId)
-        }
-    }
-
-    fun moveShopDown(shopId: Long) {
-        viewModelScope.launch {
-            val shops = _shops.value.values.sortedBy { it.displayOrder }
-            val index = shops.indexOfFirst { it.id == shopId }
-            if (index < 0 || index >= shops.size - 1) return@launch
-            swapShopOrder(shops, index, index + 1)
-            // Mark the moved shop as manually overridden (suppresses auto-boost)
-            markManualOrderOverride(shopId)
-        }
-    }
-
-    private suspend fun markManualOrderOverride(shopId: Long) {
-        val shop = _shops.value[shopId] ?: return
-        if (!shop.manualOrderOverride) {
-            shopRepository.updateShop(shop.copy(manualOrderOverride = true))
-        }
-    }
-
-    private suspend fun swapShopOrder(shops: List<ShopEntity>, indexA: Int, indexB: Int) {
-        val shopA = shops[indexA]
-        val shopB = shops[indexB]
-        val orderA = shopA.displayOrder
-        val orderB = shopB.displayOrder
-        // If both have the same displayOrder, use index-based values
-        val newOrderA = if (orderA == orderB) indexB else orderB
-        val newOrderB = if (orderA == orderB) indexA else orderA
-        shopRepository.updateShops(listOf(
-            shopA.copy(displayOrder = newOrderA),
-            shopB.copy(displayOrder = newOrderB)
-        ))
-    }
+    fun moveShopUp(shopId:Long){viewModelScope.launch(errors){shopRepository.moveShop(shopId,-1)}}
+    fun moveShopDown(shopId:Long){viewModelScope.launch(errors){shopRepository.moveShop(shopId,1)}}
 
     private fun loadCollapsedShopIds(): Set<Long> {
         val raw = prefs.getStringSet(PREF_COLLAPSED_SHOPS, null) ?: return emptySet()

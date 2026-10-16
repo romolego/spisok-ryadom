@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,6 +65,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -74,6 +76,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -87,6 +91,7 @@ fun ShoppingListScreen(
     onNavigateToAddToShop: (Long) -> Unit = {},
     onNavigateToProductCard: (Long) -> Unit,
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToBulk: () -> Unit = {},
     viewModel: ShoppingListViewModel = viewModel(factory = ShoppingListViewModel.Factory)
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -104,11 +109,12 @@ fun ShoppingListScreen(
         val groupIndex = state.groups.indexOfFirst { it.groupId == targetId }
         if (groupIndex >= 0) {
             val flatIndex = computeGroupHeaderFlatIndex(state.groups, state.viewMode, state.totalCount, groupIndex)
-            listState.animateScrollToItem(flatIndex)
+            listState.animateScrollToItem(flatIndex + if(state.foreignPendingCount>0)1 else 0)
         }
         scrollTargetShopId = null
     }
 
+    state.error?.let{message->androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,title={Text("Не удалось выполнить действие")},text={Text(message)},confirmButton={TextButton(onClick=viewModel::clearError){Text("Понятно")}})}
     showEditEntryFor?.let { entryUi ->
         EditEntryDialog(
             entryUi = entryUi,
@@ -185,7 +191,7 @@ fun ShoppingListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Список покупок") },
+                title = { Column { Text("Список покупок"); com.spisokryadom.app.ui.components.CityPicker() } },
                 actions = {
                     if (state.hasBoughtEntries) {
                         IconButton(onClick = { showClearDialog = true }) {
@@ -202,8 +208,11 @@ fun ShoppingListScreen(
             )
         },
         floatingActionButton = {
+            Column(horizontalAlignment=Alignment.End,verticalArrangement=Arrangement.spacedBy(8.dp)){
+            androidx.compose.material3.ExtendedFloatingActionButton(onClick=onNavigateToBulk){Text("Ввести списком")}
             FloatingActionButton(onClick = onNavigateToAddToList) {
                 Icon(Icons.Filled.Add, contentDescription = "Добавить в список")
+            }
             }
         }
     ) { padding ->
@@ -258,9 +267,12 @@ fun ShoppingListScreen(
                 // Entry groups
                 val showGroupHeaders = state.viewMode != ViewMode.FLAT
                 val isByShops = state.viewMode == ViewMode.BY_SHOPS
+                if(state.foreignPendingCount>0)item(key="foreign_notice"){
+                    Column{Text("В другом городе: ${state.foreignPendingCount} покупок. Они сохранены ниже.");TextButton(onClick={viewModel.movePendingToCurrentCity()}){Text("Подобрать магазины этого города")}}
+                }
                 state.groups.forEachIndexed { groupIndex, group ->
                     if (showGroupHeaders) {
-                        item(key = "header_${state.viewMode}_${group.groupName}", contentType = "group_header") {
+                        item(key = "header_${state.viewMode}_${group.groupId}", contentType = "group_header") {
                             EntryGroupHeader(
                                 group = group,
                                 viewMode = state.viewMode,
@@ -270,13 +282,13 @@ fun ShoppingListScreen(
                                 onToggleCollapsed = if (isByShops) {
                                     { viewModel.toggleShopCollapsed(group.groupId) }
                                 } else null,
-                                onMoveUp = if (isByShops && group.groupId != null && groupIndex > 0) {
+                                onMoveUp = if (isByShops && group.groupId != null && groupIndex > 0 && state.shops.any{it.id==group.groupId}) {
                                     {
                                         viewModel.moveShopUp(group.groupId)
                                         scrollTargetShopId = group.groupId
                                     }
                                 } else null,
-                                onMoveDown = if (isByShops && group.groupId != null && groupIndex < state.groups.lastIndex) {
+                                onMoveDown = if (isByShops && group.groupId != null && groupIndex < state.groups.lastIndex && state.shops.any{it.id==group.groupId}) {
                                     // Don't allow moving below "Без магазина" (groupId == null is always last)
                                     val nextIsNoShop = state.groups.getOrNull(groupIndex + 1)?.groupId == null
                                     if (!nextIsNoShop) {
@@ -286,7 +298,7 @@ fun ShoppingListScreen(
                                         }
                                     } else null
                                 } else null,
-                                onAddToShop = if (isByShops && group.groupId != null) {
+                                onAddToShop = if (isByShops && group.groupId != null && state.shops.any{it.id==group.groupId}) {
                                     { onNavigateToAddToShop(group.groupId!!) }
                                 } else null
                             )
@@ -726,7 +738,8 @@ private fun ShoppingListItem(
         ) {
             Checkbox(
                 checked = isBought,
-                onCheckedChange = { onToggleBought() }
+                onCheckedChange = { onToggleBought() },
+                modifier = Modifier.semantics { contentDescription = (if(isBought)"Вернуть в покупки: " else "Купить: ")+entryUi.productName }
             )
 
             Column(
@@ -818,7 +831,7 @@ private fun ShoppingListItem(
             ) {
                 IconButton(
                     onClick = onDecreaseQuantity,
-                    enabled = !isBought && entry.quantity > quantityStep,
+                    enabled = !isBought && entry.quantity > 0,
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
@@ -868,7 +881,7 @@ private fun EditEntryDialog(
         linkedShops = viewModel.getLinkedShopsForProduct(entryUi.entry.productId)
     }
 
-    var quantity by remember(entryUi.entry.id) {
+    var quantity by rememberSaveable(entryUi.entry.id) {
         mutableStateOf(
             if (entryUi.entry.quantity > 0) {
                 if (entryUi.entry.quantity == entryUi.entry.quantity.toLong().toDouble()) {
@@ -879,9 +892,9 @@ private fun EditEntryDialog(
             } else ""
         )
     }
-    var selectedShopId by remember(entryUi.entry.id) { mutableStateOf(entryUi.entry.assignedShopId) }
-    var note by remember(entryUi.entry.id) { mutableStateOf(entryUi.entry.note ?: "") }
-    var comment by remember(entryUi.entry.id) { mutableStateOf(entryUi.entry.comment ?: "") }
+    var selectedShopId by rememberSaveable(entryUi.entry.id) { mutableStateOf(entryUi.entry.assignedShopId) }
+    var note by rememberSaveable(entryUi.entry.id) { mutableStateOf(entryUi.entry.note ?: "") }
+    var comment by rememberSaveable(entryUi.entry.id) { mutableStateOf(entryUi.entry.comment ?: "") }
     var shopExpanded by remember { mutableStateOf(false) }
 
     val unitLabel = entryUi.entry.unit.ifBlank { null }
@@ -892,82 +905,34 @@ private fun EditEntryDialog(
         linkedShops + allShops.filter { it.id !in linkedIds }
     }
 
+    // A fixed content width prevents intrinsic text-field measurement from repeatedly resizing the window.
+    val dialogWidth=(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp-48).coerceIn(240,560).dp
     AlertDialog(
+        modifier=Modifier.width(dialogWidth),
+        properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false),
         onDismissRequest = onDismiss,
         title = { Text(entryUi.productName) },
         text = {
-            Column {
-                // Quantity with unit label
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = quantity,
-                        onValueChange = { value ->
-                            if (value.isEmpty() || value.matches(Regex("^\\d*\\.?\\d*$"))) {
-                                quantity = value
-                            }
-                        },
-                        label = { Text("Количество") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (unitLabel != null) {
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = unitLabel,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                OutlinedTextField(
+                    value=quantity,
+                    onValueChange={value->if(value.isEmpty()||value.matches(Regex("^\\d*[.,]?\\d*$")))quantity=value},
+                    label={Text("Количество")},
+                    suffix={unitLabel?.let{Text(it)}},
+                    singleLine=true,
+                    modifier=Modifier.fillMaxWidth(),
+                    keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal)
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Shop selector
-                ExposedDropdownMenuBox(
-                    expanded = shopExpanded,
-                    onExpandedChange = { shopExpanded = it }
-                ) {
-                    val selectedName = selectedShopId?.let { id ->
-                        shopList.find { it.id == id }?.name
-                    } ?: "Не задан"
-                    OutlinedTextField(
-                        value = selectedName,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Магазин") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = shopExpanded) },
-                        modifier = Modifier
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                            .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = shopExpanded,
-                        onDismissRequest = { shopExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    "Не задан",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = {
-                                selectedShopId = null
-                                shopExpanded = false
-                            }
-                        )
-                        shopList.forEach { shop ->
-                            DropdownMenuItem(
-                                text = { Text(shop.name) },
-                                onClick = {
-                                    selectedShopId = shop.id
-                                    shopExpanded = false
-                                }
-                            )
-                        }
+                Text("Магазин",style=MaterialTheme.typography.labelMedium)
+                Box(Modifier.fillMaxWidth()) {
+                    val selectedName=selectedShopId?.let{id->shopList.find{it.id==id}?.name ?: entryUi.shopName?.takeIf{entryUi.entry.assignedShopId==id}} ?: "Без магазина"
+                    androidx.compose.material3.OutlinedButton(onClick={shopExpanded=true},modifier=Modifier.fillMaxWidth()) { Text(selectedName) }
+                    androidx.compose.material3.DropdownMenu(expanded=shopExpanded,onDismissRequest={shopExpanded=false}) {
+                        DropdownMenuItem(text={Text("Без магазина")},onClick={selectedShopId=null;shopExpanded=false})
+                        shopList.forEach{shop->DropdownMenuItem(text={Text(shop.name)},onClick={selectedShopId=shop.id;shopExpanded=false})}
                     }
                 }
 
@@ -997,9 +962,9 @@ private fun EditEntryDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                val qty = (quantity.toDoubleOrNull() ?: 1.0).coerceAtLeast(1.0)
+                val qty = com.spisokryadom.app.util.Quantities.parse(quantity) ?: return@TextButton
                 onSave(qty, selectedShopId, note.ifBlank { null }, comment.ifBlank { null })
-            }) { Text("Сохранить") }
+            }, enabled = com.spisokryadom.app.util.Quantities.parse(quantity) != null) { Text("Сохранить") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Отмена") }

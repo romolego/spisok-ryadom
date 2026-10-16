@@ -1,6 +1,9 @@
 package com.spisokryadom.app.ui.settings
 
 import android.content.Context
+import android.net.Uri
+import java.io.File
+import java.util.UUID
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -37,7 +40,10 @@ import kotlinx.coroutines.launch
 data class SettingsUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val pendingExportJson: String? = null
+    val pendingExportPath: String? = null,
+    val exportLaunched:Boolean=false,
+    val pendingImportPath:String?=null,
+    val importSummary:String?=null
 )
 
 // ── Department group model (cross-shop) ──────────────────────────────────────
@@ -67,52 +73,56 @@ class SettingsViewModel(
     private val classifierRepository: ClassifierRepository,
     private val productRepository: ProductRepository,
     private val shopRepository: ShopRepository,
-    private val prefs: SharedPreferences
+    private val prefs: SharedPreferences,
+    private val context:Context
 ) : ViewModel() {
 
     // ── Backup ───────────────────────────────────────────────────────────────
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(isLoading=false,message=e.message?:"Операция не выполнена")}
 
     fun prepareExport() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.value = _uiState.value.copy(isLoading = true, message = null)
-            try {
-                val json = backupManager.exportToJson()
-                _uiState.value = _uiState.value.copy(isLoading = false, pendingExportJson = json)
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    message = "Ошибка экспорта: ${e.message}"
-                )
-            }
+        if(_uiState.value.isLoading||_uiState.value.pendingExportPath!=null)return
+        _uiState.value=_uiState.value.copy(isLoading=true,message=null)
+        viewModelScope.launch(Dispatchers.IO+errors){try{
+            val file=backupManager.exportFile()
+            _uiState.value=_uiState.value.copy(isLoading=false,pendingExportPath=file.absolutePath,exportLaunched=false)
+        }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,message="Ошибка резервной копии: ${e.message}")}}
+    }
+    fun exportLaunched(){_uiState.value=_uiState.value.copy(exportLaunched=true)}
+    fun saveExport(uri:Uri?){
+        val file=_uiState.value.pendingExportPath?.let{File(it)}?:return
+        _uiState.value=_uiState.value.copy(pendingExportPath=null,isLoading=uri!=null)
+        viewModelScope.launch(Dispatchers.IO+errors){try{
+            if(uri!=null){val output=context.contentResolver.openOutputStream(uri)?:error("Не удалось открыть файл для записи");output.use{out->file.inputStream().use{it.copyTo(out)}}}
+            _uiState.value=_uiState.value.copy(isLoading=false,message=if(uri!=null){val missing=backupManager.inspect(file).missingPhotos;"Полная резервная копия сохранена"+(if(missing>0)". Не найдены фото: $missing"else "")}else null)
+        }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,message="Не удалось записать копию: ${e.message}")}
+        finally{backupManager.discard(file)}}
+    }
+    fun receiveImport(uri:Uri){
+        if(_uiState.value.isLoading)return
+        _uiState.value=_uiState.value.copy(isLoading=true,message=null)
+        viewModelScope.launch(Dispatchers.IO+errors){val file=File(File(context.cacheDir,"backups").also{it.mkdirs()},"input_${UUID.randomUUID()}.data")
+            try{
+                val input=context.contentResolver.openInputStream(uri)?:error("Не удалось прочитать файл")
+                input.use{source->file.outputStream().use{out->val buffer=ByteArray(16384);var total=0L;while(true){val n=source.read(buffer);if(n<0)break;total+=n;require(total<=512L*1024*1024){"Копия слишком большая"};out.write(buffer,0,n)}}}
+                val info=backupManager.inspect(file)
+                _uiState.value=_uiState.value.copy(isLoading=false,pendingImportPath=file.absolutePath,importSummary=info.description)
+            }catch(e:Exception){file.delete();if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,message="Не удалось прочитать копию: ${e.message}")}
         }
     }
-
-    fun exportConsumed(success: Boolean) {
-        _uiState.value = _uiState.value.copy(
-            pendingExportJson = null,
-            message = if (success) "База экспортирована" else null
-        )
-    }
-
-    fun importFromJson(json: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.value = _uiState.value.copy(isLoading = true, message = null)
-            try {
-                backupManager.importFromJson(json)
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    message = "База успешно импортирована"
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    message = "Ошибка импорта: ${e.message}"
-                )
-            }
-        }
+    fun cancelImport(){_uiState.value.pendingImportPath?.let{backupManager.discard(File(it))};_uiState.value=_uiState.value.copy(pendingImportPath=null,importSummary=null)}
+    fun importSelected(){
+        val path=_uiState.value.pendingImportPath?:return
+        if(_uiState.value.isLoading)return
+        _uiState.value=_uiState.value.copy(pendingImportPath=null,importSummary=null,isLoading=true)
+        viewModelScope.launch(Dispatchers.IO+errors){try{
+            val info=backupManager.importFile(File(path))
+            _uiState.value=_uiState.value.copy(isLoading=false,message=if(info.full)"Полная копия восстановлена"else "Каталог перенесён. Текущие покупки сохранены")
+        }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,message="Восстановление не выполнено: ${e.message}")}
+        finally{backupManager.discard(File(path))}}
     }
 
     fun clearMessage() {
@@ -187,6 +197,12 @@ class SettingsViewModel(
     val deptGroupsEditMode: StateFlow<Boolean> = _deptGroupsEditMode.asStateFlow()
     fun toggleDeptGroupsEditMode() { _deptGroupsEditMode.value = !_deptGroupsEditMode.value }
 
+    private val preferenceListener=SharedPreferences.OnSharedPreferenceChangeListener{_,_->
+        _urgencyDefaults.value=loadUrgencyDefaults();_addToListDefaults.value=loadAddToListDefaults()
+    }
+    init { prefs.registerOnSharedPreferenceChangeListener(preferenceListener) }
+    override fun onCleared(){prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener);super.onCleared()}
+
     // ── Recipients ───────────────────────────────────────────────────────────
 
     val recipients: StateFlow<List<RecipientEntity>> = classifierRepository.getAllRecipients()
@@ -206,20 +222,20 @@ class SettingsViewModel(
     }
 
     fun createRecipient(name: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             val maxOrder = classifierRepository.getMaxRecipientDisplayOrder()
             classifierRepository.insertRecipient(RecipientEntity(name = name, displayOrder = maxOrder + 1))
         }
     }
 
     fun renameRecipient(recipient: RecipientEntity, newName: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             classifierRepository.updateRecipient(recipient.copy(name = newName))
         }
     }
 
     fun deleteRecipient(recipient: RecipientEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             classifierRepository.deleteRecipient(recipient)
             if (_selectedRecipientId.value == recipient.id) {
                 _selectedRecipientId.value = null
@@ -227,37 +243,9 @@ class SettingsViewModel(
         }
     }
 
-    fun moveRecipientUp(recipient: RecipientEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val list = recipients.value.toMutableList()
-            val idx = list.indexOfFirst { it.id == recipient.id }
-            if (idx > 0) {
-                val item = list.removeAt(idx)
-                list.add(idx - 1, item)
-                list.forEachIndexed { i, r ->
-                    if (r.displayOrder != i) {
-                        classifierRepository.updateRecipient(r.copy(displayOrder = i))
-                    }
-                }
-            }
-        }
-    }
+    fun moveRecipientUp(value:RecipientEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveRecipient(value.id,-1)} }
 
-    fun moveRecipientDown(recipient: RecipientEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val list = recipients.value.toMutableList()
-            val idx = list.indexOfFirst { it.id == recipient.id }
-            if (idx >= 0 && idx < list.size - 1) {
-                val item = list.removeAt(idx)
-                list.add(idx + 1, item)
-                list.forEachIndexed { i, r ->
-                    if (r.displayOrder != i) {
-                        classifierRepository.updateRecipient(r.copy(displayOrder = i))
-                    }
-                }
-            }
-        }
-    }
+    fun moveRecipientDown(value:RecipientEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveRecipient(value.id,1)} }
 
     // ── Product Groups ──────────────────────────────────────────────────────
 
@@ -278,20 +266,20 @@ class SettingsViewModel(
     }
 
     fun createProductGroup(name: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             val maxOrder = classifierRepository.getMaxGroupDisplayOrder()
             classifierRepository.insertGroup(ProductGroupEntity(name = name, displayOrder = maxOrder + 1))
         }
     }
 
     fun renameProductGroup(group: ProductGroupEntity, newName: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             classifierRepository.updateGroup(group.copy(name = newName))
         }
     }
 
     fun deleteProductGroup(group: ProductGroupEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             classifierRepository.deleteGroup(group)
             if (_selectedGroupId.value == group.id) {
                 _selectedGroupId.value = null
@@ -299,37 +287,9 @@ class SettingsViewModel(
         }
     }
 
-    fun moveProductGroupUp(group: ProductGroupEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val list = productGroups.value.toMutableList()
-            val idx = list.indexOfFirst { it.id == group.id }
-            if (idx > 0) {
-                val item = list.removeAt(idx)
-                list.add(idx - 1, item)
-                list.forEachIndexed { i, g ->
-                    if (g.displayOrder != i) {
-                        classifierRepository.updateGroup(g.copy(displayOrder = i))
-                    }
-                }
-            }
-        }
-    }
+    fun moveProductGroupUp(value:ProductGroupEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveGroup(value.id,-1)} }
 
-    fun moveProductGroupDown(group: ProductGroupEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val list = productGroups.value.toMutableList()
-            val idx = list.indexOfFirst { it.id == group.id }
-            if (idx >= 0 && idx < list.size - 1) {
-                val item = list.removeAt(idx)
-                list.add(idx + 1, item)
-                list.forEachIndexed { i, g ->
-                    if (g.displayOrder != i) {
-                        classifierRepository.updateGroup(g.copy(displayOrder = i))
-                    }
-                }
-            }
-        }
-    }
+    fun moveProductGroupDown(value:ProductGroupEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveGroup(value.id,1)} }
 
     // ── Units of measurement ─────────────────────────────────────────────────
 
@@ -352,61 +312,30 @@ class SettingsViewModel(
     }
 
     fun createUnit(name: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             val maxOrder = classifierRepository.getMaxUnitDisplayOrder()
             classifierRepository.insertUnit(UnitEntity(name = name, displayOrder = maxOrder + 1))
         }
     }
 
     fun renameUnit(unit: UnitEntity, newName: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val oldName = unit.name
-            classifierRepository.updateUnit(unit.copy(name = newName))
-            productRepository.renameUnit(oldName, newName)
+        viewModelScope.launch(Dispatchers.IO+errors) {
+            classifierRepository.renameUnitAndProducts(unit,newName)
         }
     }
 
     fun deleteUnit(unit: UnitEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            productRepository.clearUnit(unit.name)
-            classifierRepository.deleteUnit(unit)
+        viewModelScope.launch(Dispatchers.IO+errors) {
+            classifierRepository.deleteUnitAndProducts(unit)
             if (_selectedUnitId.value == unit.id) {
                 _selectedUnitId.value = null
             }
         }
     }
 
-    fun moveUnitUp(unit: UnitEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val list = units.value.toMutableList()
-            val idx = list.indexOfFirst { it.id == unit.id }
-            if (idx > 0) {
-                val item = list.removeAt(idx)
-                list.add(idx - 1, item)
-                list.forEachIndexed { i, u ->
-                    if (u.displayOrder != i) {
-                        classifierRepository.updateUnit(u.copy(displayOrder = i))
-                    }
-                }
-            }
-        }
-    }
+    fun moveUnitUp(value:UnitEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveUnit(value.id,-1)} }
 
-    fun moveUnitDown(unit: UnitEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val list = units.value.toMutableList()
-            val idx = list.indexOfFirst { it.id == unit.id }
-            if (idx >= 0 && idx < list.size - 1) {
-                val item = list.removeAt(idx)
-                list.add(idx + 1, item)
-                list.forEachIndexed { i, u ->
-                    if (u.displayOrder != i) {
-                        classifierRepository.updateUnit(u.copy(displayOrder = i))
-                    }
-                }
-            }
-        }
-    }
+    fun moveUnitDown(value:UnitEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveUnit(value.id,1)} }
 
     // ── Shop department groups (cross-shop view) ─────────────────────────────
 
@@ -447,7 +376,7 @@ class SettingsViewModel(
     }
 
     fun renameDepartmentGroup(oldName: String, newName: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             shopRepository.renameDepartmentGlobally(oldName, newName)
             if (_selectedDepartmentGroup.value == oldName) {
                 _selectedDepartmentGroup.value = newName
@@ -456,7 +385,7 @@ class SettingsViewModel(
     }
 
     fun deleteDepartmentGroup(name: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO+errors) {
             shopRepository.deleteDepartmentGlobally(name)
             if (_selectedDepartmentGroup.value == name) {
                 _selectedDepartmentGroup.value = null
@@ -465,26 +394,8 @@ class SettingsViewModel(
     }
 
     fun createDepartmentGroup(name: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val shops = allShops.value
-            if (shops.isEmpty()) {
-                _uiState.value = _uiState.value.copy(
-                    message = "Сначала добавьте хотя бы один магазин"
-                )
-                return@launch
-            }
-            // Add the department to every shop
-            shops.forEach { shop ->
-                val existingDepts = shopRepository.getDepartmentsByShopIdSync(shop.id)
-                val maxOrder = existingDepts.maxOfOrNull { it.displayOrder } ?: 0
-                shopRepository.insertDepartment(
-                    ShopDepartmentEntity(
-                        shopId = shop.id,
-                        name = name,
-                        displayOrder = maxOrder + 1
-                    )
-                )
-            }
+        viewModelScope.launch(Dispatchers.IO+errors) {
+            shopRepository.addDepartmentInCity(name,shopRepository.locations.currentId())
         }
     }
 
@@ -501,7 +412,8 @@ class SettingsViewModel(
                     classifierRepository = app.container.classifierRepository,
                     productRepository = app.container.productRepository,
                     shopRepository = app.container.shopRepository,
-                    prefs = prefs
+                    prefs = prefs,
+                    context=app
                 )
             }
         }

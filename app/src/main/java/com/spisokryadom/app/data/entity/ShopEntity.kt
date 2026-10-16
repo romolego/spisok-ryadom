@@ -2,8 +2,10 @@ package com.spisokryadom.app.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.ForeignKey
+import androidx.room.Index
 
-@Entity(tableName = "shops")
+@Entity(tableName = "shops", indices = [Index("cityId")])
 data class ShopEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -16,5 +18,6 @@ data class ShopEntity(
     /** null = use global default, true/false = local override */
     val boostUrgentShop: Boolean? = null,
     /** true if user manually reordered this shop — suppresses auto-boost */
-    val manualOrderOverride: Boolean = false
+    val manualOrderOverride: Boolean = false,
+    val cityId: Long = 1
 )

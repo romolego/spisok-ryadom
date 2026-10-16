@@ -68,15 +68,19 @@ interface ShoppingListEntryDao {
     @Query("DELETE FROM shopping_list_entries WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    @Query("SELECT * FROM shopping_list_entries WHERE productId=:productId AND isBought=0 AND unit=:unit AND assignedShopId IS :shopId ORDER BY id LIMIT 1")
+    suspend fun findCompatible(productId: Long, unit: String, shopId: Long?): ShoppingListEntryEntity?
+    @Query("UPDATE shopping_list_entries SET isUrgent=CASE WHEN isUrgent=1 THEN 0 ELSE 1 END, updatedAt=:now WHERE id=:id")
+    suspend fun toggleUrgency(id: Long, now: Long = System.currentTimeMillis())
     /**
      * Atomically adds a new entry or merges quantity with existing active entry.
      */
     @Transaction
     suspend fun addOrMerge(entry: ShoppingListEntryEntity): Long {
-        val existing = findActiveByProductId(entry.productId)
+        val existing = findCompatible(entry.productId, entry.unit, entry.assignedShopId)
         return if (existing != null) {
             val merged = existing.copy(
-                quantity = existing.quantity + entry.quantity,
+                quantity = com.spisokryadom.app.util.Quantities.valid(existing.quantity + entry.quantity),
                 updatedAt = System.currentTimeMillis()
             )
             update(merged)
