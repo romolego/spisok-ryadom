@@ -29,6 +29,6 @@
 - Выданные файлы и прежние версии: `.local/artifacts/`.
 - Личная база и ключ: только `.local/private/` и `.local/signing/`, вне Git.
 
-Состояние публикации подтверждается квитанцией `docs/publications/0.17.0.json` после проверки релиза и публичного скачивания всех файлов.
+Публикация завершена: [PR#2](https://github.com/romolego/spisok-ryadom/pull/2) слит вmain; [v0.17.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.17.0) опубликован. Все8 файлов скачаны без авторизации, размер/SHA256 совпали. Source commit: `8380ed8b30d399a60e504af1a74ac615818c2d09`; merge commit: `6ce14b7e74c62804f5ea35b6125d60015f498e46`. После слияния отдельно уточнены только контрольные суммы Git-архивов. [Квитанция](../docs/publications/0.17.0.json). Локальная main отслеживает origin/main; код/APK не изменены.
 
 Навигация: [атлас архитектуры](41_ARCHITECTURE_ATLAS.md), [сопровождение](42_MAINTENANCE_GUIDE.md), [публикация](43_GITHUB_PROJECT_170.md). Прежняя развёрнутая хронология этого файла сохранена в `history/01_CURRENT_STATE_before_publish170.md`.

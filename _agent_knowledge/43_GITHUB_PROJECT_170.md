@@ -6,7 +6,7 @@
 
 GitHub: https://github.com/romolego/spisok-ryadom. Ранее опубликована0.12.1; текущий выпуск включает накопленные изменения0.13–0.17. APK0.17 сохраняет SHA256 `09f367c0c7a4c1060de923da71871c0f9a7ae045bcdde8c67ca207d23254b821`, прежнюю подпись и пакет.next.
 
-Состояние публикации подтверждается квитанцией `docs/publications/0.17.0.json` после проверки релиза и публичного скачивания всех файлов.
+Публикация завершена: [PR#2](https://github.com/romolego/spisok-ryadom/pull/2) слит вmain; [v0.17.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.17.0) опубликован. Все8 файлов скачаны без авторизации, размер/SHA256 совпали. Source commit: `8380ed8b30d399a60e504af1a74ac615818c2d09`; merge commit: `6ce14b7e74c62804f5ea35b6125d60015f498e46`. После слияния отдельно уточнены только контрольные суммы Git-архивов. [Квитанция](../docs/publications/0.17.0.json). Локальная main отслеживает origin/main; код/APK не изменены.
 
 ## Состав
 
