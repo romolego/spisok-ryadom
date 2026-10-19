@@ -1,0 +1,105 @@
+package com.spisokryadom.app.data.repository
+
+import androidx.room.withTransaction
+import com.spisokryadom.app.data.db.AppDatabase
+import com.spisokryadom.app.data.entity.*
+
+sealed interface ProductBatchChange {
+ data class Recipient(val id:Long?):ProductBatchChange
+ data class Group(val id:Long?):ProductBatchChange
+ data class Favorite(val value:Boolean):ProductBatchChange
+ data class Shops(val ids:Set<Long>):ProductBatchChange
+ // null branch applies to every available point; a point changes only that override.
+ data class Department(val shopId:Long,val typeId:Long?,val branchId:Long?=null):ProductBatchChange
+}
+enum class PurchaseBatchChange { BOUGHT, RETURN, URGENT, NOT_URGENT, DELETE }
+
+/** Every batch reads fresh rows, validates the entire set and commits once. */
+class BatchRepository(private val db:AppDatabase,private val products:ProductRepository,private val basket:ShoppingListRepository, private val catalogueEdits:CatalogueEdits?=null) {
+ private suspend fun products(ids:Set<Long>):List<ProductEntity> {
+  require(ids.isNotEmpty()) { "Выберите товары" }
+  return ids.sorted().map{db.productDao().getById(it)?:error("Один из товаров удалён. Обновите выбор")}
+ }
+ suspend fun changeProducts(ids:Set<Long>,change:ProductBatchChange)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+  val rows=products(ids)
+  when(change){
+   is ProductBatchChange.Recipient->change.id?.let{require(db.recipientDao().getById(it)!=null){"Получатель удалён"}}
+   is ProductBatchChange.Group->change.id?.let{require(db.productGroupDao().getById(it)!=null){"Товарная группа удалена"}}
+   is ProductBatchChange.Shops->{require(change.ids.isNotEmpty());change.ids.forEach{require(db.shopDao().getById(it)!=null){"Магазин удалён"}}}
+   is ProductBatchChange.Department->{
+    require(db.shopDao().getById(change.shopId)!=null){"Магазин удалён"}
+    change.typeId?.let{require(db.shopDepartmentDao().type(it)!=null){"Группа магазина удалена"}}
+    val branch=change.branchId?.let{db.shopBranchDao().get(it)?:error("Точка удалена")}
+    require(branch==null||branch.shopId==change.shopId){"Точка другого магазина"}
+    rows.forEach{p->
+     val link=db.productShopLinkDao().getLinksForProductSync(p.id).find{it.shopId==change.shopId}?:error("Не все товары привязаны к этому магазину")
+     if(branch!=null&&link.restrictBranches)require(db.shopBranchDao().availability(p.id).any{it.branchId==branch.id}){"Не все товары доступны в этой точке"}
+    }
+   }
+   else->Unit
+  }
+  val placement=if(change is ProductBatchChange.Department&&change.typeId!=null)ensurePlacement(change.shopId,change.typeId)else null
+  rows.forEach{p->
+   val links=db.productShopLinkDao().getLinksForProductSync(p.id)
+   when(change){
+    is ProductBatchChange.Recipient->db.productDao().update(p.copy(recipientId=change.id))
+    is ProductBatchChange.Group->db.productDao().update(p.copy(productGroupId=change.id))
+    is ProductBatchChange.Favorite->db.productDao().update(p.copy(isFavorite=change.value))
+    is ProductBatchChange.Shops->{
+     products.ensureShopLinks(p.id,db.shopDao().getAllSync().filter{it.id in change.ids}.map{it.id})
+     // Also resolves a formerly unassigned automatic purchase, without moving a valid one.
+     products.saveWithLinks(p,db.productShopLinkDao().getLinksForProductSync(p.id))
+    }
+    is ProductBatchChange.Department->{
+     val overrides=products.branchDepartments(p.id).associate{it.branchId to it.typeId}.toMutableMap()
+     // saveWithLinks accepts placement IDs, while persisted overrides contain type IDs.
+     val byType=db.shopDepartmentDao().getAllSync().associateBy{it.shopId to it.typeId}
+     val branches=db.shopBranchDao().getAll().associateBy{it.id}
+     val choices=overrides.mapNotNull{(branch,type)->byType[branches[branch]?.shopId to type]?.let{branch to it.id}}.toMap().toMutableMap()
+     val nextLinks=if(change.branchId==null){
+      choices.keys.filter{branches[it]?.shopId==change.shopId}.forEach{choices.remove(it)}
+      links.map{if(it.shopId==change.shopId)it.copy(departmentId=placement)else it}
+     }else{
+      // Clearing a point override explicitly means no group at this point.
+      if(placement==null){
+       require(links.first{it.shopId==change.shopId}.departmentId==null){"Для отдельной точки выберите группу; убрать группу можно во всех точках"}
+       choices.remove(change.branchId)
+      }else choices[change.branchId]=placement
+      links
+     }
+     products.saveWithLinks(p,nextLinks,branchDepartments=choices)
+    }
+   }
+  }
+ } }
+ private suspend fun ensurePlacement(shopId:Long,typeId:Long):Long {
+  val dao=db.shopDepartmentDao();val rows=dao.getByShopIdSync(shopId)
+  return rows.find{it.typeId==typeId}?.id?:dao.insert(ShopDepartmentEntity(shopId=shopId,typeId=typeId,name=dao.type(typeId)!!.name,displayOrder=(rows.maxOfOrNull{it.displayOrder}?:-1)+1))
+ }
+ suspend fun addDepartments(shopIds:Set<Long>,typeIds:Set<Long>)=db.withTransaction {
+  require(shopIds.isNotEmpty()&&typeIds.isNotEmpty()) { "Выберите магазины и группы" }
+  shopIds.forEach{require(db.shopDao().getById(it)!=null){"Магазин удалён"}}
+  typeIds.forEach{require(db.shopDepartmentDao().type(it)!=null){"Группа удалена"}}
+  val ordered=db.shopDepartmentDao().types().filter{it.id in typeIds}
+  shopIds.sorted().forEach{s->ordered.forEach{ensurePlacement(s,it.id)}}
+ }
+ suspend fun changePurchases(ids:Set<Long>,change:PurchaseBatchChange)=db.withTransaction {
+  require(ids.isNotEmpty()) { "Выберите покупки" }
+  val rows=ids.sorted().map{db.shoppingListEntryDao().getById(it)?:error("Одна из покупок удалена. Обновите выбор")}
+  if(change==PurchaseBatchChange.URGENT||change==PurchaseBatchChange.NOT_URGENT)require(rows.none{it.isBought}){"Срочность доступна для некупленных"}
+  val now=System.currentTimeMillis()
+  rows.forEach{row->
+   if(change==PurchaseBatchChange.DELETE)db.shoppingListEntryDao().delete(row)
+   else db.shoppingListEntryDao().update(when(change){
+    PurchaseBatchChange.BOUGHT->row.copy(isBought=true,updatedAt=now)
+    PurchaseBatchChange.RETURN->row.copy(isBought=false,updatedAt=now)
+    PurchaseBatchChange.URGENT->row.copy(isUrgent=true,updatedAt=now)
+    else->row.copy(isUrgent=false,updatedAt=now)
+   })
+  }
+  if(change==PurchaseBatchChange.DELETE)db.productDao().deleteUnusedTemporary()
+ }
+ suspend fun addToBasket(ids:Set<Long>,shopId:Long?=null,branchId:Long?=null)=db.withTransaction {
+  products(ids).forEach{basket.addProduct(it.id,choice=if(shopId==null)ShopChoice.AUTO else ShopChoice.EXPLICIT,shopId=shopId,branchId=branchId)}
+ }
+}

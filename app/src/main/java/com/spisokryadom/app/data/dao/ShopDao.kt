@@ -23,7 +23,7 @@ interface ShopDao {
     @Query("DELETE FROM shops")
     suspend fun deleteAll()
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(shop: ShopEntity): Long
 
     @Update
@@ -34,4 +34,6 @@ interface ShopDao {
 
     @Delete
     suspend fun delete(shop: ShopEntity)
+    @Query("UPDATE shops SET manualOrderOverride=1 WHERE id=:id")
+    suspend fun markManualOrderOverride(id: Long)
 }

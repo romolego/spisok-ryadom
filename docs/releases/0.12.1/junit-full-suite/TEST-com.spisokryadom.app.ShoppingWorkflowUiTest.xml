@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.ShoppingWorkflowUiTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:19:41.405Z" time="35.502">
+  <testcase name="storeEditorOffersMultipleRankedAddressesAndProductEditorCanRestrictPoints[28]" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="14.096" />
+  <testcase name="textViewStaysAfterSaveAndReflectsTheSameBasketAfterReopening[28]" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.477" />
+  <testcase name="groupSelectAndMoveTransferPendingToAChainAddressWithoutTouchingBought[28]" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.171" />
+  <testcase name="catalogueGroupAndBasketGroupRemainCollapsedAfterRecreate[28]" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.184" />
+  <testcase name="storeEditorOffersMultipleRankedAddressesAndProductEditorCanRestrictPoints" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="13.672" />
+  <testcase name="textViewStaysAfterSaveAndReflectsTheSameBasketAfterReopening" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.392" />
+  <testcase name="groupSelectAndMoveTransferPendingToAChainAddressWithoutTouchingBought" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.214" />
+  <testcase name="catalogueGroupAndBasketGroupRemainCollapsedAfterRecreate" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.28" />
+</testsuite>

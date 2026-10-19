@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductGroupDao {
-    @Query("SELECT * FROM product_groups ORDER BY name ASC")
+    @Query("SELECT * FROM product_groups ORDER BY displayOrder ASC, name ASC")
     fun getAll(): Flow<List<ProductGroupEntity>>
 
     @Query("SELECT * FROM product_groups WHERE id = :id")
     suspend fun getById(id: Long): ProductGroupEntity?
 
-    @Query("SELECT * FROM product_groups ORDER BY name ASC")
+    @Query("SELECT * FROM product_groups ORDER BY displayOrder ASC, name ASC")
     suspend fun getAllSync(): List<ProductGroupEntity>
 
     @Query("DELETE FROM product_groups")
@@ -28,6 +28,12 @@ interface ProductGroupDao {
 
     @Update
     suspend fun update(group: ProductGroupEntity)
+
+    @Query("SELECT COALESCE(MAX(displayOrder), 0) FROM product_groups")
+    suspend fun getMaxDisplayOrder(): Int
+
+    @Update
+    suspend fun updateAll(values: List<ProductGroupEntity>)
 
     @Delete
     suspend fun delete(group: ProductGroupEntity)

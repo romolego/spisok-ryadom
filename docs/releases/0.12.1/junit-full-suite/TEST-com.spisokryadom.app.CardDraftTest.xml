@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.CardDraftTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:05:21.050Z" time="4.184">
+  <testcase name="cardChangesAreDraftsAndRepeatedSaveDoesNotDuplicate" classname="com.spisokryadom.app.CardDraftTest" time="4.184" />
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.Audit121StorageTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:02:08.456Z" time="15.938">
+  <testcase name="classifierUnitRenameCannotBeRevertedByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="6.759" />
+  <testcase name="deletedStoreDepartmentCannotBeRecreatedFromResolvedTemporaryDraftIds[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.216" />
+  <testcase name="cancellationAtRestoreCommitCannotDeleteCommittedPhotosOrLeaveOldDrafts[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.375" />
+  <testcase name="deletedRecipientAndGroupDoNotTrapAnInterruptedEditorInForeignKeyErrors[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.214" />
+  <testcase name="transferExtensionCannotBeRemovedByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.19" />
+  <testcase name="rememberedTransferCannotBeUndoneByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.235" />
+  <testcase name="classifierUnitRenameCannotBeRevertedByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="6.831" />
+  <testcase name="deletedStoreDepartmentCannotBeRecreatedFromResolvedTemporaryDraftIds" classname="com.spisokryadom.app.Audit121StorageTest" time="0.209" />
+  <testcase name="cancellationAtRestoreCommitCannotDeleteCommittedPhotosOrLeaveOldDrafts" classname="com.spisokryadom.app.Audit121StorageTest" time="0.302" />
+  <testcase name="deletedRecipientAndGroupDoNotTrapAnInterruptedEditorInForeignKeyErrors" classname="com.spisokryadom.app.Audit121StorageTest" time="0.203" />
+  <testcase name="transferExtensionCannotBeRemovedByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="0.175" />
+  <testcase name="rememberedTransferCannotBeUndoneByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="0.205" />
+</testsuite>

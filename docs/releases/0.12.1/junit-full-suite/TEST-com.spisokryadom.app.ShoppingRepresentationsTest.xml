@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.ShoppingRepresentationsTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:18:55.824Z" time="10.052">
+  <testcase name="clearingBoughtInOnePlacePreservesTheOtherAddressAndPendingEntries" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="6.567" />
+  <testcase name="newPermanentTextProductKeepsTheStoreForFutureAutomaticPurchases" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.352" />
+  <testcase name="collapsedGroupIdentityPersistsIndependentlyByViewAndStableId" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.161" />
+  <testcase name="copyingTheCatalogueLinkIsIdempotentAndNeverTouchesPurchasesOrProductMetadata" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.116" />
+  <testcase name="removingOnlyExclusivePointIsRejectedWithoutChangingTheChain" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.107" />
+  <testcase name="deletingTextRemovesOnlyPendingAndUndoRestoresTemporaryProductAndMetadata" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.233" />
+  <testcase name="oldUnsavedBulkDraftIsKeptAlongsideExistingPendingPurchases" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.205" />
+  <testcase name="editingPurchaseFactsCannotChangeItsPlaceOrIdentity" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.107" />
+  <testcase name="quantitiesAtDifferentPointsNeverCollapseIntoOnePurchase" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.083" />
+  <testcase name="editingTextShopAndUnitRetainsPurchaseIdentityNotesAndUrgency" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.184" />
+  <testcase name="chainPriorityRespectsExclusiveProductAvailability" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.126" />
+  <testcase name="equalPriorityRetailersKeepTheirAlphabeticNeighboursDuringExplicitMove" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.106" />
+  <testcase name="textIsPersistentRepresentationWithoutDoublingAndBoughtRowsAreProtected" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.278" />
+  <testcase name="fifteenPurchasesMoveOnlyFourPendingAndPreserveAllTheirFields" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.122" />
+  <testcase name="malformedBranchInFullBackupCannotReplaceTheCurrentBasket" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.178" />
+  <testcase name="placeChoicesIntersectCatalogueAvailabilityAndExcludeOtherCitiesAndUnlinkedShops" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.114" />
+  <testcase name="explicitPointReorderingPreservesPurchaseAssignmentsAndOverridesUrgencyBoost" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.084" />
+  <testcase name="ambiguousSameProductRowsRequireIdentityChoiceInsteadOfDiscardingNotes" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.15" />
+  <testcase name="zipFiveRoundTripsAddressesRestrictionsPurchasesAndCollapsedPreferences" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.199" />
+  <testcase name="textTransactionRollsBackEarlierEditsAndNewProductsWhenALaterRowFails" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.077" />
+  <testcase name="olderFullZipFourGetsOnePointFromEachOldShopAddress" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.181" />
+  <testcase name="unsavedDraftSurvivesAndStaleTextCannotOverwriteNewBasketQuantity" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.172" />
+  <testcase name="invalidPointRollsBackTheWholeSelectionAndAutomaticMoveUsesIndividualPoints" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.076" />
+  <testcase name="stalePlaceSelectionIsRecheckedAndRollsBackTheWholeMove" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.072" />
+</testsuite>

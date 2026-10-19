@@ -1,193 +1,117 @@
 package com.spisokryadom.app.ui.settings
-
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.spisokryadom.app.data.backup.BackupManager
-import com.spisokryadom.app.ui.components.ConfirmDialog
+import com.spisokryadom.app.ui.components.*
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
-    onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
-) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showImportConfirm by remember { mutableStateOf(false) }
-    var pendingImportJson by remember { mutableStateOf<String?>(null) }
-
-    // ── Показываем сообщения через Snackbar ──────────────────────────────────
-    LaunchedEffect(state.message) {
-        state.message?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearMessage()
-        }
-    }
-
-    // ── Запуск выбора файла для импорта ─────────────────────────────────────
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri ?: return@rememberLauncherForActivityResult
-        try {
-            val json = context.contentResolver.openInputStream(uri)?.use { stream ->
-                stream.readBytes().toString(Charsets.UTF_8)
-            }
-            if (json != null) {
-                pendingImportJson = json
-                showImportConfirm = true
-            }
-        } catch (e: Exception) {
-            // file read error handled silently; user sees no change
-        }
-    }
-
-    // ── Запуск выбора места сохранения для экспорта ──────────────────────────
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument(BackupManager.BACKUP_FILE_MIME)
-    ) { uri ->
-        val json = state.pendingExportJson
-        if (uri != null && json != null) {
-            try {
-                context.contentResolver.openOutputStream(uri)?.use { stream ->
-                    stream.write(json.toByteArray(Charsets.UTF_8))
-                }
-                viewModel.exportConsumed(success = true)
-            } catch (e: Exception) {
-                viewModel.exportConsumed(success = false)
-            }
-        } else {
-            viewModel.exportConsumed(success = false)
-        }
-    }
-
-    // ── Когда JSON готов — открываем file picker для сохранения ─────────────
-    LaunchedEffect(state.pendingExportJson) {
-        if (state.pendingExportJson != null) {
-            val date = LocalDate.now().toString().replace("-", "")
-            exportLauncher.launch("${BackupManager.BACKUP_FILE_NAME_PREFIX}_$date.json")
-        }
-    }
-
-    // ── Диалог подтверждения импорта ────────────────────────────────────────
-    if (showImportConfirm) {
-        ConfirmDialog(
-            title = "Восстановить данные",
-            message = "Постоянная база товаров и магазинов будет полностью заменена данными из файла. Текущий список покупок не затрагивается. Продолжить?",
-            onConfirm = {
-                showImportConfirm = false
-                pendingImportJson?.let { viewModel.importFromJson(it) }
-                pendingImportJson = null
-            },
-            onDismiss = {
-                showImportConfirm = false
-                pendingImportJson = null
-            }
-        )
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Экспорт / Импорт") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
-                    }
-                }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            Text(
-                text = "Экспорт",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "Сохраняет постоянную базу в JSON-файл: товары (с фотографиями), магазины, отделы, группы, получателей и привязки. Текущий список покупок не включается.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Button(
-                onClick = { viewModel.prepareExport() },
-                enabled = !state.isLoading,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Экспортировать базу")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Импорт",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "Восстанавливает постоянную базу из ранее сохранённого файла. Товары, магазины и все связи будут полностью заменены. Список покупок не затрагивается.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            OutlinedButton(
-                onClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
-                enabled = !state.isLoading,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text("Импортировать из файла")
-            }
-        }
-    }
+fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel(factory=SettingsViewModel.Factory)){
+ val listState=androidx.compose.foundation.lazy.rememberLazyListState()
+ val state by viewModel.uiState.collectAsStateWithLifecycle();val snack=remember{SnackbarHostState()}
+ val recipients by viewModel.recipients.collectAsStateWithLifecycle();val groups by viewModel.productGroups.collectAsStateWithLifecycle();val units by viewModel.units.collectAsStateWithLifecycle();val depts by viewModel.departmentGroups.collectAsStateWithLifecycle()
+ val viewport=rememberReorderViewport(listState,recipients.map{"r${it.id}"}+groups.map{"g${it.id}"}+units.map{"u${it.id}"}+depts.map{"d${it.id}"})
+ val recipientEdit by viewModel.recipientsEditMode.collectAsStateWithLifecycle();val groupEdit by viewModel.groupsEditMode.collectAsStateWithLifecycle();val unitEdit by viewModel.unitsEditMode.collectAsStateWithLifecycle();val deptEdit by viewModel.deptGroupsEditMode.collectAsStateWithLifecycle()
+ val recipientId by viewModel.selectedRecipientId.collectAsStateWithLifecycle();val groupId by viewModel.selectedGroupId.collectAsStateWithLifecycle();val unitId by viewModel.selectedUnitId.collectAsStateWithLifecycle();val deptName by viewModel.selectedDepartmentGroup.collectAsStateWithLifecycle()
+ val recipientProducts by viewModel.selectedRecipientProducts.collectAsStateWithLifecycle();val groupProducts by viewModel.selectedGroupProducts.collectAsStateWithLifecycle();val unitProducts by viewModel.selectedUnitProducts.collectAsStateWithLifecycle();val deptShops by viewModel.selectedDepartmentGroupShops.collectAsStateWithLifecycle()
+ val urgency by viewModel.urgencyDefaults.collectAsStateWithLifecycle();val defaults by viewModel.addToListDefaults.collectAsStateWithLifecycle()
+ var editKind by rememberSaveable{mutableStateOf<String?>(null)};var editId by rememberSaveable{mutableStateOf("")};var editName by rememberSaveable{mutableStateOf("")}
+ var sortKind by remember{mutableStateOf<String?>(null)}
+ var styleTarget by remember{mutableStateOf<Triple<String,Long,Pair<String,String>>?>(null)}
+ var deleteAction by remember{mutableStateOf<(() -> Unit)?>(null)};var deleteName by remember{mutableStateOf("")}
+ fun edit(kind:String,id:String,name:String){editKind=kind;editId=id;editName=name}
+ fun remove(name:String,action:()->Unit){deleteName=name;deleteAction=action}
+ val importLauncher=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->uri?.let(viewModel::receiveImport)}
+ val export=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip"),viewModel::saveExport)
+ LaunchedEffect(state.pendingExportPath,state.exportLaunched){if(state.pendingExportPath!=null&&!state.exportLaunched){viewModel.exportLaunched();export.launch("spisok_ryadom_${LocalDate.now()}.zip")}}
+ LaunchedEffect(state.message){state.message?.let{snack.showSnackbar(it);viewModel.clearMessage()}}
+ sortKind?.let{kind->ConfirmDialog("Сортировать по алфавиту?","Текущий порядок будет сброшен. Позиции будут расположены по алфавиту.",{viewModel.alphabetize(kind);sortKind=null},{sortKind=null})}
+ styleTarget?.let{(kind,id,style)->AppearanceSheet("Оформление группы",style.first,style.second,onSave={accent,icon->viewModel.style(kind,id,accent,icon);styleTarget=null},onDismiss={styleTarget=null})}
+ if(state.pendingImportPath!=null)ConfirmDialog("Восстановление",state.importSummary.orEmpty()+" Продолжить?",viewModel::importSelected,viewModel::cancelImport)
+ deleteAction?.let{action->ConfirmDialog("Удалить $deleteName?","Связи с этим справочником будут сняты. Сами товары сохранятся.",onConfirm={action();deleteAction=null},onDismiss={deleteAction=null})}
+ editKind?.let{kind->InputDialog(title=if(editId.isBlank())"Добавить" else "Переименовать",initialValue=editName,label="Название",onConfirm={name->
+  when(kind){
+   "recipient"->if(editId.isBlank())viewModel.createRecipient(name)else recipients.find{it.id.toString()==editId}?.let{viewModel.renameRecipient(it,name)}
+   "group"->if(editId.isBlank())viewModel.createProductGroup(name)else groups.find{it.id.toString()==editId}?.let{viewModel.renameProductGroup(it,name)}
+   "unit"->if(editId.isBlank())viewModel.createUnit(name)else units.find{it.id.toString()==editId}?.let{viewModel.renameUnit(it,name)}
+   "dept"->if(editId.isBlank())viewModel.createDepartmentGroup(name)else viewModel.renameDepartmentGroup(editId.toLong(),name)
+  };editKind=null
+ },onDismiss={editKind=null})}
+ if(recipientId!=null)UsageDialog("Товары получателя",recipientProducts.map{it.name}){viewModel.selectRecipient(null)}
+ if(groupId!=null)UsageDialog("Товары группы",groupProducts.map{it.name}){viewModel.selectProductGroup(null)}
+ if(unitId!=null)UsageDialog("Используют единицу",unitProducts.map{it.name}){viewModel.selectUnit(null)}
+ if(deptName!=null)UsageDialog("Магазины группы",deptShops.map{it.name}){viewModel.selectDepartmentGroup(null)}
+ Scaffold(topBar={TopAppBar(title={Text("Настройки")},navigationIcon={IconButton(onClick=onNavigateBack,enabled=!state.isLoading){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Назад")}})},snackbarHost={SnackbarHost(snack)}){padding->
+  LazyColumn(state=listState,modifier=Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+   item(key="location"){CityPicker(enabled=!state.isLoading)}
+   item(key="backup"){
+    OutlinedCard(colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)) { Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+    Row(horizontalArrangement=Arrangement.spacedBy(10.dp),verticalAlignment=Alignment.CenterVertically) { Icon(Icons.Filled.Backup,null,tint=MaterialTheme.colorScheme.primary); Text("Резервные копии и перенос",style=MaterialTheme.typography.titleMedium) }
+    Button(onClick=viewModel::prepareExport,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth()){Text("Сохранить полную копию")}
+    OutlinedButton(onClick={importLauncher.launch(arrayOf("application/zip","application/json","application/octet-stream","*/*"))},enabled=!state.isLoading,modifier=Modifier.fillMaxWidth()){Text("Импорт / Восстановление")}
+    if(state.isLoading)LinearProgressIndicator(Modifier.fillMaxWidth())
+    }}
+   }
+   item(key="defaults"){
+    OutlinedCard(colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)) { Column(Modifier.padding(16.dp)) {
+    Text("Поведение списка",style=MaterialTheme.typography.titleMedium,modifier=Modifier.padding(bottom=8.dp))
+    SettingSwitch("Показывать срочные в свёрнутых магазинах",urgency.showUrgentInCollapsed,viewModel::setGlobalShowUrgentInCollapsed)
+    SettingSwitch("Поднимать магазины со срочными покупками",urgency.boostUrgentShop,viewModel::setGlobalBoostUrgentShop)
+    SettingSwitch("Сохранять приоритет магазина при переносе товара",defaults.rememberShopPriorityOnMove,viewModel::setRememberShopPriorityOnMove)
+    SettingSwitch("Новые товары по умолчанию сохранять в базе",defaults.saveNewProductToDatabase,viewModel::setGlobalSaveNewProductToDatabase)
+    }}
+   }
+   item(key="recipient_title"){ManagerTitle("Получатели",recipientEdit,viewModel::toggleRecipientsEditMode)}
+   itemsIndexed(recipients,key={_,v->"recipient_${v.id}"},contentType={_,_->"manager"}){index,item->
+    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,recipientEdit,{viewModel.selectRecipient(item.id)},{edit("recipient",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteRecipient(item)}},{viewport.capture();viewModel.moveRecipientUp(item)},{viewport.capture();viewModel.moveRecipientDown(item)},index==0,index==recipients.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("recipient",item.id,item.accent to item.iconKey)})}
+   }
+   if(recipientEdit)item(key="recipient_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("recipient","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить получателя")};IconButton(onClick={sortKind="recipient"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Получатели")}}}
+   item(key="group_title"){ManagerTitle("Товарные группы",groupEdit,viewModel::toggleGroupsEditMode)}
+   itemsIndexed(groups,key={_,v->"group_${v.id}"},contentType={_,_->"manager"}){index,item->
+    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,groupEdit,{viewModel.selectProductGroup(item.id)},{edit("group",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteProductGroup(item)}},{viewport.capture();viewModel.moveProductGroupUp(item)},{viewport.capture();viewModel.moveProductGroupDown(item)},index==0,index==groups.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("group",item.id,item.accent to item.iconKey)})}
+   }
+   if(groupEdit)item(key="group_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("group","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить группу товаров")};IconButton(onClick={sortKind="group"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Товарные группы")}}}
+   item(key="unit_title"){ManagerTitle("Единицы измерения",unitEdit,viewModel::toggleUnitsEditMode)}
+   itemsIndexed(units,key={_,v->"unit_${v.id}"},contentType={_,_->"manager"}){index,item->
+    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,unitEdit,{viewModel.selectUnit(item.id)},{edit("unit",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteUnit(item)}},{viewport.capture();viewModel.moveUnitUp(item)},{viewport.capture();viewModel.moveUnitDown(item)},index==0,index==units.lastIndex)}
+   }
+   if(unitEdit)item(key="unit_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("unit","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить единицу")};IconButton(onClick={sortKind="unit"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Единицы измерения")}}}
+   item(key="dept_title"){ManagerTitle("Группы магазинов",deptEdit,viewModel::toggleDeptGroupsEditMode)}
+   itemsIndexed(depts,key={_,v->"dept_${v.id}"},contentType={_,_->"manager"}){index,item->
+    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,deptEdit,{viewModel.selectDepartmentGroup(item.id)},{edit("dept",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteDepartmentGroup(item.id)}},{viewport.capture();viewModel.moveDepartment(item.id,-1)},{viewport.capture();viewModel.moveDepartment(item.id,1)},index==0,index==depts.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("dept",item.id,item.accent to item.iconKey)})}
+   }
+   if(deptEdit)item(key="dept_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("dept","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить группу магазина")};IconButton(onClick={sortKind="dept"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Группы магазинов")}}}
+   item{Spacer(Modifier.height(32.dp))}
+  }
+ }
 }
+@Composable private fun SettingSwitch(label:String,value:Boolean,onChange:(Boolean)->Unit){Row(Modifier.fillMaxWidth().toggleable(value,role=androidx.compose.ui.semantics.Role.Switch,onValueChange=onChange),verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f).padding(end=12.dp));Switch(value,null)}}
+@Composable private fun ManagerTitle(title:String,edit:Boolean,onEdit:()->Unit){HorizontalDivider();Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text(title,Modifier.weight(1f),style=MaterialTheme.typography.titleLarge);TextButton(onClick=onEdit,modifier=Modifier.testTag("manager-edit-$title")){Text(if(edit)"Готово" else "Править")}}}
+@Composable private fun ManagerRow(name:String,editing:Boolean,onSelect:()->Unit,onRename:()->Unit,onDelete:()->Unit,onUp:()->Unit,onDown:()->Unit,first:Boolean,last:Boolean,accent:String="",iconKey:String="",onStyle:(()->Unit)?=null){
+ Column(Modifier.fillMaxWidth()){
+  MarkedLabel(name,accent,iconKey,Modifier.fillMaxWidth().clickable(onClick=onSelect).padding(vertical=12.dp))
+  if(editing)Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically){
+   ReorderButtons(onUp,onDown,!first,!last,"Вверх: $name","Вниз: $name")
+   if(onStyle!=null)IconButton(onClick=onStyle){Icon(Icons.Filled.Palette,"Оформление: $name")}
+   IconButton(onClick=onRename){Icon(Icons.Filled.Edit,"Переименовать: $name")};IconButton(onClick=onDelete){Icon(Icons.Filled.Delete,"Удалить: $name")}
+  }
+ }
+}
+@Composable private fun UsageDialog(title:String,names:List<String>,onDismiss:()->Unit){AlertDialog(onDismissRequest=onDismiss,title={Text(title)},text={LazyColumn(Modifier.heightIn(max=400.dp)){if(names.isEmpty())item{Text("Пока не используется")};itemsIndexed(names,key={i,_->i}){_,name->Text(name,Modifier.fillMaxWidth().padding(vertical=8.dp))}}},confirmButton={TextButton(onClick=onDismiss){Text("Закрыть")}})}

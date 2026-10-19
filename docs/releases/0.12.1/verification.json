@@ -1,0 +1,501 @@
+{
+  "version": "0.12.1",
+  "versionCode": 18,
+  "releaseUrl": "https://github.com/romolego/spisok-ryadom/releases/tag/v0.12.1",
+  "apk": {
+    "file": "SpisokRyadom-0.12.1.apk",
+    "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.12.1/SpisokRyadom-0.12.1.apk",
+    "bytes": 1889550,
+    "sha256": "230a265caa5b760e581c7b04d202ce20ab89aee0679d1c5081b8730bfae2d6b9",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "package": "com.spisokryadom.app.next",
+    "applicationLabel": "Список рядом · новая"
+  },
+  "storage": {
+    "roomSchema": 13,
+    "backupFormat": 9
+  },
+  "fullSuite": {
+    "status": "passed",
+    "date": "2026-10-19",
+    "tests": 507,
+    "classes": 53,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "previousTests": 435,
+    "newTests": 72,
+    "scope": "Final app audit before public fixture sanitization. Full-suite XML records are historical results of that run.",
+    "previousTestSourcesUnchangedDuringRun": true,
+    "junitDirectory": "junit-full-suite",
+    "classesDetail": [
+      {
+        "name": "com.spisokryadom.app.ArchitectureDataTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.ArchitectureMigrationTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.ArchitecturePolicyTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.ArchitectureUiTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Audit121ActiveEditorTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Audit121DomainTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Audit121StorageTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Audit121SynchronizationTest",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Audit121UiTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.AuditDomain071Test",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.AuditIntegrity071Test",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.AuditStorage071Test",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.AuditUi071Test",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.AuditUiNavigation071Test",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.BranchMigrationTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.BulkCancellationTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.CardDraftTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.CatalogUiTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.DatabaseSmokeTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.DraftDepartmentTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.FuzzySearchRegressionTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.IndependentDataAuditTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.IndependentDomainAuditTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.IndependentInlineFocusAuditTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.IndependentShopPickerAuditTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.IndependentUiAuditTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.IndependentUnitMigrationAuditTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.InlineStoreEditingTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.MarketDataTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.MarketUiTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.MigrationRegressionTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.OrderMotionTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.PhotoStoreTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.ProductFlowUiTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.PurchasePlacesUiTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine080DataTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine080UiTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine090DataTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine090UiTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine100DataTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine100UiTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine110DataTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine110UiTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine120DataTest",
+        "tests": 28,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Refine120UiTest",
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.RefinementDataTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.RefinementUiTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.RepositoryRegressionTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.SearchAndParserTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.ShoppingRepresentationsTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.ShoppingUiFlowTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.ShoppingWorkflowUiTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.UxLayoutTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "sourceBuildSchemaFilesSealed": 201,
+    "sealedSourcesUnchangedDuringRun": true
+  },
+  "build": {
+    "status": "BUILD SUCCESSFUL",
+    "duration": "25m 42s",
+    "actionableTasks": 88,
+    "executedTasks": 21,
+    "upToDateTasks": 67,
+    "variants": [
+      "standardDebug unit tests",
+      "parallelRelease APK",
+      "parallelRelease lint"
+    ]
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 116,
+    "hints": 3
+  },
+  "publicationFixtureCheck": {
+    "status": "passed",
+    "testClass": "com.spisokryadom.app.Refine080DataTest",
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildStatus": "BUILD SUCCESSFUL",
+    "buildDuration": "1m 21s",
+    "androidApis": [
+      28,
+      35
+    ],
+    "reason": "Two test-only backup fixtures were replaced with synthetic data and the fixture test method was renamed before public publication. The affected six-test class passed again.",
+    "junit": "junit-publication-fixtures/TEST-com.spisokryadom.app.Refine080DataTest.xml",
+    "appProductionAndBuildSchemaFilesSealed": 139,
+    "appProductionAndBuildSchemaHashMismatchesAfterFixtureReplacement": 0,
+    "otherHistoricalTestMethodsUnchanged": 501,
+    "productionSourceAndApkChanged": false,
+    "fullSuiteRepeatedAfterFixtureReplacement": false
+  },
+  "evidenceSanitization": {
+    "junitRemoved": [
+      "hostname",
+      "properties",
+      "system-out",
+      "system-err"
+    ],
+    "personalBackupsIncluded": false,
+    "localMachinePathsIncluded": false,
+    "rawPrivateBuildLogsIncluded": false
+  },
+  "screenshots": [
+    {
+      "file": "screenshots/bulk-explicit-point-api28.png",
+      "sha256": "86722c789fe0a8c3a5ffae6392eca32bb6bd9db8d6bae55f8b29925636e0f29d",
+      "testData": "synthetic",
+      "rendering": "native Android/Compose test environment"
+    },
+    {
+      "file": "screenshots/bulk-explicit-point-api35.png",
+      "sha256": "7b263578effcc8f0856f1767090d30975533f8557f1139b69a18d964d5500520",
+      "testData": "synthetic",
+      "rendering": "native Android/Compose test environment"
+    },
+    {
+      "file": "screenshots/catalogue-restored-selection-api28.png",
+      "sha256": "226eed9b150b99e87615a41477b856d5a3e570787b4285d8898ca54177907e63",
+      "testData": "synthetic",
+      "rendering": "native Android/Compose test environment"
+    },
+    {
+      "file": "screenshots/catalogue-restored-selection-api35.png",
+      "sha256": "5cfd2de92b8489bf809c1dbdcdcf1fa83478125760caad9e448a124087d6ffa6",
+      "testData": "synthetic",
+      "rendering": "native Android/Compose test environment"
+    },
+    {
+      "file": "screenshots/shopping-venue-department-selection-api28.png",
+      "sha256": "e92dd2bf93da6a87b7ad89ba495555463ac2e9753a693c5dd12eba9d3fbf6c24",
+      "testData": "synthetic",
+      "rendering": "native Android/Compose test environment"
+    },
+    {
+      "file": "screenshots/shopping-venue-department-selection-api35.png",
+      "sha256": "aa551f0ddc52c55b3c8e4fc8178654925d699e4f785f22811cde17cb80383404",
+      "testData": "synthetic",
+      "rendering": "native Android/Compose test environment"
+    }
+  ],
+  "limitations": {
+    "physicalDeviceTested": false,
+    "oemLauncherTested": false,
+    "physicalKeyboardCameraTested": false,
+    "telegramDeliveryTested": false,
+    "hardwareFrameRateMeasured": false
+  }
+}

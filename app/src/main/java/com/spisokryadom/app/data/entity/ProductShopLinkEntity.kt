@@ -21,7 +21,7 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = ShopDepartmentEntity::class,
+            entity = ShopDepartmentPlacementEntity::class,
             parentColumns = ["id"],
             childColumns = ["departmentId"],
             onDelete = ForeignKey.SET_NULL
@@ -30,7 +30,8 @@ import androidx.room.PrimaryKey
     indices = [
         Index("productId"),
         Index("shopId"),
-        Index("departmentId")
+        Index("departmentId"),
+        Index(value = ["productId", "shopId"], unique = true)
     ]
 )
 data class ProductShopLinkEntity(
@@ -39,5 +40,6 @@ data class ProductShopLinkEntity(
     val productId: Long,
     val shopId: Long,
     val priority: Int = 1,
-    val departmentId: Long? = null
+    val departmentId: Long? = null,
+    @androidx.room.ColumnInfo(defaultValue="0") val restrictBranches:Boolean=false
 )

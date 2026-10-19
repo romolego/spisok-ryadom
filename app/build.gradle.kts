@@ -13,13 +13,28 @@ android {
         applicationId = "com.spisokryadom.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 18
+        versionName = "0.12.1"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions { annotationProcessorOptions { arguments["room.schemaLocation"] = "$projectDir/schemas" } }
     }
 
+    flavorDimensions += "installation"
+    productFlavors {
+        create("standard") { dimension = "installation" }
+        create("parallel") { dimension = "installation"; applicationIdSuffix = ".next" }
+    }
+    signingConfigs { create("localRelease") {
+        storeFile = rootProject.file(".local/signing/local-development.jks")
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+    } }
     buildTypes {
         release {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName(if(rootProject.file(".local/signing/local-development.jks").exists())"localRelease" else "debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -36,12 +51,25 @@ android {
         jvmTarget = "17"
     }
 
+    testOptions { unitTests.isIncludeAndroidResources = true }
+
     buildFeatures {
         compose = true
     }
 }
 
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.room:room-testing:2.6.1")
     // Compose BOM
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
     implementation(composeBom)
@@ -72,4 +100,12 @@ dependencies {
 
     // Core
     implementation("androidx.core:core-ktx:1.15.0")
+}
+
+// Native Robolectric SQLite handles must not outlive a sandbox on Windows.
+// A fresh worker for each class avoids cross-sandbox native finalizer crashes.
+tasks.withType<Test>().configureEach {
+    forkEvery = 1
+    maxParallelForks = 1
+    maxHeapSize = "768m"
 }

@@ -27,6 +27,9 @@ interface ProductShopLinkDao {
     suspend fun getById(id: Long): ProductShopLinkEntity?
 
     @Query("SELECT * FROM product_shop_links")
+    fun getAll(): Flow<List<ProductShopLinkEntity>>
+
+    @Query("SELECT * FROM product_shop_links")
     suspend fun getAllSync(): List<ProductShopLinkEntity>
 
     @Query("DELETE FROM product_shop_links WHERE productId = :productId")
@@ -35,7 +38,7 @@ interface ProductShopLinkDao {
     @Query("DELETE FROM product_shop_links")
     suspend fun deleteAll()
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(link: ProductShopLinkEntity): Long
 
     @Update

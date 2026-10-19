@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.IndependentInlineFocusAuditTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:06:45.530Z" time="24.054">
+  <testcase name="harnessCanRequestFocusAndEnterDecimalComma[28]" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="10.642" />
+  <testcase name="invalidInputStaysVisibleAndCannotSilentlyChangeDigits[28]" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="1.044" />
+  <testcase name="doneAndSubsequentFocusLossCommitOnlyOnce[28]" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="0.202" />
+  <testcase name="actualFocusLossCommitsTheDecimalExactlyOnce[28]" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="0.161" />
+  <testcase name="tappingQuantityMustOpenEditorWithoutCommitting[28]" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="0.118" />
+  <testcase name="harnessCanRequestFocusAndEnterDecimalComma" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="10.489" />
+  <testcase name="invalidInputStaysVisibleAndCannotSilentlyChangeDigits" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="0.89" />
+  <testcase name="doneAndSubsequentFocusLossCommitOnlyOnce" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="0.199" />
+  <testcase name="actualFocusLossCommitsTheDecimalExactlyOnce" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="0.178" />
+  <testcase name="tappingQuantityMustOpenEditorWithoutCommitting" classname="com.spisokryadom.app.IndependentInlineFocusAuditTest" time="0.121" />
+</testsuite>

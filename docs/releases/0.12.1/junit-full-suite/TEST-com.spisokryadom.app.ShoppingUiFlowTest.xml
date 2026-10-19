@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.ShoppingUiFlowTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:19:08.440Z" time="29.941">
+  <testcase name="listTextReviewCitySwitchAndBuying[28]" classname="com.spisokryadom.app.ShoppingUiFlowTest" time="14.727" />
+  <testcase name="listTextReviewCitySwitchAndBuying" classname="com.spisokryadom.app.ShoppingUiFlowTest" time="15.197" />
+</testsuite>
