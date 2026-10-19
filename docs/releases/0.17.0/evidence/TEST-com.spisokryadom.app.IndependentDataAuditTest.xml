@@ -1,0 +1,8 @@
+<testsuite name="com.spisokryadom.app.IndependentDataAuditTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:33:39.162Z" time="8.29">
+  <testcase name="largeLegacyImportReadsTablesOnceInsteadOfForEveryProduct" classname="com.spisokryadom.app.IndependentDataAuditTest" time="7.539" />
+  <testcase name="sameNameSourceGraphAndExistingPurchasedCatalogSurviveRepeatedImport" classname="com.spisokryadom.app.IndependentDataAuditTest" time="0.227" />
+  <testcase name="legacyImportPreservesDifferentSourceProductsWithSameNameAndUnit" classname="com.spisokryadom.app.IndependentDataAuditTest" time="0.144" />
+  <testcase name="legacyImportPreservesDifferentSourceShopsWithSameNameAndNoAddress" classname="com.spisokryadom.app.IndependentDataAuditTest" time="0.119" />
+  <testcase name="malformedLegacyReferencesRollBackWithoutChangingCatalog" classname="com.spisokryadom.app.IndependentDataAuditTest" time="0.132" />
+  <testcase name="identicalSourceProductsConsumePreexistingCandidatesAtMostOnce" classname="com.spisokryadom.app.IndependentDataAuditTest" time="0.127" />
+  </testsuite>

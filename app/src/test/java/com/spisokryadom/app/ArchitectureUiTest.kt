@@ -34,7 +34,7 @@ class ArchitectureUiTest {
  private fun shot(name:String){ui.runOnIdle{val view=ui.activity.window.decorView;val b=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888);view.draw(Canvas(b));val f=File("../.local/architecture-0.6.0/$name-api${android.os.Build.VERSION.SDK_INT}.png");f.parentFile!!.mkdirs();f.outputStream().use{b.compress(Bitmap.CompressFormat.PNG,100,it)};b.recycle()}}
  @Before fun setup(){runBlocking{
   listOf("drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
-  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks()
+  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks()
   db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
   shop=db.shopDao().insert(ShopEntity(name="Командор"));other=db.shopDao().insert(ShopEntity(name="Батон",displayOrder=1))
   first=db.shopBranchDao().insert(ShopBranchEntity(shopId=shop,address="Около дома"));second=db.shopBranchDao().insert(ShopBranchEntity(shopId=shop,address="В торговом центре",displayOrder=1))

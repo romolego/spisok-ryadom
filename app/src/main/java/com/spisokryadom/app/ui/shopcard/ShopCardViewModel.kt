@@ -45,6 +45,8 @@ data class ShopCardUiState(
     val displayOrder: String = "0",
     val cityId: Long = 1,
     val networkId:Long?=null,
+    val shoppingBackground:String="",
+    val purchaseMode:String="inherit",
     val networkName:String="",
     val networks:List<com.spisokryadom.app.data.entity.RetailNetworkEntity> = emptyList(),
     val venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),
@@ -82,7 +84,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
                 val branches=shopRepository.branches(shopId)
                 val departments=shopRepository.getDepartmentsByShopIdSync(shopId)
                 val orders=shopRepository.branchOrders().groupBy{it.branchId}.mapValues{it.value.sortedBy{it.displayOrder}.map{it.typeId}}
-                _uiState.value=_uiState.value.copy(isNew=false,name=shop.name,networkId=shop.networkId,branchOrders=orders,address=shop.address.orEmpty(),note=shop.note.orEmpty(),cityId=shop.cityId,
+                _uiState.value=_uiState.value.copy(isNew=false,name=shop.name,purchaseMode=shopRepository.purchaseMode(shop.id),networkId=shop.networkId,shoppingBackground=shop.shoppingBackground,branchOrders=orders,address=shop.address.orEmpty(),note=shop.note.orEmpty(),cityId=shop.cityId,
                     displayOrder=shop.displayOrder.toString(),showUrgentInCollapsed=booleanToOverride(shop.showUrgentInCollapsed),boostUrgentShop=booleanToOverride(shop.boostUrgentShop),
                     branches=branches,departments=departments,isLoading=false)
             }else {val city=shopRepository.locations.currentId();_uiState.value=_uiState.value.copy(cityId=city,isLoading=false)}
@@ -93,6 +95,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     private fun booleanToOverride(value:Boolean?)=when(value){null->UrgencyOverride.USE_GLOBAL;true->UrgencyOverride.YES;false->UrgencyOverride.NO}
     private fun overrideToBoolean(value:UrgencyOverride):Boolean?=when(value){UrgencyOverride.USE_GLOBAL->null;UrgencyOverride.YES->true;UrgencyOverride.NO->false}
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
+    fun updatePurchaseMode(value:String){if(value in com.spisokryadom.app.util.PurchaseModes.labels)_uiState.value=_uiState.value.copy(purchaseMode=value)}
     fun updateName(value:String){_uiState.value=_uiState.value.copy(name=value)}
     fun updateCity(id:Long){if(id==_uiState.value.cityId)return;_uiState.value=_uiState.value.copy(cityId=id,branches=_uiState.value.branches.map{it.copy(venueId=null)},venueNames=emptyMap())}
     fun updateNetwork(id:Long?){_uiState.value=_uiState.value.copy(networkId=id)}
@@ -104,6 +107,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     fun updateBranchOrder(branchId:Long,values:List<Long>){_uiState.value=_uiState.value.copy(branchOrders=_uiState.value.branchOrders+(branchId to values))}
     fun updatePhotoBusy(value:Boolean){_uiState.value=_uiState.value.copy(isPhotoBusy=value)}
     fun updateNote(value:String){_uiState.value=_uiState.value.copy(note=value)}
+    fun updateShoppingBackground(value:String){if(com.spisokryadom.app.util.AppearanceColors.validOptional(value))_uiState.value=_uiState.value.copy(shoppingBackground=value)}
     fun updateShowUrgentInCollapsed(value:UrgencyOverride){_uiState.value=_uiState.value.copy(showUrgentInCollapsed=value)}
     fun updateBoostUrgentShop(value:UrgencyOverride){_uiState.value=_uiState.value.copy(boostUrgentShop=value)}
     fun save()=saveDraft(convert=false)
@@ -113,11 +117,11 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
         command {
             val old=if(state.isNew)null else shopRepository.getShopById(currentShopId)?:error("Магазин удалён")
             val order=if(state.isNew)(shopRepository.getAllShopsSync().filter{it.cityId==state.cityId}.maxOfOrNull{it.displayOrder}?:0)+1 else state.displayOrder.toIntOrNull()?:0
-            val shop=ShopEntity(id=old?.id?:0,networkId=state.networkId,name=state.name.trim(),address=state.address.trim().ifBlank{null},note=state.note.trim().ifBlank{null},cityId=state.cityId,displayOrder=order,
+            val shop=ShopEntity(id=old?.id?:0,networkId=state.networkId,shoppingBackground=state.shoppingBackground,name=state.name.trim(),address=state.address.trim().ifBlank{null},note=state.note.trim().ifBlank{null},cityId=state.cityId,displayOrder=order,
                 showUrgentInCollapsed=overrideToBoolean(state.showUrgentInCollapsed),boostUrgentShop=overrideToBoolean(state.boostUrgentShop),
                 manualOrderOverride=if(old?.boostUrgentShop==overrideToBoolean(state.boostUrgentShop))old?.manualOrderOverride?:false else false)
             val departments=if(state.isNew)state.pendingDepartments.sortedBy{it.displayOrder}.map{ShopDepartmentEntity(shopId=0,name=it.name,displayOrder=it.displayOrder)}else state.departments.sortedBy{it.displayOrder}
-            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,state.venueNames,state.branchOrders.filterKeys{id->state.branches.any{it.id==id}}.mapValues{(_,types)->types.filter{type->state.departments.any{it.typeId==type}}},convertToVenue=convert)
+            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,state.venueNames,state.branchOrders.filterKeys{id->state.branches.any{it.id==id}}.mapValues{(_,types)->types.filter{type->state.departments.any{it.typeId==type}}},convertToVenue=convert,purchaseMode=state.purchaseMode)
             _uiState.value=_uiState.value.copy(isSaving=false,isSaved=true)
         }
     }

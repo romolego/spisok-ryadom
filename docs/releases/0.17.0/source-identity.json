@@ -1,0 +1,1562 @@
+{
+  "version": "0.17.0",
+  "files": 259,
+  "applicationBuildAndTestsUnchanged": true,
+  "textRule": "CRLF and LF are equivalent for listed text file suffixes; binary files match byte-for-byte",
+  "items": [
+    {
+      "path": "app/src/main/AndroidManifest.xml",
+      "verifiedWorkingSha256": "491f4b974764b027bb33acf95d00ef11dfc6fd5c71c2e9c45183beb5c7f6bd73",
+      "gitBlobSha256": "b22fb221430c1f8ed2f793c05e81a3e41a855454a9b71f530c349d008c32c15b",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/assets/licenses/material-icons-LICENSE.txt",
+      "verifiedWorkingSha256": "9536d88ea948603d18e232a13f5958d67807cd80828036b082bff171d2cf0703",
+      "gitBlobSha256": "9536d88ea948603d18e232a13f5958d67807cd80828036b082bff171d2cf0703",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/assets/licenses/NOTICE.txt",
+      "verifiedWorkingSha256": "66125f354bde646643e3f80ed76bc2aa0e9ffe04c0f95187169dc2f95b3b5ff9",
+      "gitBlobSha256": "63c529badf8792f1c2aa7db64d889a093644ea669f7f042181e3a7d2ef7c0844",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/AppContainer.kt",
+      "verifiedWorkingSha256": "6a84727f31636616e8d5fa6db08328c8aed82f985402547f39674b08071ad575",
+      "gitBlobSha256": "d45b00b1a3f831f374294ea043ae1ace94a8dcfbdd49db586a2ed44183e8434d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/MainActivity.kt",
+      "verifiedWorkingSha256": "c170edd1cb748f1de9cc112770957284eedd07905902ec2eb2bb346ab0a28749",
+      "gitBlobSha256": "ed0724dc486831fa600e951b9e4e364bf8bc7d8eea12053d86219afa67a2489c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/SpisokRyadomApp.kt",
+      "verifiedWorkingSha256": "1a52e8a8575f9a5d0ac311818473116c89ac88d736f3fe8b243bd1ab0cc140b6",
+      "gitBlobSha256": "92114ae04e9a42bae347f03f79a1edf182d06ab08e3dbf344da61c118fb8cd03",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/DemoDataProvider.kt",
+      "verifiedWorkingSha256": "555e80ac85ece5fb3ab8b017a57bef08b826c766ce46d442a54abb928c30452f",
+      "gitBlobSha256": "77c6faf9717512d44e36214eeabd62e806f1a92d5d88c8e952a3425726d25e51",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/backup/BackupJson.kt",
+      "verifiedWorkingSha256": "769702ddd63cc84a3c0677b71d0beaf01d8e5a68c7f31d344d1a4d96a60fbaf3",
+      "gitBlobSha256": "7b8f929de303e26c696bb4488438c22a179ceb46fb109445a1aa23f969170d73",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/backup/BackupManager.kt",
+      "verifiedWorkingSha256": "9e02341bde5913a96d0e43c5c6f2d3b8d52dfd65536e6a67b11bf3b436aac1f2",
+      "gitBlobSha256": "7a6c6c4abe76e9a872bfa40be9b40f4e914edd8ed182dd33ff5a9a53e9b5ce05",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/CityDao.kt",
+      "verifiedWorkingSha256": "c6a372c1b7d9b9e5adceded167a3354b87fd644d4f8cd41f680975b6f9bd38b2",
+      "gitBlobSha256": "d2a76dfa2862940bf7856bd582248f62b041ef504f4ad18f56b8b9777b437dea",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/CreationPresetDao.kt",
+      "verifiedWorkingSha256": "d1df454440e745b8c5fb8d42125c67cb5dc5e7ae406b4d1d73e87c8d3aed3cdc",
+      "gitBlobSha256": "d1df454440e745b8c5fb8d42125c67cb5dc5e7ae406b4d1d73e87c8d3aed3cdc",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/GoalListDao.kt",
+      "verifiedWorkingSha256": "face658c15316185d258a4478d7417cc4dd1671fc5cb7b849e71d38f779f10e6",
+      "gitBlobSha256": "face658c15316185d258a4478d7417cc4dd1671fc5cb7b849e71d38f779f10e6",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/ProductDao.kt",
+      "verifiedWorkingSha256": "24f25f639f3715b956abcd2d5fa7ee30c479274027c2dd4f65981ed4d31ac581",
+      "gitBlobSha256": "761ea862d84a4244d5a396e6b33e845af6515a5bb71adda5e5e61bb893272bdc",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/ProductGroupDao.kt",
+      "verifiedWorkingSha256": "8236b78272f91315ef8711b4fdca94b9fa0c71f380c4171d3abb4fee601eea31",
+      "gitBlobSha256": "3e7859d8a89d5c80de3056c48a5f693c7ad321dd200a05106dc2732f7734b250",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/ProductShopLinkDao.kt",
+      "verifiedWorkingSha256": "c204f2f546c95487b41381fa9e6969603fe3c4910dcb53286c78f2938f88dbe2",
+      "gitBlobSha256": "8b3f6704b7e4ddbbf2b6c960d033aee41546aeb08adaf8f42c993e5e95d4585c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/RecipientDao.kt",
+      "verifiedWorkingSha256": "413178a4283e4e13ff10b0fadac0e7b66b25b0e547c8300a1b6bdd11b52ff63d",
+      "gitBlobSha256": "b9dc6194bd09836ed9dbf5f5c5346c4ce82fafcc6882d369c4c45312ca990421",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/RetailStructureDao.kt",
+      "verifiedWorkingSha256": "226f3b7d3b10c3685fa892dff4e998608bdd9be210c6f1195edf285676ad8c8e",
+      "gitBlobSha256": "c3a6ca6b85702bc07d1aecb5e17c1fb4c9bf3268f5ee1db406ddb21c0200175d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/ShopBranchDao.kt",
+      "verifiedWorkingSha256": "56c7ffc34596ee9e58538fd2dc489a2ae9cd8c6e31cad5012d374428292fb0b5",
+      "gitBlobSha256": "784e68d4900b88fc8e084e48b09a9a970182a4d29834f6446385725cfe993a0b",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/ShopDao.kt",
+      "verifiedWorkingSha256": "9ebc06acbb40768d29e8763587ad286002bae4148d217a200d13fc80bb2a9561",
+      "gitBlobSha256": "73d7b7ca64eb14afeac3fd929f087388599a7673f9f4fdd7aeddd217f46f70a0",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/ShopDepartmentDao.kt",
+      "verifiedWorkingSha256": "a2a6f74809a40a5b7cc70cf8b4e60d0c938ac44df2cf77d4409d93eee96876fe",
+      "gitBlobSha256": "c68a6969f96a9e14b5b1856c1787cb1fad74807bdbb8c3e23a32479d3f8cada9",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/ShoppingListEntryDao.kt",
+      "verifiedWorkingSha256": "fd837f101e09217d46cd97c358fd11f8be7f93de19cb9b53fe0a2da0a0490be5",
+      "gitBlobSha256": "2fd25a844ccd666e6bf05af8b2de0c680db90d13bd590bf53b8c05423b3b78f0",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/dao/UnitDao.kt",
+      "verifiedWorkingSha256": "fc8f02270ad4429fee007002498ad5f894cdee1bc409b5e28c2e671d42cecaf2",
+      "gitBlobSha256": "2d70176f868297d74d041399fd63edca52e575c648c3590fc5bf7f361a4bfbc7",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/db/AppDatabase.kt",
+      "verifiedWorkingSha256": "49ed762d1d864f5b6bd30ef07dca8c718fd7c163ccfd89fd8a4f117d29c5ca0f",
+      "gitBlobSha256": "83455e367ed4bf9d76697421826de3a1b75404faa837888db61693e1468ba638",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/db/BeforeOpenHelperFactory.kt",
+      "verifiedWorkingSha256": "3396ba7d35478c5704c281f3b0957050c89c434c1f97ae11791edf82de44c852",
+      "gitBlobSha256": "12f9fd598c3f61dcb1236c5481e92455d921736f55c07a98043f2ce64275a663",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/db/DatabaseRecovery.kt",
+      "verifiedWorkingSha256": "dbfb4c05a1960f28f2ef17bff086986e492b7fe6b72b86ce649c787b978744cd",
+      "gitBlobSha256": "3de84a440e6ab124315ed378d1d014b959377de7247f7e8230e32d389093fabe",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/db/RetailConstraints.kt",
+      "verifiedWorkingSha256": "1cc8d7e476a21d1b2d736b4002ebab3d6f031ec666a44c4326ade05194011dfc",
+      "gitBlobSha256": "91bad8ae0ff7b125e2f32834b63bead9d5f861cfdd0ee38ef8f39ab7d3682575",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/db/RetailMigration.kt",
+      "verifiedWorkingSha256": "ba90e653448e3ae5880bdc96cdb5515e0ac339727d451b683d5be4a579641e1f",
+      "gitBlobSha256": "a50df6a47dedc80879dc2defcdddd908cf8755e695afc96dec90cc87c38462cd",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/db/StandardCategories.kt",
+      "verifiedWorkingSha256": "467dbca0629be5ad1cc3bc0e29b41bd548c6605d37e939f706bea39d425d414e",
+      "gitBlobSha256": "0862567a4675ff3e45a04fa7dda37efbd21d3d6bdfadfee25a925e9d1a9027d5",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/CityEntity.kt",
+      "verifiedWorkingSha256": "7dc20f675bce9f8c7fca4fc0edfe2c8c7771d52da9ba4a8b6870506a4f473132",
+      "gitBlobSha256": "d41d51e42934b699275b907562b34767861e776b90203371684a909705cd6976",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/CreationPresetEntities.kt",
+      "verifiedWorkingSha256": "46526fd7b5e1318ca543990070b8d8a04929d2fe829cf889fb6caf79bd660a49",
+      "gitBlobSha256": "46526fd7b5e1318ca543990070b8d8a04929d2fe829cf889fb6caf79bd660a49",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/GoalListEntity.kt",
+      "verifiedWorkingSha256": "1db1619d072f528e5f12f5d20f1df9657a40c2cb8d01af3a3abc54147140184d",
+      "gitBlobSha256": "1db1619d072f528e5f12f5d20f1df9657a40c2cb8d01af3a3abc54147140184d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/ProductBranchPriorityEntity.kt",
+      "verifiedWorkingSha256": "ff9bac86596e8bfbe511c0b2d705ccf8ec1b630adc5a7174a1ca4a25d1ba4128",
+      "gitBlobSha256": "50b9c034bb9afea7b9e513684b71607097d76dbb65990b2faa3bd6da23a48604",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/ProductEntity.kt",
+      "verifiedWorkingSha256": "f5c70aa4a8c6cbf3272286952c0a379deecd5be1ccd43cf4337cd18ec4e9f8fe",
+      "gitBlobSha256": "1c7abd2f57a05d9ae3b108db8b7ad05ebd359df770f1e612dbe5e172979191ae",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/ProductGroupEntity.kt",
+      "verifiedWorkingSha256": "9dd1dc51280f1edf0b84b2ad3e0463b2a0119c7428e1d81db6bc0a815e53eb0b",
+      "gitBlobSha256": "98ed20bd191ee809d15b58ca5fbaa26dceb925038c8233474a7ce684bc3e1495",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/ProductShopLinkEntity.kt",
+      "verifiedWorkingSha256": "c2337fd0f10f9f5860902094a33cbd7d06933cadc812557ae65619f4c6452fe5",
+      "gitBlobSha256": "5f754c9f4c83c5b23cb81123386682d74e48910487bff573914f13837ebda63c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/RecipientEntity.kt",
+      "verifiedWorkingSha256": "a1a578e6e71503c4f2ca24e17942034c65629c3ee93e16070a148bcbb6f958bb",
+      "gitBlobSha256": "7e713d5535a0480ef57b69320f0e34c29d66f89e3f84601947b519a1432bf42b",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/RetailStructure.kt",
+      "verifiedWorkingSha256": "ec189c55c003859972b68da951d338d9c884800be7dd99ae668d26f354bfbbed",
+      "gitBlobSha256": "24efa32b127bb510d272de0450989a53d87edaff9912e72ee39ef64a3027e01d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/ShopBranchEntity.kt",
+      "verifiedWorkingSha256": "008a601ea9ebf1611cfc82a32d8819523ec7b2b4519459896755bfef599bb5c8",
+      "gitBlobSha256": "3c850ab7f35d83c50e845085fd14ee9ba1c95dda59aa423a37d45ac3d6207e4d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/ShopDepartmentEntity.kt",
+      "verifiedWorkingSha256": "d854ef2339b35442342f82a0027102216ac5c1c4e771670a02a294bfa3007799",
+      "gitBlobSha256": "3aea89976ede04b15b972f7997ffadd386c19b6d33b6a97a1215ab3ae0d8a0e0",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/ShopEntity.kt",
+      "verifiedWorkingSha256": "96c6c79b220c280f92afe5a140a3c43ea4e27a2a399e8d8c220dd0bef0c06917",
+      "gitBlobSha256": "9b333211f4c3d0c18051d4640083f2c726578b12fb92931984316f597f22810f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/ShoppingListEntryEntity.kt",
+      "verifiedWorkingSha256": "e8cea95da811fbe7e555041cdf3e8a26334b610110ba359e7890752b541e61ac",
+      "gitBlobSha256": "cbb66abd93ca25b5c2aaa4ba29f00913c918f9a18d24923709f99868409b0905",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/entity/UnitEntity.kt",
+      "verifiedWorkingSha256": "98410682024ba753a1fbf4d527dc5cfb9992acbb4bc408dbe308600c42570fd4",
+      "gitBlobSha256": "d20b25716e50bb6d40156ca35c2fca20069d731c30abea9205f31499f415c773",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/BatchRepository.kt",
+      "verifiedWorkingSha256": "060cff936afe4f1e13e00ec61e8c63a4eda64233ee0f81d1245d3263a2177a97",
+      "gitBlobSha256": "4b1b779dc6d16579b8cfed4bcf747b6fa9e7e17a6a92e30fecd65bde3dbc1d5e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/CatalogueEdits.kt",
+      "verifiedWorkingSha256": "5229495a0288da02659f46f9c4604dac289eccbf871d8f7e8a65f3748693e808",
+      "gitBlobSha256": "848bbcdd7bf4573a3587055a2244222d43aaa1d34b21ef8df66a8521e83e5679",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "verifiedWorkingSha256": "22578ddb9a66d9e35f5ad853021023dbc6797ee5e00a87a58bc4022888e9357f",
+      "gitBlobSha256": "fd547ea63355900fa1c0c820f0139b4b17d1e2ac60a35c3171d5b3d56c0cb8ed",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/GoalListRepository.kt",
+      "verifiedWorkingSha256": "88a1a9a970ff04e1597189490d75840e2173dd180ac65cda92e86f930e8fbfe0",
+      "gitBlobSha256": "88a1a9a970ff04e1597189490d75840e2173dd180ac65cda92e86f930e8fbfe0",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/LocationRepository.kt",
+      "verifiedWorkingSha256": "0de80be99e61c5b29ad176a350f080e809d9c980f80f1721e526f2a5905c8a7f",
+      "gitBlobSha256": "9154f8b32616ea15e4af6acffda90dceae2b383b858952699dab4c8604a3e2b7",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/MediaLifecycle.kt",
+      "verifiedWorkingSha256": "af183499c2f4d4f9cadd8d063af5993b77accdf58343c3ee25caf0f5c0f35d3d",
+      "gitBlobSha256": "9fdf2023c8f29f1e8b6e0207d6903f86ba2d5dab7747cba890cc3d906854e88f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "verifiedWorkingSha256": "08e5031196b044417512b4dd49d0e9317f77f8bc630e35d4a135cdd0056e7c1c",
+      "gitBlobSha256": "b6ec6c04986103abefd09caf49054ce507e19b41dc30139ac39e1de29a2697cd",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "verifiedWorkingSha256": "bb11c763ff7c0c12df6bfd3252147c07a74f5d8d137b357bac69b5f26cc65078",
+      "gitBlobSha256": "81d8d85e79dafc4d9eeeaed25dc789c87d4e70a5e6f20308a7fa42e21b7f51d8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "verifiedWorkingSha256": "ea9212a4f0e6a4f816bc147f71db2e2b8c9af59957eeba187d84abfe6736b55e",
+      "gitBlobSha256": "e1bf5b8d998eec84b9836c8201bc9187599be655d05defe4071b115d6dfca462",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/domain/GoalListTransfer.kt",
+      "verifiedWorkingSha256": "84ec2bc52b725f5f8c027456b067a07490da73cdf028e014177d1cf48c07ee84",
+      "gitBlobSha256": "44242a8106ede9e9d119cae0eb5abbacd55ec5282be1133ae65cf7dd789a4e9c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/domain/PlaceLabels.kt",
+      "verifiedWorkingSha256": "e75d8334855911dcc9aa31ad3a74f4b823a791a93a0abce3c91a383d1a83539a",
+      "gitBlobSha256": "e75d8334855911dcc9aa31ad3a74f4b823a791a93a0abce3c91a383d1a83539a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/domain/PurchaseAssignment.kt",
+      "verifiedWorkingSha256": "f3ed22ff7ab67f91b1a9bac1d8c3192b45d54ae17f6e00cf8652aec7598618f7",
+      "gitBlobSha256": "f356ac702581a3c318e7961c06c960930872764f36be1748b88679f3f42556b3",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/navigation/NavGraph.kt",
+      "verifiedWorkingSha256": "b8c6b333046a991c0705b93d5e48f70ff617443858b645c579f969ac57d0820b",
+      "gitBlobSha256": "c4047f2c9fe2f176c15fe81d1dd7fbf137a049a61a0516c7dd57e8e210a95758",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/navigation/Routes.kt",
+      "verifiedWorkingSha256": "8e9ae87ec2ac033a98c80dd68e9dcaa89150f32bcf6564433650d4df988d36d9",
+      "gitBlobSha256": "9c20fda45b66ca81c652bf0affc50cadc172484357e6bb2d60375b0617012b2b",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/addtolist/AddProductCandidates.kt",
+      "verifiedWorkingSha256": "594d8f7de81e26ae1a115beef41d66c50e65fda5edff14bfdfebd7c36c49277a",
+      "gitBlobSha256": "672a5e2343863083dbb178f8890a4bdc6ecb8d38b1c0c802ab28ec64bf8a6984",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/addtolist/AddToListScreen.kt",
+      "verifiedWorkingSha256": "8373b81868c433c94192aa850e32251eef3abbba2276956a1e2bafb56c561e2a",
+      "gitBlobSha256": "449a83f24df603da3b466d22140f41648b257c13115738b17c7e0a0d14ef793e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/addtolist/AddToListViewModel.kt",
+      "verifiedWorkingSha256": "517b42087b5f5e5613e226885c40a181d7a4e860d9dfa814ca9fb29381502031",
+      "gitBlobSha256": "39668c44b524062734c99bf650d4496d7ea224591a4e2a07715b23547e1ea352",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/batch/BatchComponents.kt",
+      "verifiedWorkingSha256": "f99032afc28c716fffd16f154255a7526f9149945c4568ce327f9e2ada8fbec2",
+      "gitBlobSha256": "ae7d94fbcc9d714c53bc2fd6e66b1a50f65ff8f77805ee8f53efc61377719a45",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/batch/BatchViewModel.kt",
+      "verifiedWorkingSha256": "1a1b126524b7673888646bc5d57c5d0099b7ebd01573073f7cd7b7283cffa662",
+      "gitBlobSha256": "8cd10428d4cd445663b7d9985fd1866570664d31be80c6604de8866c79dae9bc",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/bulk/BulkScreen.kt",
+      "verifiedWorkingSha256": "e4a315a62400bdec6c6d9adba777be1415461179d417ca954b7bc08ad3ff43ee",
+      "gitBlobSha256": "494177f4f4d2c80c3f17701d0eb7a17890abd66a9b519996cb0fcebd87767846",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/bulk/ShareShoppingList.kt",
+      "verifiedWorkingSha256": "f966e5f0f7521c7332b01f4c7aca9d238c388648485694f4109b821c79ca2210",
+      "gitBlobSha256": "9f1c3f3cad086039df8b8cd1b2e4e9696ea5662d0a94148056b775a62a4b1bf2",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/bulk/ShoppingText.kt",
+      "verifiedWorkingSha256": "e836286745351f1a9fe9f4919aa216e5a41573151242839afff34c704c7a35e0",
+      "gitBlobSha256": "2f294e69e01b1c482b8299416ae952515bf5b728c31a82cd2adbe6acd13d8e73",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/bulk/ShoppingTextViewModel.kt",
+      "verifiedWorkingSha256": "9c2c2a93aa5d8f200c9d5098ca03cc3aef821117b7f9bf2b8a64228ee80065b3",
+      "gitBlobSha256": "1c3ef5b83d950583202a63f9756f37b816b8f5e527ab833e07ae9ae82686ec37",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/AnimatedOrderColumn.kt",
+      "verifiedWorkingSha256": "240323b81741835cfb59cdaf6e4f05b1d0637368ea4790392f90ba1bfe7d8ab2",
+      "gitBlobSha256": "045bb0e517971ab5b06b73a446947668d1c82bb3c3323c3c2db6949a13f30afd",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/Appearance.kt",
+      "verifiedWorkingSha256": "8321f600214a85dfd3835a34b9f9b7d951c32c2cb2b5052f739f97e26eef7077",
+      "gitBlobSha256": "41059095055436fb19ddc4eb3cb1cd7fcf453d2ca6bbf49771b37f0d6152dc95",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/BranchEditors.kt",
+      "verifiedWorkingSha256": "683356a8dcd8ad3727732aceeb07aed46e8a948abda95bd83c2f1c2243348fab",
+      "gitBlobSha256": "3ec17d7a6baafd4242e81d87a1a6dc90e0f349218a6244db4dc435a7ee9e16a8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/BranchPhoto.kt",
+      "verifiedWorkingSha256": "9e665e57b7b3a53ae979e454cbae880c906978b1825a1bbdce6e6ed473ba0b88",
+      "gitBlobSha256": "1021ef74360dd2d63c9329b3f59856fb13bde5c655459292cd4a1e2b3ab7adec",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/CityPicker.kt",
+      "verifiedWorkingSha256": "a332fb18eb516934e908ae7ba6368ce06731f908d073f801cfa3e124fd63741b",
+      "gitBlobSha256": "7ab5903ceea67f36a9433f3e838737237fec13b4ac2a4a4eba731e728ab851a7",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/CollapseChevron.kt",
+      "verifiedWorkingSha256": "52e5d9df2cb6d575c311c9509da7cb923fc7a8ead1395202c05687850d32f629",
+      "gitBlobSha256": "52e5d9df2cb6d575c311c9509da7cb923fc7a8ead1395202c05687850d32f629",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/CommonComponents.kt",
+      "verifiedWorkingSha256": "c6b9f2d42d93ead1e2c7f32d16be99a785ee6579616be7eb8aac9b8b81fca428",
+      "gitBlobSha256": "5af789ef88036951a96f99eb554159bb2c9fa14434bf60e4c5cd005232c1e500",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/DepartmentChoice.kt",
+      "verifiedWorkingSha256": "c202f79680c06662732409742453e05bb11e8e54a41c7828654bd782b219b9f8",
+      "gitBlobSha256": "f612d6b0f1e1a65edfc7d3c6b663d56a225b0105ea0dcc67e6850517451c7b2f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/DepartmentHeading.kt",
+      "verifiedWorkingSha256": "bf19f2cf4a84d50096518a93b0912e141b68066360fd611202a53132b8b5ea7d",
+      "gitBlobSha256": "d0ab2bd2583813ba67b9e054adf408bf12239f8e94899e180042a9c638c038fb",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/InlineCreateValue.kt",
+      "verifiedWorkingSha256": "20f7edcc096e135813cd499b4387148effca43b23b0ec79450967b0010cf693c",
+      "gitBlobSha256": "f51735c4d6e1b9b35999c44deb2be5053f02695067c75d3264e6221e6c1cb90b",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/MovePurchasesDialog.kt",
+      "verifiedWorkingSha256": "02c8cfbf2aa1fc859a2872fb4c6da9e9bb4c241fe23a732fc759ca637eab114a",
+      "gitBlobSha256": "1cdb814379376d3ef3dff9c982ff052d82d8291cecfe7a6ee3ff7c3bce8133d1",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/MoveToListSheet.kt",
+      "verifiedWorkingSha256": "78c8410b288cceb0694f164bebbbcb9ffe17016c822a46f975079f0769bd8a6d",
+      "gitBlobSha256": "cf93deeebe26f5ba5ea66feb058a2103acc9d22287132833d9c5a9398d9e8f10",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/PendingPurchases.kt",
+      "verifiedWorkingSha256": "7c9802e6e79cd8846c3ffbc460a7fa9721a81b4e928eeb6234bd97bd28639c88",
+      "gitBlobSha256": "15e96301b2a4036aeb96f9d841fe1c0faac20e956248254335d5f44e802affc4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/PlaceLabelsProvider.kt",
+      "verifiedWorkingSha256": "611397bdcb18babf0675850419db0eb89917addf96fb9c38c7de0cf35f0ec026",
+      "gitBlobSha256": "611397bdcb18babf0675850419db0eb89917addf96fb9c38c7de0cf35f0ec026",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/ProductCandidateTitle.kt",
+      "verifiedWorkingSha256": "055ea48c71821f527a17a2c9aa24937bb19c7675b7ccb40b1fcc5d8ef1c15388",
+      "gitBlobSha256": "4951fb2545a44f4d1cb1e704e88a7ddc9e0d312c60cf080d29d73b589fdf08c8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/ProductContext.kt",
+      "verifiedWorkingSha256": "b9f74cb3d1bb8e2e6dd567b06e72a571259dd05c781c7992cc1e01392abcf3e1",
+      "gitBlobSha256": "4547d8331eaf8c1966d260ee79c5168c1dbcaffa83be7373338897e7717dd035",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/RememberedGroups.kt",
+      "verifiedWorkingSha256": "f055854603208616f04a9bd894e4286a7f3950e832f5e46aa9ac3b7521c0cd55",
+      "gitBlobSha256": "ad6dd86d2a5a9899d7c136cdf3a38918402db36e043bdfb96c07b995899fe999",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/ReorderButtons.kt",
+      "verifiedWorkingSha256": "335bf87719e95be4b74d18190b94da3f9f5a3568e85e6c8f5ec4a58ad0fe105f",
+      "gitBlobSha256": "335bf87719e95be4b74d18190b94da3f9f5a3568e85e6c8f5ec4a58ad0fe105f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/ReorderViewport.kt",
+      "verifiedWorkingSha256": "0de25b9f6ee29a44ad9763954aa0c4907b9ebd82583520391263480dc7333d3d",
+      "gitBlobSha256": "297f8af3fface41744460f32bd98f201f96d7ef25adcc7a20602168596f3c437",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/RetailFields.kt",
+      "verifiedWorkingSha256": "3c0a86e80cdbb24027f7659d39e0bd0d11acabe0d12836dc0255adc70a53f05f",
+      "gitBlobSha256": "b9240dabe2c56fe87d1011e0088229c70276e8c374499121d6d8046967ed1ede",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/SelectionRow.kt",
+      "verifiedWorkingSha256": "b7b8e3ba17d060e83c50689fa2beb67500a64f2978715f8ae5aefb5abfa0fffb",
+      "gitBlobSha256": "b7b8e3ba17d060e83c50689fa2beb67500a64f2978715f8ae5aefb5abfa0fffb",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/ShoppingAddButton.kt",
+      "verifiedWorkingSha256": "e2d6ffbcbe061737bbba571d5a6fdef6d698a3367b9a290e9753529d0af75cd6",
+      "gitBlobSha256": "be465435c6f554c8b7715854b12e32240368d84285c4939a88de5f00b5fdd335",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/ShoppingBlockAppearance.kt",
+      "verifiedWorkingSha256": "aec365448d4a6c3c2538ba82dde69a8c50223b63da797d336618d3315b229bb7",
+      "gitBlobSha256": "aec365448d4a6c3c2538ba82dde69a8c50223b63da797d336618d3315b229bb7",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/ShoppingSymbols.kt",
+      "verifiedWorkingSha256": "8e06e0a9659a9834013342746b572a68548f8625f39ad536887807532085164f",
+      "gitBlobSha256": "32b9c4ecf936f0660f3030bb574e7521c89250ee67174aa938e3df00ccd8113c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/components/VoiceSearchButton.kt",
+      "verifiedWorkingSha256": "f1bc2b39168f1094738a206beb63afd30906455c232f780dba56018f308e8800",
+      "gitBlobSha256": "f1bc2b39168f1094738a206beb63afd30906455c232f780dba56018f308e8800",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalListScreen.kt",
+      "verifiedWorkingSha256": "bc7dd35af7d00676d56c395217525bf7a291a5d3dc5399e0dd341dc104b5f320",
+      "gitBlobSha256": "703dd3b02bcf7c499ecb928ca6f0d8d6018d018624de643ecde645f59c215804",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalListsScreen.kt",
+      "verifiedWorkingSha256": "4d64ffa7dc3fb43bdc880924840de68549367ad1daad12db775b18a40befa1c9",
+      "gitBlobSha256": "4d64ffa7dc3fb43bdc880924840de68549367ad1daad12db775b18a40befa1c9",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalListViewModels.kt",
+      "verifiedWorkingSha256": "5b114db1ee7956c88ceb147c655e3b629a0b434c5790588023a5b7235d78910e",
+      "gitBlobSha256": "78c43d0a8ab8245cdaeb2fcff4bb4d62f60274e72047a8f67b8ab8653bf883b6",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalMessageDrafts.kt",
+      "verifiedWorkingSha256": "83f7dd6281fa99a88f86efcd60a3f6c24d33b4c4cacd4d5b15f1d4c22573fd5d",
+      "gitBlobSha256": "83f7dd6281fa99a88f86efcd60a3f6c24d33b4c4cacd4d5b15f1d4c22573fd5d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalSelectionSheets.kt",
+      "verifiedWorkingSha256": "7331e934d7efb5c631c5385b7005332a8cc5f36f27ac7310136d137e778940db",
+      "gitBlobSha256": "7331e934d7efb5c631c5385b7005332a8cc5f36f27ac7310136d137e778940db",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalShareIntent.kt",
+      "verifiedWorkingSha256": "72472f4d816085a52add76212ca8c8ea9a54fb5618d22cbf5e832e2c1b82119a",
+      "gitBlobSha256": "5f0b1fa786fa105e5af0753824554f60c040c4401e6ee10c7e5981f27d235b53",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalTransferSheets.kt",
+      "verifiedWorkingSha256": "68a5a22bc56aae4988641bcdd797ac1cd95c6be4463e5ea73b41c431e2f4f250",
+      "gitBlobSha256": "f2e418779a8b8e638f93475720b2d59edbcc7e1bdd54700eca3460b2c170b579",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/productcard/ActiveProductDraft.kt",
+      "verifiedWorkingSha256": "62bf48153bc7ea8dca0cdd9802ea1f4798e64e52f11a4e926ed701c85c278b00",
+      "gitBlobSha256": "c4b1db69ddfa8f3ce30dbfbb699b7ba1dd5d7f656d964b402bd391def64c70a4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardScreen.kt",
+      "verifiedWorkingSha256": "b3bf88020940f6fe3d73b9050131fd25b5d51727019d3e65090340853a92df36",
+      "gitBlobSha256": "44172cc3dfe39e557f3df56744d076b0d6593edb9942a7910ec4ab72e122c4e0",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardViewModel.kt",
+      "verifiedWorkingSha256": "d1114389bd63c15746609ad3b56e4abd8190bf8304cb828026f9999de40977c0",
+      "gitBlobSha256": "2c6e50dc600a17fa9343a139dc6746be06527cae191dcc4ffb0d05e9c3997fd2",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductDraftSynchronizer.kt",
+      "verifiedWorkingSha256": "4b3415de352dcd30030cd81f59c959203db6f45b55d4b454c9087975ee03a993",
+      "gitBlobSha256": "bef847fc7ce95c32f532a282986362777de5c3802542e54c5a213933b648244c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductEditDraft.kt",
+      "verifiedWorkingSha256": "d1d13b8f3ee11feb7d9e7d6ec034bb4d0fb3fd6d1d6d3bc72b7baa84321170da",
+      "gitBlobSha256": "5f1c1cb7307c1a69d8fb61c3105ac5c1e70ec56a1f649f00b93cec23ddee4d5f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/productdb/ProductDatabaseScreen.kt",
+      "verifiedWorkingSha256": "402cab15ad0626d39e141bce7187ddfe0fe8a542412f5a9d2382b325e8b0aafb",
+      "gitBlobSha256": "58024e9465e4b4fd4cfde237c182903363886e98d019040205283526335baa57",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/productdb/ProductDatabaseViewModel.kt",
+      "verifiedWorkingSha256": "820e9c11edd05c162b73c914dee021717dbead7a5f32d3fee79d4ae22ddd6ddd",
+      "gitBlobSha256": "4cface0270d79248e4a62e7756e01d83e174b248f6d4a133613afdbf6490c570",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/settings/SettingsScreen.kt",
+      "verifiedWorkingSha256": "56511214839ae26d31679d0bed4a700282674a4943372c75d05c7d68f76c2bf2",
+      "gitBlobSha256": "46d89e5980943c18439a4bde32b77f7144e7445f09aec84b96c63d9a8f672a02",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/settings/SettingsViewModel.kt",
+      "verifiedWorkingSha256": "0351c20ef5c6ec3daa577fae6571a4f4ff655e1a7e932c055a321350836a57cb",
+      "gitBlobSha256": "7c51fb02370397e8834bc59360c8a21c90c6c2c40a7389a311b6ed6c60444322",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/settings/WidgetSettingsCard.kt",
+      "verifiedWorkingSha256": "e64fd1f9461bdaf224429c1113aecbccf5e6227571ea7b20234e3330a20651f3",
+      "gitBlobSha256": "e64fd1f9461bdaf224429c1113aecbccf5e6227571ea7b20234e3330a20651f3",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/shopcard/ShopCardScreen.kt",
+      "verifiedWorkingSha256": "29875364f7644263c7bc0db99fed0a14cf3a99d7f199c4dc4f6e2d734caa8c4b",
+      "gitBlobSha256": "0e0ed49dfd7db7b30cbf3e1634ac761b68e4129c53504c43f7cc610264520756",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/shopcard/ShopCardViewModel.kt",
+      "verifiedWorkingSha256": "7d2fa9bb4c8ac4f7d095a74b6bf6d180133394e7ef02eabdd2dafe559933f0e7",
+      "gitBlobSha256": "ba2496c4b6ddf860f8da77a68e6b65c467468563562a0757548b5d8b92acc806",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/shopcontent/ShopContentScreen.kt",
+      "verifiedWorkingSha256": "88e1600a395e217df36c68cc9a838b1fce86db2c6743a16064fb993dd780f933",
+      "gitBlobSha256": "dfef6b25b2dcea464eb48eaf8a97574c0959bca4c13bec4132d8428b3fcaf4ef",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/shopcontent/ShopContentViewModel.kt",
+      "verifiedWorkingSha256": "bb5777d9392629798eeb7f3662984065c1cc2fa26e7709bbecb3f3b9dc5af519",
+      "gitBlobSha256": "dc007b125f12c3cea9aa0abcf8b1c999e43d6e014872fb5c1aeb1c81b6539b70",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/shoplist/ShopListScreen.kt",
+      "verifiedWorkingSha256": "7c9c45cfb90a55c9da1b947b448e9cf02ecc51f865921731cc18337c65efe45c",
+      "gitBlobSha256": "56d012a3310e380fa65afdba3a87a27f6b2470b651600e7282cce1cd6f0d9763",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/shoplist/ShopListViewModel.kt",
+      "verifiedWorkingSha256": "eb44eed65f5fc4b2f6986650c8556604b373a87fd5b4c4f9b4e5c36cc5d82e96",
+      "gitBlobSha256": "1ee1dfdd37fc220afac8a3574ce508387db579c9ce94c4e17cf35d456a710d81",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListScreen.kt",
+      "verifiedWorkingSha256": "7b9583e529798968d5f666e7e45657f961d55eda58ea5745843db4b9d4b3a251",
+      "gitBlobSha256": "9d895dc31cbe3e9a5e68ae43113d831b3b2974ffbf02a78a9facfc33e1269092",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListViewModel.kt",
+      "verifiedWorkingSha256": "4dd4ec5842cc91f169acc9cfe810a9847364bb88351b42064084a6ca91151d17",
+      "gitBlobSha256": "410b869d6a3f55d21a02130b5477f4a56a335909bd07f56f2dff1580829f1e24",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/theme/Color.kt",
+      "verifiedWorkingSha256": "b2506cdaca8db3fdca60570ed9b138711df107187d5dd99b43c30dc262818fde",
+      "gitBlobSha256": "b8e0e3cb24f385463888def6191a918de39fc6100575b4f91628c400504d8427",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/theme/Theme.kt",
+      "verifiedWorkingSha256": "2692140850c18f4dec0d11386a74016997d74f0a944085362278b46e99684848",
+      "gitBlobSha256": "5374c8654fc53bfee46e107cdcfeb4f488697b3761329f93e753267cf287a24e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/ui/theme/Type.kt",
+      "verifiedWorkingSha256": "1f5a02665b466a98fd657e961629aa9d660e727ac0038181bb41073926421050",
+      "gitBlobSha256": "29b3de986ee09bdcc91fe846025d5d4aa7f581f0403e4786f30c9442f41d030a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/AppearanceColors.kt",
+      "verifiedWorkingSha256": "58572c31d3348f0acfc13c28b657f8e33dbad1ef41215c111d24bd627813b446",
+      "gitBlobSha256": "58572c31d3348f0acfc13c28b657f8e33dbad1ef41215c111d24bd627813b446",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/DatabaseRevision.kt",
+      "verifiedWorkingSha256": "41b459e72e84c280a00f55658552f7b0128e5ed6c785b26033ac9188165151a4",
+      "gitBlobSha256": "41b459e72e84c280a00f55658552f7b0128e5ed6c785b26033ac9188165151a4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/FuzzySearch.kt",
+      "verifiedWorkingSha256": "c7d7e0fa55152182977281bd88f4148280a2f6fa33fbf0ca07755c99c05213cf",
+      "gitBlobSha256": "c7d7e0fa55152182977281bd88f4148280a2f6fa33fbf0ca07755c99c05213cf",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/MessageShareIntent.kt",
+      "verifiedWorkingSha256": "8c11b4805089ea57b31aed17d17498443a9520585005483a1da76191453dd115",
+      "gitBlobSha256": "3c6ec0ddeb6d7f43838547c2d590cdaca0d2935b50734b09619f9e15772f2e08",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/PhotoStore.kt",
+      "verifiedWorkingSha256": "d7d0969ddca9af7a7f7a0c100c15ff912bc9eac43c3ae4ce79acd62df57324cb",
+      "gitBlobSha256": "5af2bff1411fc1349dbdaa275216b0a60df2119a506a63d5f94ae810e5d6d0a0",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/ProductCreationDefaults.kt",
+      "verifiedWorkingSha256": "64f39c64887838192e9da21e5d39d56599298aee175c6396110c0c150ff2ad17",
+      "gitBlobSha256": "64f39c64887838192e9da21e5d39d56599298aee175c6396110c0c150ff2ad17",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/ProductEditingPreferences.kt",
+      "verifiedWorkingSha256": "856124efee07dcf3f0782c0ec7df304cc0e95f6bead9c278645a659c39146e33",
+      "gitBlobSha256": "856124efee07dcf3f0782c0ec7df304cc0e95f6bead9c278645a659c39146e33",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/PurchaseMoney.kt",
+      "verifiedWorkingSha256": "aa7bec87e02e7390fc55621c0262488d9bd527a24aa000a280fd9be231f1e4c7",
+      "gitBlobSha256": "aa7bec87e02e7390fc55621c0262488d9bd527a24aa000a280fd9be231f1e4c7",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/util/Quantities.kt",
+      "verifiedWorkingSha256": "06d00732619c21a6ef429ed51a7b94a8fb059862e8ef1af20fc63a5fdb8eabb6",
+      "gitBlobSha256": "cc3f3236b5b187a3737557bcf648c9e44fc7807ec79b1e1a6629406dd84fda6e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/widget/ShoppingWidgetData.kt",
+      "verifiedWorkingSha256": "7992e0e6088c0a522be5ed09e13053f923ea321a292473b68587b1757563a99f",
+      "gitBlobSha256": "e288bf8031d14c6404dcb7e680cebec606d665a553f2109ef41ec2c469fc19c4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/widget/ShoppingWidgetProvider.kt",
+      "verifiedWorkingSha256": "304288a14a8e9ec7e8a76bc6acf73b6ae91ad9257e99fb08ad0bf79e6e1c279f",
+      "gitBlobSha256": "304288a14a8e9ec7e8a76bc6acf73b6ae91ad9257e99fb08ad0bf79e6e1c279f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/widget/ShoppingWidgetService.kt",
+      "verifiedWorkingSha256": "17083b3722cb129090b5ce1d2268446f35deff7ba6d29320589c9c87e5a2482a",
+      "gitBlobSha256": "17083b3722cb129090b5ce1d2268446f35deff7ba6d29320589c9c87e5a2482a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/widget/WidgetIntents.kt",
+      "verifiedWorkingSha256": "1698937dd35c81cdc267c8cd2cef6f8d00df6094f1dc7e1309b74d4cf87bade8",
+      "gitBlobSha256": "1698937dd35c81cdc267c8cd2cef6f8d00df6094f1dc7e1309b74d4cf87bade8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/widget/WidgetItem.kt",
+      "verifiedWorkingSha256": "244aa58fe2165b2c3744f523d4fb83244fbeef6a65d751390830be3ff745f042",
+      "gitBlobSha256": "244aa58fe2165b2c3744f523d4fb83244fbeef6a65d751390830be3ff745f042",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/java/com/spisokryadom/app/widget/WidgetSettings.kt",
+      "verifiedWorkingSha256": "c62fdbab15f1741092621ea47e2413339123fa024910e562bdf41553e68d7782",
+      "gitBlobSha256": "c62fdbab15f1741092621ea47e2413339123fa024910e562bdf41553e68d7782",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/drawable/ic_launcher_foreground.xml",
+      "verifiedWorkingSha256": "524c5c54b927fbb6793b61e5c23e08d793b4f9d8842b44dce1ccd59e381e2be6",
+      "gitBlobSha256": "4f7a9d12cd588263316a5c625ca0cefd3ead83a3f90b2a44da3ad979e0bb2791",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/drawable/widget_add_background.xml",
+      "verifiedWorkingSha256": "e79e513bb2f876c3ba1fc08e39a5cb476de0caf4109da97237cc7cbfd2fe1e45",
+      "gitBlobSha256": "e79e513bb2f876c3ba1fc08e39a5cb476de0caf4109da97237cc7cbfd2fe1e45",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/drawable/widget_background.xml",
+      "verifiedWorkingSha256": "af6575a5d0e5f63309434c3e57b94a807368441911b81d916bb7fa6c94d5f836",
+      "gitBlobSha256": "af6575a5d0e5f63309434c3e57b94a807368441911b81d916bb7fa6c94d5f836",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/drawable/widget_checked.xml",
+      "verifiedWorkingSha256": "df12634907fb13ac38597c43922f5bb3f11fce422191de85de26fd5d5c4a7e68",
+      "gitBlobSha256": "df12634907fb13ac38597c43922f5bb3f11fce422191de85de26fd5d5c4a7e68",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/drawable/widget_row_background.xml",
+      "verifiedWorkingSha256": "6668c05fa0e08e61191f4e7f93eb72c30ee356fdbc6628fb7270ccd74ed827f1",
+      "gitBlobSha256": "6668c05fa0e08e61191f4e7f93eb72c30ee356fdbc6628fb7270ccd74ed827f1",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/drawable/widget_unchecked.xml",
+      "verifiedWorkingSha256": "0a1ed35cd576b8a461c33528f7df182a5fd71ae726b5239d536c2d278420bd6e",
+      "gitBlobSha256": "0a1ed35cd576b8a461c33528f7df182a5fd71ae726b5239d536c2d278420bd6e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/layout/shopping_widget.xml",
+      "verifiedWorkingSha256": "3e67e7aeb0947b13234c3d36fca36d962fcf26167e95a767edfe65ea5a367080",
+      "gitBlobSha256": "3e67e7aeb0947b13234c3d36fca36d962fcf26167e95a767edfe65ea5a367080",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/layout/widget_purchase.xml",
+      "verifiedWorkingSha256": "72fe52536743809a1a5d51a65faa18a17db5e85ed15fba673afdaddb6807d8a5",
+      "gitBlobSha256": "72fe52536743809a1a5d51a65faa18a17db5e85ed15fba673afdaddb6807d8a5",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/layout/widget_section.xml",
+      "verifiedWorkingSha256": "85aaa3324c922635cbe4854b54df3dd7b0486b59e91d56ebe417b0d818d8028f",
+      "gitBlobSha256": "85aaa3324c922635cbe4854b54df3dd7b0486b59e91d56ebe417b0d818d8028f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "verifiedWorkingSha256": "e071a8516287e0bacccc1a14a62502f3e1eda8360b2aad3c88c390ccbfa77122",
+      "gitBlobSha256": "32715ff646f6b9fef7c321138e4a14556c4a1f98a87b06070b56f41643dad718",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "verifiedWorkingSha256": "9a6b0f303854856a708171df4105ec948d985b7426a9d2dbe9766ed75c5409a9",
+      "gitBlobSha256": "9a6b0f303854856a708171df4105ec948d985b7426a9d2dbe9766ed75c5409a9",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "verifiedWorkingSha256": "5a8966967611489c07cce4dca63e4bd169e651d81f8873566ebd614de6d2e27a",
+      "gitBlobSha256": "5a8966967611489c07cce4dca63e4bd169e651d81f8873566ebd614de6d2e27a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "verifiedWorkingSha256": "97dda342de8bafbb548c47b7664c11fe62d1c784a3c450b87c2d60d71c62fbca",
+      "gitBlobSha256": "97dda342de8bafbb548c47b7664c11fe62d1c784a3c450b87c2d60d71c62fbca",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "verifiedWorkingSha256": "8a5088a625c4b53215d36c36da34aa2d0742d6465152c5bd906401e6fcc2ba02",
+      "gitBlobSha256": "8a5088a625c4b53215d36c36da34aa2d0742d6465152c5bd906401e6fcc2ba02",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "verifiedWorkingSha256": "d3bd9b4be250d4b1d269ec038250c86bbbb38d7ed34af4de487f5cb7c9ca0259",
+      "gitBlobSha256": "d3bd9b4be250d4b1d269ec038250c86bbbb38d7ed34af4de487f5cb7c9ca0259",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/values/colors.xml",
+      "verifiedWorkingSha256": "b959ec98bb268cd82375e0b727902d89bcc4a18b1d0e7f0c44a1138b4841cdcc",
+      "gitBlobSha256": "c93066bfcf34353b0eb4d4fbb24b97004c7665bd60b73467da9471dfa5696d31",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/values/strings.xml",
+      "verifiedWorkingSha256": "23e5e951cc53c0e000f4f01f366e1673da7295a013e2238823953d9dba8b1e06",
+      "gitBlobSha256": "12f549613f0c712ef242edaef25f50d746875274fa582aec4f6ffd0cb8ba3e1d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/values/themes.xml",
+      "verifiedWorkingSha256": "76efd5dff15e87d7c60591ec573b58ae6c987ed2ec317cdfd41d146d82964cf3",
+      "gitBlobSha256": "bb3d4641847f65f7ed1e1bb50b13b68121025ee2f0d3f398fad81eabaee497d8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/values/widget_strings.xml",
+      "verifiedWorkingSha256": "1960e5a3fd0e2ebdfca8262dd46d08b08f0028d80ef78fce68a7205dc3580a6e",
+      "gitBlobSha256": "1960e5a3fd0e2ebdfca8262dd46d08b08f0028d80ef78fce68a7205dc3580a6e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/xml/file_paths.xml",
+      "verifiedWorkingSha256": "13c33d04aa6236d03b1bc09c796acfc27200d9ce9a1b8de10fcb89258f5cece8",
+      "gitBlobSha256": "13c33d04aa6236d03b1bc09c796acfc27200d9ce9a1b8de10fcb89258f5cece8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/main/res/xml/shopping_widget_info.xml",
+      "verifiedWorkingSha256": "8f7c5e5554076837c9efbdd95aa6e89cf97a2821761104a7878ede5cbcf49baf",
+      "gitBlobSha256": "8f7c5e5554076837c9efbdd95aa6e89cf97a2821761104a7878ede5cbcf49baf",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/parallel/res/values/strings.xml",
+      "verifiedWorkingSha256": "27afa681d78418793f04e719d54f2d6193f4475b69c236905f54088f99644a97",
+      "gitBlobSha256": "de1ec2cf716cf9ac2d18156ccb6780873573c6a953d0f470d7ad9ba17f780a3a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ArchitectureDataTest.kt",
+      "verifiedWorkingSha256": "9bee5d23a7efc7a11ee8b4399c3acaa5fe3311bfeed8e2bf7cc5bfbf454f3644",
+      "gitBlobSha256": "9bee5d23a7efc7a11ee8b4399c3acaa5fe3311bfeed8e2bf7cc5bfbf454f3644",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ArchitectureMigrationTest.kt",
+      "verifiedWorkingSha256": "f8ad9df0d9d58f50e3ac662f660a1260b00fdc913237b476d3985aee5b68a8a7",
+      "gitBlobSha256": "20576d1218c8951f42fabacaaeb01cebd64ce29980818b77e48aa29d36810f99",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ArchitecturePolicyTest.kt",
+      "verifiedWorkingSha256": "ccfbe54509eb82926eccc3b1584afee26602831fc7751aba46e37c30cf525066",
+      "gitBlobSha256": "ccfbe54509eb82926eccc3b1584afee26602831fc7751aba46e37c30cf525066",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ArchitectureUiTest.kt",
+      "verifiedWorkingSha256": "02588e079d240298a3fdd927b14b21ae394aebd4f712d32e31d872b3cd9a96c6",
+      "gitBlobSha256": "e8ebca296d9b9b81627d843beb532e391499dab184e0beb7fcd34a8a6fc1845e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit121ActiveEditorTest.kt",
+      "verifiedWorkingSha256": "93b0f6a403f36dccd9e620b5d1577a183f13c71da55f91458808831d0b1bb8db",
+      "gitBlobSha256": "5b289e7da9239ea8bc8fa027cf02fe980b0c3a80479ea68bf0c0fae9c089176d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit121DomainTest.kt",
+      "verifiedWorkingSha256": "80478e2b611f3e58897989ac04c8bd6278858f5b6ed4961dc949e07d635b21cd",
+      "gitBlobSha256": "80478e2b611f3e58897989ac04c8bd6278858f5b6ed4961dc949e07d635b21cd",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit121StorageTest.kt",
+      "verifiedWorkingSha256": "ce5a09b6138122460a87424f3bddb49a804ee7a222c492518f56b512f63d576e",
+      "gitBlobSha256": "cd99408632ad06a4f478c5f2808d9929f8f394b22a50af62c7e175f22304e1cb",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit121SynchronizationTest.kt",
+      "verifiedWorkingSha256": "0b0b6c1e0299592796645eed12d96966f99336484b3bffe341a3b0f6fdf92d58",
+      "gitBlobSha256": "0b0b6c1e0299592796645eed12d96966f99336484b3bffe341a3b0f6fdf92d58",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit121UiTest.kt",
+      "verifiedWorkingSha256": "4b694c1ec41c3e9e4d16627e0fb64767ef28ab31646b8a9524ee74f1bd6c40fd",
+      "gitBlobSha256": "6835b01244f31b7bbb0a1196b800059c5fe509716b4de992eaee6d669c2f12d4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit151BackupTest.kt",
+      "verifiedWorkingSha256": "a1f4b0ece4936f865607463288b94f5cbef289a72006e0ca79af299531e062d3",
+      "gitBlobSha256": "379a5184b42aba2f2852000eb8697de3ab57e4a5ef4c9d5380f5c8a09eb5ba45",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit151CrosscutTest.kt",
+      "verifiedWorkingSha256": "0b5c82b167a2884677daa86cdce124adf3c5e7cb6246d6433bc79ec86c98555c",
+      "gitBlobSha256": "e6c0949f9c8a7d4542300ecdf263ffa8fb7d984b810a8f348c1fa954f21ab1a9",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit151DomainTest.kt",
+      "verifiedWorkingSha256": "cfe1b55d4bfe8f8de18a9d6878b25bf78dbed2352c6914baf4c3e9bb626ac36b",
+      "gitBlobSha256": "cfe1b55d4bfe8f8de18a9d6878b25bf78dbed2352c6914baf4c3e9bb626ac36b",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit151MoneyTest.kt",
+      "verifiedWorkingSha256": "8aea73e82f402837bedda6170ddacd9f677f3bd9968e00cb0b04398d6bf303cb",
+      "gitBlobSha256": "00f5c147b50e222e69e80e515de83f4b41fb0906e0de10fc5b1399fcefa5d890",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit151ShareTest.kt",
+      "verifiedWorkingSha256": "7c59cd93aa74ef3a73f642b7c5860f58a863856bec768813846f575158f1b30f",
+      "gitBlobSha256": "9374a9b05afe9b61f792236ee22b3b135f798cb33ce2f135728dbc372c3792fe",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit151TransferTest.kt",
+      "verifiedWorkingSha256": "3d731b82179cd400d6990ac2f586e82beb7e636426e637505e7923631d429f00",
+      "gitBlobSha256": "4a975cbf825bc25a2180c6a20082925831a6b44966d15745d1778ccdefa93ceb",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit151UiTest.kt",
+      "verifiedWorkingSha256": "7aef77869b1d98304b5a041ac16f3d48e490b3c86afcda8b348a8cc2610c91d4",
+      "gitBlobSha256": "763268d3211bbd2b8526107d9ec2b4fd3ba97664ef51231891f74ce05321f3b4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/AuditDomain071Test.kt",
+      "verifiedWorkingSha256": "e7b71d1aa30e747c89deb06b206d518ccc52aec54d08d8ed63c7358099ddd5ae",
+      "gitBlobSha256": "e7b71d1aa30e747c89deb06b206d518ccc52aec54d08d8ed63c7358099ddd5ae",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/AuditIntegrity071Test.kt",
+      "verifiedWorkingSha256": "85a19a0f8faa3d06439e930bc1061e39547d1b3b68a776651c79c76cc8435591",
+      "gitBlobSha256": "81c6c91c1506765aee60906e7664cfdafaf8e2c47cbd42b90e5f1dde290b773e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/AuditStorage071Test.kt",
+      "verifiedWorkingSha256": "ab64e111b85e90fe318776c6c64125262caf324fc279f0b5d6336a44746d72ee",
+      "gitBlobSha256": "482479e9b109b049bbf951857fa4cbbbbcd679931c613fbfd3dfe2d8476f64f6",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/AuditUi071Test.kt",
+      "verifiedWorkingSha256": "b2b0b282bc95423513f4155ff517bc4e86740603be813fa13484e329bc8852c1",
+      "gitBlobSha256": "b2b0b282bc95423513f4155ff517bc4e86740603be813fa13484e329bc8852c1",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/AuditUiNavigation071Test.kt",
+      "verifiedWorkingSha256": "a307b330681e97bb24240bec5d03496e64ab52aa15a5ea14bfb3b7a08d9bd34f",
+      "gitBlobSha256": "2ef60c17723038b730f81370b70e2967cd26008e76450ff5e17e0b5715225fd4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/BranchMigrationTest.kt",
+      "verifiedWorkingSha256": "805d923296849ea9f7e5a590f70e5b2c758dadb5f6a5fc3438418a855032c183",
+      "gitBlobSha256": "9d730c32c0cefbe7bc330ae0dc66ecbacd247b802711265c124e842708482133",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/BulkCancellationTest.kt",
+      "verifiedWorkingSha256": "7ea60b89f72c4241ef6d1294f521385768c5973ef72bb2bdf7ae9c0d5ecf5d36",
+      "gitBlobSha256": "8aab7900d766c31673777bfd84ee97e5c47b0d86084bd34aef8ab834c94ad386",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/CardDraftTest.kt",
+      "verifiedWorkingSha256": "ac10a5722cc96f2628b4914b714ad4af2ff78c9cff8753ea22870006bce542dc",
+      "gitBlobSha256": "bbdb9470d8ff90761aea3a7fb63075177ce014b28f1425df5357cec977268a1e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/CatalogUiTest.kt",
+      "verifiedWorkingSha256": "b44dcb03c4d8ada3b49782639ae19160d125a5614872b3d57a652974b9114afb",
+      "gitBlobSha256": "2461ed31ffc8e1038715f6349386aed56c0bcc4371fc557b25e245e2c2c22e75",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/DatabaseSmokeTest.kt",
+      "verifiedWorkingSha256": "986095b38305d9fa275d253e0ae3045d246264b0127a0521a9bf1819b9ef8087",
+      "gitBlobSha256": "b36a63f4b59b9a7e33fdafc0bdf8f144642052e2c2bb8f000858fb8e94a329ee",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/DraftDepartmentTest.kt",
+      "verifiedWorkingSha256": "e5d48f05dbd8ddf48fa4379db903de7949e3e6bbfc2c455ebeca2c9ae084e1b0",
+      "gitBlobSha256": "9c16fadaac756fda7e292d265aeee43cc024047d7d10efb3327cad68a053733f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/FuzzySearchRegressionTest.kt",
+      "verifiedWorkingSha256": "95a6ea82dcfd598b8a883fc1094e5329b3d9408a01454990d8d13440ca79e550",
+      "gitBlobSha256": "3d221e5f7db12dfb45a0502bcf48d54e4e241440d71c0a4a154a042437fb45ba",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/GoalImportFileTest.kt",
+      "verifiedWorkingSha256": "4ba8eafaac5205b04effd5cd71a75660cfdf407ce4bc673127994ce80bc0e9d6",
+      "gitBlobSha256": "4ba8eafaac5205b04effd5cd71a75660cfdf407ce4bc673127994ce80bc0e9d6",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/GoalListIntegrationTest.kt",
+      "verifiedWorkingSha256": "a89b421353b691d8008ec1b28b60695b278216befd7c2d1ef95fa89c4266d559",
+      "gitBlobSha256": "b17f55230aee6a71e0616d531b8666548e332bc268c3afb00a8d68a7162fcd79",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/GoalListStorageTest.kt",
+      "verifiedWorkingSha256": "44f764965184c6e9bef9c9010d80f486f0659a6f7a02b1050e4a6254b2299e82",
+      "gitBlobSha256": "a527e2666145e67dfcb2b7a4ef197643a16def59b3edd97b41836feb4305f5d8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/GoalListsUiTest.kt",
+      "verifiedWorkingSha256": "ec98c076e15c32708ddda44e6d7edeb703ca49cf3013114ccaa1194b71042b86",
+      "gitBlobSha256": "849ed517b85c3de38f94660d45d1d566f09a3b6eab896446e6f93b42b145f8de",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/GoalListTransferTest.kt",
+      "verifiedWorkingSha256": "4962a76b1b46d8c6f1c432d22574efe35c45da87cb82767b7f41ee4e5d80f672",
+      "gitBlobSha256": "166cf559e787e43303bdf1f8cded4a8280e81427249146247e44b24a3647a3ae",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/GoalListWidgetTest.kt",
+      "verifiedWorkingSha256": "3f8567d2dca4a84b8448858acfeecbde061fbf68e4a50df0e042f87bdb770981",
+      "gitBlobSha256": "3f8567d2dca4a84b8448858acfeecbde061fbf68e4a50df0e042f87bdb770981",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/GoalMessageDraftsTest.kt",
+      "verifiedWorkingSha256": "3c679e9a3c4bd2fca874813e3b2b0460b4890f08d7a9be8b25a9f84efb574a40",
+      "gitBlobSha256": "3c679e9a3c4bd2fca874813e3b2b0460b4890f08d7a9be8b25a9f84efb574a40",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/IndependentDataAuditTest.kt",
+      "verifiedWorkingSha256": "c60684c8f6089a50a5c08bb4bff3d21fcc738818405cabb872b9f936b03067d0",
+      "gitBlobSha256": "34d9e95ca41bbfb02ede347356b8fd92671e8695be7fe23af9cdd58c2169e4f8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/IndependentDomainAuditTest.kt",
+      "verifiedWorkingSha256": "0e969762a340c38a44c2679d3d858ae4b6fa22531699ba93caf8d9de189266d3",
+      "gitBlobSha256": "fad29bbf8831ccda9b39fe1752a48763a597cf8246fea6d8983a06198ba34f13",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/IndependentInlineFocusAuditTest.kt",
+      "verifiedWorkingSha256": "ccbbdd19467f75341c666f95b7abc0ab81cda2b2b4d4397573047253dbabe29e",
+      "gitBlobSha256": "688b27e8e9eb9cca1a636d46e83449949c33c43da94f5cc2dd4eba81770efcb8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/IndependentShopPickerAuditTest.kt",
+      "verifiedWorkingSha256": "21b3dfe9c05d5d8bf1bff5f9b657ad81ee053999d331d5690508be61157079bc",
+      "gitBlobSha256": "17db29ddff167a2e989ac40158079d005d23cb9cb5000c80dfa90d4266402b60",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/IndependentUiAuditTest.kt",
+      "verifiedWorkingSha256": "8cd19716f0c60458ccf834b5e565d4cb68ad6b1aeb7950b9a5db5d32e7a59b01",
+      "gitBlobSha256": "f26d8a8014e7f4510c911ca5b704e0aced6a8933066c94765ca56b7ca418d5d4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/IndependentUnitMigrationAuditTest.kt",
+      "verifiedWorkingSha256": "6ea995064269ebafd2b1dc083019b91acaccca14a53212a4fb91c33f4368dec0",
+      "gitBlobSha256": "a86f85da01a124961aa0f7ea1c3d49f8fae275d10f62bf0929f72fda28ea3fce",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/InlineStoreEditingTest.kt",
+      "verifiedWorkingSha256": "5a36bbb291c95080bbc3c2ae86501624cbb22bc683a708961a0b8dbdbe4416f6",
+      "gitBlobSha256": "c8cd2195fd847ba09d42d7a4b5d5fdf21baab3c521fd44b7f28a3fce88ff2777",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/MarketDataTest.kt",
+      "verifiedWorkingSha256": "8d6fb4d145c88b1227c3564860ca696c727434a9a688ee1650d1493167f1a261",
+      "gitBlobSha256": "9c46553893c980a9db75a908b0f05edd2ccd1c65ec40399bda837ca5be14078e",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/MarketUiTest.kt",
+      "verifiedWorkingSha256": "1c902ee5409b77eaccb3519ba00d9b63da919c888825fb616e32328a6ab6fcfe",
+      "gitBlobSha256": "1dfffb416c7e9d0666d6c927e00ce716ef1c6843d8ea57fcd383ceff24a75098",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/MigrationRegressionTest.kt",
+      "verifiedWorkingSha256": "68163b50ad940d4ef60dc31c28a7e1c30f4926bd6873c72b51e08995fb314ea1",
+      "gitBlobSha256": "cf9c17cda62e3196e42084d939741f98ed9325336ffd50e791076fe5c7c8e730",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/OrderMotionTest.kt",
+      "verifiedWorkingSha256": "d7517ae28e7d0516d52a685c0fc3cdf3598e556fb3537d1dcbe1fdf189c2635c",
+      "gitBlobSha256": "91acbbb43dc8dc031316f3fe16284b552fe64e5912748a42302f74c3ded7ee8c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/PhotoStoreTest.kt",
+      "verifiedWorkingSha256": "2043d9c7c0cb59441da065d487d9ffb4ccdbdc734c7b4c5ece022322833ea86c",
+      "gitBlobSha256": "0343271b993a56c9f5dac71acae53cdd7bfec3e4dac7cfa1735dc2af7699c4cb",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductFlowUiTest.kt",
+      "verifiedWorkingSha256": "9b0f6dbde6993354d1ae28e78676ed02d9750fb9ae7465a7e725005981ec7bf5",
+      "gitBlobSha256": "4cf4e3011e6fe23a3c46919dd3595531c42d6800e5b38023bb0e5abed90c5b01",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/PurchasePlacesUiTest.kt",
+      "verifiedWorkingSha256": "3ab8858bf364efc45e7ec5a01b57e10eb4b3071726cc3ad90b68b0b1f2452449",
+      "gitBlobSha256": "faaac0034459bc6d863dbf0294b62732e946ef98f7a59a793da39b41d2733ab9",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine080DataTest.kt",
+      "verifiedWorkingSha256": "64dca39fac2f47cb1eb659b9f0d3306413ba47a6d86e923bae262c63fc1c8b9b",
+      "gitBlobSha256": "4ad3a9fa67fb74b4977ff3a7a485dd0d24c1de2c846f5a3dceee9acf931c27b3",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine080UiTest.kt",
+      "verifiedWorkingSha256": "4dd6891bb28dde9ff55ad666b348796ef418d295b2e5b0c524d75abb5820bc33",
+      "gitBlobSha256": "d5a285c254aa7c4e632c9d4a214e8002c7a34268bd3614ce0e364c6c2a09dc52",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine090DataTest.kt",
+      "verifiedWorkingSha256": "912cb918ce6f1b5585e533a29461edcc2a770efbecd5d8c92d21cb4729a43eb2",
+      "gitBlobSha256": "b850edfda190746cca1461c644facebb8ae262f8e47c0b35f36f1bcc548e06b4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine090UiTest.kt",
+      "verifiedWorkingSha256": "eba557f9f0bc7bb8a9b4e3f4c9ac5ae4327d31610c8c82017585d3b2617a1a93",
+      "gitBlobSha256": "b86a58bb7d56cef7a41c90ddac82d7165264279938f298df8cddace7b74f0567",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine100DataTest.kt",
+      "verifiedWorkingSha256": "fd62ab64731864dcf5f2ee94e2a62434c853d3b8f1be88230d1a5016c858df87",
+      "gitBlobSha256": "aa0c72d4c6e7dba5861c0065776ea536b8246731b3e0cbd88aa5643fcd93e516",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine100UiTest.kt",
+      "verifiedWorkingSha256": "bf271b44132f13f2d298d04abe87c64edbe355c13f7099cd1d37dfc31d99e58a",
+      "gitBlobSha256": "47b67ef659d1139982ade3aa5f67b2831e0e054e793a7ac504c92c6f3a9de8b5",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine110DataTest.kt",
+      "verifiedWorkingSha256": "9a637a6917250c5997fac188da51ac369c707279b3514e01ff59bef6f6417812",
+      "gitBlobSha256": "9a637a6917250c5997fac188da51ac369c707279b3514e01ff59bef6f6417812",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine110UiTest.kt",
+      "verifiedWorkingSha256": "006bf59911cb2a83b68c8460a5d0d6d48e4729279d8f41a2c79711db843da4ab",
+      "gitBlobSha256": "4364c9b3c046edda83185938d1755c88b254d52ea1bc8456e4950db87e72abbc",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine120DataTest.kt",
+      "verifiedWorkingSha256": "d209ff26d51b7cde13fe52adedf145eec61635675390fbe8adca0af840f59b83",
+      "gitBlobSha256": "7153c3f56ec483b3ab62c7466b675add9c542d08aecda038279c3a81f07be464",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine120UiTest.kt",
+      "verifiedWorkingSha256": "e0c9c2aaf3222508139e1a214576716a6f170cce9669f4d6571d1a32337b716b",
+      "gitBlobSha256": "223286cbbd0a7dd55da0d572abed31f4abc10ee423a325b20dd294118b6c0c09",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine130DataTest.kt",
+      "verifiedWorkingSha256": "d26a5cb8d52e51153af1814aea06f48a81ba98fcb72194457b80d1fcc4a96670",
+      "gitBlobSha256": "433e66ac56d733a568aaa2bad95025b1ecabdc76ed031f1266929da064d8eb73",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine130UiTest.kt",
+      "verifiedWorkingSha256": "9850b5bb46b261856f44631a6ee2caacabc395665b67b027868dea2f64481288",
+      "gitBlobSha256": "91457ec6a7cd7f801622e87dc5d51fdf39563957fd7828d9ef48d8ecb1cca3c6",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine140DataTest.kt",
+      "verifiedWorkingSha256": "3aa12cea9483203ee1b3d159636be0bacfa61a737922c3f59ed4d4dfd323d42f",
+      "gitBlobSha256": "14d2109dd6d543a980f2522d0ee38d5610f88d3755418e479583748586cb55d9",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine140UiTest.kt",
+      "verifiedWorkingSha256": "290361412150a3a1f2b9fb43c2174bd07606a7337fe91d844ec87d1f21175024",
+      "gitBlobSha256": "545b6a1b61d2930f47cfe9ed0d6ea1a46e1035204e44b06790132089573379cc",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine160DataTest.kt",
+      "verifiedWorkingSha256": "49359b6125fc40985cabbe6b10079e3a55b67cc2b7cb07c3fcd12cb6b230ac2a",
+      "gitBlobSha256": "49359b6125fc40985cabbe6b10079e3a55b67cc2b7cb07c3fcd12cb6b230ac2a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine160UiTest.kt",
+      "verifiedWorkingSha256": "9d560ae3fb74a3a92a60cd4fdb1c2ba5576e5788ba0806a952579d086268d59b",
+      "gitBlobSha256": "2055c1d0d70b04a4253b564b15572a0888f6e46af4ef3c3fd576994f7595bd8f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine170DataTest.kt",
+      "verifiedWorkingSha256": "ef39aa71bba9523c37cc242e9ee0c4ee9621b69775709e8f9a65cdb4f062db6f",
+      "gitBlobSha256": "ef39aa71bba9523c37cc242e9ee0c4ee9621b69775709e8f9a65cdb4f062db6f",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/Refine170UiTest.kt",
+      "verifiedWorkingSha256": "1bb231ec06a790930a357041ea58d966358fcdd9eb8eeb034108e7a5f3a51bd6",
+      "gitBlobSha256": "9ba29563fa55ead643e347942f397ccf2826be830d439010e3119b0d626f964d",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/RefinementDataTest.kt",
+      "verifiedWorkingSha256": "2ef6cdaab39d606990578f448f46b10ccf9a7ef3decd6e7480677feaa8b7895c",
+      "gitBlobSha256": "a9b2c2b1d5d923e6b3d90f3bf2324291b60f8b5409f20132b961ac9d89fdb2f8",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/RefinementUiTest.kt",
+      "verifiedWorkingSha256": "c8a1e2841997e9b2c0d8486f3fe973a9091f55145d832ee9627dab1addd569b6",
+      "gitBlobSha256": "d7304a0e48d6bd8db01454240263f47891de49605168bed60691eebbbe90b220",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/RepositoryRegressionTest.kt",
+      "verifiedWorkingSha256": "8501862b4904caa24104522468532d52e67d7d8246c0cb7ccb09f65baa0a2ec6",
+      "gitBlobSha256": "f7da74179831095e367a7cd31a33d9fae8ee6d5ed773c7c8241e20c6071f9d83",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/RepositoryTestCleanup.kt",
+      "verifiedWorkingSha256": "30e91e316d5a193238d4a795c582f03e99811cd37d55f2a29f056b98f6cb0535",
+      "gitBlobSha256": "3ac6bafc242ede556f442e3875dbb9b8e46257792f598e23c4fad11189d08236",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/SearchAndParserTest.kt",
+      "verifiedWorkingSha256": "981946459daa996ed62a726edd9d9e6e1145d90543905975544aee19434e2704",
+      "gitBlobSha256": "0621217ba2c8adac8d275a6b20cc8b50e38ca6984d5115b3ec6e70ab0230ca99",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ShoppingRepresentationsTest.kt",
+      "verifiedWorkingSha256": "a296afe440e6929b21f79f7e96e9fcaf4ac56852c04eafeab1bd3889e855f433",
+      "gitBlobSha256": "8f6f54013c7032d876ce6fd07138d51f27ea31ec9eee40d77fa96c97e7ca690c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ShoppingUiFlowTest.kt",
+      "verifiedWorkingSha256": "12c461e7405aae5cd215e5f978ec229fa38cb0f4a1fbd3f2d3a6c2ddd0a86d7d",
+      "gitBlobSha256": "85b33cd626bc2fac8ec2c53f05d1e28eb1c75aae50a03aed253c8b7b6c5f7858",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ShoppingWorkflowUiTest.kt",
+      "verifiedWorkingSha256": "904c469546c931586f74de1541ce264593c1ca47b51731a5452c177efc521652",
+      "gitBlobSha256": "0ab2031912ae107f262701a55f0ba23428c0e9397a6d8fc67a86ddc2bb61bf18",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/UxLayoutTest.kt",
+      "verifiedWorkingSha256": "6b146856afada5ae5d31bbf5d2f409541766077ac56be6438385eb1c5b8e06f6",
+      "gitBlobSha256": "928f9d629959fb23d2bc3a9cf121d08c1eb513b556986fe61ceaeacea92e75ed",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/ui/bulk/LegacyTextEditorHarness.kt",
+      "verifiedWorkingSha256": "b2d877e41bb1aaa881e64ccc1d80b2d31d22782409be988ec1d13a5f4685c47a",
+      "gitBlobSha256": "1b74a382d4c4883222ca1a7f6d31b46ce3376ac10fb42f054e82cf67b46d79cc",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/java/com/spisokryadom/app/util/ShoppingTextParser.kt",
+      "verifiedWorkingSha256": "84dde9748f9ab0592cc2d35be4dbce985c125d34d0bd61ff2a6195e653110493",
+      "gitBlobSha256": "b2bae85cf0c63d6e13adb17a0a3ddfc651b89b9659bc497f0c672fcea712f3b1",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/generate_synthetic_080.py",
+      "verifiedWorkingSha256": "17799ebb76e03e1ba3e37d8a6e91b66bd3ca15283b64ba06d8b8bc5880456693",
+      "gitBlobSha256": "17799ebb76e03e1ba3e37d8a6e91b66bd3ca15283b64ba06d8b8bc5880456693",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/schema-v10.json",
+      "verifiedWorkingSha256": "5a2bb1eaf6740139e34d6a8f3b321085835ca4707579f3a2faaa960035977024",
+      "gitBlobSha256": "5a2bb1eaf6740139e34d6a8f3b321085835ca4707579f3a2faaa960035977024",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/schema-v11.json",
+      "verifiedWorkingSha256": "ac4278dda3364c6ec413c75d893e2582a2e81f481aab9c971feeef8c2bcdf236",
+      "gitBlobSha256": "ac4278dda3364c6ec413c75d893e2582a2e81f481aab9c971feeef8c2bcdf236",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/schema-v12.json",
+      "verifiedWorkingSha256": "a6aa5a65e58495e68d5034ac9eefc13912cf7904c7cd0277131839243ac7c92a",
+      "gitBlobSha256": "a6aa5a65e58495e68d5034ac9eefc13912cf7904c7cd0277131839243ac7c92a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/schema-v13.json",
+      "verifiedWorkingSha256": "be54d330b2d7efdf135ea196d282b31229ac75e562041e30fa189416e02c5ec4",
+      "gitBlobSha256": "be54d330b2d7efdf135ea196d282b31229ac75e562041e30fa189416e02c5ec4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/schema-v15.json",
+      "verifiedWorkingSha256": "f3dd3b5e62b60e40850671495e7f3d6f74911ebd324e66143c85198b447aae51",
+      "gitBlobSha256": "f3dd3b5e62b60e40850671495e7f3d6f74911ebd324e66143c85198b447aae51",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/schema-v8.json",
+      "verifiedWorkingSha256": "ecd126c5c5c5c51a1185e1e476e9ff99231861723bfd7f3df0fcedc64b00ac5c",
+      "gitBlobSha256": "ecd126c5c5c5c51a1185e1e476e9ff99231861723bfd7f3df0fcedc64b00ac5c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/schema-v9.json",
+      "verifiedWorkingSha256": "4895a66fb7f3698e4e56fbb0c716b4137251407ef690e59fa725febfcc2471e3",
+      "gitBlobSha256": "4895a66fb7f3698e4e56fbb0c716b4137251407ef690e59fa725febfcc2471e3",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/schema7.json",
+      "verifiedWorkingSha256": "3da8a46d2ec836b4648bb1460b6f3d22be023dd9b47feffa6a8071e23079b398",
+      "gitBlobSha256": "3da8a46d2ec836b4648bb1460b6f3d22be023dd9b47feffa6a8071e23079b398",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/synthetic-backup-after-080.zip",
+      "verifiedWorkingSha256": "60922e194af2c534f5a8604e4c3edee8e98930be783518d54da4606b9c2f707a",
+      "gitBlobSha256": "60922e194af2c534f5a8604e4c3edee8e98930be783518d54da4606b9c2f707a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/synthetic-backup-before-080.zip",
+      "verifiedWorkingSha256": "bbf5e3570570d16c00aff4357fb2ed381437eae276df864789c4551d5133da06",
+      "gitBlobSha256": "bbf5e3570570d16c00aff4357fb2ed381437eae276df864789c4551d5133da06",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/src/test/resources/SYNTHETIC_FIXTURES.md",
+      "verifiedWorkingSha256": "06dac909e4951a9b7f8ae194c5588ba0df1ac42aa86d88878ebb5e930d32564a",
+      "gitBlobSha256": "06dac909e4951a9b7f8ae194c5588ba0df1ac42aa86d88878ebb5e930d32564a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/10.json",
+      "verifiedWorkingSha256": "5a2bb1eaf6740139e34d6a8f3b321085835ca4707579f3a2faaa960035977024",
+      "gitBlobSha256": "5a2bb1eaf6740139e34d6a8f3b321085835ca4707579f3a2faaa960035977024",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/11.json",
+      "verifiedWorkingSha256": "ac4278dda3364c6ec413c75d893e2582a2e81f481aab9c971feeef8c2bcdf236",
+      "gitBlobSha256": "ac4278dda3364c6ec413c75d893e2582a2e81f481aab9c971feeef8c2bcdf236",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/12.json",
+      "verifiedWorkingSha256": "a6aa5a65e58495e68d5034ac9eefc13912cf7904c7cd0277131839243ac7c92a",
+      "gitBlobSha256": "a6aa5a65e58495e68d5034ac9eefc13912cf7904c7cd0277131839243ac7c92a",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/13.json",
+      "verifiedWorkingSha256": "be54d330b2d7efdf135ea196d282b31229ac75e562041e30fa189416e02c5ec4",
+      "gitBlobSha256": "be54d330b2d7efdf135ea196d282b31229ac75e562041e30fa189416e02c5ec4",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/14.json",
+      "verifiedWorkingSha256": "e3e0871852d1313264fae3bdf00f3dd8223e57cd5267b1104b5502a2978d1e61",
+      "gitBlobSha256": "e3e0871852d1313264fae3bdf00f3dd8223e57cd5267b1104b5502a2978d1e61",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/15.json",
+      "verifiedWorkingSha256": "f3dd3b5e62b60e40850671495e7f3d6f74911ebd324e66143c85198b447aae51",
+      "gitBlobSha256": "f3dd3b5e62b60e40850671495e7f3d6f74911ebd324e66143c85198b447aae51",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/16.json",
+      "verifiedWorkingSha256": "414aba7c42384e484f72831231add4d3e90e2312e95b8a726646020f632b5042",
+      "gitBlobSha256": "414aba7c42384e484f72831231add4d3e90e2312e95b8a726646020f632b5042",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/8.json",
+      "verifiedWorkingSha256": "ecd126c5c5c5c51a1185e1e476e9ff99231861723bfd7f3df0fcedc64b00ac5c",
+      "gitBlobSha256": "ecd126c5c5c5c51a1185e1e476e9ff99231861723bfd7f3df0fcedc64b00ac5c",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/9.json",
+      "verifiedWorkingSha256": "4895a66fb7f3698e4e56fbb0c716b4137251407ef690e59fa725febfcc2471e3",
+      "gitBlobSha256": "4895a66fb7f3698e4e56fbb0c716b4137251407ef690e59fa725febfcc2471e3",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "app/build.gradle.kts",
+      "verifiedWorkingSha256": "d0c6267de8c0f7d94a01e58c6b6d8a0560dd7dfeb8d93ae5c3ff1c824e0fe9a3",
+      "gitBlobSha256": "0714e9a1b4f54bc657487ee6f6b0cd6a1f810e477a40290ab9b04185cf7c4b10",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "build.gradle.kts",
+      "verifiedWorkingSha256": "a221455e413be8ce279e610582458eb725d3a5c57a23062ee50991a85414dc5a",
+      "gitBlobSha256": "31187678ed089999e818bb46fd72c510978c90c9f2082dfa703f8516609fb835",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "settings.gradle.kts",
+      "verifiedWorkingSha256": "ed9e13f4c729b206883d7c6357c0a567ffc2bfdcc464bf0e30af4229aaa9afbb",
+      "gitBlobSha256": "18221c2525fd5f24b2bccfb97c322ec08facaa5b3cf432a3b528c4b20ec95344",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "gradle.properties",
+      "verifiedWorkingSha256": "0c495a571fdc2d2ee3e9e1cba39b093a8723f0b73f8ce5256fcc23defb24efb4",
+      "gitBlobSha256": "678c35a27eeda302d6a960484179d118d08fb1edf05c1b40745bc7aed6e88f03",
+      "equalAfterTextLineEndingNormalization": true
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "verifiedWorkingSha256": "e22bb9f2985117bb281e0cd0c6b8e8c6f11fdd53e8744930ee10bea202543d78",
+      "gitBlobSha256": "cdab1ffb439219b1db125e3c99a86cf2424f8762b9b3faa404ed061e3635ecde",
+      "equalAfterTextLineEndingNormalization": true
+    }
+  ]
+}

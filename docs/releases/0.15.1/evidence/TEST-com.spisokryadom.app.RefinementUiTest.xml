@@ -1,0 +1,17 @@
+<testsuite name="com.spisokryadom.app.RefinementUiTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:36:39.599Z" time="40.578">
+  <testcase name="aMarketIsOneTripWithPavilionsAndCollapsesAsAWhole[28]" classname="com.spisokryadom.app.RefinementUiTest" time="12.29" />
+  <testcase name="settingsHideMutationsUntilEditAndConfirmAlphabeticReset[28]" classname="com.spisokryadom.app.RefinementUiTest" time="1.769" />
+  <testcase name="addingUnknownProductCreatesMissingStoreAndClosesTheForm[28]" classname="com.spisokryadom.app.RefinementUiTest" time="1.335" />
+  <testcase name="departmentSettingsCanReorderAndCreateWithoutAttachingToStores[28]" classname="com.spisokryadom.app.RefinementUiTest" time="0.889" />
+  <testcase name="catalogueUsesDepartmentsAndCartBelongsToTheVisibleStore[28]" classname="com.spisokryadom.app.RefinementUiTest" time="0.856" />
+  <testcase name="favoriteFilterAndGroupOrderSurviveRecreation[28]" classname="com.spisokryadom.app.RefinementUiTest" time="0.757" />
+  <testcase name="productCardCanChooseNoStoreAndReuseGlobalDepartmentWithoutBroadcast[28]" classname="com.spisokryadom.app.RefinementUiTest" time="1.871" />
+  <testcase name="aMarketIsOneTripWithPavilionsAndCollapsesAsAWhole" classname="com.spisokryadom.app.RefinementUiTest" time="12.382" />
+  <testcase name="settingsHideMutationsUntilEditAndConfirmAlphabeticReset" classname="com.spisokryadom.app.RefinementUiTest" time="1.646" />
+  <testcase name="addingUnknownProductCreatesMissingStoreAndClosesTheForm" classname="com.spisokryadom.app.RefinementUiTest" time="1.498" />
+  <testcase name="appearanceActionsRemainReachableInLandscape" classname="com.spisokryadom.app.RefinementUiTest" time="0.678" />
+  <testcase name="departmentSettingsCanReorderAndCreateWithoutAttachingToStores" classname="com.spisokryadom.app.RefinementUiTest" time="0.798" />
+  <testcase name="catalogueUsesDepartmentsAndCartBelongsToTheVisibleStore" classname="com.spisokryadom.app.RefinementUiTest" time="0.849" />
+  <testcase name="favoriteFilterAndGroupOrderSurviveRecreation" classname="com.spisokryadom.app.RefinementUiTest" time="0.853" />
+  <testcase name="productCardCanChooseNoStoreAndReuseGlobalDepartmentWithoutBroadcast" classname="com.spisokryadom.app.RefinementUiTest" time="2.097" />
+  </testsuite>

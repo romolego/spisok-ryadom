@@ -1,0 +1,11 @@
+<testsuite name="com.spisokryadom.app.AuditUi071Test" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-19T08:57:12.397Z" time="8.733">
+  <testcase name="explicitCommonAutomaticChoiceReplacesOldNoShopIntent" classname="com.spisokryadom.app.AuditUi071Test" time="6.889" />
+  <testcase name="deletingPreselectedShopInNewCardIsRespectedOnSave" classname="com.spisokryadom.app.AuditUi071Test" time="0.26" />
+  <testcase name="selectingSameCityPreservesVenueButChangingCityClearsIt" classname="com.spisokryadom.app.AuditUi071Test" time="0.242" />
+  <testcase name="pointOverrideUsesItsEffectiveDepartmentOrderAndUpdatesWhileScreenLives" classname="com.spisokryadom.app.AuditUi071Test" time="0.263" />
+  <testcase name="deletingPreselectedShopAlsoAppliesWhenReusingAnExistingProduct" classname="com.spisokryadom.app.AuditUi071Test" time="0.177" />
+  <testcase name="anUntouchedInitialShopLinkStillSavesNormally" classname="com.spisokryadom.app.AuditUi071Test" time="0.151" />
+  <testcase name="quantityOnlyTextEditKeepsExplicitNoAddressAndExplicitPriorityChoiceCanChangeIt" classname="com.spisokryadom.app.AuditUi071Test" time="0.275" />
+  <testcase name="conversionUsesCurrentCardDraftIncludingAddedPavilionAndNotes" classname="com.spisokryadom.app.AuditUi071Test" time="0.165" />
+  <testcase name="liveCatalogueRespondsToRestoredPreferencesWithoutRecreation" classname="com.spisokryadom.app.AuditUi071Test" time="0.309" />
+  </testsuite>

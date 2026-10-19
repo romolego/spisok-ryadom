@@ -54,10 +54,19 @@ class ClassifierRepository(
             if(newName==null)db.productDao().clearUnit(raw)else db.productDao().renameUnit(raw,newName)
         }
         val now=System.currentTimeMillis()
-        db.shoppingListEntryDao().getAllSync().filter{!it.isBought&&Quantities.unit(it.unit)==canonical}.map{it.unit}.distinct().forEach{raw->
+        // Target rows own the unit their planned price refers to. A catalogue
+        // dictionary edit must not reinterpret a recipe/project's saved facts.
+        db.shoppingListEntryDao().getAllSync().filter{it.listId==null&&!it.isBought&&Quantities.unit(it.unit)==canonical}.map{it.unit}.distinct().forEach{raw->
             db.shoppingListEntryDao().renamePendingUnit(raw,newName.orEmpty(),now)
         }
     }
+    fun creationPresets()=db.creationPresetDao().observeGroups()
+    suspend fun defaultRecipient(groupId:Long,recipientId:Long?)=db.withTransaction{
+        require(productGroupDao.getById(groupId)!=null){"Группа удалена"}
+        require(recipientId==null||recipientDao.getById(recipientId)!=null){"Получатель удалён"}
+        db.creationPresetDao().setGroup(com.spisokryadom.app.data.entity.GroupCreationPreset(groupId,recipientId))
+    }
+    suspend fun addStandardCategories()=db.withTransaction{com.spisokryadom.app.data.db.StandardCategories.install(db.openHelper.writableDatabase)}
     fun getAllGroups(): Flow<List<ProductGroupEntity>> = productGroupDao.getAll()
     suspend fun getGroupById(id: Long): ProductGroupEntity? = productGroupDao.getById(id)
     suspend fun insertGroup(group: ProductGroupEntity): Long = productGroupDao.insert(group)

@@ -4,10 +4,14 @@ sealed class Routes(val route: String) {
     data object ShoppingList : Routes("shopping_list")
     data object ProductDatabase : Routes("product_database")
     data object ShopList : Routes("shop_list")
-    data object ProductCard : Routes("product_card/{productId}?preselectedShopId={preselectedShopId}") {
-        fun createRoute(productId: Long = -1L, preselectedShopId: Long? = null): String {
+    data object ProductCard : Routes("product_card/{productId}?preselectedShopId={preselectedShopId}&initialName={initialName}") {
+        fun createRoute(productId: Long = -1L, preselectedShopId: Long? = null, initialName: String = ""): String {
             val base = "product_card/$productId"
-            return if (preselectedShopId != null) "$base?preselectedShopId=$preselectedShopId" else base
+            val args = buildList {
+                preselectedShopId?.let { add("preselectedShopId=$it") }
+                if(initialName.isNotBlank()) add("initialName="+android.net.Uri.encode(initialName.trim()))
+            }
+            return if(args.isEmpty()) base else base+"?"+args.joinToString("&")
         }
     }
     data object ShopContent : Routes("shop_content/{shopId}") {

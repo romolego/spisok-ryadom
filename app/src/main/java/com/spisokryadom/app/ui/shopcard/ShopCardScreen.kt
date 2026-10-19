@@ -182,6 +182,10 @@ fun ShopCardScreen(
             })
             if(!state.isNew&&state.branches.isNotEmpty())TextButton(onClick={showConvertConfirm=true},enabled=!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в рынок или ТЦ")}
 
+            com.spisokryadom.app.ui.components.DropdownSelector(
+                label="Тип покупок в магазине",items=com.spisokryadom.app.util.PurchaseModes.labels.keys.toList(),
+                selectedItem=state.purchaseMode,itemLabel={com.spisokryadom.app.util.PurchaseModes.labels.getValue(it)},
+                onSelect={it?.let(viewModel::updatePurchaseMode)},allowNone=false,modifier=Modifier.fillMaxWidth())
             OutlinedTextField(
                 value = state.note,
                 onValueChange = { viewModel.updateNote(it) },
@@ -192,6 +196,8 @@ fun ShopCardScreen(
             )
 
             com.spisokryadom.app.ui.components.OptionalRetailField("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName,canRename=true)
+
+            com.spisokryadom.app.ui.components.ShoppingBlockAppearance(state.shoppingBackground,state.name,viewModel::updateShoppingBackground)
 
             // ── Настройки срочности ──────────────────────────────────────
             SectionHeader(title = "Настройки срочности")

@@ -88,6 +88,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.sp
@@ -105,14 +106,15 @@ fun ShoppingListScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToBulk: () -> Unit = {},
     viewModel: ShoppingListViewModel = viewModel(factory = ShoppingListViewModel.Factory),
-    batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory)
+    batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory),
+    onNavigateToGoalList:(Long)->Unit={}
 ) {
     // A full replacement can reuse numeric IDs for different records. No old
     // selection or open purchase action may survive that database revision.
     val revision=rememberDatabaseRevision()
     androidx.compose.runtime.key(revision){
         ShoppingListContent(onNavigateToAddToList,onNavigateToAddToShop,onNavigateToProductCard,
-            onNavigateToSettings,onNavigateToBulk,viewModel,batchVM)
+            onNavigateToSettings,onNavigateToBulk,viewModel,batchVM,onNavigateToGoalList)
     }
 }
 
@@ -125,13 +127,17 @@ private fun ShoppingListContent(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToBulk: () -> Unit = {},
     viewModel: ShoppingListViewModel = viewModel(factory = ShoppingListViewModel.Factory),
-    batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory)
+    batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory),
+    onNavigateToGoalList:(Long)->Unit={}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val expansion=com.spisokryadom.app.ui.components.rememberGroups("shopping_list_prefs","collapsed_other_groups")
     var selectionMode by rememberSaveable{mutableStateOf(false)}
     var selectedIds by rememberSaveable{mutableStateOf(emptyList<Long>())}
     var moveIds by remember{mutableStateOf<Set<Long>?>(null)}
+    var moveListOwners by remember{mutableStateOf<Map<Long,Long?>?>(null)}
+    moveListOwners?.let{owners->com.spisokryadom.app.ui.components.MoveToListSheet(owners,
+        onDone={moveListOwners=null;selectedIds=emptyList();selectionMode=false;batchVM.notice.value="Покупки перенесены"},onDismiss={moveListOwners=null})}
     val pendingIds=state.groups.flatMap{it.entries}.filter{!it.entry.isBought}.map{it.entry.id}.toSet()
     val allIds=state.groups.flatMap{it.entries}.map{it.entry.id}.toSet()
     val effectiveSelection=selectedIds.toSet().intersect(allIds)
@@ -155,6 +161,7 @@ private fun ShoppingListContent(
                     TextButton(onClick={batchVM.purchases(ids,PurchaseBatchChange.URGENT,::batchDone)},enabled=!busy){Text("Сделать срочными")}
                     TextButton(onClick={batchVM.purchases(ids,PurchaseBatchChange.NOT_URGENT,::batchDone)},enabled=!busy){Text("Убрать срочность")}
                 }
+                TextButton(onClick={moveListOwners=selected.associate{it.entry.id to it.entry.listId};actionsFor=null},enabled=!busy&&selected.isNotEmpty()){Text("Перенести в другой список")}
                 TextButton(onClick={actionsFor=null;deleteBatch=ids},enabled=!busy){Text("Удалить из списка",color=MaterialTheme.colorScheme.error)}
             }
         }
@@ -216,6 +223,8 @@ private fun ShoppingListContent(
                 showContextMenuFor = null
                 showDeleteConfirmFor = entryUi
             },
+            onMoveList={moveListOwners=mapOf(entryUi.entry.id to entryUi.entry.listId);showContextMenuFor=null},
+            onOpenList=entryUi.entry.listId?.let{id->{showContextMenuFor=null;onNavigateToGoalList(id)}},
             onDismiss = { showContextMenuFor = null }
         )
     }
@@ -273,8 +282,7 @@ private fun ShoppingListContent(
         },
         floatingActionButton = {
             if(!selectionMode)com.spisokryadom.app.ui.components.ShoppingAddButton(
-                onAdd = onNavigateToAddToList,
-                onBulk = onNavigateToBulk
+                onAdd = onNavigateToAddToList
             )
         }
     ) { padding ->
@@ -307,7 +315,7 @@ private fun ShoppingListContent(
                     .fillMaxSize()
                     .padding(padding)
                     .padding(horizontal = 12.dp).padding(bottom=80.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 // View mode switcher
                 item(key = "view_mode_switcher", contentType = "switcher") {
@@ -333,6 +341,7 @@ private fun ShoppingListContent(
                 state.groups.forEachIndexed { groupIndex, rawGroup ->
                     val groupKey="${state.viewMode}_${if(isByShops)rawGroup.placeKey else rawGroup.groupId}"
                     val group=if(isByShops)rawGroup else rawGroup.copy(isCollapsed=groupKey in expansion.collapsed,showUrgentWhenCollapsed=false,totalCount=rawGroup.entries.size,boughtCount=rawGroup.entries.count{it.entry.isBought})
+                    val backgroundKey=if(isByShops)group.shoppingBackground else ""
                     val venueKey="venue_${rawGroup.venueId}"
                     if(isByShops&&rawGroup.venueId!=null&&state.groups.getOrNull(groupIndex-1)?.venueId!=rawGroup.venueId){
                         item(key=venueKey,contentType="venue_header"){
@@ -348,6 +357,9 @@ private fun ShoppingListContent(
                         }
                     }
                     if(!isByShops||rawGroup.venueId==null||venueKey !in expansion.collapsed){
+                    if(isByShops)item(key="place_gap_${group.placeKey}",contentType="place_gap"){
+                        Spacer(Modifier.height(if(group.venueId!=null)8.dp else 14.dp))
+                    }
                     if (showGroupHeaders) {
                         item(key = "header_${state.viewMode}_${if(isByShops)group.placeKey else group.groupId}", contentType = "group_header") {
                             EntryGroupHeader(
@@ -397,7 +409,7 @@ private fun ShoppingListContent(
                     // urgent items are hidden, but there ARE urgent items inside
                     if (group.isCollapsed && !group.showUrgentWhenCollapsed && group.urgentCount > 0) {
                         item(key = "urgent_indicator_${group.placeKey}", contentType = "urgent_indicator") {
-                            UrgentHiddenIndicator(urgentCount = group.urgentCount)
+                            PurchaseBlockPart(backgroundKey){UrgentHiddenIndicator(urgentCount = group.urgentCount)}
                         }
                     }
 
@@ -413,16 +425,18 @@ private fun ShoppingListContent(
                                 item(key = "dept_${group.groupId}_${subGroup.branchId}_${subGroup.deptId}", contentType = "dept_header") {
                                     val key="department_${group.groupId}_${subGroup.branchId}_${subGroup.deptId}"
                                     val name=subGroup.deptName ?: "Без группы магазина"
-                                    Row(Modifier.fillMaxWidth().padding(start=20.dp).animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),verticalAlignment=Alignment.CenterVertically){
-                                        if(selectionMode){
-                                            val ids=subGroup.entries.map{it.entry.id}.toSet()
-                                            PurchaseSectionToggle(ids,effectiveSelection,{selectSection(ids)},name)
-                                        }
-                                        androidx.compose.material3.TextButton(onClick={expansion.toggle(key)},modifier=Modifier.weight(1f),colors=androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor=MaterialTheme.colorScheme.onSurfaceVariant)) {
-                                            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                                                com.spisokryadom.app.ui.components.CollapseChevron(key in expansion.collapsed,(if(key in expansion.collapsed)"Развернуть отдел: "else "Свернуть отдел: ")+name,Modifier.size(18.dp))
-                                                Spacer(Modifier.width(6.dp))
-                                                com.spisokryadom.app.ui.components.MarkedLabel(name,subGroup.accent,subGroup.iconKey,small=true)
+                                    PurchaseBlockPart(backgroundKey,Modifier.animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300))){
+                                        Row(Modifier.fillMaxWidth().testTag("purchase-department-$key")
+                                            .heightIn(min=36.dp).padding(start=if(group.venueId==null)20.dp else 36.dp)
+                                            .clickable{expansion.toggle(key)}.padding(vertical=2.dp),verticalAlignment=Alignment.CenterVertically){
+                                            if(selectionMode){
+                                                val ids=subGroup.entries.map{it.entry.id}.toSet()
+                                                PurchaseSectionToggle(ids,effectiveSelection,{selectSection(ids)},name)
+                                            }
+                                            com.spisokryadom.app.ui.components.CollapseChevron(key in expansion.collapsed,(if(key in expansion.collapsed)"Развернуть отдел: "else "Свернуть отдел: ")+name,Modifier.size(16.dp))
+                                            Spacer(Modifier.width(6.dp))
+                                            androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant){
+                                                com.spisokryadom.app.ui.components.MarkedLabel(name,subGroup.accent,subGroup.iconKey,modifier=Modifier.weight(1f),small=true)
                                             }
                                         }
                                     }
@@ -435,6 +449,7 @@ private fun ShoppingListContent(
                                     ShoppingListItem(
                                         placementModifier=Modifier.animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
                                         entryUi = entryUi,
+                                        blockBackground=backgroundKey,
                                         viewMode = state.viewMode,
                                         onToggleBought = {
                                             if (entryUi.entry.isBought) {
@@ -462,6 +477,7 @@ private fun ShoppingListContent(
                             ShoppingListItem(
                                         placementModifier=Modifier.animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
                                 entryUi = entryUi,
+                                        blockBackground=backgroundKey,
                                 viewMode = state.viewMode,
                                 onToggleBought = {
                                     if (entryUi.entry.isBought) {
@@ -478,6 +494,9 @@ private fun ShoppingListContent(
                                 onDecreaseQuantity = { viewModel.decreaseQuantity(entryUi.entry.id) }
                             )
                         }
+                    }
+                    if(isByShops&&backgroundKey.isNotBlank())item(key="place_end_${group.placeKey}",contentType="place_end"){
+                        PurchaseBlockPart(backgroundKey,bottom=true){Spacer(Modifier.height(6.dp))}
                     }
                     }
                 }
@@ -570,6 +589,14 @@ private fun UrgentHiddenIndicator(urgentCount: Int) {
 }
 
 @Composable
+private fun PurchaseBlockPart(colorKey:String,modifier:Modifier=Modifier,bottom:Boolean=false,content:@Composable ()->Unit){
+    val tint=com.spisokryadom.app.ui.components.shoppingBlockColor(colorKey,MaterialTheme.colorScheme.surface)
+    Box(modifier.fillMaxWidth().background(tint?:androidx.compose.ui.graphics.Color.Transparent,
+        RoundedCornerShape(bottomStart=if(bottom)14.dp else 0.dp,bottomEnd=if(bottom)14.dp else 0.dp))
+        .padding(horizontal=if(tint==null)0.dp else 6.dp)){content()}
+}
+
+@Composable
 private fun EntryGroupHeader(
     placementModifier:Modifier=Modifier,
     group: EntryGroup,
@@ -596,7 +623,9 @@ private fun EntryGroupHeader(
 
     val activeCount = group.totalCount - group.boughtCount
 
-    Column(placementModifier.fillMaxWidth().padding(start=if(group.venueId!=null)20.dp else 0.dp).testTag("purchase-place-${group.placeKey}")) {
+    val blockTint=com.spisokryadom.app.ui.components.shoppingBlockColor(group.shoppingBackground,MaterialTheme.colorScheme.surface)
+    Column(placementModifier.fillMaxWidth().background(blockTint?:androidx.compose.ui.graphics.Color.Transparent,RoundedCornerShape(topStart=14.dp,topEnd=14.dp))
+        .padding(horizontal=if(blockTint==null)0.dp else 6.dp).padding(start=if(group.venueId!=null)20.dp else 0.dp).testTag("purchase-place-${group.placeKey}")) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -604,7 +633,7 @@ private fun EntryGroupHeader(
                 if (onToggleCollapsed != null) Modifier.clickable { onToggleCollapsed() }
                 else Modifier
             )
-            .heightIn(min=56.dp).padding(top = 12.dp, bottom = 4.dp),
+            .heightIn(min=64.dp).padding(top = 8.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         selectionControl?.invoke()
@@ -623,7 +652,10 @@ private fun EntryGroupHeader(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column(Modifier.weight(1f).padding(end=6.dp)) {
-            com.spisokryadom.app.ui.components.MarkedLabel(group.groupName,group.accent,group.iconKey,small=group.venueId!=null)
+            if(viewMode==ViewMode.BY_SHOPS)Text(group.groupName,style=MaterialTheme.typography.titleMedium,
+                fontSize=if(group.venueId==null)18.sp else 16.sp,fontWeight=FontWeight.SemiBold,
+                modifier=Modifier.testTag("purchase-place-title-${group.placeKey}"))
+            else com.spisokryadom.app.ui.components.MarkedLabel(group.groupName,group.accent,group.iconKey)
             group.address?.takeIf{it!=group.groupName}?.let { Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant) }
         }
 
@@ -680,6 +712,7 @@ private fun EntryGroupHeader(
 @Composable
 private fun ShoppingListItem(
     placementModifier:Modifier=Modifier,
+    blockBackground:String="",
     entryUi: ShoppingListEntryUi,
     viewMode: ViewMode,
     onToggleBought: () -> Unit,
@@ -692,7 +725,7 @@ private fun ShoppingListItem(
     val entry = entryUi.entry
     val isBought = entry.isBought
     val isUrgent = entry.isUrgent
-    val quantityStep = entryUi.defaultQuantity?.takeIf { it > 0.0 } ?: 1.0
+    val quantityStep = entryUi.quantityStep
 
     val bgColor by animateColorAsState(
         targetValue = when {
@@ -721,8 +754,9 @@ private fun ShoppingListItem(
         else -> null
     }
 
+    PurchaseBlockPart(blockBackground,placementModifier){
     Card(
-        modifier = placementModifier
+        modifier = Modifier.padding(vertical=2.dp)
             .fillMaxWidth().testTag("purchase-row-${entry.id}")
             .combinedClickable(
                 onClick = if(selectionMode)onSelect else onEditEntry,
@@ -780,6 +814,8 @@ private fun ShoppingListItem(
 
                 // Details row: department, context info
                 val detailParts = buildList {
+                    entryUi.listName?.let{add("Список: $it")}
+                    entry.plannedUnitPrice?.let{price->add("≈ "+com.spisokryadom.app.util.PurchaseMoney.format(com.spisokryadom.app.util.PurchaseMoney.amount(price,entry.quantity)))}
                     if (!entry.isBought && entry.awaitingShopCityId != null) add("Магазин не настроен")
                     if (entryUi.departmentName != null) add(entryUi.departmentName)
                     val contextInfo = when (viewMode) {
@@ -834,7 +870,7 @@ private fun ShoppingListItem(
             ) {
                 IconButton(
                     onClick = onDecreaseQuantity,
-                    enabled = !isBought && entry.quantity > 0,
+                    enabled = !isBought && entry.quantity > 0 && (entry.listId == null || entry.quantity > quantityStep),
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
@@ -868,6 +904,8 @@ private fun ShoppingListItem(
             }
         }
     }
+}
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -951,7 +989,7 @@ private fun EditEntryDialog(
 @Composable
 private fun EntryContextMenuDialog(
     entryUi:ShoppingListEntryUi,onOpenProductCard:()->Unit,onChangeShop:()->Unit,
-    onCopy:()->Unit,onEditPurchase:()->Unit,onToggleUrgent:()->Unit,onRemove:()->Unit,onDismiss:()->Unit
+    onCopy:()->Unit,onEditPurchase:()->Unit,onToggleUrgent:()->Unit,onRemove:()->Unit,onDismiss:()->Unit,onMoveList:()->Unit,onOpenList:(()->Unit)?=null
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest=onDismiss,
         sheetState=androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded=true),
@@ -962,6 +1000,8 @@ private fun EntryContextMenuDialog(
             if(!entryUi.entry.isBought)MenuAction(Icons.Filled.SwapHoriz,"Сменить место покупки",onChangeShop)
             MenuAction(Icons.Filled.AddShoppingCart,"Добавить магазин к товару",onCopy)
             MenuAction(Icons.Filled.Edit,"Параметры покупки",onEditPurchase)
+            onOpenList?.let{MenuAction(Icons.Filled.FormatListBulleted,"Открыть список «${entryUi.listName.orEmpty()}»",it)}
+            MenuAction(Icons.Filled.FormatListBulleted,"Перенести в другой список",onMoveList)
             MenuAction(Icons.Filled.Label,"Карточка товара",onOpenProductCard)
             HorizontalDivider(Modifier.padding(vertical=8.dp),color=MaterialTheme.colorScheme.outlineVariant)
             MenuAction(Icons.Filled.Delete,"Удалить из списка",onRemove,destructive=true)

@@ -1,3 +1,33 @@
+## Организация проекта и публикация ·20 октября2026
+
+Текущее связное описание слоёв, сущностей и потоков находится в41_ARCHITECTURE_ATLAS.md; таблица файлов и правила проверки —42_MAINTENANCE_GUIDE.md. Исторические уточнения ниже сохраняют причины эволюции.
+
+## Уточнение0.17.0
+
+CreationPresetEntities/Dao, Room16. StandardCategories устанавливает30+30 через SupportSQLiteDatabase при onCreate/миграции и явный Settings command. ProductCreationDefaults хранит общий тип и fallbackединицу в shopping_list_prefs. ProductCard raw сериализует происхождение ручного recipient/type; существующие сырые записи сохраняют прежний явный выбор. Группа/магазин правила живут вFK-таблицах, а не строковых ключахID в preferences. ZIP12 переносит правила.
+
+## Уточнение0.16.0
+
+ProductEditingPreferences хранит autosave_product_cards в shopping_list_prefs. Raw ProductEditDraft.autoPersist(default true для старых записей) отличает восстанавливаемые автокарточки от временной тени ручного редактора. Только автокарточки восстанавливаются. VoiceSearchButton разделяется поиском каталога, каталога магазина и подбором товара целевого списка. Route ProductCard принимает URI-encoded initialName; отдельный ключ черновика поискового названия не подменяет незавершённый обычный новый товар.
+
+## Аудит0.15.1 —19 октября2026
+
+GoalItemField mask атомарно разделяет изменённые поля и текущие DB facts; ProductEditorTransactions.inGeneration защищает очереди команд от полной замены базы. MessageShareIntent — общий UI helper короткого текста/большого UTF-8 вложения. Room15/ZIP11 без новой миграции.
+
+## 0.15.0 — модель списков
+
+GoalListEntity/Dao/Repository, Room15 и миграция14→15. ShoppingListEntryEntity: listId FK CASCADE nullable, plannedUnitPrice nullable, customShopName/customShopAddress nullable. Общая DAO-проекция включает null-владельца и showInPurchases; полный backup читает все строки. Merge сравнивает listId/цену/текстовое место. UI goallists: hub/detail, редактор, каталог, текст/SAF, preview; единый перенос MoveToListSheet. GoalListTransfer — versioned text/JSON с независимыми DTO без local IDs. ZIP11 хранит списки и новые поля; старые форматы читаются с null/default. Подробности37_GOAL_LISTS_150.md.
+
+## Уточнение0.14.0 —19 октября2026
+
+AddToListViewModel наблюдает каталог, связи, доступность точек и preference предварительного списка. AddProductCandidates вычисляет доступные алфавитные/поисковые результаты. ShoppingTextViewModel имеет только чтение снимка, временный текст и перезагрузку; BulkScreen отправляет видимый текст. Прежние BulkViewModel/ShoppingTextParser перенесены в test-only harness: в APK их нет. Room14/ZIP10 без новой миграции; виджет неизменен. Подробности:36_ADD_BROWSE_SHARE_140.md.
+
+## Изменения0.13.0
+
+ShopEntity.shoppingBackground — необязательный сериализуемый цвет; Room14, пустая строка по умолчанию, MIGRATION_13_14 сохраняет все прежние строки/ID/связи. ZIP10 читает прежние форматы. При преобразовании рынка новые профили наследуют цвет. AppearanceColors — общий словарь RGB/preset для формы/валидации/backup.
+
+WidgetSettings хранит отдельные widget_* ключи в shopping_list_prefs; WidgetFrame атомарно объединяет настройки и WidgetItem.Purchase/Header. Header имеет отрицательный стабильный ID и только переход в приложение; Purchase использует прежний CAS. ShoppingWidgetData строит снимок одной транзакции Room с общими классификаторами, маршрутами и контекстом рынка. Таблицы/настройки уведомляют коллекции. Текущее состояние и доказательства —01/35.
+
 ## Уточнение0.10.0: приоритет физической точки товара
 
 Room13 добавляет ProductBranchPriorityEntity(productId,branchId,shopId,displayOrder) с составными FK на ProductShopLink и ShopBranch. Это отдельное отношение порядка; доступность ProductBranchAvailability и общий ShopBranch.displayOrder не перегружаются. AssignmentCatalogue.outlet использует продуктовый порядок, затем общий order/id; Exact по-прежнему валидирует доступность, Unassigned остаётся отдельным выбором.

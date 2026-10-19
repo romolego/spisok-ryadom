@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Refine110UiTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:32:42.455Z" time="34.136">
+  <testcase name="sharedTextUnderstandsContextualPavilionHeading[28]" classname="com.spisokryadom.app.Refine110UiTest" time="12.397" />
+  <testcase name="widgetRemoteViewsRenderScrollableRowsAndCheckedState[28]" classname="com.spisokryadom.app.Refine110UiTest" time="1.439" />
+  <testcase name="shareSendsVisibleEditedTextWithoutSavingBasket[28]" classname="com.spisokryadom.app.Refine110UiTest" time="0.716" />
+  <testcase name="productCardShowsMarketBeforePavilion[28]" classname="com.spisokryadom.app.Refine110UiTest" time="1.291" />
+  <testcase name="widgetAddIntentOpensAddPurchaseEvenFromAnotherScreen[28]" classname="com.spisokryadom.app.Refine110UiTest" time="0.798" />
+  <testcase name="movePickerSeparatesMarketAndPavilion[28]" classname="com.spisokryadom.app.Refine110UiTest" time="0.692" />
+  <testcase name="sharedTextUnderstandsContextualPavilionHeading" classname="com.spisokryadom.app.Refine110UiTest" time="12.23" />
+  <testcase name="widgetRemoteViewsRenderScrollableRowsAndCheckedState" classname="com.spisokryadom.app.Refine110UiTest" time="1.13" />
+  <testcase name="shareSendsVisibleEditedTextWithoutSavingBasket" classname="com.spisokryadom.app.Refine110UiTest" time="0.673" />
+  <testcase name="productCardShowsMarketBeforePavilion" classname="com.spisokryadom.app.Refine110UiTest" time="1.158" />
+  <testcase name="widgetAddIntentOpensAddPurchaseEvenFromAnotherScreen" classname="com.spisokryadom.app.Refine110UiTest" time="0.803" />
+  <testcase name="movePickerSeparatesMarketAndPavilion" classname="com.spisokryadom.app.Refine110UiTest" time="0.776" />
+  </testsuite>

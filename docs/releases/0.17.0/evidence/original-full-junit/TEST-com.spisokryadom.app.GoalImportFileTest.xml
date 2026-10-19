@@ -1,0 +1,20 @@
+<testsuite name="com.spisokryadom.app.GoalImportFileTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:31:13.849Z" time="16.594">
+  <testcase name="clearingViewModelWhileProviderReadsCancelsPreviewAndClosesInputWithoutWrites[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="6.927" />
+  <testcase name="preparedExportRestoresThroughSavedStateCacheTokenAndWritesTheSameJsonSnapshot[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="0.405" />
+  <testcase name="utf8JsonFilePreviewsWithoutWritesThenImportsOnceWithAllPortableFacts[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="0.16" />
+  <testcase name="unreadableSelectionDoesNotWriteAndSubsequentValidSelectionCanStillPreview[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="0.125" />
+  <testcase name="selectingReadableTextWithBomAndWindowsNewlinesCanBeCancelledWithoutMutation[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="0.137" />
+  <testcase name="malformedUtf8ClearsOldPreviewRejectsConfirmationAndPreservesExistingData[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="0.124" />
+  <testcase name="fileLimitCountsUtf8BytesAndAcceptsExactBoundaryWithoutTruncating[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="0.265" />
+  <testcase name="completedImportAndCommitWindowSessionRestoreNeverDuplicateTheImportedList[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="0.167" />
+  <testcase name="databaseRevisionChangeDiscardsPreparedExportBeforeAnyOutputIsWritten[28]" classname="com.spisokryadom.app.GoalImportFileTest" time="0.134" />
+  <testcase name="clearingViewModelWhileProviderReadsCancelsPreviewAndClosesInputWithoutWrites" classname="com.spisokryadom.app.GoalImportFileTest" time="6.852" />
+  <testcase name="preparedExportRestoresThroughSavedStateCacheTokenAndWritesTheSameJsonSnapshot" classname="com.spisokryadom.app.GoalImportFileTest" time="0.326" />
+  <testcase name="utf8JsonFilePreviewsWithoutWritesThenImportsOnceWithAllPortableFacts" classname="com.spisokryadom.app.GoalImportFileTest" time="0.136" />
+  <testcase name="unreadableSelectionDoesNotWriteAndSubsequentValidSelectionCanStillPreview" classname="com.spisokryadom.app.GoalImportFileTest" time="0.123" />
+  <testcase name="selectingReadableTextWithBomAndWindowsNewlinesCanBeCancelledWithoutMutation" classname="com.spisokryadom.app.GoalImportFileTest" time="0.116" />
+  <testcase name="malformedUtf8ClearsOldPreviewRejectsConfirmationAndPreservesExistingData" classname="com.spisokryadom.app.GoalImportFileTest" time="0.125" />
+  <testcase name="fileLimitCountsUtf8BytesAndAcceptsExactBoundaryWithoutTruncating" classname="com.spisokryadom.app.GoalImportFileTest" time="0.181" />
+  <testcase name="completedImportAndCommitWindowSessionRestoreNeverDuplicateTheImportedList" classname="com.spisokryadom.app.GoalImportFileTest" time="0.16" />
+  <testcase name="databaseRevisionChangeDiscardsPreparedExportBeforeAnyOutputIsWritten" classname="com.spisokryadom.app.GoalImportFileTest" time="0.112" />
+  </testsuite>

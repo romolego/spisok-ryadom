@@ -1,0 +1,4 @@
+<testsuite name="com.spisokryadom.app.CatalogUiTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:09:09.382Z" time="31.337">
+  <testcase name="largeCatalogFuzzySearchAndSmallScreenAdding[28]" classname="com.spisokryadom.app.CatalogUiTest" time="16.051" />
+  <testcase name="largeCatalogFuzzySearchAndSmallScreenAdding" classname="com.spisokryadom.app.CatalogUiTest" time="15.277" />
+  </testsuite>

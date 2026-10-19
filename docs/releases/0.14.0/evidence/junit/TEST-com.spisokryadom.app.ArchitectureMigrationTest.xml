@@ -1,0 +1,5 @@
+<testsuite name="com.spisokryadom.app.ArchitectureMigrationTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:39:25.479Z" time="18.2">
+  <testcase name="checkpointIsDeferredUntilBackgroundOpenAndPrecedesRoomMigration" classname="com.spisokryadom.app.ArchitectureMigrationTest" time="10.975" />
+  <testcase name="schema10MigrationRetainsIdentitiesAndRepairsOnlyOrphanedAvailability" classname="com.spisokryadom.app.ArchitectureMigrationTest" time="6.099" />
+  <testcase name="recoveryCheckpointPreservesOldSchemaMediaAndPreferencesBeforeUpgrade" classname="com.spisokryadom.app.ArchitectureMigrationTest" time="1.126" />
+  </testsuite>

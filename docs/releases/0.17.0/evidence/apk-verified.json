@@ -1,0 +1,10 @@
+{
+  "version": "0.17.0",
+  "versionCode": 24,
+  "package": "com.spisokryadom.app.next",
+  "bytes": 2004966,
+  "sha256": "09f367c0c7a4c1060de923da71871c0f9a7ae045bcdde8c67ca207d23254b821",
+  "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+  "roomSchema": 16,
+  "backupFormat": 12
+}

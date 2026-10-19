@@ -1,0 +1,130 @@
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preStandardDebugBuild UP-TO-DATE
+> Task :app:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app:generateStandardDebugResValues UP-TO-DATE
+> Task :app:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateStandardDebugResources UP-TO-DATE
+> Task :app:mergeStandardDebugResources UP-TO-DATE
+> Task :app:packageStandardDebugResources UP-TO-DATE
+> Task :app:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app:createStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app:processStandardDebugMainManifest UP-TO-DATE
+> Task :app:processStandardDebugManifest UP-TO-DATE
+> Task :app:processStandardDebugManifestForPackage UP-TO-DATE
+> Task :app:processStandardDebugResources UP-TO-DATE
+> Task :app:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app:preStandardDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileStandardDebugUnitTest UP-TO-DATE
+> Task :app:mergeStandardDebugShaders UP-TO-DATE
+> Task :app:compileStandardDebugShaders NO-SOURCE
+> Task :app:generateStandardDebugAssets UP-TO-DATE
+> Task :app:mergeStandardDebugAssets UP-TO-DATE
+> Task :app:packageStandardDebugUnitTestForUnitTest
+> Task :app:processStandardDebugUnitTestManifest
+> Task :app:generateStandardDebugUnitTestConfig
+> Task :app:kspStandardDebugKotlin
+> Task :app:compileStandardDebugKotlin
+> Task :app:compileStandardDebugJavaWithJavac UP-TO-DATE
+> Task :app:processStandardDebugJavaRes UP-TO-DATE
+> Task :app:bundleStandardDebugClassesToCompileJar
+> Task :app:bundleStandardDebugClassesToRuntimeJar
+> Task :app:kspStandardDebugUnitTestKotlin
+
+> Task :app:compileStandardDebugUnitTestKotlin
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/GoalListsUiTest.kt:164:32 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/MarketUiTest.kt:86:56 'fun addResolveInfoForIntent(p0: Intent!, p1: ResolveInfo!): Unit' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/MarketUiTest.kt:91:26 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/ProductFlowUiTest.kt:95:56 'fun addResolveInfoForIntent(p0: Intent!, p1: ResolveInfo!): Unit' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/ProductFlowUiTest.kt:97:26 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine130UiTest.kt:102:51 'field scaledDensity: Float' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine130UiTest.kt:103:55 'field scaledDensity: Float' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine140DataTest.kt:94:120 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine140UiTest.kt:88:147 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+
+> Task :app:compileStandardDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processStandardDebugUnitTestJavaRes
+> Task :app:testStandardDebugUnitTest
+Checked com.spisokryadom.app.Refine170DataTest: 42 tests, 0 failures, 0 skipped
+
+Refine170UiTest > quickAddFromSearchUsesStorePresetAndFallbackUnit[28] FAILED
+    java.lang.AssertionError: Action performScrollTo() failed.
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (Text + EditableText contains 'Добавить' (ignoreCase: false))
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.ActionsKt.performScrollTo(Actions.kt:76)
+        at com.spisokryadom.app.Refine170UiTest.quickAddFromSearchUsesStorePresetAndFallbackUnit(Refine170UiTest.kt:79)
+
+Refine170UiTest > groupDefaultRecipientAppliesAndManualChoiceOverridesIt[28] FAILED
+    java.lang.AssertionError: Action performScrollTo() failed.
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (TestTag = 'manager-edit-Товарные группы')
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.ActionsKt.performScrollTo(Actions.kt:76)
+        at com.spisokryadom.app.Refine170UiTest.groupDefaultRecipientAppliesAndManualChoiceOverridesIt(Refine170UiTest.kt:61)
+
+Refine170UiTest > recipientIconPackAndDifferentBottomTabsAreAvailable[28] FAILED
+    java.lang.AssertionError: Action performScrollTo() failed.
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (TestTag = 'manager-edit-Получатели')
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.ActionsKt.performScrollTo(Actions.kt:76)
+        at com.spisokryadom.app.Refine170UiTest.recipientIconPackAndDifferentBottomTabsAreAvailable(Refine170UiTest.kt:71)
+
+Refine170UiTest > quickAddFromSearchUsesStorePresetAndFallbackUnit FAILED
+    java.lang.AssertionError: Action performScrollTo() failed.
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (Text + EditableText contains 'Добавить' (ignoreCase: false))
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.ActionsKt.performScrollTo(Actions.kt:76)
+        at com.spisokryadom.app.Refine170UiTest.quickAddFromSearchUsesStorePresetAndFallbackUnit(Refine170UiTest.kt:79)
+
+Refine170UiTest > groupDefaultRecipientAppliesAndManualChoiceOverridesIt FAILED
+    java.lang.AssertionError: Action performScrollTo() failed.
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (TestTag = 'manager-edit-Товарные группы')
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.ActionsKt.performScrollTo(Actions.kt:76)
+        at com.spisokryadom.app.Refine170UiTest.groupDefaultRecipientAppliesAndManualChoiceOverridesIt(Refine170UiTest.kt:61)
+
+Refine170UiTest > recipientIconPackAndDifferentBottomTabsAreAvailable FAILED
+    java.lang.AssertionError: Action performScrollTo() failed.
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (TestTag = 'manager-edit-Получатели')
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.ActionsKt.performScrollTo(Actions.kt:76)
+        at com.spisokryadom.app.Refine170UiTest.recipientIconPackAndDifferentBottomTabsAreAvailable(Refine170UiTest.kt:71)
+Checked com.spisokryadom.app.Refine170UiTest: 12 tests, 6 failures, 0 skipped
+
+54 tests completed, 6 failed
+
+> Task :app:testStandardDebugUnitTest FAILED
+
+[Incubating] Problems report is available at: file:///PROJECT/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testStandardDebugUnitTest'.
+> There were failing tests. See the report at: file:///PROJECT/app/build/reports/tests/testStandardDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 2m 26s
+32 actionable tasks: 11 executed, 21 up-to-date

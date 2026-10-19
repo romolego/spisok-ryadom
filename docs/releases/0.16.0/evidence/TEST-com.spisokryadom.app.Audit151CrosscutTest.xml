@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Audit151CrosscutTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:05:31.214Z" time="14.974">
+  <testcase name="lastTargetUnitSurvivesMinusInAggregateAsInItsOwnList[28]" classname="com.spisokryadom.app.Audit151CrosscutTest" time="6.698" />
+  <testcase name="catalogueQuantityDialogCannotRewriteOrDeleteNewlyBoughtRegularRow[28]" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.137" />
+  <testcase name="visibleAggregateAndWidgetStillOperateOnTheSameGoalPurchase[28]" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.169" />
+  <testcase name="staleCatalogueControlsCannotEditPurchaseMovedIntoVisibleOrHiddenTarget[28]" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.147" />
+  <testcase name="staleSingleAggregateActionsCannotMutateNewlyHiddenGoal[28]" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.131" />
+  <testcase name="queuedCommandCannotTouchRowsAfterDatabaseGenerationChanged[28]" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.1" />
+  <testcase name="lastTargetUnitSurvivesMinusInAggregateAsInItsOwnList" classname="com.spisokryadom.app.Audit151CrosscutTest" time="6.894" />
+  <testcase name="catalogueQuantityDialogCannotRewriteOrDeleteNewlyBoughtRegularRow" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.138" />
+  <testcase name="visibleAggregateAndWidgetStillOperateOnTheSameGoalPurchase" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.144" />
+  <testcase name="staleCatalogueControlsCannotEditPurchaseMovedIntoVisibleOrHiddenTarget" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.154" />
+  <testcase name="staleSingleAggregateActionsCannotMutateNewlyHiddenGoal" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.137" />
+  <testcase name="queuedCommandCannotTouchRowsAfterDatabaseGenerationChanged" classname="com.spisokryadom.app.Audit151CrosscutTest" time="0.111" />
+  </testsuite>

@@ -1,0 +1,4 @@
+<testsuite name="com.spisokryadom.app.ShoppingUiFlowTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-19T06:40:38.930Z" time="29.269">
+  <testcase name="listTextReviewCitySwitchAndBuying[28]" classname="com.spisokryadom.app.ShoppingUiFlowTest" time="14.665" />
+  <testcase name="listTextReviewCitySwitchAndBuying" classname="com.spisokryadom.app.ShoppingUiFlowTest" time="14.59" />
+  </testsuite>

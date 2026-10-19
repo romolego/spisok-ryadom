@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Audit121StorageTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:24:43.369Z" time="16.048">
+  <testcase name="classifierUnitRenameCannotBeRevertedByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="6.749" />
+  <testcase name="deletedStoreDepartmentCannotBeRecreatedFromResolvedTemporaryDraftIds[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.251" />
+  <testcase name="cancellationAtRestoreCommitCannotDeleteCommittedPhotosOrLeaveOldDrafts[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.346" />
+  <testcase name="deletedRecipientAndGroupDoNotTrapAnInterruptedEditorInForeignKeyErrors[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.228" />
+  <testcase name="transferExtensionCannotBeRemovedByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.244" />
+  <testcase name="rememberedTransferCannotBeUndoneByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.214" />
+  <testcase name="classifierUnitRenameCannotBeRevertedByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="6.764" />
+  <testcase name="deletedStoreDepartmentCannotBeRecreatedFromResolvedTemporaryDraftIds" classname="com.spisokryadom.app.Audit121StorageTest" time="0.229" />
+  <testcase name="cancellationAtRestoreCommitCannotDeleteCommittedPhotosOrLeaveOldDrafts" classname="com.spisokryadom.app.Audit121StorageTest" time="0.318" />
+  <testcase name="deletedRecipientAndGroupDoNotTrapAnInterruptedEditorInForeignKeyErrors" classname="com.spisokryadom.app.Audit121StorageTest" time="0.219" />
+  <testcase name="transferExtensionCannotBeRemovedByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="0.194" />
+  <testcase name="rememberedTransferCannotBeUndoneByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="0.275" />
+  </testsuite>

@@ -1,0 +1,5 @@
+<testsuite name="com.spisokryadom.app.ArchitecturePolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-19T08:53:45.858Z" time="0.249">
+  <testcase name="catalogueContextIndexHandlesTenThousandProductsWithThirtyThousandLinks" classname="com.spisokryadom.app.ArchitecturePolicyTest" time="0.228" />
+  <testcase name="routeOrderAndProductPreferenceHaveExplicitDifferentSemantics" classname="com.spisokryadom.app.ArchitecturePolicyTest" time="0.014" />
+  <testcase name="restrictedPointAndItsOwnGroupAreResolvedWithoutRecreatingProduct" classname="com.spisokryadom.app.ArchitecturePolicyTest" time="0.005" />
+  </testsuite>

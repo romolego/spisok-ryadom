@@ -30,6 +30,8 @@ class AppContainer(context: Context) {
         database.shoppingListEntryDao(), database, locations,catalogueEdits
     )
 
+    val goalListRepository = com.spisokryadom.app.data.repository.GoalListRepository(database,shoppingListRepository)
+
     val classifierRepository = ClassifierRepository(
         database.productGroupDao(),
         database.recipientDao(),

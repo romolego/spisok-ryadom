@@ -1,0 +1,199 @@
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preStandardDebugBuild UP-TO-DATE
+> Task :app:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app:generateStandardDebugResValues UP-TO-DATE
+> Task :app:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateStandardDebugResources UP-TO-DATE
+> Task :app:mergeStandardDebugResources UP-TO-DATE
+> Task :app:packageStandardDebugResources UP-TO-DATE
+> Task :app:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app:createStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app:processStandardDebugMainManifest UP-TO-DATE
+> Task :app:processStandardDebugManifest UP-TO-DATE
+> Task :app:processStandardDebugManifestForPackage UP-TO-DATE
+> Task :app:processStandardDebugResources UP-TO-DATE
+> Task :app:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app:preStandardDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileStandardDebugUnitTest UP-TO-DATE
+> Task :app:mergeStandardDebugShaders UP-TO-DATE
+> Task :app:compileStandardDebugShaders NO-SOURCE
+> Task :app:generateStandardDebugAssets UP-TO-DATE
+> Task :app:mergeStandardDebugAssets UP-TO-DATE
+> Task :app:packageStandardDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processStandardDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateStandardDebugUnitTestConfig UP-TO-DATE
+> Task :app:preParallelReleaseBuild UP-TO-DATE
+> Task :app:mergeParallelReleaseJniLibFolders UP-TO-DATE
+> Task :app:mergeParallelReleaseNativeLibs UP-TO-DATE
+> Task :app:stripParallelReleaseDebugSymbols UP-TO-DATE
+> Task :app:extractParallelReleaseNativeSymbolTables UP-TO-DATE
+> Task :app:mergeParallelReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkParallelReleaseDuplicateClasses UP-TO-DATE
+> Task :app:checkParallelReleaseAarMetadata UP-TO-DATE
+> Task :app:processParallelReleaseNavigationResources UP-TO-DATE
+> Task :app:compileParallelReleaseNavigationResources UP-TO-DATE
+> Task :app:generateParallelReleaseResValues UP-TO-DATE
+> Task :app:mapParallelReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateParallelReleaseResources UP-TO-DATE
+> Task :app:mergeParallelReleaseResources UP-TO-DATE
+> Task :app:packageParallelReleaseResources UP-TO-DATE
+> Task :app:parseParallelReleaseLocalResources UP-TO-DATE
+> Task :app:createParallelReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksParallelRelease UP-TO-DATE
+> Task :app:processParallelReleaseMainManifest
+> Task :app:processParallelReleaseManifest
+> Task :app:javaPreCompileParallelRelease UP-TO-DATE
+> Task :app:mergeParallelReleaseArtProfile UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeParallelReleaseStartupProfile UP-TO-DATE
+> Task :app:mergeParallelReleaseShaders UP-TO-DATE
+> Task :app:compileParallelReleaseShaders NO-SOURCE
+> Task :app:generateParallelReleaseAssets UP-TO-DATE
+> Task :app:mergeParallelReleaseAssets UP-TO-DATE
+> Task :app:compressParallelReleaseAssets UP-TO-DATE
+> Task :app:extractParallelReleaseVersionControlInfo UP-TO-DATE
+> Task :app:collectParallelReleaseDependencies UP-TO-DATE
+> Task :app:sdkParallelReleaseDependencyData UP-TO-DATE
+> Task :app:validateSigningParallelRelease UP-TO-DATE
+> Task :app:writeParallelReleaseAppMetadata UP-TO-DATE
+> Task :app:writeParallelReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:preParallelReleaseUnitTestBuild UP-TO-DATE
+> Task :app:processParallelReleaseManifestForPackage
+> Task :app:processParallelReleaseResources
+> Task :app:kspStandardDebugKotlin
+> Task :app:kspParallelReleaseKotlin
+
+> Task :app:compileStandardDebugKotlin
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/productdb/ProductDatabaseScreen.kt:288:47 'val Icons.Filled.Label: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Label.
+
+> Task :app:compileStandardDebugJavaWithJavac UP-TO-DATE
+> Task :app:processStandardDebugJavaRes UP-TO-DATE
+> Task :app:bundleStandardDebugClassesToCompileJar
+> Task :app:bundleStandardDebugClassesToRuntimeJar
+> Task :app:kspStandardDebugUnitTestKotlin
+> Task :app:compileStandardDebugUnitTestKotlin UP-TO-DATE
+> Task :app:compileStandardDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processStandardDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :app:testStandardDebugUnitTest
+Checked com.spisokryadom.app.ArchitectureDataTest: 12 tests, 0 failures, 0 skipped
+
+> Task :app:compileParallelReleaseKotlin
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/productdb/ProductDatabaseScreen.kt:288:47 'val Icons.Filled.Label: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Label.
+
+> Task :app:testStandardDebugUnitTest
+Checked com.spisokryadom.app.ArchitectureMigrationTest: 3 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ArchitecturePolicyTest: 3 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ArchitectureUiTest: 8 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121ActiveEditorTest: 6 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121DomainTest: 16 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121StorageTest: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121SynchronizationTest: 22 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121UiTest: 16 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151BackupTest: 16 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151CrosscutTest: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151DomainTest: 22 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151MoneyTest: 4 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151ShareTest: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151TransferTest: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151UiTest: 18 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditDomain071Test: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditIntegrity071Test: 9 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditStorage071Test: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditUi071Test: 9 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditUiNavigation071Test: 2 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.BranchMigrationTest: 1 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.BulkCancellationTest: 6 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.CardDraftTest: 1 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.CatalogUiTest: 2 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.DatabaseSmokeTest: 1 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.DraftDepartmentTest: 4 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.FuzzySearchRegressionTest: 3 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalImportFileTest: 18 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListIntegrationTest: 36 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListStorageTest: 38 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListTransferTest: 19 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListWidgetTest: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListsUiTest: 18 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalMessageDraftsTest: 2 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentDataAuditTest: 6 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentDomainAuditTest: 7 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentInlineFocusAuditTest: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentShopPickerAuditTest: 2 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentUiAuditTest: 4 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentUnitMigrationAuditTest: 3 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.InlineStoreEditingTest: 6 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.MarketDataTest: 4 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.MarketUiTest: 8 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.MigrationRegressionTest: 2 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.OrderMotionTest: 4 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.PhotoStoreTest: 1 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ProductFlowUiTest: 11 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.PurchasePlacesUiTest: 16 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine080DataTest: 6 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine080UiTest: 13 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine090DataTest: 24 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine090UiTest: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine100DataTest: 24 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine100UiTest: 16 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine110DataTest: 16 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine110UiTest: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine120DataTest: 28 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine120UiTest: 18 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine130DataTest: 18 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine130UiTest: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine140DataTest: 16 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine140UiTest: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine160DataTest: 34 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine160UiTest: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.RefinementDataTest: 15 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.RefinementUiTest: 15 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.RepositoryRegressionTest: 13 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.SearchAndParserTest: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ShoppingRepresentationsTest: 24 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ShoppingUiFlowTest: 2 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ShoppingWorkflowUiTest: 8 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.UxLayoutTest: 9 tests, 0 failures, 0 skipped
+
+> Task :app:compileParallelReleaseJavaWithJavac UP-TO-DATE
+> Task :app:mergeParallelReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :app:processParallelReleaseJavaRes
+> Task :app:generateParallelReleaseLintVitalReportModel
+> Task :app:generateParallelReleaseLintReportModel
+> Task :app:bundleParallelReleaseClassesToCompileJar
+> Task :app:generateParallelReleaseUnitTestLintModel
+> Task :app:mergeParallelReleaseJavaResource
+> Task :app:expandParallelReleaseArtProfileWildcards
+> Task :app:lintVitalAnalyzeParallelRelease
+> Task :app:lintAnalyzeParallelRelease
+> Task :app:lintAnalyzeParallelReleaseUnitTest
+> Task :app:minifyParallelReleaseWithR8
+> Task :app:lintVitalReportParallelRelease SKIPPED
+> Task :app:lintVitalParallelRelease SKIPPED
+> Task :app:convertShrunkResourcesToBinaryParallelRelease
+> Task :app:optimizeParallelReleaseResources
+> Task :app:compileParallelReleaseArtProfile
+> Task :app:packageParallelRelease
+> Task :app:createParallelReleaseApkListingFileRedirect
+> Task :app:assembleParallelRelease
+
+> Task :app:lintReportParallelRelease
+Wrote HTML report to file:///PROJECT/app/build/reports/lint-results-parallelRelease.html
+
+> Task :app:lintParallelRelease
+
+[Incubating] Problems report is available at: file:///PROJECT/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 33m 15s
+88 actionable tasks: 31 executed, 57 up-to-date

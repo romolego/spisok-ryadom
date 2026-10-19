@@ -1,0 +1,10 @@
+<testsuite name="com.spisokryadom.app.ShoppingWorkflowUiTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-19T08:00:55.082Z" time="35.44">
+  <testcase name="storeEditorOffersMultipleRankedAddressesAndProductEditorCanRestrictPoints[28]" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="14.0" />
+  <testcase name="groupSelectAndMoveTransferPendingToAChainAddressWithoutTouchingBought[28]" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.494" />
+  <testcase name="catalogueGroupAndBasketGroupRemainCollapsedAfterRecreate[28]" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.323" />
+  <testcase name="textEditsStayDuringRecreationButAreDiscardedOnClosing[28]" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="0.842" />
+  <testcase name="storeEditorOffersMultipleRankedAddressesAndProductEditorCanRestrictPoints" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="14.207" />
+  <testcase name="groupSelectAndMoveTransferPendingToAChainAddressWithoutTouchingBought" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.355" />
+  <testcase name="catalogueGroupAndBasketGroupRemainCollapsedAfterRecreate" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="1.402" />
+  <testcase name="textEditsStayDuringRecreationButAreDiscardedOnClosing" classname="com.spisokryadom.app.ShoppingWorkflowUiTest" time="0.803" />
+  </testsuite>

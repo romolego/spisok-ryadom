@@ -16,6 +16,10 @@ object ProductEditorTransactions {
     val generation=java.util.concurrent.atomic.AtomicLong()
     private object Key:kotlin.coroutines.CoroutineContext.Key<Owner>
     private class Owner:kotlin.coroutines.AbstractCoroutineContextElement(Key)
+    suspend fun <T> inGeneration(expected: Long, block: suspend () -> T): T = locked {
+        require(generation.get() == expected) { "База восстановлена. Повторите действие в обновлённом списке" }
+        block()
+    }
     suspend fun <T> locked(block:suspend()->T):T {
         if(kotlinx.coroutines.currentCoroutineContext()[Key]!=null)return block()
         mutex.lock()
@@ -36,7 +40,7 @@ class ProductRepository(
     suspend fun saveEditorProduct(product:ProductEntity,links:List<ProductShopLinkEntity>,availability:Map<Long,Set<Long>>,departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity>,branchDepartments:Map<Long,Long>,newSession:Boolean,allowDuplicate:Boolean,branchPriorities:Map<Long,List<Long>>?=null):Long=db.withTransaction {
         val existing=if(newSession)productDao.getByStableId(product.stableId)else productDao.getById(product.id)
         if(!newSession)require(existing?.stableId==product.stableId){"Товар удалён или заменён"}
-        if(newSession&&!allowDuplicate&&productDao.getAllSync().any{it.stableId!=product.stableId&&FuzzySearch.normalize(it.name)==FuzzySearch.normalize(product.name)})throw DuplicateName()
+        if(newSession&&!allowDuplicate&&productDao.getAllSync().any{!it.isTemporary&&it.stableId!=product.stableId&&FuzzySearch.normalize(it.name)==FuzzySearch.normalize(product.name)})throw DuplicateName()
         saveWithLinks(product.copy(id=existing?.id?:0),links,availability,departments,branchDepartments,branchPriorities)
     }
     suspend fun discardNewEditorProduct(stableId:String)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
@@ -67,7 +71,17 @@ class ProductRepository(
     suspend fun getProductById(id: Long): ProductEntity? = productDao.getById(id)
     suspend fun insertProduct(product: ProductEntity): Long = productDao.insert(product)
     suspend fun updateProduct(product: ProductEntity) = productDao.update(product)
-    suspend fun deleteProduct(product: ProductEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{productDao.delete(product)}}
+    suspend fun deleteProduct(product: ProductEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{
+        val actual=productDao.getById(product.id)?:return@withTransaction
+        val goalRows=db.shoppingListEntryDao().getAllSync().filter{it.productId==actual.id&&it.listId!=null}
+        if(goalRows.isNotEmpty()) {
+            val copy=productDao.insert(actual.copy(id=0,stableId=java.util.UUID.randomUUID().toString(),isTemporary=true))
+            goalRows.forEach{db.shoppingListEntryDao().update(it.copy(productId=copy,updatedAt=System.currentTimeMillis()))}
+        }
+        productDao.delete(actual)
+    }}
+
+    fun observeAvailability() = db.shopBranchDao().observeAvailability()
 
     fun getAllShopLinks(): Flow<List<ProductShopLinkEntity>> = linkDao.getAll()
 
@@ -174,7 +188,8 @@ class ProductRepository(
             val department=overrides[row.assignedBranchId]?.let{placements[it.shopId to it.typeId]?.id}?:link?.departmentId
             val branches=db.shopBranchDao().getAll()
             val pointValid=link!=null&&(!link.restrictBranches||row.assignedBranchId in allowed)&&(row.assignedBranchId==null||branches.any{it.id==row.assignedBranchId&&it.shopId==row.assignedShopId})
-            val unit=if(row.unit.isBlank()||com.spisokryadom.app.util.Quantities.unit(row.unit)==com.spisokryadom.app.util.Quantities.unit(previous.defaultUnit.orEmpty()))product.defaultUnit.orEmpty()else row.unit
+            // A target item owns its planned quantity/unit, including the unit its price refers to.
+            val unit=if(row.listId==null&&(row.unit.isBlank()||com.spisokryadom.app.util.Quantities.unit(row.unit)==com.spisokryadom.app.util.Quantities.unit(previous.defaultUnit.orEmpty())))product.defaultUnit.orEmpty()else row.unit
             val changed=row.copy(assignedDepartmentId=if(pointValid)department else null,unit=unit)
             val wasLinked=previousLinks.any{it.shopId==row.assignedShopId}
             if((wasLinked&&!pointValid)||(!pointValid&&(availabilityChanged||previousLinks!=links.values.toList())&&row.assignedShopId!=null)||priorityChanged||(row.assignedShopId in pointOrderChanged)||(row.assignedShopId==null&&row.awaitingShopCityId!=null&&!row.explicitNoShop)){

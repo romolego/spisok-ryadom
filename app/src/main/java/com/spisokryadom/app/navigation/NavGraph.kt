@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.FolderCopy
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -42,7 +43,8 @@ private data class BottomNavItem(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Routes.ShoppingList.route, "Список", Icons.AutoMirrored.Filled.FormatListBulleted),
+    BottomNavItem(Routes.ShoppingList.route, "Покупки", Icons.AutoMirrored.Filled.FormatListBulleted),
+    BottomNavItem("goal_lists", "Списки", Icons.Filled.FolderCopy),
     BottomNavItem(Routes.ProductDatabase.route, "Товары", Icons.Filled.Inventory2),
     BottomNavItem(Routes.ShopList.route, "Магазины", Icons.Filled.Store)
 )
@@ -111,10 +113,23 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                         navController.navigate(Routes.ProductCard.createRoute(productId))
                     },
                     onNavigateToBulk = { navController.navigate("bulk") },
+                    onNavigateToGoalList={id->navController.navigate("goal_list/$id")},
                     onNavigateToSettings = {
                         navController.navigate(Routes.Settings.route)
                     }
                 )
+            }
+
+            composable("goal_lists") {
+                com.spisokryadom.app.ui.goallists.GoalListsScreen(
+                    onOpenRegular={navController.navigate(Routes.ShoppingList.route){
+                        popUpTo(navController.graph.findStartDestination().id){saveState=true}
+                        launchSingleTop=true;restoreState=true
+                    }},
+                    onOpenList={id->navController.navigate("goal_list/$id")})
+            }
+            composable("goal_list/{listId}",arguments=listOf(navArgument("listId"){type=NavType.LongType})) { entry ->
+                com.spisokryadom.app.ui.goallists.GoalListScreen(entry.arguments!!.getLong("listId"),onBack={navController.popBackStack()})
             }
 
             composable(Routes.ProductDatabase.route) { entry ->
@@ -125,7 +140,8 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                     },
                     onCreateNewProduct = {
                         navController.navigate(Routes.ProductCard.createRoute(-1L))
-                    }
+                    },
+                    onCreateFromSearch = { name -> navController.navigate(Routes.ProductCard.createRoute(initialName = name)) }
                 )
             }
 
@@ -168,7 +184,8 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                     navArgument("preselectedShopId") {
                         type = NavType.LongType
                         defaultValue = -1L
-                    }
+                    },
+                    navArgument("initialName") { type = NavType.StringType; defaultValue = "" }
                 )
             ) { backStackEntry ->
                 val productId = backStackEntry.arguments?.getLong("productId") ?: -1L
@@ -176,6 +193,7 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                 ProductCardScreen(
                     productId = productId,
                     preselectedShopId = preselectedShopId,
+                    initialName = backStackEntry.arguments?.getString("initialName").orEmpty(),
                     onUseExistingProduct={id->navController.popBackStack();navController.navigate(Routes.ProductCard.createRoute(id))},
                     onProductSaved={id->navController.previousBackStackEntry?.savedStateHandle?.set("focusProductId",id);navController.popBackStack()},
                     onNavigateBack = { navController.popBackStack() }

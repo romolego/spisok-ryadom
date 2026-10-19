@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 interface ShoppingListEntryDao {
     @Query("""
         SELECT * FROM shopping_list_entries
+        WHERE listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1)
         ORDER BY isBought ASC, isUrgent DESC, createdAt DESC
     """)
     fun getAll(): Flow<List<ShoppingListEntryEntity>>
@@ -23,7 +24,7 @@ interface ShoppingListEntryDao {
 
     @Query("""
         SELECT * FROM shopping_list_entries
-        WHERE assignedShopId = :shopId
+        WHERE assignedShopId = :shopId AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1))
         ORDER BY isBought ASC, isUrgent DESC, createdAt DESC
     """)
     fun getByShopId(shopId: Long): Flow<List<ShoppingListEntryEntity>>
@@ -34,19 +35,31 @@ interface ShoppingListEntryDao {
     @Query("UPDATE shopping_list_entries SET isBought = 0, updatedAt = :now WHERE id = :id")
     suspend fun markNotBought(id: Long, now: Long = System.currentTimeMillis())
 
-    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1")
+    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1))")
     suspend fun clearBought()
 
-    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId = :shopId")
+    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId = :shopId AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1))")
     suspend fun clearBoughtByShop(shopId: Long)
 
-    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId IS NULL")
+    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId IS NULL AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1))")
     suspend fun clearBoughtWithoutShop()
 
     @Query("SELECT * FROM shopping_list_entries ORDER BY createdAt ASC")
     suspend fun getAllSync(): List<ShoppingListEntryEntity>
 
-    @Query("UPDATE shopping_list_entries SET unit=:newUnit,updatedAt=:now WHERE unit=:oldUnit AND isBought=0")
+    @Query("SELECT * FROM shopping_list_entries WHERE listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1) ORDER BY createdAt ASC,id ASC")
+    suspend fun getVisibleSync(): List<ShoppingListEntryEntity>
+
+    @Query("SELECT * FROM shopping_list_entries WHERE listId IS :listId ORDER BY isBought ASC,isUrgent DESC,createdAt ASC,id ASC")
+    fun getForList(listId: Long?): Flow<List<ShoppingListEntryEntity>>
+
+    @Query("SELECT * FROM shopping_list_entries WHERE listId IS :listId ORDER BY isBought ASC,isUrgent DESC,createdAt ASC,id ASC")
+    suspend fun getForListSync(listId: Long?): List<ShoppingListEntryEntity>
+
+    @Query("DELETE FROM shopping_list_entries WHERE listId IS :listId AND isBought=1")
+    suspend fun clearBoughtInList(listId: Long?)
+
+    @Query("UPDATE shopping_list_entries SET unit=:newUnit,updatedAt=:now WHERE unit=:oldUnit AND isBought=0 AND listId IS NULL")
     suspend fun renamePendingUnit(oldUnit:String,newUnit:String,now:Long)
 
     @Query("DELETE FROM shopping_list_entries")
@@ -64,8 +77,8 @@ interface ShoppingListEntryDao {
     @Query("DELETE FROM shopping_list_entries WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    @Query("SELECT * FROM shopping_list_entries WHERE productId=:productId AND isBought=0 AND assignedShopId IS :shopId ORDER BY id")
-    suspend fun getMergeCandidates(productId: Long, shopId: Long?): List<ShoppingListEntryEntity>
+    @Query("SELECT * FROM shopping_list_entries WHERE productId=:productId AND isBought=0 AND assignedShopId IS :shopId AND listId IS :listId ORDER BY id")
+    suspend fun getMergeCandidates(productId: Long, shopId: Long?, listId: Long? = null): List<ShoppingListEntryEntity>
     @Query("UPDATE shopping_list_entries SET isUrgent=CASE WHEN isUrgent=1 THEN 0 ELSE 1 END, updatedAt=:now WHERE id=:id")
     suspend fun toggleUrgency(id: Long, now: Long = System.currentTimeMillis())
     /**
@@ -77,10 +90,12 @@ interface ShoppingListEntryDao {
         // Compare old persisted spellings as well as new input. This also works for an
         // existing schema-8 database or a restored snapshot, without rewriting history.
         val candidates = if (entry.isBought) emptyList() else
-            getMergeCandidates(entry.productId, entry.assignedShopId).filter {
+            getMergeCandidates(entry.productId, entry.assignedShopId, entry.listId).filter {
                 com.spisokryadom.app.util.Quantities.unit(it.unit) == canonicalUnit &&
                     it.assignedDepartmentId == entry.assignedDepartmentId && it.assignedBranchId == entry.assignedBranchId &&
-                    it.note == entry.note && it.comment == entry.comment
+                    it.note == entry.note && it.comment == entry.comment &&
+                    it.plannedUnitPrice == entry.plannedUnitPrice && it.customShopName == entry.customShopName &&
+                    it.customShopAddress == entry.customShopAddress
             }
         // Legacy records have no known intent. They adopt one unambiguous new
         // choice, without bridging explicit no-shop and automatic city contexts.

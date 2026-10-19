@@ -1,0 +1,13 @@
+<testsuite name="com.spisokryadom.app.ProductFlowUiTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:27:59.346Z" time="38.962">
+  <testcase name="groupOrderIsChangedInSettingsAndUsedByTheProductDropdown[28]" classname="com.spisokryadom.app.ProductFlowUiTest" time="14.513" />
+  <testcase name="cancellingShopSelectionDoesNotSaveDraftDepartmentAndSinglePointHasNoToggle[28]" classname="com.spisokryadom.app.ProductFlowUiTest" time="1.637" />
+  <testcase name="shopOrderMovesBothRowsAndKeepsTheViewport[28]" classname="com.spisokryadom.app.ProductFlowUiTest" time="0.52" />
+  <testcase name="newDepartmentAndNonPrimarySalePointsAreSavedTogether[28]" classname="com.spisokryadom.app.ProductFlowUiTest" time="1.47" />
+  <testcase name="productPhotoCameraImportsAndPersistsAndCancelPreservesOldPhoto[28]" classname="com.spisokryadom.app.ProductFlowUiTest" time="0.949" />
+  <testcase name="groupOrderIsChangedInSettingsAndUsedByTheProductDropdown" classname="com.spisokryadom.app.ProductFlowUiTest" time="13.739" />
+  <testcase name="cancellingShopSelectionDoesNotSaveDraftDepartmentAndSinglePointHasNoToggle" classname="com.spisokryadom.app.ProductFlowUiTest" time="1.725" />
+  <testcase name="shopOrderMovesBothRowsAndKeepsTheViewport" classname="com.spisokryadom.app.ProductFlowUiTest" time="0.637" />
+  <testcase name="newDepartmentAndNonPrimarySalePointsAreSavedTogether" classname="com.spisokryadom.app.ProductFlowUiTest" time="1.852" />
+  <testcase name="productPhotoCameraImportsAndPersistsAndCancelPreservesOldPhoto" classname="com.spisokryadom.app.ProductFlowUiTest" time="1.048" />
+  <testcase name="duplicateSearchResultsRemainAboveImeAndChooseCorrectIdentity" classname="com.spisokryadom.app.ProductFlowUiTest" time="0.821" />
+  </testsuite>

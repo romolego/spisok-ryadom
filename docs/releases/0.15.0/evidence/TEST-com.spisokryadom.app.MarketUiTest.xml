@@ -1,0 +1,10 @@
+<testsuite name="com.spisokryadom.app.MarketUiTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-19T09:04:18.750Z" time="48.771">
+  <testcase name="pointNoteIsADraftAndCameraUsesPrivateCaptureUri[28]" classname="com.spisokryadom.app.MarketUiTest" time="13.486" />
+  <testcase name="groupRowsStayAlignedWhenExistingSelectedAndNewRowsAreMixed[28]" classname="com.spisokryadom.app.MarketUiTest" time="1.353" />
+  <testcase name="pointsGroupAndFoldIndependentlyAndCartUsesThePoint[28]" classname="com.spisokryadom.app.MarketUiTest" time="0.898" />
+  <testcase name="createProductSearchesOtherStoresAndReusesIdentityInsteadOfDuplicating[28]" classname="com.spisokryadom.app.MarketUiTest" time="8.82" />
+  <testcase name="pointNoteIsADraftAndCameraUsesPrivateCaptureUri" classname="com.spisokryadom.app.MarketUiTest" time="12.846" />
+  <testcase name="groupRowsStayAlignedWhenExistingSelectedAndNewRowsAreMixed" classname="com.spisokryadom.app.MarketUiTest" time="1.251" />
+  <testcase name="pointsGroupAndFoldIndependentlyAndCartUsesThePoint" classname="com.spisokryadom.app.MarketUiTest" time="0.766" />
+  <testcase name="createProductSearchesOtherStoresAndReusesIdentityInsteadOfDuplicating" classname="com.spisokryadom.app.MarketUiTest" time="9.336" />
+  </testsuite>

@@ -1,0 +1,20 @@
+<testsuite name="com.spisokryadom.app.GoalListsUiTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:11:20.922Z" time="44.142">
+  <testcase name="fourTabsRegularEntryAndLooseAutosaveWithUnitPrice[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="14.269" />
+  <testcase name="inclusionShowsTheSamePurchaseAndCheckboxSynchronizes[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="1.396" />
+  <testcase name="shareUsesTemporaryEditedMessageAndReopeningRegenerates[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="0.73" />
+  <testcase name="batchBoughtAndMoveKeepTheSameRowsWithoutCopies[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="0.946" />
+  <testcase name="catalogueFavoritesRepeatAndQuickAddsStayOpen[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="0.725" />
+  <testcase name="mainContextMoveAndOpenOriginNavigateWithoutCopyingPurchases[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="1.008" />
+  <testcase name="importPreviewCancelDoesNotWriteAndConfirmedImportIsIsolated[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="0.932" />
+  <testcase name="doneDuringAnInflightAutosaveCreatesOnlyOnePurchase[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="0.897" />
+  <testcase name="invalidDraftSurvivesRecreationAndDoesNotOverwriteLastValidQuantity[28]" classname="com.spisokryadom.app.GoalListsUiTest" time="1.05" />
+  <testcase name="fourTabsRegularEntryAndLooseAutosaveWithUnitPrice" classname="com.spisokryadom.app.GoalListsUiTest" time="13.931" />
+  <testcase name="inclusionShowsTheSamePurchaseAndCheckboxSynchronizes" classname="com.spisokryadom.app.GoalListsUiTest" time="1.433" />
+  <testcase name="shareUsesTemporaryEditedMessageAndReopeningRegenerates" classname="com.spisokryadom.app.GoalListsUiTest" time="0.742" />
+  <testcase name="batchBoughtAndMoveKeepTheSameRowsWithoutCopies" classname="com.spisokryadom.app.GoalListsUiTest" time="1.031" />
+  <testcase name="catalogueFavoritesRepeatAndQuickAddsStayOpen" classname="com.spisokryadom.app.GoalListsUiTest" time="0.781" />
+  <testcase name="mainContextMoveAndOpenOriginNavigateWithoutCopyingPurchases" classname="com.spisokryadom.app.GoalListsUiTest" time="1.071" />
+  <testcase name="importPreviewCancelDoesNotWriteAndConfirmedImportIsIsolated" classname="com.spisokryadom.app.GoalListsUiTest" time="1.05" />
+  <testcase name="doneDuringAnInflightAutosaveCreatesOnlyOnePurchase" classname="com.spisokryadom.app.GoalListsUiTest" time="0.892" />
+  <testcase name="invalidDraftSurvivesRecreationAndDoesNotOverwriteLastValidQuantity" classname="com.spisokryadom.app.GoalListsUiTest" time="1.235" />
+  </testsuite>

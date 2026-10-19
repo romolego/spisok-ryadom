@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.ArchitectureDataTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T06:20:18.432Z" time="8.836">
+  <testcase name="cityCorrectionDetachesFormerVenueAtomicallyAndRetainsPointIdentity" classname="com.spisokryadom.app.ArchitectureDataTest" time="7.018" />
+  <testcase name="restoredAgedPointPhotoSurvivesStartupCleanupAndOrphansAreCollected" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.414" />
+  <testcase name="archiveCompressionDoesNotHoldDbTransactionAndLeasesProtectItsPhotos" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.148" />
+  <testcase name="unlinkCascadesOnlyOwnedAvailabilityAndBackupStillWorks" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.222" />
+  <testcase name="removingLocalGroupCollectsPointSettingsButKeepsTheGlobalIdentity" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.126" />
+  <testcase name="savingProductPreservesLinkIdentityAndPointOverrides" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.126" />
+  <testcase name="globalGroupRenameKeepsLocalIdsAndIndependentOrder" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.086" />
+  <testcase name="deletingRetailerDetachesHistoricalPurchaseAsOneConsistentAssignment" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.135" />
+  <testcase name="manualMarketConversionPreservesProductsPurchasesPhotosAndGlobalGroups" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.137" />
+  <testcase name="invalidRawOwnersAreRejectedByDatabase" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.091" />
+  <testcase name="onePhysicalPointBelongsToNetworkAndVenueAcrossCities" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.093" />
+  <testcase name="fullBackupRoundTripsNetworkVenueLocalOrderAndProductOverrides" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.239" />
+  </testsuite>

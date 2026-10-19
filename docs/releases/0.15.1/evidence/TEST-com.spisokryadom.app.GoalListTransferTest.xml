@@ -1,0 +1,21 @@
+<testsuite name="com.spisokryadom.app.GoalListTransferTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:22:08.524Z" time="0.38">
+  <testcase name="jsonRejectsUnknownFormatVersionWrongTypesAndTrailingObjects" classname="com.spisokryadom.app.GoalListTransferTest" time="0.097" />
+  <testcase name="fieldLengthControlCharactersMalformedUnicodeAndDeepJsonAreRejected" classname="com.spisokryadom.app.GoalListTransferTest" time="0.029" />
+  <testcase name="negativeZeroNonfiniteOutOfRangeAndUnderflowNumbersAreRejected" classname="com.spisokryadom.app.GoalListTransferTest" time="0.034" />
+  <testcase name="readableMessageRoundTripsDelimitersUnicodeMultilineDuplicatesAndPlaceChanges" classname="com.spisokryadom.app.GoalListTransferTest" time="0.01" />
+  <testcase name="unknownJsonFieldsAreReportedAndDoNotBecomeForeignCatalogueLinks" classname="com.spisokryadom.app.GoalListTransferTest" time="0.003" />
+  <testcase name="extraQuantityPrecisionIsRejectedBeforeRepositoryCouldRoundIt" classname="com.spisokryadom.app.GoalListTransferTest" time="0.004" />
+  <testcase name="ordinaryShoppingShareHeadingsAreRecognizedWithoutGuessingStoreIds" classname="com.spisokryadom.app.GoalListTransferTest" time="0.002" />
+  <testcase name="invalidDirectDtoCannotBeExportedOrImportedThroughRepositoryGuard" classname="com.spisokryadom.app.GoalListTransferTest" time="0.001" />
+  <testcase name="blankInputTitlesOnlyAndRepeatedTitlesCannotCreatePartialImport" classname="com.spisokryadom.app.GoalListTransferTest" time="0.001" />
+  <testcase name="importedFlagsRemainInPreviewSoCallerCanExplicitlyResetBoughtOnNewList" classname="com.spisokryadom.app.GoalListTransferTest" time="0.003" />
+  <testcase name="itemAndUtf8ByteLimitsFailEntireImportRatherThanTruncatingIt" classname="com.spisokryadom.app.GoalListTransferTest" time="0.18" />
+  <testcase name="productModelNumbersRemainInNameAndAmbiguityIsReported" classname="com.spisokryadom.app.GoalListTransferTest" time="0.001" />
+  <testcase name="friendlyBulletsKeepShopContextAmountsPriceNotesCheckboxAndUrgency" classname="com.spisokryadom.app.GoalListTransferTest" time="0.001" />
+  <testcase name="emptyPortableListRoundTripsAndIsExplicitInPreview" classname="com.spisokryadom.app.GoalListTransferTest" time="0.002" />
+  <testcase name="jsonRoundTripsSamePortableDocumentWithoutDatabaseIdentifiers" classname="com.spisokryadom.app.GoalListTransferTest" time="0.003" />
+  <testcase name="bomWindowsNewlinesAndTelegramCodeBlockAreAcceptedWithVisibleWarning" classname="com.spisokryadom.app.GoalListTransferTest" time="0.002" />
+  <testcase name="jsonRejectsDuplicateKeysEvenWhenOneKeyUsesEscaping" classname="com.spisokryadom.app.GoalListTransferTest" time="0.0" />
+  <testcase name="strictJsonRejectsJavascriptShortcutsAndMalformedEscapes" classname="com.spisokryadom.app.GoalListTransferTest" time="0.0" />
+  <testcase name="malformedQuotedTextUnknownVersionAndUnknownLinesAreFatal" classname="com.spisokryadom.app.GoalListTransferTest" time="0.002" />
+  </testsuite>

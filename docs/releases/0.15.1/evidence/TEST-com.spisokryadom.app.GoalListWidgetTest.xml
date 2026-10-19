@@ -1,0 +1,12 @@
+<testsuite name="com.spisokryadom.app.GoalListWidgetTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:22:11.307Z" time="14.539">
+  <testcase name="portableStoresAddressesAndUnassignedPurchasesAreSeparateWidgetSections[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="6.643" />
+  <testcase name="hiddenOrDeletedTargetDoesNotLeakPortableHeadingsAndRejectsStaleWidgetAction[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.137" />
+  <testcase name="hintIdentityIsDelimiterSafeStableAcrossPurchaseChangesAndOtherModesStayUnchanged[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.182" />
+  <testcase name="portableHintDoesNotMergeIntoLocalShopWithIdenticalCaption[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.139" />
+  <testcase name="addressOnlyAndRepeatedCaptionsRenderOnceAndRowsHavePortableFallback[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.094" />
+  <testcase name="portableStoresAddressesAndUnassignedPurchasesAreSeparateWidgetSections" classname="com.spisokryadom.app.GoalListWidgetTest" time="6.701" />
+  <testcase name="hiddenOrDeletedTargetDoesNotLeakPortableHeadingsAndRejectsStaleWidgetAction" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.127" />
+  <testcase name="hintIdentityIsDelimiterSafeStableAcrossPurchaseChangesAndOtherModesStayUnchanged" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.158" />
+  <testcase name="portableHintDoesNotMergeIntoLocalShopWithIdenticalCaption" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.146" />
+  <testcase name="addressOnlyAndRepeatedCaptionsRenderOnceAndRowsHavePortableFallback" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.197" />
+  </testsuite>

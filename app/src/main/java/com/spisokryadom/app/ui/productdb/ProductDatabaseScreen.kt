@@ -70,7 +70,8 @@ fun ProductDatabaseScreen(
     focusProductId:Long=-1L,
     onFocusHandled:()->Unit={},
     viewModel: ProductDatabaseViewModel = viewModel(factory = ProductDatabaseViewModel.Factory),
-    batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory)
+    batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory),
+    onCreateFromSearch:(String)->Unit={onCreateNewProduct()}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val selection=rememberBatchSelection(state.products.map{it.id}.toSet(),state.viewMode,loaded=!state.isLoading)
@@ -131,18 +132,23 @@ fun ProductDatabaseScreen(
                 onValueChange = { viewModel.setSearchQuery(it) },
                 placeholder = { Text("Поиск по названию...") },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                trailingIcon = {
+                trailingIcon = { Row {
                     if (state.searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                            Icon(Icons.Filled.Clear, contentDescription = "Очистить")
-                        }
+                        IconButton(onClick = { viewModel.setSearchQuery("") }) { Icon(Icons.Filled.Clear, contentDescription = "Очистить") }
                     }
-                },
+                    com.spisokryadom.app.ui.components.VoiceSearchButton(viewModel::setSearchQuery)
+                } },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
+
+            if(!selection.active && !state.isLoading && state.searchQuery.isNotBlank() && state.searchQuery==state.searchedQuery && !state.exactNameExists) {
+                androidx.compose.material3.TextButton(onClick={onCreateFromSearch(state.searchQuery.trim())},modifier=Modifier.fillMaxWidth().padding(horizontal=16.dp).testTag("create-product-from-search")) {
+                    Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Создать «${state.searchQuery.trim()}»",maxLines=2,overflow=TextOverflow.Ellipsis)
+                }
+            }
 
             ProductViewModeSwitcher(
                 currentMode = state.viewMode,

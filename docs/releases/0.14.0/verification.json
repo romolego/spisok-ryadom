@@ -1,0 +1,492 @@
+{
+  "version": "0.14.0",
+  "versionCode": 20,
+  "package": "com.spisokryadom.app.next",
+  "bytes": 1873850,
+  "sha256": "8a38e8067fd7f32257ca01b3627223466dc30142478547b43dea7ff783f13c82",
+  "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+  "roomSchema": 14,
+  "backupFormat": 10,
+  "apk": "SpisokRyadom-0.14.0.apk",
+  "tests": {
+    "tests": 563,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testClasses": [
+    {
+      "name": "com.spisokryadom.app.ArchitectureDataTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.ArchitectureMigrationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.ArchitecturePolicyTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.ArchitectureUiTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit121ActiveEditorTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit121DomainTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit121StorageTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit121SynchronizationTest",
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit121UiTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.AuditDomain071Test",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.AuditIntegrity071Test",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.AuditStorage071Test",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.AuditUi071Test",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.AuditUiNavigation071Test",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.BranchMigrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.BulkCancellationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.CardDraftTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.CatalogUiTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.DatabaseSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.DraftDepartmentTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.FuzzySearchRegressionTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.IndependentDataAuditTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.IndependentDomainAuditTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.IndependentInlineFocusAuditTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.IndependentShopPickerAuditTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.IndependentUiAuditTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.IndependentUnitMigrationAuditTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.InlineStoreEditingTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.MarketDataTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.MarketUiTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.MigrationRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.OrderMotionTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.PhotoStoreTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.ProductFlowUiTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.PurchasePlacesUiTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine080DataTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine080UiTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine090DataTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine090UiTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine100DataTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine100UiTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine110DataTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine110UiTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine120DataTest",
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine120UiTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine130DataTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine130UiTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine140DataTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Refine140UiTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.RefinementDataTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.RefinementUiTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.RepositoryRegressionTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.SearchAndParserTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.ShoppingRepresentationsTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.ShoppingUiFlowTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.ShoppingWorkflowUiTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.UxLayoutTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "lint": {
+    "Warning": 119,
+    "Hint": 3
+  },
+  "sourceFilesUnchanged": 217,
+  "finalSourceFiles": 218,
+  "testHistory": {
+    "initialFull": {
+      "tests": 563,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    "testOnlyChanges": [
+      "app/src/test/java/com/spisokryadom/app/PurchasePlacesUiTest.kt"
+    ],
+    "productionChangedAfterFull": false,
+    "reason": "Old UI locator expected Выбрано: … instead of the new Выбран caption; point/quantity assertions unchanged.",
+    "correctedSuite": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "widgetFilesUnchanged": [
+    "app/src/main/AndroidManifest.xml",
+    "app/src/main/java/com/spisokryadom/app/SpisokRyadomApp.kt",
+    "app/src/main/java/com/spisokryadom/app/ui/settings/WidgetSettingsCard.kt",
+    "app/src/main/java/com/spisokryadom/app/widget/ShoppingWidgetData.kt",
+    "app/src/main/java/com/spisokryadom/app/widget/ShoppingWidgetProvider.kt",
+    "app/src/main/java/com/spisokryadom/app/widget/ShoppingWidgetService.kt",
+    "app/src/main/java/com/spisokryadom/app/widget/WidgetIntents.kt",
+    "app/src/main/java/com/spisokryadom/app/widget/WidgetItem.kt",
+    "app/src/main/java/com/spisokryadom/app/widget/WidgetSettings.kt",
+    "app/src/main/res/drawable/widget_add_background.xml",
+    "app/src/main/res/drawable/widget_background.xml",
+    "app/src/main/res/drawable/widget_checked.xml",
+    "app/src/main/res/drawable/widget_row_background.xml",
+    "app/src/main/res/drawable/widget_unchecked.xml",
+    "app/src/main/res/layout/shopping_widget.xml",
+    "app/src/main/res/layout/widget_purchase.xml",
+    "app/src/main/res/layout/widget_section.xml",
+    "app/src/main/res/values/widget_strings.xml",
+    "app/src/main/res/xml/shopping_widget_info.xml"
+  ],
+  "preservedArtifacts": {
+    "SpisokRyadom-0.12.1.apk": "230a265caa5b760e581c7b04d202ce20ab89aee0679d1c5081b8730bfae2d6b9",
+    "SpisokRyadom-0.13.0.apk": "17a658b2a2622e321c9642d45e5c381d0a42e3193c9440db1f438b841bcb02fd"
+  },
+  "nativeScreens": [
+    "01-browse-all-api28.png",
+    "01-browse-all-api35.png",
+    "02-shop-browse-api28.png",
+    "02-shop-browse-api35.png",
+    "03-settings-spacing-api28.png",
+    "03-settings-spacing-api35.png",
+    "04-search-with-browse-off-api28.png",
+    "04-search-with-browse-off-api35.png",
+    "05-share-message-api28.png",
+    "05-share-message-api35.png",
+    "06-regenerated-message-api28.png",
+    "06-regenerated-message-api35.png",
+    "07-widget-entry-browser-api28.png",
+    "07-widget-entry-browser-api35.png"
+  ],
+  "deviceTested": false,
+  "workingBaseCommitAtVerification": "ee03afa4f18084b3a7c0097cdaea6b6d2b1696db",
+  "publicationContext": {
+    "repository": "romolego/spisok-ryadom",
+    "releaseTag": "v0.17.0",
+    "historicalVersion": "0.14.0",
+    "privacy": "Personal archives, photos, credentials and host properties excluded."
+  }
+}

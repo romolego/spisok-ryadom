@@ -1,0 +1,26 @@
+<testsuite name="com.spisokryadom.app.Refine090DataTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:19:09.524Z" time="20.139">
+  <testcase name="draftPhotoSurvivesCleanupUntilDraftIsRemoved[28]" classname="com.spisokryadom.app.Refine090DataTest" time="6.731" />
+  <testcase name="autosaveUpdatesOneStableRowWithoutPressingSave[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.756" />
+  <testcase name="deletedExistingProductCannotBeResurrectedFromItsEditorDraft[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.371" />
+  <testcase name="oneShopCanAppearInsideVenueAndOutsideWithoutHidingOtherShops[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.155" />
+  <testcase name="incompleteNumbersAndNotesSurviveNewViewModelAndRecoverWithoutDuplicates[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.503" />
+  <testcase name="favoritesAreShortcutsAndOriginalRowsInEveryView[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.321" />
+  <testcase name="recoveredDraftPreservesLocalDepartmentAndRestrictedPointAtomically[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.136" />
+  <testcase name="immediateBackFlushesLatestFieldsAndClearsCompletedDraft[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.134" />
+  <testcase name="fullRestoreClearsStaleDraftOnlyAfterSuccessfulImport[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.216" />
+  <testcase name="exactDuplicateNeedsExplicitSeparateCreation[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.32" />
+  <testcase name="explicitDeleteDoesNotGetUndoneByQueuedAutosaveOrStartupRecovery[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.306" />
+  <testcase name="unfinishedNewDraftIsRecoveredFromItsCatalogueRowAndClearedOnDelete[28]" classname="com.spisokryadom.app.Refine090DataTest" time="0.465" />
+  <testcase name="draftPhotoSurvivesCleanupUntilDraftIsRemoved" classname="com.spisokryadom.app.Refine090DataTest" time="6.305" />
+  <testcase name="autosaveUpdatesOneStableRowWithoutPressingSave" classname="com.spisokryadom.app.Refine090DataTest" time="0.571" />
+  <testcase name="deletedExistingProductCannotBeResurrectedFromItsEditorDraft" classname="com.spisokryadom.app.Refine090DataTest" time="0.355" />
+  <testcase name="oneShopCanAppearInsideVenueAndOutsideWithoutHidingOtherShops" classname="com.spisokryadom.app.Refine090DataTest" time="0.117" />
+  <testcase name="incompleteNumbersAndNotesSurviveNewViewModelAndRecoverWithoutDuplicates" classname="com.spisokryadom.app.Refine090DataTest" time="0.479" />
+  <testcase name="favoritesAreShortcutsAndOriginalRowsInEveryView" classname="com.spisokryadom.app.Refine090DataTest" time="0.321" />
+  <testcase name="recoveredDraftPreservesLocalDepartmentAndRestrictedPointAtomically" classname="com.spisokryadom.app.Refine090DataTest" time="0.125" />
+  <testcase name="immediateBackFlushesLatestFieldsAndClearsCompletedDraft" classname="com.spisokryadom.app.Refine090DataTest" time="0.144" />
+  <testcase name="fullRestoreClearsStaleDraftOnlyAfterSuccessfulImport" classname="com.spisokryadom.app.Refine090DataTest" time="0.202" />
+  <testcase name="exactDuplicateNeedsExplicitSeparateCreation" classname="com.spisokryadom.app.Refine090DataTest" time="0.335" />
+  <testcase name="explicitDeleteDoesNotGetUndoneByQueuedAutosaveOrStartupRecovery" classname="com.spisokryadom.app.Refine090DataTest" time="0.299" />
+  <testcase name="unfinishedNewDraftIsRecoveredFromItsCatalogueRowAndClearedOnDelete" classname="com.spisokryadom.app.Refine090DataTest" time="0.448" />
+  </testsuite>

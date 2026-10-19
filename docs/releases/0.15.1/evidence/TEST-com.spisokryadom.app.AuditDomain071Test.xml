@@ -1,0 +1,12 @@
+<testsuite name="com.spisokryadom.app.AuditDomain071Test" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:18:17.789Z" time="8.086">
+  <testcase name="losingLastLinkRetainsOriginalCityUntilTheCardCanResolveItAgain" classname="com.spisokryadom.app.AuditDomain071Test" time="7.014" />
+  <testcase name="unitUsageFindsCanonicalCardAndLegacyAliasSpellings" classname="com.spisokryadom.app.AuditDomain071Test" time="0.141" />
+  <testcase name="unchangedTextKeepsNoAddressWhileExplicitPreferredAndExactChoicesApply" classname="com.spisokryadom.app.AuditDomain071Test" time="0.17" />
+  <testcase name="repeatedNewTextProductHonorsPermanentChoiceInEitherRowOrder" classname="com.spisokryadom.app.AuditDomain071Test" time="0.139" />
+  <testcase name="removingShopFromContentsUsesTheSamePendingPolicyAsTheCard" classname="com.spisokryadom.app.AuditDomain071Test" time="0.125" />
+  <testcase name="batchNewProductsRespectExactAndExplicitlyUnassignedAddresses" classname="com.spisokryadom.app.AuditDomain071Test" time="0.098" />
+  <testcase name="repeatedPermanentBatchProductRetainsEverySelectedShopAndOneCard" classname="com.spisokryadom.app.AuditDomain071Test" time="0.115" />
+  <testcase name="mixedTemporaryAndPermanentBatchLinesRetainOneCard" classname="com.spisokryadom.app.AuditDomain071Test" time="0.098" />
+  <testcase name="removingOneLinkDirectlyAlsoUpdatesPendingPurchases" classname="com.spisokryadom.app.AuditDomain071Test" time="0.098" />
+  <testcase name="repeatedNewTextProductAutomaticRowSeesTheLinkCreatedByThePreviousRow" classname="com.spisokryadom.app.AuditDomain071Test" time="0.087" />
+  </testsuite>

@@ -1,3 +1,5 @@
+> Актуализация0.14.0: прежний text→basket редактор и persistent draft отменены по новому запросу пользователя. Текст — временное сообщение для чтения/отправки без изменения корзины. Текущий контракт:36_ADD_BROWSE_SHARE_140.md. Секции ниже — история предыдущих версий.
+
 # 20_SHOPPING_REPRESENTATIONS
 
 ## Запрос и поставка0.3.0 — 17 октября2026
@@ -70,7 +72,7 @@ UI API28/API35 в полной MainActivity/AppNavGraph: закрытие Апт
 
 APK0.3.0 (5), пакет com.spisokryadom.app.next, «Список рядом · новая», API26+,target35,R8/shrinkResources. apksigner v2verified; сертификат `25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668` тот же0.2.x. Обновление поверх текущей установки без удаления данных. Размер1565878байт, SHA-256 `126cb4f131f388af61c210a4709d68bf31c056199e0d98378e0a33409986b426`.
 
-Пользовательские outputs в C:\Users\Роман\Documents\Codex\2026-10-16\new-chat: APK, Install/Verification-0.3.0.html, JSON/sha256, PNG и evidenceZIP. Архив содержит JUnit, тесты/fixtures/schemas, patch от0.2.2, Gradle/lint, подпись/manifest, PNG. Хеши всех production/test/schema-файлов записаны; закрытый ключ исключён. Прежние APK/отчёты сохранены.
+Пользовательские outputs в %USERPROFILE%\Documents\Codex\2026-10-16\new-chat: APK, Install/Verification-0.3.0.html, JSON/sha256, PNG и evidenceZIP. Архив содержит JUnit, тесты/fixtures/schemas, patch от0.2.2, Gradle/lint, подпись/manifest, PNG. Хеши всех production/test/schema-файлов записаны; закрытый ключ исключён. Прежние APK/отчёты сохранены.
 
 ## Ограничения и актуализация
 

@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "shopping_list_entries",
     foreignKeys = [
+        ForeignKey(entity=GoalListEntity::class,parentColumns=["id"],childColumns=["listId"],onDelete=ForeignKey.CASCADE),
         ForeignKey(entity=ShopBranchEntity::class,parentColumns=["id"],childColumns=["assignedBranchId"],onDelete=ForeignKey.SET_NULL),
         ForeignKey(
             entity = ProductEntity::class,
@@ -29,6 +30,7 @@ import androidx.room.PrimaryKey
         )
     ],
     indices = [
+        Index("listId"),
         Index("assignedBranchId"),
         Index("productId"),
         Index("assignedShopId"),
@@ -51,5 +53,9 @@ data class ShoppingListEntryEntity(
     val updatedAt: Long = System.currentTimeMillis(),
     val assignedBranchId:Long?=null,
     @androidx.room.ColumnInfo(defaultValue="NULL") val awaitingShopCityId:Long?=null,
-    @androidx.room.ColumnInfo(defaultValue="0") val explicitNoShop:Boolean=false
+    @androidx.room.ColumnInfo(defaultValue="0") val explicitNoShop:Boolean=false,
+    @androidx.room.ColumnInfo(defaultValue="NULL") val listId:Long?=null,
+    @androidx.room.ColumnInfo(defaultValue="NULL") val plannedUnitPrice:Double?=null,
+    @androidx.room.ColumnInfo(defaultValue="NULL") val customShopName:String?=null,
+    @androidx.room.ColumnInfo(defaultValue="NULL") val customShopAddress:String?=null
 )

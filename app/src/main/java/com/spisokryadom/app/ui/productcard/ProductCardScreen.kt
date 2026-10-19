@@ -44,8 +44,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -67,12 +69,16 @@ fun ProductCardScreen(
     onNavigateBack: () -> Unit,
     onUseExistingProduct:(Long)->Unit = {},
     onProductSaved:((Long)->Unit)?=null,
-    viewModel: ProductCardViewModel = viewModel(factory = ProductCardViewModel.factory(productId, preselectedShopId))
+    initialName:String="",
+    viewModel: ProductCardViewModel = viewModel(factory = ProductCardViewModel.factory(productId, preselectedShopId, initialName))
 ) {
     val rawState by viewModel.uiState.collectAsStateWithLifecycle()
     val places=com.spisokryadom.app.ui.components.LocalPlaceLabels.current
     val state=rawState.copy(shopLinks=rawState.shopLinks.map{it.copy(shopName=places.shop(it.link.shopId,it.shopName))},pendingShopLinks=rawState.pendingShopLinks.map{it.copy(shopName=places.shop(it.shopId,it.shopName))})
     val scrollState = rememberScrollState()
+    var nameFocused by remember { mutableStateOf(false) }
+    val nameFocusManager=androidx.compose.ui.platform.LocalFocusManager.current
+    val leaveName={ nameFocused=false;nameFocusManager.clearFocus() }
     val focus=androidx.compose.ui.platform.LocalFocusManager.current
 
     LaunchedEffect(state.usedExistingId){state.usedExistingId?.let(onUseExistingProduct)}
@@ -262,16 +268,18 @@ fun ProductCardScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if(state.isTemporary)TextButton(onClick=viewModel::keepInCatalog){Text("Сохранить разовую позицию в базе")}
-            state.autoSaveIssue?.let{Text("Черновик сохранён · $it",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.error)}
+            state.autoSaveIssue?.let{Text("$it",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.error)}
             OutlinedTextField(
                 value = state.name,
                 onValueChange = { viewModel.updateName(it) },
                 label = { Text("Название товара") },
+                keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(imeAction=androidx.compose.ui.text.input.ImeAction.Done),
+                keyboardActions=androidx.compose.foundation.text.KeyboardActions(onDone={leaveName()}),
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().onFocusChanged { nameFocused=it.isFocused }.then(Modifier.testTag("product-name"))
             )
 
-            if(state.isNew&&state.matchingProducts.isNotEmpty()) {
+            if(state.isNew&&nameFocused&&state.matchingProducts.isNotEmpty()) {
                 androidx.compose.material3.OutlinedCard(Modifier.fillMaxWidth()){
                     Column(Modifier.padding(12.dp)){
                         Text("Уже в базе",style=MaterialTheme.typography.titleSmall)
@@ -296,12 +304,12 @@ fun ProductCardScreen(
             if(state.isNew&&preselectedShopId>0)com.spisokryadom.app.ui.components.BranchAvailabilityEditor(
                 state.pendingShopLinks.map{it.shopId to it.shopName},state.branches,state.branchSelections,viewModel::updateBranchSelections,state.branchPriorities,viewModel::updateBranchPriorities)
             DropdownSelector(
-                label="Товарная группа",items=state.groups,selectedItem=state.groups.find{it.id==state.productGroupId},
+                label="Товарная группа",onOpen=leaveName,items=state.groups,selectedItem=state.groups.find{it.id==state.productGroupId},
                 itemLabel={it.name},onSelect={viewModel.updateProductGroup(it?.id)},modifier=Modifier.fillMaxWidth(),
                 allowCreate=true,onCreateNew={showNewGroupDialog=true},createLabel="Новая группа…",itemIcon={it.iconKey},itemAccent={it.accent})
 
             DropdownSelector(
-                label = "Получатель",
+                label = "Получатель",onOpen=leaveName,
                 items = state.recipients,
                 selectedItem = state.recipients.find { it.id == state.recipientId },
                 itemLabel = { it.name },
@@ -311,7 +319,7 @@ fun ProductCardScreen(
 
             if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name){createRecipient=false;done()}},{createRecipient=false})
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                com.spisokryadom.app.ui.components.SelectionRow("Избранное",state.isFavorite,viewModel::favorite,modifier=Modifier.weight(1f))
+                com.spisokryadom.app.ui.components.SelectionRow("Избранное",state.isFavorite,{leaveName();viewModel.favorite(it)},modifier=Modifier.weight(1f))
                 IconButton(onClick={showAppearance=true}){Icon(Icons.Filled.Palette,"Цвет товара")}
             }
             com.spisokryadom.app.ui.components.accentColor(state.accent)?.let{androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(2.dp).background(it))}
@@ -360,7 +368,7 @@ fun ProductCardScreen(
             }
 
             PurchaseTypeSelector(
-                selectedType = state.purchaseType,
+                selectedType = state.purchaseType,allowedTypes=state.allowedPurchaseTypes,
                 onTypeChange = { viewModel.updatePurchaseType(it) }
             )
 

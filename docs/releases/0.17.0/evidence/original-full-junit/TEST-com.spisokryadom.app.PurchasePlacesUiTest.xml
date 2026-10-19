@@ -1,0 +1,18 @@
+<testsuite name="com.spisokryadom.app.PurchasePlacesUiTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:38:55.677Z" time="41.47">
+  <testcase name="missingNetworkCreatesInlineWithoutAnEmptyPopupAndCancelDoesNotWrite[28]" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="14.368" />
+  <testcase name="changePlaceUsesAvailabilityAndCopyOnlyAddsACatalogueLink[28]" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="1.585" />
+  <testcase name="legacyCollapsedRetailerPreferenceCanBeOverriddenForOneAddressOnly[28]" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="0.712" />
+  <testcase name="collapseMovesNeighbourGraduallyAndRemembersEachAddressIndependently[28]" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="0.723" />
+  <testcase name="addFromAPlaceHeaderRetainsThatExactPhysicalPoint[28]" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="1.107" />
+  <testcase name="eachPhysicalPlaceHasItsOwnHeaderAndAddressNeverLeaksIntoProductRows[28]" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="0.52" />
+  <testcase name="availabilityCheckboxHasAnExplicitGapAndOneWholeRowTouchTarget[28]" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="1.252" />
+  <testcase name="missingNetworkCreatesInlineWithoutAnEmptyPopupAndCancelDoesNotWrite" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="14.196" />
+  <testcase name="changePlaceUsesAvailabilityAndCopyOnlyAddsACatalogueLink" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="1.236" />
+  <testcase name="legacyCollapsedRetailerPreferenceCanBeOverriddenForOneAddressOnly" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="0.619" />
+  <testcase name="aLongPlaceListInAShortWindowKeepsTheConfirmationVisible" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="1.069" />
+  <testcase name="collapseMovesNeighbourGraduallyAndRemembersEachAddressIndependently" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="0.733" />
+  <testcase name="movingAnUrgentPointDownKeepsTheExplicitOrder" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="0.585" />
+  <testcase name="addFromAPlaceHeaderRetainsThatExactPhysicalPoint" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="0.991" />
+  <testcase name="eachPhysicalPlaceHasItsOwnHeaderAndAddressNeverLeaksIntoProductRows" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="0.448" />
+  <testcase name="availabilityCheckboxHasAnExplicitGapAndOneWholeRowTouchTarget" classname="com.spisokryadom.app.PurchasePlacesUiTest" time="1.31" />
+  </testsuite>

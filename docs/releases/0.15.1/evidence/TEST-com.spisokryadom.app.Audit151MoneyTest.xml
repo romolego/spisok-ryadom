@@ -1,0 +1,6 @@
+<testsuite name="com.spisokryadom.app.Audit151MoneyTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:17:22.035Z" time="0.039">
+  <testcase name="decimalMultiplicationDoesNotRoundBinaryArtifactDown" classname="com.spisokryadom.app.Audit151MoneyTest" time="0.009" />
+  <testcase name="smallPendingBudgetIsNotLostBesideLargeBoughtTotal" classname="com.spisokryadom.app.Audit151MoneyTest" time="0.026" />
+  <testcase name="sumIsRoundedOnlyAfterAddingUnroundedAmounts" classname="com.spisokryadom.app.Audit151MoneyTest" time="0.0" />
+  <testcase name="halfKopeckIsRoundedUpConsistently" classname="com.spisokryadom.app.Audit151MoneyTest" time="0.001" />
+  </testsuite>

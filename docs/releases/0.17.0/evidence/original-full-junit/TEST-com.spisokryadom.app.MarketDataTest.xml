@@ -1,0 +1,6 @@
+<testsuite name="com.spisokryadom.app.MarketDataTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:36:21.285Z" time="8.068">
+  <testcase name="oldFullVersion5LoadsPointsWithoutExtraFields" classname="com.spisokryadom.app.MarketDataTest" time="7.099" />
+  <testcase name="v9To10KeepsPointLinksAndPurchases" classname="com.spisokryadom.app.MarketDataTest" time="0.313" />
+  <testcase name="pointNoteAndPhotoRoundTripAndUnrelatedProductLinkIsPreserved" classname="com.spisokryadom.app.MarketDataTest" time="0.433" />
+  <testcase name="explicitlyBuyingInSecondPointDoesNotMergeFirstPoint" classname="com.spisokryadom.app.MarketDataTest" time="0.223" />
+  </testsuite>

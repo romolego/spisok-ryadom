@@ -1,0 +1,8 @@
+<testsuite name="com.spisokryadom.app.InlineStoreEditingTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:25:41.056Z" time="31.767">
+  <testcase name="addressEditingIsInlineGatedAndKeepsIdentityWhileReordering[28]" classname="com.spisokryadom.app.InlineStoreEditingTest" time="13.359" />
+  <testcase name="addingAndDeletingAddressesNeverOpensAnInputDialogAndBackDiscardsDraft[28]" classname="com.spisokryadom.app.InlineStoreEditingTest" time="0.95" />
+  <testcase name="groupRenameUsesTheFormAndInstructionalCopyIsAbsentAcrossScreens[28]" classname="com.spisokryadom.app.InlineStoreEditingTest" time="1.418" />
+  <testcase name="addressEditingIsInlineGatedAndKeepsIdentityWhileReordering" classname="com.spisokryadom.app.InlineStoreEditingTest" time="13.616" />
+  <testcase name="addingAndDeletingAddressesNeverOpensAnInputDialogAndBackDiscardsDraft" classname="com.spisokryadom.app.InlineStoreEditingTest" time="0.943" />
+  <testcase name="groupRenameUsesTheFormAndInstructionalCopyIsAbsentAcrossScreens" classname="com.spisokryadom.app.InlineStoreEditingTest" time="1.468" />
+  </testsuite>

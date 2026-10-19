@@ -30,27 +30,34 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         val catalogue=assignments()
         AssignmentPreview(db.shopDao().getAllSync().associateBy{it.id},productIds.associateWith{catalogue.retailer(it,cityId,com.spisokryadom.app.domain.RetailerChoice.Automatic).first})
     }
-    suspend fun addProduct(productId: Long, quantity: Double?=null, unit: String?=null, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null): Long {
+    suspend fun addProduct(productId: Long, quantity: Double?=null, unit: String?=null, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null,listId:Long?=null,plannedUnitPrice:Double?=null): Long {
         val cityId=locations.currentId()
         return db.withTransaction {
+            validateListPrice(listId,plannedUnitPrice)
             val product=db.productDao().getById(productId) ?: error("Товар удалён")
             val resolved=assignments(productId).resolve(productId,cityId,retailerChoice(choice,shopId),outletChoice(branchId))
-            entryDao.addOrMerge(ShoppingListEntryEntity(productId=productId,
+            val row=ShoppingListEntryEntity(productId=productId,listId=listId,plannedUnitPrice=plannedUnitPrice,
                 quantity=Quantities.valid(quantity ?: product.defaultQuantity?.takeIf { it>0 && it.isFinite() } ?: 1.0),
-                explicitNoShop=choice==ShopChoice.NONE,awaitingShopCityId=cityId.takeIf{choice==ShopChoice.AUTO&&resolved.shopId==null},unit=Quantities.unit(unit ?: product.defaultUnit.orEmpty()),assignedShopId=resolved.shopId,assignedDepartmentId=resolved.departmentId,assignedBranchId=resolved.branchId))
+                explicitNoShop=choice==ShopChoice.NONE,awaitingShopCityId=cityId.takeIf{choice==ShopChoice.AUTO&&resolved.shopId==null},unit=Quantities.unit(unit ?: product.defaultUnit.orEmpty()),assignedShopId=resolved.shopId,assignedDepartmentId=resolved.departmentId,assignedBranchId=resolved.branchId)
+            validateTarget(row)
+            entryDao.addOrMerge(row)
         }
     }
-    suspend fun addNewProduct(name: String, quantity: Double, unit: String, permanent: Boolean, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null): Long {
+    suspend fun addNewProduct(name: String, quantity: Double, unit: String, permanent: Boolean, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null,listId:Long?=null,plannedUnitPrice:Double?=null,purchaseType:String="offline"): Long {
         val cityId=locations.currentId(); require(name.isNotBlank()) { "Введите название товара" }
         return db.withTransaction {
-            val product=ProductEntity(name=name.trim(), defaultUnit=Quantities.unit(unit).ifBlank { null },isTemporary=!permanent,preferCityShopOrder=true)
+            validateListPrice(listId,plannedUnitPrice)
+            require(purchaseType in setOf("offline","online"))
+            val product=ProductEntity(purchaseType=purchaseType,name=name.trim(), defaultUnit=Quantities.unit(unit).ifBlank { null },isTemporary=!permanent,preferCityShopOrder=true)
             val id=db.productDao().insert(product)
             if (choice==ShopChoice.EXPLICIT) {
                 val shop=db.shopDao().getById(shopId ?: -1)
                 require(shop?.cityId==cityId) { "Магазин недоступен в выбранном городе" }
                 if(permanent) db.productShopLinkDao().insert(ProductShopLinkEntity(productId=id,shopId=shopId!!))
             }
-            entryDao.insert(ShoppingListEntryEntity(productId=id,explicitNoShop=choice==ShopChoice.NONE,awaitingShopCityId=cityId.takeIf{choice==ShopChoice.AUTO},quantity=Quantities.valid(quantity),unit=Quantities.unit(unit),assignedShopId=if(choice==ShopChoice.EXPLICIT)shopId else null,assignedBranchId=resolveBranch(id,if(choice==ShopChoice.EXPLICIT)shopId else null,branchId)))
+            val row=ShoppingListEntryEntity(productId=id,listId=listId,plannedUnitPrice=plannedUnitPrice,explicitNoShop=choice==ShopChoice.NONE,awaitingShopCityId=cityId.takeIf{choice==ShopChoice.AUTO},quantity=Quantities.valid(quantity),unit=Quantities.unit(unit),assignedShopId=if(choice==ShopChoice.EXPLICIT)shopId else null,assignedBranchId=resolveBranch(id,if(choice==ShopChoice.EXPLICIT)shopId else null,branchId))
+            validateTarget(row)
+            entryDao.insert(row)
         }
     }
     /** Internal restoration boundary: preserves deliberate/historical assignments.
@@ -60,18 +67,27 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         validateTarget(entry)
         entryDao.addOrMerge(entry.copy(quantity=Quantities.valid(entry.quantity),unit=Quantities.unit(entry.unit)))
     }
+    private suspend fun validateListPrice(listId:Long?,price:Double?) {
+        listId?.let{require(db.goalListDao().getById(it)!=null){"Список удалён"}}
+        GoalListRepository.validPrice(price)
+    }
+    fun observeGoalLists()=db.goalListDao().observeAll()
     private suspend fun validateTarget(entry: ShoppingListEntryEntity) {
+        validateListPrice(entry.listId,entry.plannedUnitPrice)
+        entry.plannedUnitPrice?.let{require((it*entry.quantity).isFinite()){"Слишком большая сумма"}}
         require(db.productDao().getById(entry.productId)!=null) { "Товар удалён" }
         if(entry.assignedShopId!=null) require(db.shopDao().getById(entry.assignedShopId)!=null) { "Магазин удалён" }
         if(entry.assignedBranchId!=null)require(db.shopBranchDao().get(entry.assignedBranchId)?.shopId==entry.assignedShopId){"Адрес относится к другому магазину"}
         if(entry.assignedDepartmentId!=null) require(db.shopDepartmentDao().getById(entry.assignedDepartmentId)?.shopId==entry.assignedShopId) { "Группа относится к другому магазину" }
     }
-    suspend fun adjustQuantity(id: Long, delta: Double) = db.withTransaction {
+    suspend fun adjustQuantity(id: Long, delta: Double, strictVisible: Boolean = false) = db.withTransaction {
+        requireVisibleEntry(id, strictVisible)
         require(delta.isFinite())
         adjustQuantityInTransaction(id, delta)
     }
     /** Read both the actual row and card under the same transaction as the increment. */
-    suspend fun adjustByDefaultStep(id: Long, direction: Int) = db.withTransaction {
+    suspend fun adjustByDefaultStep(id: Long, direction: Int, strictVisible: Boolean = false, regularOnly: Boolean = false) = db.withTransaction {
+        requireVisibleEntry(id, strictVisible, regularOnly)
         require(direction == 1 || direction == -1)
         val entry = entryDao.getById(id) ?: return@withTransaction
         val product = db.productDao().getById(entry.productId) ?: return@withTransaction
@@ -82,26 +98,29 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         val entry=entryDao.getById(id) ?: return
         if(entry.isBought)return
         val quantity=entry.quantity+delta
-        if(quantity<=0.0000001)entryDao.deleteById(id)
+        if(quantity<=0.0000001) { if (entry.listId != null) return; entryDao.deleteById(id) }
         else entryDao.update(entry.copy(quantity=Quantities.valid(quantity),updatedAt=System.currentTimeMillis()))
         db.productDao().deleteUnusedTemporary()
     }
-    suspend fun updateQuantity(id: Long, quantity: Double)=db.withTransaction {
+    suspend fun updateQuantity(id: Long, quantity: Double, regularOnly: Boolean = false)=db.withTransaction {
+        requireVisibleEntry(id, false, regularOnly)
         val entry=entryDao.getById(id) ?: return@withTransaction
         entryDao.update(entry.copy(quantity=Quantities.valid(quantity),updatedAt=System.currentTimeMillis()))
     }
-    suspend fun changeShop(id: Long, shopId: Long?, departmentId: Long?) = db.withTransaction {
+    suspend fun changeShop(id: Long, shopId: Long?, departmentId: Long?, strictVisible: Boolean = false) = db.withTransaction {
+        requireVisibleEntry(id, strictVisible)
         val entry = entryDao.getById(id) ?: return@withTransaction
         val point=if(shopId==entry.assignedShopId)entry.assignedBranchId else resolveBranch(entry.productId,shopId)
         val department=resolveDepartment(entry,shopId,departmentId,false)
-        val changed = entry.copy(explicitNoShop=shopId==null,awaitingShopCityId=null,assignedShopId = shopId, assignedBranchId=point,
+        val changed = entry.copy(explicitNoShop=shopId==null,awaitingShopCityId=null,assignedShopId = shopId, customShopName=null,customShopAddress=null,assignedBranchId=point,
             assignedDepartmentId = if(shopId==entry.assignedShopId)department else departmentAtPoint(entry.productId,shopId,point,department),
             updatedAt = System.currentTimeMillis())
         validateTarget(changed)
         entryDao.update(changed)
     }
     /** Editing purchase facts cannot accidentally restore a stale assignment from an open editor. */
-    suspend fun updatePurchaseDetails(id:Long,quantity:Double,note:String?,comment:String?)=db.withTransaction {
+    suspend fun updatePurchaseDetails(id:Long,quantity:Double,note:String?,comment:String?,strictVisible:Boolean=false)=db.withTransaction {
+        requireVisibleEntry(id, strictVisible)
         val entry=entryDao.getById(id)?:error("Покупка уже удалена")
         entryDao.update(entry.copy(quantity=Quantities.valid(quantity),note=note?.trim()?.ifBlank{null},comment=comment?.trim()?.ifBlank{null},updatedAt=System.currentTimeMillis()))
     }
@@ -109,7 +128,7 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         val entry = entryDao.getById(id) ?: return@withTransaction
         val point=if(shopId==entry.assignedShopId)entry.assignedBranchId else resolveBranch(entry.productId,shopId)
         val department=resolveDepartment(entry,shopId,null,true)
-        val changed = entry.copy(explicitNoShop=if(shopId==entry.assignedShopId)entry.explicitNoShop else shopId==null,awaitingShopCityId=entry.awaitingShopCityId.takeIf{shopId==entry.assignedShopId},quantity = Quantities.valid(quantity), assignedShopId = shopId, assignedBranchId=point,
+        val changed = entry.copy(explicitNoShop=if(shopId==entry.assignedShopId)entry.explicitNoShop else shopId==null,awaitingShopCityId=entry.awaitingShopCityId.takeIf{shopId==entry.assignedShopId},quantity = Quantities.valid(quantity), assignedShopId = shopId, customShopName=null,customShopAddress=null,assignedBranchId=point,
             assignedDepartmentId = if(shopId==entry.assignedShopId)department else departmentAtPoint(entry.productId,shopId,point,department),
             note = note?.trim()?.ifBlank { null }, comment = comment?.trim()?.ifBlank { null },
             updatedAt = System.currentTimeMillis())
@@ -136,10 +155,20 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         return db.shopDepartmentDao().getByShopIdSync(shopId)
             .firstOrNull { it.typeId==oldType }?.id
     }
-    suspend fun removeEntry(id: Long)=db.withTransaction { entryDao.deleteById(id);db.productDao().deleteUnusedTemporary() }
-    suspend fun markBought(id: Long)=entryDao.markBought(id)
-    suspend fun markNotBought(id: Long)=entryDao.markNotBought(id)
-    suspend fun toggleUrgent(id: Long,strictPending:Boolean=false)=db.withTransaction{val row=entryDao.getById(id)?:error("Покупка удалена");require(!strictPending||!row.isBought){"Срочность доступна для некупленных"};entryDao.toggleUrgency(id)}
+    /** Revalidate an aggregate-screen action in the same transaction as its write. */
+    private suspend fun requireVisibleEntry(id: Long, strict: Boolean, regularOnly: Boolean = false) {
+        if (!strict && !regularOnly) return
+        val row = entryDao.getById(id) ?: error("Покупка удалена. Обновите список")
+        require(!regularOnly || row.listId == null) { "Покупка перенесена в целевой список. Обновите каталог" }
+        require(!regularOnly || !row.isBought) { "Покупка уже отмечена купленной. Обновите каталог" }
+        require(!strict || row.listId == null || db.goalListDao().getById(row.listId)?.showInPurchases == true) {
+            "Покупка больше не отображается в общей корзине. Откройте её целевой список"
+        }
+    }
+    suspend fun removeEntry(id: Long, strictVisible: Boolean = false, regularOnly: Boolean = false)=db.withTransaction { requireVisibleEntry(id, strictVisible, regularOnly); entryDao.deleteById(id);db.productDao().deleteUnusedTemporary() }
+    suspend fun markBought(id: Long, strictVisible: Boolean = false)=db.withTransaction { requireVisibleEntry(id, strictVisible); entryDao.markBought(id) }
+    suspend fun markNotBought(id: Long, strictVisible: Boolean = false)=db.withTransaction { requireVisibleEntry(id, strictVisible); entryDao.markNotBought(id) }
+    suspend fun toggleUrgent(id: Long,strictPending:Boolean=false)=db.withTransaction{requireVisibleEntry(id, strictPending);val row=entryDao.getById(id)?:error("Покупка удалена");require(!strictPending||!row.isBought){"Срочность доступна для некупленных"};entryDao.toggleUrgency(id)}
     suspend fun clearBoughtEntries()=db.withTransaction {entryDao.clearBought();db.productDao().deleteUnusedTemporary()}
     suspend fun clearBoughtByShop(shopId: Long)=db.withTransaction {entryDao.clearBoughtByShop(shopId);db.productDao().deleteUnusedTemporary()}
     suspend fun clearBoughtWithoutShop()=db.withTransaction {entryDao.clearBoughtWithoutShop();db.productDao().deleteUnusedTemporary()}
@@ -147,7 +176,7 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         val city=locations.currentId()
         db.withTransaction {
             val shops=db.shopDao().getAllSync().associateBy{it.id};val catalogue=assignments()
-            entryDao.getAllSync().filter { !it.isBought && it.assignedShopId!=null && shops[it.assignedShopId]?.cityId!=city }.forEach { entry ->
+            entryDao.getVisibleSync().filter { !it.isBought && it.assignedShopId!=null && shops[it.assignedShopId]?.cityId!=city }.forEach { entry ->
                 val target=catalogue.resolve(entry.productId,city,com.spisokryadom.app.domain.RetailerChoice.Automatic)
                 entryDao.update(entry.copy(explicitNoShop=false,awaitingShopCityId=city.takeIf{target.shopId==null},assignedShopId=target.shopId,assignedDepartmentId=target.departmentId,assignedBranchId=target.branchId,updatedAt=System.currentTimeMillis()))
             }
@@ -234,13 +263,17 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
             points[shop.id].orEmpty().ifEmpty{listOf(null)}.map{b->PurchasePlace(shop.id,b?.id,shop.name,b?.address,b?.venueId?.let{venues[it]?.name})}
         }.filter{(it.shopId to it.branchId) !in existing}
     }
-    suspend fun clearBoughtInPlace(shopId:Long?,branchId:Long?)=db.withTransaction {
-        entryDao.getAllSync().filter{it.isBought&&it.assignedShopId==shopId&&it.assignedBranchId==branchId}.forEach{entryDao.deleteById(it.id)}
+    suspend fun clearBoughtInPlace(shopId:Long?,branchId:Long?,customShopName:String?=null,customShopAddress:String?=null)=db.withTransaction {
+        entryDao.getVisibleSync().filter{it.isBought&&it.assignedShopId==shopId&&it.assignedBranchId==branchId&&it.customShopName==customShopName&&it.customShopAddress==customShopAddress}.forEach{entryDao.deleteById(it.id)}
         db.productDao().deleteUnusedTemporary()
     }
     suspend fun movePending(ids:Set<Long>,shopId:Long?,branchId:Long? = -1L,rememberPriority:Boolean=false,extendAvailability:Boolean=false,strictPending:Boolean=false):Int = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         require(ids.isNotEmpty()){"Выберите покупки"}
         val selected=ids.map{entryDao.getById(it)?:error("Одна из покупок уже удалена")}
+        if(strictPending){
+            val visible=entryDao.getVisibleSync().map{it.id}.toSet()
+            require(ids.all{it in visible}){"Состав покупок изменился. Обновите выбор"}
+        }
         // UI selections promise to move the complete pending set. A widget may
         // change a row while the destination picker is open; reject that stale set
         // before adding availability or changing any product preferences.
@@ -274,7 +307,7 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         }
         val changed=rows.map { row ->
             val point=catalogue.outlet(row.productId,shopId,outletChoice(branchId))
-            row.copy(explicitNoShop=shopId==null,awaitingShopCityId=null,assignedShopId=shopId,assignedBranchId=point,assignedDepartmentId=catalogue.department(row.productId,shopId,point,resolveDepartment(row,shopId,null,false)),updatedAt=System.currentTimeMillis())
+            row.copy(explicitNoShop=shopId==null,awaitingShopCityId=null,customShopName=null,customShopAddress=null,assignedShopId=shopId,assignedBranchId=point,assignedDepartmentId=catalogue.department(row.productId,shopId,point,resolveDepartment(row,shopId,null,false)),updatedAt=System.currentTimeMillis())
         }
         changed.forEach{validateTarget(it);entryDao.update(it)}
         if(rememberPriority&&shopId!=null)changed.distinctBy{it.productId}.forEach{row->
@@ -293,17 +326,17 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         }
         changed.size
     } }
-    data class TextSnapshot(val entries:List<ShoppingListEntryEntity>,val products:List<ProductEntity>,val shops:List<ShopEntity>,val branches:List<ShopBranchEntity>,val venues:List<VenueEntity> = emptyList())
+    data class TextSnapshot(val entries:List<ShoppingListEntryEntity>,val products:List<ProductEntity>,val shops:List<ShopEntity>,val branches:List<ShopBranchEntity>,val venues:List<VenueEntity> = emptyList(),val goalLists:List<GoalListEntity> = emptyList())
     suspend fun textSnapshot():TextSnapshot=db.withTransaction {
-        TextSnapshot(entryDao.getAllSync().filter{!it.isBought},db.productDao().getAllSync(),db.shopDao().getAllSync(),db.shopBranchDao().getAll(),db.retailStructureDao().venues())
+        TextSnapshot(entryDao.getVisibleSync().filter{!it.isBought},db.productDao().getAllSync(),db.shopDao().getAllSync(),db.shopBranchDao().getAll(),db.retailStructureDao().venues(),db.goalListDao().getAllSync())
     }
     suspend fun replacePendingText(base:List<ShoppingListEntryEntity>,requests:List<PurchaseRequest>):BatchReceipt=db.withTransaction {
-        val actual=entryDao.getAllSync()
+        val actual=entryDao.getVisibleSync()
         require(actual.filter{!it.isBought}.associateBy{it.id}==base.associateBy{it.id}){"Корзина изменилась. Обновите текст из корзины, чтобы не затереть новые изменения"}
         require(requests.size<=2000){"Не более 2000 покупок за один раз"}
         val referenced=requests.mapNotNull{it.entryId}
         require(referenced.distinct().size==referenced.size&&referenced.all{id->base.any{it.id==id}}){"Одна покупка выбрана для нескольких строк"}
-        val before=actual.associateBy{it.id};val city=locations.currentId();val catalogue=assignments()
+        val before=entryDao.getAllSync().associateBy{it.id};val city=locations.currentId();val catalogue=assignments()
         val created=mutableMapOf<Pair<String,String>,Long>()
         val keep=mutableSetOf<Long>()
         requests.forEach{request->

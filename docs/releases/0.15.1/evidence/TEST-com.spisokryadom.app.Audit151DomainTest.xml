@@ -1,0 +1,24 @@
+<testsuite name="com.spisokryadom.app.Audit151DomainTest" tests="22" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:17:03.517Z" time="16.543">
+  <testcase name="fullLengthNoteAndCommentRoundTripSeparatelyThroughBothPortableFormats[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="7.243" />
+  <testcase name="quantityDeltaRespectsOwnerBoughtMinimumAndAtomicRangeValidation[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.193" />
+  <testcase name="maskedExplicitClearsAreAppliedWhileUneditedFactsAndEmptyMaskStayIntact[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.126" />
+  <testcase name="dictionaryRenameCannotReinterpretHiddenOrVisibleGoalPriceUnits[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.167" />
+  <testcase name="temporaryTargetCardSaveKeepsTemporaryAndTargetFactsUntilExplicitPromotion[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.129" />
+  <testcase name="maskedNoteEditCannotRestoreAnyStaleFactsOrDetachLatestRealShop[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.144" />
+  <testcase name="invalidCommentRollsBackNameQuantityAndEveryOtherPurchaseFact[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.087" />
+  <testcase name="quantityDeltasUseLatestRowAndCannotOverwriteChangedPriceNotesOrPlace[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.098" />
+  <testcase name="movedRegularCommentSurvivesGoalEditingAndIsExplicitlyEditable[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.109" />
+  <testcase name="newQuickCommentAndRetryPreserveSeparateNoteWithoutDuplicatingPurchase[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.103" />
+  <testcase name="dictionaryDeletionPreservesGoalFactsAndOnlyClearsRegularDefaults[28]" classname="com.spisokryadom.app.Audit151DomainTest" time="0.168" />
+  <testcase name="fullLengthNoteAndCommentRoundTripSeparatelyThroughBothPortableFormats" classname="com.spisokryadom.app.Audit151DomainTest" time="6.588" />
+  <testcase name="quantityDeltaRespectsOwnerBoughtMinimumAndAtomicRangeValidation" classname="com.spisokryadom.app.Audit151DomainTest" time="0.265" />
+  <testcase name="maskedExplicitClearsAreAppliedWhileUneditedFactsAndEmptyMaskStayIntact" classname="com.spisokryadom.app.Audit151DomainTest" time="0.105" />
+  <testcase name="dictionaryRenameCannotReinterpretHiddenOrVisibleGoalPriceUnits" classname="com.spisokryadom.app.Audit151DomainTest" time="0.154" />
+  <testcase name="temporaryTargetCardSaveKeepsTemporaryAndTargetFactsUntilExplicitPromotion" classname="com.spisokryadom.app.Audit151DomainTest" time="0.118" />
+  <testcase name="maskedNoteEditCannotRestoreAnyStaleFactsOrDetachLatestRealShop" classname="com.spisokryadom.app.Audit151DomainTest" time="0.142" />
+  <testcase name="invalidCommentRollsBackNameQuantityAndEveryOtherPurchaseFact" classname="com.spisokryadom.app.Audit151DomainTest" time="0.1" />
+  <testcase name="quantityDeltasUseLatestRowAndCannotOverwriteChangedPriceNotesOrPlace" classname="com.spisokryadom.app.Audit151DomainTest" time="0.124" />
+  <testcase name="movedRegularCommentSurvivesGoalEditingAndIsExplicitlyEditable" classname="com.spisokryadom.app.Audit151DomainTest" time="0.135" />
+  <testcase name="newQuickCommentAndRetryPreserveSeparateNoteWithoutDuplicatingPurchase" classname="com.spisokryadom.app.Audit151DomainTest" time="0.107" />
+  <testcase name="dictionaryDeletionPreservesGoalFactsAndOnlyClearsRegularDefaults" classname="com.spisokryadom.app.Audit151DomainTest" time="0.119" />
+  </testsuite>

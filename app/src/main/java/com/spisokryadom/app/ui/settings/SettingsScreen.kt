@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.ui.components.*
@@ -32,6 +33,16 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
  val recipientId by viewModel.selectedRecipientId.collectAsStateWithLifecycle();val groupId by viewModel.selectedGroupId.collectAsStateWithLifecycle();val unitId by viewModel.selectedUnitId.collectAsStateWithLifecycle();val deptName by viewModel.selectedDepartmentGroup.collectAsStateWithLifecycle()
  val recipientProducts by viewModel.selectedRecipientProducts.collectAsStateWithLifecycle();val groupProducts by viewModel.selectedGroupProducts.collectAsStateWithLifecycle();val unitProducts by viewModel.selectedUnitProducts.collectAsStateWithLifecycle();val deptShops by viewModel.selectedDepartmentGroupShops.collectAsStateWithLifecycle()
  val urgency by viewModel.urgencyDefaults.collectAsStateWithLifecycle();val defaults by viewModel.addToListDefaults.collectAsStateWithLifecycle()
+ val groupPresets by viewModel.groupCreationPresets.collectAsStateWithLifecycle()
+ var presetGroup by remember{mutableStateOf<com.spisokryadom.app.data.entity.ProductGroupEntity?>(null)}
+ var presetBusy by remember{mutableStateOf(false)}
+ var presetRecipient by remember{mutableStateOf<Long?>(null)}
+ presetGroup?.let{group->AlertDialog(modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),onDismissRequest={if(!presetBusy)presetGroup=null},title={Text("Преднастройка группы")},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
+  Text(group.name)
+  DropdownSelector(label="Получатель по умолчанию",items=recipients,selectedItem=recipients.find{it.id==presetRecipient},itemLabel={it.name},onSelect={if(!presetBusy)presetRecipient=it?.id},noneLabel="Не назначать автоматически")
+  Text("Применяется к новым товарам. Явный выбор получателя в карточке сохраняется.",style=MaterialTheme.typography.bodySmall)
+ }},confirmButton={TextButton(enabled=!presetBusy,onClick={presetBusy=true;viewModel.setGroupDefaultRecipient(group.id,presetRecipient){saved->presetBusy=false;if(saved)presetGroup=null}}){Text(if(presetBusy)"Сохранение…"else "Сохранить")}},dismissButton={TextButton(enabled=!presetBusy,onClick={presetGroup=null}){Text("Отмена")}})}
+ val widgetSettings by viewModel.widgetSettings.collectAsStateWithLifecycle()
  var editKind by rememberSaveable{mutableStateOf<String?>(null)};var editId by rememberSaveable{mutableStateOf("")};var editName by rememberSaveable{mutableStateOf("")}
  var sortKind by remember{mutableStateOf<String?>(null)}
  var styleTarget by remember{mutableStateOf<Triple<String,Long,Pair<String,String>>?>(null)}
@@ -59,7 +70,7 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
  if(unitId!=null)UsageDialog("Используют единицу",unitProducts.map{it.name}){viewModel.selectUnit(null)}
  if(deptName!=null)UsageDialog("Магазины группы",deptShops.map{it.name}){viewModel.selectDepartmentGroup(null)}
  Scaffold(topBar={TopAppBar(title={Text("Настройки")},navigationIcon={IconButton(onClick=onNavigateBack,enabled=!state.isLoading){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Назад")}})},snackbarHost={SnackbarHost(snack)}){padding->
-  LazyColumn(state=listState,modifier=Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+  LazyColumn(state=listState,modifier=Modifier.testTag("settings-list").fillMaxSize().padding(padding).consumeWindowInsets(padding).padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
    item(key="location"){CityPicker(enabled=!state.isLoading)}
    item(key="backup"){
     OutlinedCard(colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)) { Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -76,8 +87,22 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
     SettingSwitch("Поднимать магазины со срочными покупками",urgency.boostUrgentShop,viewModel::setGlobalBoostUrgentShop)
     SettingSwitch("Сохранять приоритет магазина при переносе товара",defaults.rememberShopPriorityOnMove,viewModel::setRememberShopPriorityOnMove)
     SettingSwitch("Новые товары по умолчанию сохранять в базе",defaults.saveNewProductToDatabase,viewModel::setGlobalSaveNewProductToDatabase)
+    SettingSwitch("Показывать товары до ввода названия",defaults.browseProductsOnAdd,viewModel::setBrowseProductsOnAdd)
+    SettingSwitch("Автосохранение карточек товаров",defaults.autoSaveProductCards,viewModel::setAutoSaveProductCards)
+    Text("Если выключено, изменения карточки сохраняются только кнопкой «Сохранить».",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
     }}
    }
+   item(key="creation_defaults"){
+    OutlinedCard(colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+     Text("Новые товары",style=MaterialTheme.typography.titleMedium)
+     DropdownSelector(label="Тип покупки по умолчанию",items=listOf("offline","online"),selectedItem=defaults.defaultPurchaseType,itemLabel={if(it=="online")"Онлайн"else "Офлайн"},onSelect={it?.let(viewModel::setDefaultPurchaseType)},allowNone=false)
+     DropdownSelector(label="Если единица не заполнена",items=(units.map{com.spisokryadom.app.util.Quantities.unit(it.name)}+defaults.missingUnit).filter{it.isNotBlank()}.distinct(),selectedItem=defaults.missingUnit.ifBlank{null},itemLabel={it},onSelect={viewModel.setMissingUnit(it.orEmpty())},noneLabel="Оставлять пустой")
+     Text("Пустое количество при сохранении карточки — 1. Единица подставляется при записи, форма остаётся свободной для ввода.",style=MaterialTheme.typography.bodySmall)
+     OutlinedButton(onClick=viewModel::addStandardCategories){Text("Дополнить стандартными группами")}
+     Text("Добавляет недостающие товарные группы и отделы. Магазины и существующие товары не меняются.",style=MaterialTheme.typography.bodySmall)
+    }}
+   }
+   item(key="widget_settings"){WidgetSettingsCard(widgetSettings,viewModel::updateWidgetSettings)}
    item(key="recipient_title"){ManagerTitle("Получатели",recipientEdit,viewModel::toggleRecipientsEditMode)}
    itemsIndexed(recipients,key={_,v->"recipient_${v.id}"},contentType={_,_->"manager"}){index,item->
     Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,recipientEdit,{viewModel.selectRecipient(item.id)},{edit("recipient",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteRecipient(item)}},{viewport.capture();viewModel.moveRecipientUp(item)},{viewport.capture();viewModel.moveRecipientDown(item)},index==0,index==recipients.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("recipient",item.id,item.accent to item.iconKey)})}
@@ -85,7 +110,9 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
    if(recipientEdit)item(key="recipient_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("recipient","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить получателя")};IconButton(onClick={sortKind="recipient"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Получатели")}}}
    item(key="group_title"){ManagerTitle("Товарные группы",groupEdit,viewModel::toggleGroupsEditMode)}
    itemsIndexed(groups,key={_,v->"group_${v.id}"},contentType={_,_->"manager"}){index,item->
-    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,groupEdit,{viewModel.selectProductGroup(item.id)},{edit("group",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteProductGroup(item)}},{viewport.capture();viewModel.moveProductGroupUp(item)},{viewport.capture();viewModel.moveProductGroupDown(item)},index==0,index==groups.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("group",item.id,item.accent to item.iconKey)})}
+    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,groupEdit,{viewModel.selectProductGroup(item.id)},{edit("group",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteProductGroup(item)}},{viewport.capture();viewModel.moveProductGroupUp(item)},{viewport.capture();viewModel.moveProductGroupDown(item)},index==0,index==groups.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("group",item.id,item.accent to item.iconKey)},
+     subtitle=groupPresets.find{it.groupId==item.id}?.recipientId?.let{id->recipients.find{it.id==id}?.name?.let{"Получатель по умолчанию: $it"}},
+     onDefaults={presetRecipient=groupPresets.find{it.groupId==item.id}?.recipientId;presetGroup=item})}
    }
    if(groupEdit)item(key="group_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("group","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить группу товаров")};IconButton(onClick={sortKind="group"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Товарные группы")}}}
    item(key="unit_title"){ManagerTitle("Единицы измерения",unitEdit,viewModel::toggleUnitsEditMode)}
@@ -102,13 +129,15 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
   }
  }
 }
-@Composable private fun SettingSwitch(label:String,value:Boolean,onChange:(Boolean)->Unit){Row(Modifier.fillMaxWidth().toggleable(value,role=androidx.compose.ui.semantics.Role.Switch,onValueChange=onChange),verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f).padding(end=12.dp));Switch(value,null)}}
+@Composable private fun SettingSwitch(label:String,value:Boolean,onChange:(Boolean)->Unit){Row(Modifier.fillMaxWidth().padding(vertical=6.dp).heightIn(min=48.dp).toggleable(value,role=androidx.compose.ui.semantics.Role.Switch,onValueChange=onChange).padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f).padding(end=16.dp),style=MaterialTheme.typography.bodyLarge.copy(lineHeight=21.sp));Switch(value,null)}}
 @Composable private fun ManagerTitle(title:String,edit:Boolean,onEdit:()->Unit){HorizontalDivider();Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text(title,Modifier.weight(1f),style=MaterialTheme.typography.titleLarge);TextButton(onClick=onEdit,modifier=Modifier.testTag("manager-edit-$title")){Text(if(edit)"Готово" else "Править")}}}
-@Composable private fun ManagerRow(name:String,editing:Boolean,onSelect:()->Unit,onRename:()->Unit,onDelete:()->Unit,onUp:()->Unit,onDown:()->Unit,first:Boolean,last:Boolean,accent:String="",iconKey:String="",onStyle:(()->Unit)?=null){
+@Composable private fun ManagerRow(name:String,editing:Boolean,onSelect:()->Unit,onRename:()->Unit,onDelete:()->Unit,onUp:()->Unit,onDown:()->Unit,first:Boolean,last:Boolean,accent:String="",iconKey:String="",onStyle:(()->Unit)?=null,subtitle:String?=null,onDefaults:(()->Unit)?=null){
  Column(Modifier.fillMaxWidth()){
   MarkedLabel(name,accent,iconKey,Modifier.fillMaxWidth().clickable(onClick=onSelect).padding(vertical=12.dp))
+  subtitle?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
   if(editing)Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically){
    ReorderButtons(onUp,onDown,!first,!last,"Вверх: $name","Вниз: $name")
+   if(onDefaults!=null)IconButton(onClick=onDefaults){Icon(Icons.Filled.PersonAdd,"Преднастройка: $name")}
    if(onStyle!=null)IconButton(onClick=onStyle){Icon(Icons.Filled.Palette,"Оформление: $name")}
    IconButton(onClick=onRename){Icon(Icons.Filled.Edit,"Переименовать: $name")};IconButton(onClick=onDelete){Icon(Icons.Filled.Delete,"Удалить: $name")}
   }

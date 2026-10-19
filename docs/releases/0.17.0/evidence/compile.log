@@ -1,0 +1,42 @@
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preStandardDebugBuild UP-TO-DATE
+> Task :app:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app:generateStandardDebugResValues UP-TO-DATE
+> Task :app:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateStandardDebugResources UP-TO-DATE
+> Task :app:mergeStandardDebugResources UP-TO-DATE
+> Task :app:packageStandardDebugResources UP-TO-DATE
+> Task :app:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app:createStandardDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app:processStandardDebugMainManifest
+> Task :app:processStandardDebugManifest
+> Task :app:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app:processStandardDebugManifestForPackage
+> Task :app:processStandardDebugResources
+> Task :app:kspStandardDebugKotlin
+
+> Task :app:compileStandardDebugKotlin
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/components/Appearance.kt:38:88 'val Icons.Filled.Label: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Label.
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/components/Appearance.kt:56:50 'val Icons.Filled.ReceiptLong: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ReceiptLong.
+
+> Task :app:compileStandardDebugJavaWithJavac
+> Task :app:bundleStandardDebugClassesToCompileJar
+> Task :app:kspStandardDebugUnitTestKotlin
+
+> Task :app:compileStandardDebugUnitTestKotlin
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/GoalListsUiTest.kt:164:32 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/MarketUiTest.kt:86:56 'fun addResolveInfoForIntent(p0: Intent!, p1: ResolveInfo!): Unit' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/MarketUiTest.kt:91:26 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/ProductFlowUiTest.kt:95:56 'fun addResolveInfoForIntent(p0: Intent!, p1: ResolveInfo!): Unit' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/ProductFlowUiTest.kt:97:26 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine130UiTest.kt:102:51 'field scaledDensity: Float' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine130UiTest.kt:103:55 'field scaledDensity: Float' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine140DataTest.kt:94:120 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine140UiTest.kt:88:147 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+
+BUILD SUCCESSFUL in 1m 17s
+22 actionable tasks: 11 executed, 11 up-to-date

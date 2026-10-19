@@ -9,7 +9,7 @@ internal fun ProductEditDraft.rebaseExternal(base: ProductEditDraft?, remote: Pr
     if (base == null || remote == null || base.stableId != stableId || remote.stableId != stableId) return this
     val merged = mergeDraftObject(JSONObject(encode()), JSONObject(base.encode()), JSONObject(remote.encode()), "")
     return ProductEditDraft.decode(merged.toString()).copy(
-        stableId = stableId, productId = productId, newSession = newSession, allowDuplicate = allowDuplicate
+        stableId = stableId, productId = productId, newSession = newSession, allowDuplicate = allowDuplicate, autoPersist = autoPersist
     )
 }
 
@@ -67,6 +67,7 @@ private fun mergeDraftValue(local: Any?, base: Any?, remote: Any?, path: String)
 
 /** Keep live loading/search/error/save state while applying only serialized editable values. */
 internal fun ProductEditDraft.editableOn(current: ProductCardUiState): ProductCardUiState = current.copy(
+    recipientManuallySet=state.recipientManuallySet,purchaseTypeManuallySet=state.purchaseTypeManuallySet,
     name = state.name, productGroupId = state.productGroupId, recipientId = state.recipientId,
     defaultUnit = state.defaultUnit, defaultQuantity = state.defaultQuantity, note = state.note,
     purchaseType = state.purchaseType, sellerUrl = state.sellerUrl, productUrl = state.productUrl,

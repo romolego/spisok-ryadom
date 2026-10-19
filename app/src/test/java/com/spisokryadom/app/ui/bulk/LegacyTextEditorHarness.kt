@@ -1,3 +1,4 @@
+// Historical text-editing harness: repository compatibility tests only. Not shipped.
 package com.spisokryadom.app.ui.bulk
 
 import android.content.SharedPreferences

@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Refine130UiTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:57:27.595Z" time="37.731">
+  <testcase name="nativeWidgetRendersSectionsAndBothFontExtremes[28]" classname="com.spisokryadom.app.Refine130UiTest" time="12.413" />
+  <testcase name="widgetSettingsAreIndependentAndSurviveActivityRecreation[28]" classname="com.spisokryadom.app.Refine130UiTest" time="1.853" />
+  <testcase name="allWidgetGroupingsAreReachableWithoutAnUnassignedMode[28]" classname="com.spisokryadom.app.Refine130UiTest" time="1.198" />
+  <testcase name="restoredWidgetPreferencesRefreshAlreadyOpenSettings[28]" classname="com.spisokryadom.app.Refine130UiTest" time="0.617" />
+  <testcase name="shopBackgroundSupportsCustomColorPersistsAndCanBeDisabled[28]" classname="com.spisokryadom.app.Refine130UiTest" time="1.832" />
+  <testcase name="compactDepartmentsKeepCollapseAndSelectionAndShopSeparation[28]" classname="com.spisokryadom.app.Refine130UiTest" time="0.704" />
+  <testcase name="nativeWidgetRendersSectionsAndBothFontExtremes" classname="com.spisokryadom.app.Refine130UiTest" time="12.669" />
+  <testcase name="widgetSettingsAreIndependentAndSurviveActivityRecreation" classname="com.spisokryadom.app.Refine130UiTest" time="1.732" />
+  <testcase name="allWidgetGroupingsAreReachableWithoutAnUnassignedMode" classname="com.spisokryadom.app.Refine130UiTest" time="1.309" />
+  <testcase name="restoredWidgetPreferencesRefreshAlreadyOpenSettings" classname="com.spisokryadom.app.Refine130UiTest" time="0.668" />
+  <testcase name="shopBackgroundSupportsCustomColorPersistsAndCanBeDisabled" classname="com.spisokryadom.app.Refine130UiTest" time="2.019" />
+  <testcase name="compactDepartmentsKeepCollapseAndSelectionAndShopSeparation" classname="com.spisokryadom.app.Refine130UiTest" time="0.683" />
+  </testsuite>

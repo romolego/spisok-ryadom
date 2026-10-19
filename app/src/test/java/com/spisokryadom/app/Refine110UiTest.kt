@@ -37,7 +37,7 @@ class Refine110UiTest {
  private fun shot(name:String,view:View=ui.activity.window.decorView){ui.waitForIdle();ui.runOnIdle{val b=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888);view.draw(Canvas(b));val f=File("../.local/refinement-0.11.0/$name-api${android.os.Build.VERSION.SDK_INT}.png");f.parentFile!!.mkdirs();f.outputStream().use{b.compress(Bitmap.CompressFormat.PNG,100,it)};b.recycle()}}
  @Before fun setup(){runBlocking{
   listOf("drafts","product_card_drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
-  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.retailStructureDao().clearVenues();db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
+  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
   val venue=db.retailStructureDao().insertVenue(VenueEntity(cityId=1,name="Енисейский привоз"));shop=db.shopDao().insert(ShopEntity(name="29 павильон (сыры)"));branch=db.shopBranchDao().insert(ShopBranchEntity(shopId=shop,address="29 павильон (сыры)",venueId=venue));baton=db.shopDao().insert(ShopEntity(name="Батон"))
   p=app.container.productRepository.saveWithLinks(ProductEntity(name="Сыр косичка",defaultUnit="шт"),listOf(ProductShopLinkEntity(productId=0,shopId=shop),ProductShopLinkEntity(productId=0,shopId=baton,priority=2)))
   entry=app.container.shoppingListRepository.addProduct(p,choice=ShopChoice.EXPLICIT,shopId=baton);Unit
@@ -77,12 +77,13 @@ class Refine110UiTest {
  @android.annotation.SuppressLint("UnspecifiedRegisterReceiverFlag") // SDK<33 test branch; production receiver is private in the manifest.
  @Test fun widgetRemoteViewsRenderScrollableRowsAndCheckedState(){
   runBlocking{repeat(12){i->val id=db.productDao().insert(ProductEntity(name=if(i==0)"Огурцы солёные в большой стеклянной банке"else "Покупка ${i+1}"));app.container.shoppingListRepository.addProduct(id)}}
+  WidgetSettings(com.spisokryadom.app.ui.shoppinglist.ViewMode.FLAT).save(app.getSharedPreferences(WidgetSettings.PREFS,0))
   val factory=ShoppingWidgetFactory(app);factory.onCreate();assertEquals(13,factory.count)
   val host=FrameLayout(ui.activity);val root=ShoppingWidgetProvider.views(app,71).apply(ui.activity,host);host.addView(root)
   val list=root.findViewById<ListView>(R.id.widget_list)
   list.adapter=object:BaseAdapter(){override fun getCount()=factory.count;override fun getItem(p:Int)=p;override fun getItemId(p:Int)=factory.getItemId(p);override fun getView(p:Int,v:View?,parent:ViewGroup)=factory.getViewAt(p)!!.apply(ui.activity,parent)}
   host.measure(View.MeasureSpec.makeMeasureSpec(660,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(900,View.MeasureSpec.EXACTLY));host.layout(0,0,660,900)
-  assertEquals("Список покупок",root.findViewById<TextView>(R.id.widget_heading).text);assertEquals(13,list.count);assertTrue(list.getChildAt(0).findViewById<TextView>(R.id.widget_item_detail).text.contains("Батон"));assertTrue(list.canScrollVertically(1));shot("05-widget-remoteviews",host)
+  assertEquals("Список покупок",root.findViewById<TextView>(R.id.widget_heading).text);assertEquals(13,list.count);assertFalse(list.getChildAt(0).findViewById<TextView>(R.id.widget_item_detail).text.contains("Батон"));assertTrue(list.canScrollVertically(1));shot("05-widget-remoteviews",host)
   val token=runBlocking{ShoppingWidgetData(app.container).rows().first{it.id==entry}}
   val receiverInfo=app.packageManager.getReceiverInfo(android.content.ComponentName(app,ShoppingWidgetProvider::class.java),android.content.pm.PackageManager.GET_META_DATA)
   assertFalse(receiverInfo.exported);assertTrue(receiverInfo.metaData.containsKey("android.appwidget.provider"))
@@ -98,11 +99,11 @@ class Refine110UiTest {
   factory.onDataSetChanged();val position=(0 until factory.count).single{factory.getItemId(it)==entry}
   val checked=factory.getViewAt(position)!!.apply(ui.activity,host);assertEquals("Вернуть: Сыр косичка",checked.findViewById<View>(R.id.widget_check).contentDescription);factory.onDestroy()
  }
- @Test fun textReviewRoundTripUnderstandsContextualPavilionHeading(){
+ @Test fun sharedTextUnderstandsContextualPavilionHeading(){
   runBlocking{app.container.shoppingListRepository.movePending(setOf(entry),shop,branch)}
   ui.onNodeWithContentDescription("Текстовый список").performClick();waitText("Ваш список")
   ui.onNodeWithText("Ваш список").assertTextContains("Енисейский привоз — 29 павильон (сыры):",substring=true)
-  ui.onNodeWithText("Проверить изменения").performClick();waitText("Проверьте список");ui.onNodeWithText("Сохранить изменения").performClick();waitText("Изменения сохранены")
+  ui.onNodeWithText("Ваш список").performTextReplacement("Сообщение для друга");ui.onNodeWithContentDescription("Поделиться списком").assertIsEnabled()
   runBlocking{val rows=db.shoppingListEntryDao().getAllSync();assertEquals(1,rows.size);assertEquals(entry,rows.single().id);assertEquals(branch,rows.single().assignedBranchId)}
  }
 }

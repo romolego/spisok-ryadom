@@ -1,0 +1,3 @@
+<testsuite name="com.spisokryadom.app.PhotoStoreTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:37:59.728Z" time="8.45">
+  <testcase name="largePhotoIsDownsampledAndOriented" classname="com.spisokryadom.app.PhotoStoreTest" time="8.45" />
+  </testsuite>

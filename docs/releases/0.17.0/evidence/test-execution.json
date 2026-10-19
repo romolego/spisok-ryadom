@@ -1,0 +1,21 @@
+{
+  "reason": "Standard library is now added by schema migration; preserve existing order/IDs and check appended categories",
+  "originalChecks": 898,
+  "originalClasses": 75,
+  "originalFailures": [
+    [
+      "com.spisokryadom.app.RefinementDataTest",
+      "schema11UpgradesWithoutLosingNamesIdentitiesOrRelations"
+    ]
+  ],
+  "productionChanged": false,
+  "finalChecks": 898,
+  "finalFailures": 0,
+  "recheckedClass": "com.spisokryadom.app.RefinementDataTest",
+  "recheckedCount": 15,
+  "changedOnlyTestContract": [
+    "app/src/test/java/com/spisokryadom/app/RefinementDataTest.kt"
+  ],
+  "productionFilesUnchanged": true,
+  "explanation": "Full 898-check run followed by isolated recheck of the strengthened legacy migration contract; no application, schema or build changes between runs."
+}

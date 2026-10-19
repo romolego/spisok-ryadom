@@ -1,0 +1,5 @@
+<testsuite name="com.spisokryadom.app.IndependentUnitMigrationAuditTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:25:34.195Z" time="4.345">
+  <testcase name="canonicalMergeOverflowRollsBackAndDifferentCommentsAndDepartmentsStaySeparate" classname="com.spisokryadom.app.IndependentUnitMigrationAuditTest" time="3.731" />
+  <testcase name="existingVersion8AliasesConsolidateSafelyAndBatchUndoRestoresEveryRow" classname="com.spisokryadom.app.IndependentUnitMigrationAuditTest" time="0.256" />
+  <testcase name="migratedLegacyUnitSpellingStillMergesWithNormalizedNewPurchase" classname="com.spisokryadom.app.IndependentUnitMigrationAuditTest" time="0.358" />
+  </testsuite>

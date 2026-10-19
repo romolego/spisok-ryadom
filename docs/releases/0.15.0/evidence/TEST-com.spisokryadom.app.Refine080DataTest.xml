@@ -1,0 +1,8 @@
+<testsuite name="com.spisokryadom.app.Refine080DataTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-19T09:07:16.178Z" time="15.778">
+  <testcase name="syntheticCatalogueRetainsAllFactsAndOnlyRequestedDictionaryChanges[28]" classname="com.spisokryadom.app.Refine080DataTest" time="7.463" />
+  <testcase name="arbitraryRgbColorsAndNewIconSurviveFullBackup[28]" classname="com.spisokryadom.app.Refine080DataTest" time="0.407" />
+  <testcase name="colorAndIconVocabularyAcceptsLegacyAndCustomValues[28]" classname="com.spisokryadom.app.Refine080DataTest" time="0.185" />
+  <testcase name="syntheticCatalogueRetainsAllFactsAndOnlyRequestedDictionaryChanges" classname="com.spisokryadom.app.Refine080DataTest" time="7.219" />
+  <testcase name="arbitraryRgbColorsAndNewIconSurviveFullBackup" classname="com.spisokryadom.app.Refine080DataTest" time="0.352" />
+  <testcase name="colorAndIconVocabularyAcceptsLegacyAndCustomValues" classname="com.spisokryadom.app.Refine080DataTest" time="0.142" />
+  </testsuite>

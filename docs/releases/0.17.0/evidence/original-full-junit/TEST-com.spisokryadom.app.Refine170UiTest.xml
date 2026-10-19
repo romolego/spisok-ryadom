@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Refine170UiTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:49:16.674Z" time="41.478">
+  <testcase name="standardCategoriesButtonIsIdempotentAndDoesNotPopulateShops[28]" classname="com.spisokryadom.app.Refine170UiTest" time="13.159" />
+  <testcase name="quickAddFromSearchUsesStorePresetAndFallbackUnit[28]" classname="com.spisokryadom.app.Refine170UiTest" time="1.745" />
+  <testcase name="groupDefaultRecipientAppliesAndManualChoiceOverridesIt[28]" classname="com.spisokryadom.app.Refine170UiTest" time="2.175" />
+  <testcase name="globalDefaultsStayOutOfUnitFieldUntilSaving[28]" classname="com.spisokryadom.app.Refine170UiTest" time="1.291" />
+  <testcase name="shopRuleIsSavedAndUsedInProductCreatedInsideThatShop[28]" classname="com.spisokryadom.app.Refine170UiTest" time="1.422" />
+  <testcase name="recipientIconPackAndDifferentBottomTabsAreAvailable[28]" classname="com.spisokryadom.app.Refine170UiTest" time="0.952" />
+  <testcase name="standardCategoriesButtonIsIdempotentAndDoesNotPopulateShops" classname="com.spisokryadom.app.Refine170UiTest" time="12.649" />
+  <testcase name="quickAddFromSearchUsesStorePresetAndFallbackUnit" classname="com.spisokryadom.app.Refine170UiTest" time="1.521" />
+  <testcase name="groupDefaultRecipientAppliesAndManualChoiceOverridesIt" classname="com.spisokryadom.app.Refine170UiTest" time="2.323" />
+  <testcase name="globalDefaultsStayOutOfUnitFieldUntilSaving" classname="com.spisokryadom.app.Refine170UiTest" time="1.519" />
+  <testcase name="shopRuleIsSavedAndUsedInProductCreatedInsideThatShop" classname="com.spisokryadom.app.Refine170UiTest" time="1.601" />
+  <testcase name="recipientIconPackAndDifferentBottomTabsAreAvailable" classname="com.spisokryadom.app.Refine170UiTest" time="1.109" />
+  </testsuite>

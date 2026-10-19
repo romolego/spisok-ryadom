@@ -1,0 +1,12 @@
+<testsuite name="com.spisokryadom.app.Audit151ShareTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:27:19.072Z" time="12.338">
+  <testcase name="cleanupExpiresOnlyOwnAttachmentsAfterSevenDays[28]" classname="com.spisokryadom.app.Audit151ShareTest" time="3.485" />
+  <testcase name="ordinaryMessageStaysInlineAndDoesNotCreateAnAttachment[28]" classname="com.spisokryadom.app.Audit151ShareTest" time="0.104" />
+  <testcase name="laterShareDoesNotOverwriteEarlierAttachmentAndRetainsRecentFiles[28]" classname="com.spisokryadom.app.Audit151ShareTest" time="0.403" />
+  <testcase name="largeUnicodeV2MessageUsesReadableExactUtf8AttachmentWithinBinderBudget[28]" classname="com.spisokryadom.app.Audit151ShareTest" time="0.314" />
+  <testcase name="mainShoppingMessageUsesTheSameSafeAttachmentBoundary[28]" classname="com.spisokryadom.app.Audit151ShareTest" time="0.087" />
+  <testcase name="cleanupExpiresOnlyOwnAttachmentsAfterSevenDays" classname="com.spisokryadom.app.Audit151ShareTest" time="7.216" />
+  <testcase name="ordinaryMessageStaysInlineAndDoesNotCreateAnAttachment" classname="com.spisokryadom.app.Audit151ShareTest" time="0.062" />
+  <testcase name="laterShareDoesNotOverwriteEarlierAttachmentAndRetainsRecentFiles" classname="com.spisokryadom.app.Audit151ShareTest" time="0.353" />
+  <testcase name="largeUnicodeV2MessageUsesReadableExactUtf8AttachmentWithinBinderBudget" classname="com.spisokryadom.app.Audit151ShareTest" time="0.221" />
+  <testcase name="mainShoppingMessageUsesTheSameSafeAttachmentBoundary" classname="com.spisokryadom.app.Audit151ShareTest" time="0.075" />
+  </testsuite>

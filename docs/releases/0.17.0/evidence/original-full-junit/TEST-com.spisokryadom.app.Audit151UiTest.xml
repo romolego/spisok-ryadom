@@ -1,0 +1,20 @@
+<testsuite name="com.spisokryadom.app.Audit151UiTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:27:36.948Z" time="38.188">
+  <testcase name="unnamedDraftWithEnteredFieldsStaysVisibleUntilNameIsProvided[28]" classname="com.spisokryadom.app.Audit151UiTest" time="14.46" />
+  <testcase name="queuedMoveCompletesItsCallbackWhenRestoreGenerationRejectsIt[28]" classname="com.spisokryadom.app.Audit151UiTest" time="0.555" />
+  <testcase name="removingViewModelBeforeDebounceCommitsTheLastValidDraftExactlyOnce[28]" classname="com.spisokryadom.app.Audit151UiTest" time="0.268" />
+  <testcase name="movedPurchaseCannotTrapAnUnsavedEditorOrBeRecreatedInItsOldList[28]" classname="com.spisokryadom.app.Audit151UiTest" time="0.921" />
+  <testcase name="commentEditFromAnOldEditorPreservesExternalQuantityPriceUnitAndRealShop[28]" classname="com.spisokryadom.app.Audit151UiTest" time="0.675" />
+  <testcase name="regularPurchaseCommentRemainsVisibleEditableAndSeparateAfterMove[28]" classname="com.spisokryadom.app.Audit151UiTest" time="0.921" />
+  <testcase name="warmWidgetAddKeepsEditedPurchaseAndOpensRegularAddFlow[28]" classname="com.spisokryadom.app.Audit151UiTest" time="0.756" />
+  <testcase name="customPlacesWithIdenticalFlattenedTextKeepSeparateHeaders[28]" classname="com.spisokryadom.app.Audit151UiTest" time="0.501" />
+  <testcase name="remainingBudgetIsComputedFromPendingRowsWithoutLargeNumberCancellation[28]" classname="com.spisokryadom.app.Audit151UiTest" time="0.561" />
+  <testcase name="unnamedDraftWithEnteredFieldsStaysVisibleUntilNameIsProvided" classname="com.spisokryadom.app.Audit151UiTest" time="13.384" />
+  <testcase name="queuedMoveCompletesItsCallbackWhenRestoreGenerationRejectsIt" classname="com.spisokryadom.app.Audit151UiTest" time="0.479" />
+  <testcase name="removingViewModelBeforeDebounceCommitsTheLastValidDraftExactlyOnce" classname="com.spisokryadom.app.Audit151UiTest" time="0.325" />
+  <testcase name="movedPurchaseCannotTrapAnUnsavedEditorOrBeRecreatedInItsOldList" classname="com.spisokryadom.app.Audit151UiTest" time="0.89" />
+  <testcase name="commentEditFromAnOldEditorPreservesExternalQuantityPriceUnitAndRealShop" classname="com.spisokryadom.app.Audit151UiTest" time="0.736" />
+  <testcase name="regularPurchaseCommentRemainsVisibleEditableAndSeparateAfterMove" classname="com.spisokryadom.app.Audit151UiTest" time="0.948" />
+  <testcase name="warmWidgetAddKeepsEditedPurchaseAndOpensRegularAddFlow" classname="com.spisokryadom.app.Audit151UiTest" time="0.826" />
+  <testcase name="customPlacesWithIdenticalFlattenedTextKeepSeparateHeaders" classname="com.spisokryadom.app.Audit151UiTest" time="0.477" />
+  <testcase name="remainingBudgetIsComputedFromPendingRowsWithoutLargeNumberCancellation" classname="com.spisokryadom.app.Audit151UiTest" time="0.476" />
+  </testsuite>

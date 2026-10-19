@@ -1,0 +1,26 @@
+<testsuite name="com.spisokryadom.app.Refine100DataTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-19T06:34:56.072Z" time="17.529">
+  <testcase name="invalidMoveRollsBackNewLinksAndPreferencesForWholeSelection[28]" classname="com.spisokryadom.app.Refine100DataTest" time="6.666" />
+  <testcase name="disabledRememberingDoesNotChangeManualPreferences[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.186" />
+  <testcase name="priorityOwnershipAndDeletionHaveForeignKeyProtection[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.142" />
+  <testcase name="addingDestinationAndMovingIsAtomicAndRetainsPurchaseFacts[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.143" />
+  <testcase name="pointPriorityEditImmediatelyMovesPendingAndPreservesBoughtHistory[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.191" />
+  <testcase name="changedAvailabilityRepairsLegacyStaleUnlinkedPurchase[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.11" />
+  <testcase name="rememberingMovePromotesOnlyThisProductAndExactPoint[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.145" />
+  <testcase name="backupRoundTripKeepsPrioritiesAndSettingAndRejectsWrongOwner[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.348" />
+  <testcase name="shopPriorityEditMovesPendingWhileOrdinaryEditsPreserveExplicitPlace[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.145" />
+  <testcase name="schema12MigratesWithoutChangingExistingRows[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.255" />
+  <testcase name="restrictedDestinationGainsOnePointWithoutLosingExistingPoints[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.13" />
+  <testcase name="editorDraftAndAutosaveRetainProductSpecificPointOrder[28]" classname="com.spisokryadom.app.Refine100DataTest" time="0.569" />
+  <testcase name="invalidMoveRollsBackNewLinksAndPreferencesForWholeSelection" classname="com.spisokryadom.app.Refine100DataTest" time="6.59" />
+  <testcase name="disabledRememberingDoesNotChangeManualPreferences" classname="com.spisokryadom.app.Refine100DataTest" time="0.161" />
+  <testcase name="priorityOwnershipAndDeletionHaveForeignKeyProtection" classname="com.spisokryadom.app.Refine100DataTest" time="0.1" />
+  <testcase name="addingDestinationAndMovingIsAtomicAndRetainsPurchaseFacts" classname="com.spisokryadom.app.Refine100DataTest" time="0.117" />
+  <testcase name="pointPriorityEditImmediatelyMovesPendingAndPreservesBoughtHistory" classname="com.spisokryadom.app.Refine100DataTest" time="0.164" />
+  <testcase name="changedAvailabilityRepairsLegacyStaleUnlinkedPurchase" classname="com.spisokryadom.app.Refine100DataTest" time="0.1" />
+  <testcase name="rememberingMovePromotesOnlyThisProductAndExactPoint" classname="com.spisokryadom.app.Refine100DataTest" time="0.137" />
+  <testcase name="backupRoundTripKeepsPrioritiesAndSettingAndRejectsWrongOwner" classname="com.spisokryadom.app.Refine100DataTest" time="0.28" />
+  <testcase name="shopPriorityEditMovesPendingWhileOrdinaryEditsPreserveExplicitPlace" classname="com.spisokryadom.app.Refine100DataTest" time="0.116" />
+  <testcase name="schema12MigratesWithoutChangingExistingRows" classname="com.spisokryadom.app.Refine100DataTest" time="0.175" />
+  <testcase name="restrictedDestinationGainsOnePointWithoutLosingExistingPoints" classname="com.spisokryadom.app.Refine100DataTest" time="0.098" />
+  <testcase name="editorDraftAndAutosaveRetainProductSpecificPointOrder" classname="com.spisokryadom.app.Refine100DataTest" time="0.442" />
+  </testsuite>

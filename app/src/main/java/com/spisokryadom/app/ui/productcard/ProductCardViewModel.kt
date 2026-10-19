@@ -53,6 +53,8 @@ data class PendingShopLink(
 
 data class ProductCardUiState(
     val isNew: Boolean = true,
+    val recipientManuallySet:Boolean=false,val purchaseTypeManuallySet:Boolean=false,
+    val allowedPurchaseTypes:Set<String> = setOf("offline","online"),
     val savedProductId:Long?=null,
     val autoSaveIssue:String?=null,
     val matchingProducts:List<ProductEntity> = emptyList(),
@@ -108,10 +110,12 @@ class ProductCardViewModel(
     private val productRepository: ProductRepository,
     private val shopRepository: ShopRepository,
     private val classifierRepository: ClassifierRepository,
-    private val draftPreferences:android.content.SharedPreferences?=null
+    private val draftPreferences:android.content.SharedPreferences?=null,
+    private val editingPreferences:android.content.SharedPreferences?=null,
+    initialName:String=""
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProductCardUiState(isNew = productId == -1L,isLoading=productId != -1L||preselectedShopId>0))
+    private val _uiState = MutableStateFlow(ProductCardUiState(name=if(productId<0)initialName.trim()else "",isNew = productId == -1L,recipientManuallySet=productId>0,purchaseTypeManuallySet=productId>0,isLoading=productId != -1L||preselectedShopId>0))
     val uiState: StateFlow<ProductCardUiState> = _uiState.asStateFlow()
 
     private val _shopMap = MutableStateFlow<Map<Long, ShopEntity>>(emptyMap())
@@ -122,8 +126,9 @@ class ProductCardViewModel(
     private var linksLoaded = productId == -1L
     private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.update { latest->latest.copy(error=e.message?:"Операция не выполнена",isLoading=false,isSaving=false) }}
 
-    private val draftKey=if(productId<0)"new_$preselectedShopId"else "product_$productId"
-    private val restoredDraft=draftPreferences?.getString(draftKey,null)?.let{runCatching{ProductEditDraft.decode(it)}.getOrNull()}
+    private fun autoSaveEnabled()=com.spisokryadom.app.util.ProductEditingPreferences.enabled(editingPreferences)
+    private val draftKey=if(productId<0)"new_$preselectedShopId"+(if(initialName.isBlank())""else "_search_"+java.util.UUID.nameUUIDFromBytes(initialName.trim().toByteArray(Charsets.UTF_8)))else "product_$productId"
+    private val restoredDraft=if(autoSaveEnabled())draftPreferences?.getString(draftKey,null)?.let{runCatching{ProductEditDraft.decode(it)}.getOrNull()}?.takeIf{it.autoPersist}else null
     private var editorStableId=restoredDraft?.stableId?:java.util.UUID.randomUUID().toString()
     private var duplicateAllowed=restoredDraft?.allowDuplicate?:false
     private var closed=false
@@ -131,8 +136,8 @@ class ProductCardViewModel(
     private val editSignals=kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
     private var lastCommitted:String?=null
     private var draftBase:ProductEditDraft?=null
-    private fun snapshot()=ProductEditDraft(editorStableId,productId,productId<0,duplicateAllowed,_uiState.value)
-    private fun currentStoredDraft()=ProductDraftStore.find(draftPreferences,editorStableId)
+    private fun snapshot()=ProductEditDraft(editorStableId,productId,productId<0,duplicateAllowed,_uiState.value,autoSaveEnabled())
+    private fun currentStoredDraft()=ProductDraftStore.find(draftPreferences,editorStableId)?.takeIf{autoSaveEnabled()||!it.autoPersist}
     private fun refreshExternalDraft(){
         if(closed||_uiState.value.isLoading||editorGeneration!=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get())return
         val remote=currentStoredDraft()?:return
@@ -141,7 +146,9 @@ class ProductCardViewModel(
         draftBase=remote
         _uiState.update{merged.editableOn(it)}
     }
-    private fun edit(change:(ProductCardUiState)->ProductCardUiState){refreshExternalDraft();_uiState.update(change)}
+    private var shopCreationRules=emptyList<com.spisokryadom.app.data.entity.ShopCreationPreset>()
+    private var groupCreationRules=emptyList<com.spisokryadom.app.data.entity.GroupCreationPreset>()
+    private fun edit(change:(ProductCardUiState)->ProductCardUiState){refreshExternalDraft();_uiState.update(change);applyCreationDefaults(shopCreationRules,groupCreationRules)}
     // Every raw write shares the catalogue/editor lock; the listener itself only reads.
     private suspend fun keepDraftLocked():Boolean{
         if(closed||_uiState.value.isLoading||editorGeneration!=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get())return false
@@ -159,8 +166,9 @@ class ProductCardViewModel(
     private suspend fun persistCurrent():Long {
         require(editorGeneration==com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()){ "База была восстановлена. Откройте товар заново" }
         require(keepDraftLocked()){ "Товар удалён или заменён" }
+        applyCreationDefaults(shopRepository.creationPresets().first(),classifierRepository.creationPresets().first())
         val draft=snapshot();val encoded=draft.encode()
-        val id=if(lastCommitted==encoded)_uiState.value.savedProductId!! else draft.persist(productRepository)
+        val id=if(lastCommitted==encoded)_uiState.value.savedProductId!! else draft.persist(productRepository,editingPreferences?.let{com.spisokryadom.app.util.ProductCreationDefaults.read(it)})
         lastCommitted=encoded
         _uiState.update { latest->latest.copy(savedProductId=id,autoSaveIssue=null,duplicateName=false) }
         return id
@@ -170,7 +178,7 @@ class ProductCardViewModel(
             _uiState.filter{!it.isLoading&&productLoaded&&linksLoaded}.first()
             com.spisokryadom.app.data.repository.ProductEditorTransactions.locked{
                 val recovered=currentStoredDraft()
-                if(recovered!=null&&(productId<0||recovered.stableId==editorStableId)){
+                if(autoSaveEnabled()&&recovered?.autoPersist==true&&(productId<0||recovered.stableId==editorStableId)){
                     var restored=recovered.applyTo(_uiState.value)
                     if(productId>0&&recovered.newSession)restored=restored.copy(isNew=false,shopLinks=restored.pendingShopLinks.map{ShopLinkUi(ProductShopLinkEntity(id=-it.tempId,productId=productId,shopId=it.shopId,priority=it.displayOrder,departmentId=it.departmentId),it.shopName,it.departmentName)},pendingShopLinks=emptyList())
                     _uiState.value=restored
@@ -189,7 +197,9 @@ class ProductCardViewModel(
         }
         viewModelScope.launch(errors){editSignals.receiveAsFlow().debounce(400).collect{
             com.spisokryadom.app.data.repository.ProductEditorTransactions.locked{
-                if(!closed&&!_uiState.value.isLoading&&!_uiState.value.isPhotoBusy&&_uiState.value.name.isNotBlank())try{persistCurrent()}catch(e:Exception){
+                if(!closed&&autoSaveEnabled()&&!_uiState.value.isLoading&&!_uiState.value.isPhotoBusy)try{
+                    if(_uiState.value.name.isNotBlank())persistCurrent()else withdrawUnnamedNewProduct()
+                }catch(e:Exception){
                     if(e is kotlinx.coroutines.CancellationException)throw e
                     _uiState.update { latest->latest.copy(duplicateName=e is ProductRepository.DuplicateName,autoSaveIssue=e.message) }
                 }
@@ -197,8 +207,21 @@ class ProductCardViewModel(
         }}
     }
 
-    private val nameQuery=MutableStateFlow("")
+    private fun applyCreationDefaults(modes:List<com.spisokryadom.app.data.entity.ShopCreationPreset>,groups:List<com.spisokryadom.app.data.entity.GroupCreationPreset>){
+        _uiState.update{s->
+            if(!s.isNew||s.isLoading)s else {
+                val links=s.pendingShopLinks.sortedWith(if(s.preferCityShopOrder)compareBy<PendingShopLink>{s.shopOrders[it.shopId]?:Int.MAX_VALUE}.thenBy{it.displayOrder}else compareBy{it.displayOrder})
+                val mode=modes.find{it.shopId==links.firstOrNull()?.shopId}?.purchaseMode?:"inherit"
+                val allowed=com.spisokryadom.app.util.PurchaseModes.allowed(mode)
+                val global=editingPreferences?.let{com.spisokryadom.app.util.ProductCreationDefaults.read(it).purchaseType}?:"offline"
+                s.copy(allowedPurchaseTypes=allowed,purchaseType=if(allowed.size==1)allowed.single()else if(s.purchaseTypeManuallySet)s.purchaseType else global,
+                    recipientId=if(s.recipientManuallySet)s.recipientId else groups.find{it.groupId==s.productGroupId}?.recipientId)
+            }
+        }
+    }
+    private val nameQuery=MutableStateFlow(if(productId<0)initialName.trim()else "")
     init {
+        viewModelScope.launch(errors){combine(shopRepository.creationPresets(),classifierRepository.creationPresets(),_uiState.map{listOf(it.isNew,it.isLoading,it.productGroupId,it.pendingShopLinks,it.shopOrders,it.preferCityShopOrder,it.recipientManuallySet,it.purchaseTypeManuallySet)}.distinctUntilChanged()){a,b,_->a to b}.collect{(a,b)->shopCreationRules=a;groupCreationRules=b;applyCreationDefaults(a,b)}}
         viewModelScope.launch(errors){shopRepository.departmentTypes().collect{_uiState.update { latest->latest.copy(departmentTypes=it) }}}
         viewModelScope.launch(errors){
             combine(nameQuery,productRepository.getAllProducts()){query,products->query to products}.debounce(120).collectLatest{(query,products)->
@@ -346,7 +369,7 @@ class ProductCardViewModel(
     }
 
     fun updateRecipient(recipientId: Long?) {
-        edit { latest->latest.copy(recipientId = recipientId) }
+        edit { latest->latest.copy(recipientId = recipientId,recipientManuallySet=true) }
     }
 
     fun updateDefaultUnit(unit: String) {
@@ -362,7 +385,7 @@ class ProductCardViewModel(
     }
 
     fun updatePurchaseType(type: String) {
-        edit { latest->latest.copy(purchaseType = type) }
+        edit { latest->latest.copy(purchaseType = type,purchaseTypeManuallySet=true) }
     }
 
     fun updateSellerUrl(url: String) {
@@ -588,6 +611,14 @@ class ProductCardViewModel(
             edit { latest->latest.copy(isSaving=false,usedExistingId=id) }
         }}
     }
+    // A new editor owns its auto-created row, but must not delete it after a purchase uses it.
+    private suspend fun withdrawUnnamedNewProduct(){
+        if(productId>=0)return
+        if(productRepository.getProductByStableId(editorStableId)!=null)productRepository.discardNewEditorProduct(editorStableId)
+        draftBase=null;lastCommitted=null
+        _uiState.update{it.copy(savedProductId=null,autoSaveIssue=null)}
+        keepDraftLocked()
+    }
     fun save(allowDuplicate:Boolean=false)=finishEditing(false,allowDuplicate)
     fun finishEditing(leaving:Boolean=true,allowDuplicate:Boolean=false){
         if(closed||_uiState.value.isSaving||_uiState.value.isLoading||_uiState.value.isPhotoBusy)return
@@ -595,16 +626,24 @@ class ProductCardViewModel(
         edit { latest->latest.copy(isSaving=true,error=null) }
         viewModelScope.launch{com.spisokryadom.app.data.repository.ProductEditorTransactions.locked{
             try{
+                if(leaving&&!autoSaveEnabled()){
+                    closed=true;ProductDraftStore.remove(draftPreferences,editorStableId)
+                    _uiState.update{it.copy(isSaving=false,isSaved=true)}
+                    return@locked
+                }
                 keepDraftLocked()
-                if(_uiState.value.name.isNotBlank())persistCurrent()else if(!leaving)error("Введите название товара")
+                if(_uiState.value.name.isNotBlank())persistCurrent()else {
+                    if(!leaving||productId>=0)error("Введите название товара")
+                    withdrawUnnamedNewProduct()
+                }
                 closed=true;ProductDraftStore.remove(draftPreferences,editorStableId)
-                // An unnamed draft remains available on the next new-card visit.
+                // Only unnamed new drafts keep their remaining raw fields for the next visit.
                 if(_uiState.value.name.isBlank()){closed=false;keepDraftLocked();closed=true}
                 edit { latest->latest.copy(isSaving=false,isSaved=true) }
             }catch(e:Exception){
                 if(e is kotlinx.coroutines.CancellationException)throw e
                 keepDraftLocked()
-                if(leaving){closed=true;edit { latest->latest.copy(isSaving=false,isSaved=true) }}
+                if(leaving&&autoSaveEnabled()&&_uiState.value.name.isNotBlank()){closed=true;edit { latest->latest.copy(isSaving=false,isSaved=true) }}
                 else edit { latest->latest.copy(isSaving=false,duplicateName=e is ProductRepository.DuplicateName,error=if(e is ProductRepository.DuplicateName)null else e.message) }
             }
         }}
@@ -640,14 +679,22 @@ class ProductCardViewModel(
             if(editorGeneration==com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()){
                 val remote=ProductDraftStore.find(draftPreferences,draft.stableId)
                 val deleted=base!=null&&remote==null&&(productId>0||draft.state.savedProductId!=null)&&productRepository.getProductByStableId(draft.stableId)==null
-                if(!deleted)ProductDraftStore.write(draftPreferences,draftKey,draft.rebaseExternal(base,remote))
+                if(!autoSaveEnabled())ProductDraftStore.remove(draftPreferences,draft.stableId)
+                else if(!deleted){
+                    val merged=draft.rebaseExternal(base,remote)
+                    if(productId<0&&merged.state.name.isBlank()){
+                        // Direct navigation can clear the VM before the autosave debounce fires.
+                        runCatching{productRepository.discardNewEditorProduct(merged.stableId)}
+                    }
+                    ProductDraftStore.write(draftPreferences,draftKey,merged)
+                }
             }
         }
         super.onCleared()
     }
 
     companion object {
-        fun factory(productId: Long, preselectedShopId: Long = -1L): ViewModelProvider.Factory = viewModelFactory {
+        fun factory(productId: Long, preselectedShopId: Long = -1L, initialName:String=""): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as SpisokRyadomApp
                 ProductCardViewModel(
@@ -656,7 +703,9 @@ class ProductCardViewModel(
                     productRepository = app.container.productRepository,
                     shopRepository = app.container.shopRepository,
                     classifierRepository = app.container.classifierRepository,
-                    draftPreferences = ProductDraftStore.preferences(app)
+                    draftPreferences = ProductDraftStore.preferences(app),
+                    editingPreferences=com.spisokryadom.app.util.ProductEditingPreferences.preferences(app),
+                    initialName=initialName
                 )
             }
         }

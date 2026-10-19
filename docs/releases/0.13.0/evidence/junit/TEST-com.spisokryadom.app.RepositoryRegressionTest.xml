@@ -1,0 +1,15 @@
+<testsuite name="com.spisokryadom.app.RepositoryRegressionTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-19T06:40:14.576Z" time="6.734">
+  <testcase name="batchRollsBackAndUndoProtectsSubsequentChanges" classname="com.spisokryadom.app.RepositoryRegressionTest" time="4.141" />
+  <testcase name="legacyNumericIdCollisionDoesNotOverwritePurchasedProduct" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.286" />
+  <testcase name="classifierRenameAndOrderingAreConsistent" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.184" />
+  <testcase name="fullBackupRoundTripIncludesBasketPhotosCitiesAndPreferences" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.384" />
+  <testcase name="productAndLinksSaveAtomically" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.213" />
+  <testcase name="databaseWriteFailureRollsBackRestoreAndKeepsOldPhotos" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.207" />
+  <testcase name="shopAndDepartmentsSaveAtomically" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.138" />
+  <testcase name="cityRoutingPreservesExistingPurchases" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.172" />
+  <testcase name="compatibleMergingSeparatesUnitsAndStores" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.157" />
+  <testcase name="corruptBackupCannotDeleteExistingDataOrPhotos" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.198" />
+  <testcase name="repeatedNewLinesMergeWithinBatchAndUndoTogether" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.137" />
+  <testcase name="temporaryLifecycleKeepsCatalogClean" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.134" />
+  <testcase name="concurrentTapsAreNotLost" classname="com.spisokryadom.app.RepositoryRegressionTest" time="0.382" />
+  </testsuite>

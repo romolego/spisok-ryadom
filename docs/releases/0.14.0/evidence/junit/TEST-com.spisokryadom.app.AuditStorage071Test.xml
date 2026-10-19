@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.AuditStorage071Test" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:42:57.257Z" time="16.165">
+  <testcase name="validIntegerCityAndStringSetsRoundTripWithoutTypeCoercion[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="6.837" />
+  <testcase name="olderFullCopyWithoutPreferencesRemainsImportable[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.244" />
+  <testcase name="restoringMissingNewKeysNotifiesTheirRemovalOnBothAndroidVersions[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.235" />
+  <testcase name="olderCopyWithoutSelectionCanBeExportedAgainWhenCityIdsChanged[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.268" />
+  <testcase name="malformedPreferencesAreRejectedBeforeDatabaseOrSettingsReplacement[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.32" />
+  <testcase name="longRunningImportKeepsAgedStagedPhotosUntilCommitAndReleasesDirectoryLease[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.26" />
+  <testcase name="validIntegerCityAndStringSetsRoundTripWithoutTypeCoercion" classname="com.spisokryadom.app.AuditStorage071Test" time="6.644" />
+  <testcase name="olderFullCopyWithoutPreferencesRemainsImportable" classname="com.spisokryadom.app.AuditStorage071Test" time="0.225" />
+  <testcase name="restoringMissingNewKeysNotifiesTheirRemovalOnBothAndroidVersions" classname="com.spisokryadom.app.AuditStorage071Test" time="0.303" />
+  <testcase name="olderCopyWithoutSelectionCanBeExportedAgainWhenCityIdsChanged" classname="com.spisokryadom.app.AuditStorage071Test" time="0.256" />
+  <testcase name="malformedPreferencesAreRejectedBeforeDatabaseOrSettingsReplacement" classname="com.spisokryadom.app.AuditStorage071Test" time="0.315" />
+  <testcase name="longRunningImportKeepsAgedStagedPhotosUntilCommitAndReleasesDirectoryLease" classname="com.spisokryadom.app.AuditStorage071Test" time="0.245" />
+  </testsuite>

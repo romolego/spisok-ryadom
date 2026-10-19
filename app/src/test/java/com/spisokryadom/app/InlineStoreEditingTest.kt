@@ -31,7 +31,7 @@ class InlineStoreEditingTest {
  @Before fun setup(){
   listOf("drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
   runBlocking{
-   db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll()
+   db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes()
    db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
    shop=db.shopDao().insert(ShopEntity(name="Командор",address="Весны, 7",displayOrder=0))
    db.shopDao().insert(ShopEntity(name="Батон",displayOrder=1))
@@ -88,7 +88,7 @@ class InlineStoreEditingTest {
   ui.onNodeWithText("Магазины подбираются",substring=true).assertDoesNotExist()
   shot("04-settings")
   ui.onNodeWithContentDescription("Назад").performClick()
-  ui.onNodeWithContentDescription("Текстовый список").performClick();waitText("Проверить изменения")
+  ui.onNodeWithContentDescription("Текстовый список").performClick();waitText("Ваш список")
   ui.onNodeWithText("Только некупленные позиции.",substring=true).assertDoesNotExist()
   assertEquals("",ui.onNodeWithTag("bulk-editor").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text)
   shot("05-text-view")

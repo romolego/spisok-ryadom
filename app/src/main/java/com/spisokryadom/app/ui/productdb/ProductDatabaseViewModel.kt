@@ -17,7 +17,7 @@ data class ProductDepartmentSection(val name:String,val products:List<ProductEnt
 data class ProductSection(val name:String,val products:List<ProductEntity>,val key:String=name,val shopId:Long?=null,val departments:List<ProductDepartmentSection> = emptyList(),val accent:String="",val iconKey:String="")
 data class ProductDatabaseUiState(val products:List<ProductEntity> = emptyList(),val sections:List<ProductSection> = emptyList(),val viewMode:ProductViewMode=ProductViewMode.ALPHABETICAL,
  val favoritesOnly:Boolean=false,val shopShoppingListMap:Map<Long,Map<Long,ShoppingListInfo>> = emptyMap(),
- val searchQuery:String="",val unitSuggestions:List<String> = emptyList(),val shoppingListMap:Map<Long,ShoppingListInfo> = emptyMap(),val isLoading:Boolean=true,val error:String?=null)
+ val searchQuery:String="",val unitSuggestions:List<String> = emptyList(),val shoppingListMap:Map<Long,ShoppingListInfo> = emptyMap(),val isLoading:Boolean=true,val error:String?=null,val searchedQuery:String="",val exactNameExists:Boolean=false)
 @OptIn(FlowPreview::class,ExperimentalCoroutinesApi::class)
 class ProductDatabaseViewModel(private val products:ProductRepository,private val basket:ShoppingListRepository,private val shops:ShopRepository,private val classifiers:ClassifierRepository,private val prefs:SharedPreferences):ViewModel(){
  private val favorites=MutableStateFlow(prefs.getBoolean("favorites_only",false))
@@ -59,22 +59,22 @@ class ProductDatabaseViewModel(private val products:ProductRepository,private va
    ProductViewMode.BY_RECIPIENTS->{val grouped=list.groupBy{it.recipientId};buildList{d.recipients.sortedBy{it.displayOrder}.forEach{g->grouped[g.id]?.let{add(ProductSection(g.name,it,"recipient_${g.id}",accent=g.accent,iconKey=g.iconKey))}};grouped[null]?.let{add(ProductSection("Без получателя",it,"no_recipient"))}}}
   }
   fun info(rows:List<ShoppingListEntryEntity>)=rows.groupBy{it.productId}.mapValues{(_,purchases)->val first=purchases.minBy{it.id};ShoppingListInfo(first.id,first.quantity,first.unit,shopMap[first.assignedShopId]?.name,com.spisokryadom.app.ui.components.pendingPurchases(purchases,shopMap,branchMap))}
-  val pending=d.entries.filter{!it.isBought&&(it.assignedShopId==null||it.assignedShopId in shopMap)}
+  val pending=d.entries.filter{it.listId==null&&!it.isBought&&(it.assignedShopId==null||it.assignedShopId in shopMap)}
   val entries=info(pending)
-  ProductDatabaseUiState(products=list,sections=(if(!d.favoritesOnly&&list.any{it.isFavorite})listOf(ProductSection("Избранное",list.filter{it.isFavorite},"favorites"))else emptyList())+sections,viewMode=m,searchQuery=q,unitSuggestions=u,shoppingListMap=entries,isLoading=false,error=err,
+  ProductDatabaseUiState(searchedQuery=q,exactNameExists=d.products.any{FuzzySearch.normalize(it.name)==FuzzySearch.normalize(q)},products=list,sections=(if(!d.favoritesOnly&&list.any{it.isFavorite})listOf(ProductSection("Избранное",list.filter{it.isFavorite},"favorites"))else emptyList())+sections,viewMode=m,searchQuery=q,unitSuggestions=u,shoppingListMap=entries,isLoading=false,error=err,
    favoritesOnly=d.favoritesOnly,shopShoppingListMap=pending.groupBy{it.assignedShopId?:0L}.mapValues{info(it.value)})
  }.flowOn(Dispatchers.Default).stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),ProductDatabaseUiState())
  val uiState:StateFlow<ProductDatabaseUiState> = combine(results,query){state,q->state.copy(searchQuery=q)}.stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),ProductDatabaseUiState())
  fun setViewMode(m:ProductViewMode){mode.value=m;prefs.edit().putString("product_db_view_mode",m.name).apply()}
  fun setSearchQuery(q:String){query.value=q}
  fun revealProduct(){query.value="";favorites.value=false;prefs.edit().putBoolean("favorites_only",false).apply()}
- private fun command(block:suspend()->Unit){viewModelScope.launch{try{block()}catch(e:Exception){if(e is CancellationException)throw e;error.value=e.message?:"Операция не выполнена"}}}
+ private fun command(block:suspend()->Unit){val generation=ProductEditorTransactions.generation.get();viewModelScope.launch{try{ProductEditorTransactions.inGeneration(generation,block)}catch(e:Exception){if(e is CancellationException)throw e;error.value=e.message?:"Операция не выполнена"}}}
  fun clearError(){error.value=null}
  fun toggleFavorites(){favorites.value=!favorites.value;prefs.edit().putBoolean("favorites_only",favorites.value).apply()}
  fun quickAddToList(p:ProductEntity,shopId:Long?=null,scoped:Boolean=false)=command{basket.addProduct(p.id,choice=if(scoped&&shopId!=null)ShopChoice.EXPLICIT else ShopChoice.AUTO,shopId=shopId)}
- fun incrementEntry(entryId:Long)=command{basket.adjustByDefaultStep(entryId,1)}
- fun decrementEntry(entryId:Long)=command{basket.adjustByDefaultStep(entryId,-1)}
- fun setEntryQuantity(entryId:Long,quantity:Double)=command{if(quantity<=0)basket.removeEntry(entryId)else basket.updateQuantity(entryId,quantity)}
+ fun incrementEntry(entryId:Long)=command{basket.adjustByDefaultStep(entryId,1,regularOnly=true)}
+ fun decrementEntry(entryId:Long)=command{basket.adjustByDefaultStep(entryId,-1,regularOnly=true)}
+ fun setEntryQuantity(entryId:Long,quantity:Double)=command{if(quantity<=0)basket.removeEntry(entryId,regularOnly=true)else basket.updateQuantity(entryId,quantity,regularOnly=true)}
  // Capture the displayed identity before launching; never reselect a different row by product.
  fun incrementQuantity(productId:Long){uiState.value.shoppingListMap[productId]?.takeIf{it.purchases.size<=1}?.let{incrementEntry(it.entryId)}}
  fun decrementQuantity(productId:Long){uiState.value.shoppingListMap[productId]?.takeIf{it.purchases.size<=1}?.let{decrementEntry(it.entryId)}}

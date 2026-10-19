@@ -32,7 +32,7 @@ class MarketUiTest {
  @Before fun seed(){
   listOf("drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
   runBlocking{
-   db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
+   db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
    market=db.shopDao().insert(ShopEntity(name="Енисейский привоз"));baton=db.shopDao().insert(ShopEntity(name="Батон"))
    cheesePoint=db.shopBranchDao().insert(ShopBranchEntity(shopId=market,address="29 павильон — сыры",note="Беру сыр и масло",displayOrder=0))
    meatPoint=db.shopBranchDao().insert(ShopBranchEntity(shopId=market,address="68 павильон — мясо",displayOrder=1))

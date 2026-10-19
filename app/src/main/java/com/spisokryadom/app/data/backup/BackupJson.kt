@@ -20,7 +20,10 @@ internal data class BackupSnapshot(
  val departmentTypes:List<DepartmentTypeEntity> = emptyList(),
  val branchOrder:List<BranchDepartmentOrderEntity> = emptyList(),
  val branchDepartments:List<ProductBranchDepartmentEntity> = emptyList(),
- val branchPriorities:List<ProductBranchPriorityEntity> = emptyList()
+ val branchPriorities:List<ProductBranchPriorityEntity> = emptyList(),
+ val goalLists:List<GoalListEntity> = emptyList(),
+ val shopPresets:List<ShopCreationPreset> = emptyList(),
+ val groupPresets:List<GroupCreationPreset> = emptyList()
 )
 internal object BackupJson {
  fun encode(value:ProductEntity):JSONObject = JSONObject().apply {
@@ -110,6 +113,7 @@ internal object BackupJson {
   put("manualOrderOverride",value.manualOrderOverride)
   put("cityId",value.cityId)
   put("networkId",value.networkId?:JSONObject.NULL)
+  put("shoppingBackground",value.shoppingBackground)
  }
  fun shops(o:JSONObject):ShopEntity = ShopEntity(
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
@@ -121,7 +125,8 @@ internal object BackupJson {
   boostUrgentShop=if(o.has("boostUrgentShop")&&!o.isNull("boostUrgentShop"))o.getBoolean("boostUrgentShop") else null,
   manualOrderOverride=if(o.has("manualOrderOverride")&&!o.isNull("manualOrderOverride"))o.getBoolean("manualOrderOverride") else false,
   cityId=if(o.has("cityId")&&!o.isNull("cityId"))o.getLong("cityId") else 1,
-  networkId=if(o.has("networkId")&&!o.isNull("networkId"))o.getLong("networkId")else null
+  networkId=if(o.has("networkId")&&!o.isNull("networkId"))o.getLong("networkId")else null,
+  shoppingBackground=o.optString("shoppingBackground","")
  )
  fun encode(value:ShopDepartmentEntity):JSONObject = JSONObject().apply {
   put("id",value.id)
@@ -154,6 +159,7 @@ internal object BackupJson {
   departmentId=if(o.has("departmentId")&&!o.isNull("departmentId"))o.getLong("departmentId") else null
  )
  fun encode(value:ShoppingListEntryEntity):JSONObject = JSONObject().apply {
+  put("listId",value.listId?:JSONObject.NULL);put("plannedUnitPrice",value.plannedUnitPrice?:JSONObject.NULL);put("customShopName",value.customShopName?:JSONObject.NULL);put("customShopAddress",value.customShopAddress?:JSONObject.NULL)
   put("awaitingShopCityId",value.awaitingShopCityId?:JSONObject.NULL);put("explicitNoShop",value.explicitNoShop)
   put("id",value.id)
   put("productId",value.productId)
@@ -170,6 +176,10 @@ internal object BackupJson {
   put("updatedAt",value.updatedAt)
  }
  fun entries(o:JSONObject):ShoppingListEntryEntity = ShoppingListEntryEntity(
+  listId=if(o.has("listId")&&!o.isNull("listId"))strictLong(o,"listId")else null,
+  plannedUnitPrice=if(o.has("plannedUnitPrice")&&!o.isNull("plannedUnitPrice"))strictNumber(o,"plannedUnitPrice")else null,
+  customShopName=if(o.has("customShopName")&&!o.isNull("customShopName"))strictString(o,"customShopName")else null,
+  customShopAddress=if(o.has("customShopAddress")&&!o.isNull("customShopAddress"))strictString(o,"customShopAddress")else null,
   explicitNoShop=o.optBoolean("explicitNoShop",false),awaitingShopCityId=if(o.has("awaitingShopCityId")&&!o.isNull("awaitingShopCityId"))o.getLong("awaitingShopCityId")else null,
   assignedBranchId=if(o.has("assignedBranchId")&&!o.isNull("assignedBranchId"))o.getLong("assignedBranchId")else null,
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
@@ -213,7 +223,22 @@ internal object BackupJson {
  fun encode(v:BranchDepartmentOrderEntity)=JSONObject().put("branchId",v.branchId).put("typeId",v.typeId).put("displayOrder",v.displayOrder)
  fun encode(v:ProductBranchDepartmentEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("typeId",v.typeId)
  fun encode(v:ProductBranchPriorityEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("displayOrder",v.displayOrder)
+ fun encode(v:GoalListEntity)=JSONObject().put("id",v.id).put("stableId",v.stableId).put("name",v.name).put("showInPurchases",v.showInPurchases).put("createdAt",v.createdAt).put("updatedAt",v.updatedAt)
+ fun goalList(o:JSONObject)=GoalListEntity(strictLong(o,"id"),strictString(o,"stableId"),strictString(o,"name"),strictBoolean(o,"showInPurchases"),strictLong(o,"createdAt"),strictLong(o,"updatedAt"))
+ // JSONObject getters coerce strings and truncate decimals. A full snapshot must never
+ // silently redirect a purchase to another owner or alter planning metadata that way.
+ private fun strictLong(o:JSONObject,key:String):Long {
+  val value=o.get(key);require(value is Int||value is Long){"Поле $key должно быть целым числом"};return (value as Number).toLong()
+ }
+ private fun strictNumber(o:JSONObject,key:String):Double {
+  val value=o.get(key);require(value is Number){"Поле $key должно быть числом"};return value.toDouble()
+ }
+ private fun strictString(o:JSONObject,key:String):String = (o.get(key) as? String)?:throw IllegalArgumentException("Поле $key должно быть строкой")
+ private fun strictBoolean(o:JSONObject,key:String):Boolean = (o.get(key) as? Boolean)?:throw IllegalArgumentException("Поле $key должно быть true или false")
  fun manifest(s:BackupSnapshot):JSONObject=JSONObject().put("version",BackupManager.BACKUP_VERSION).put("kind","full").put("exportedAt",java.time.LocalDateTime.now().toString()).put("preferences",s.preferences).put("data",JSONObject().apply {
+  put("shopCreationPresets",JSONArray().also{a->s.shopPresets.forEach{a.put(JSONObject().put("shopId",it.shopId).put("purchaseMode",it.purchaseMode))}})
+  put("groupCreationPresets",JSONArray().also{a->s.groupPresets.forEach{a.put(JSONObject().put("groupId",it.groupId).put("recipientId",it.recipientId?:JSONObject.NULL))}})
+  put("goalLists",JSONArray().also{a->s.goalLists.forEach{a.put(encode(it))}})
   put("productBranchPriorities",JSONArray().also{a->s.branchPriorities.forEach{a.put(encode(it))}})
   put("branchDepartmentOrder",JSONArray().also{a->s.branchOrder.forEach{a.put(encode(it))}})
   put("productBranchDepartments",JSONArray().also{a->s.branchDepartments.forEach{a.put(encode(it))}})
@@ -244,6 +269,11 @@ internal object BackupJson {
  }
  fun read(root:JSONObject):BackupSnapshot {
  val d=root.getJSONObject("data")
+ if(root.getInt("version")>=11)d.optJSONArray("shoppingListEntries")?.let{a->
+  (0 until a.length()).forEach{i->val row=a.getJSONObject(i)
+   listOf("listId","plannedUnitPrice","customShopName","customShopAddress").forEach{key->require(row.has(key)){"В копии отсутствует поле покупки $key"}}
+  }
+ }
  return BackupSnapshot(
   products=d.optJSONArray("products")?.let{a->(0 until a.length()).map{products(a.getJSONObject(it))}} ?: emptyList(),
   groups=d.optJSONArray("productGroups")?.let{a->(0 until a.length()).map{groups(a.getJSONObject(it))}} ?: emptyList(),
@@ -262,6 +292,9 @@ internal object BackupJson {
   venues=d.optJSONArray("venues")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->VenueEntity(o.getLong("id"),o.getLong("cityId"),o.getString("name"),if(o.isNull("address"))null else o.optString("address"),if(o.isNull("note"))null else o.optString("note"))}}}?:emptyList(),
   departmentTypes=d.optJSONArray("departmentTypes")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->DepartmentTypeEntity(o.getLong("id"),o.getString("name"),o.getString("normalizedName"),o.optInt("displayOrder",0),o.optString("accent",""),o.optString("iconKey",""))}}}?:emptyList(),
   branchPriorities=d.optJSONArray("productBranchPriorities")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductBranchPriorityEntity(o.getLong("productId"),o.getLong("branchId"),o.getLong("shopId"),o.getInt("displayOrder"))}}}?:emptyList(),
+  goalLists=d.optJSONArray("goalLists")?.let{a->(0 until a.length()).map{goalList(a.getJSONObject(it))}}?:emptyList(),
+  shopPresets=d.optJSONArray("shopCreationPresets")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require((o.get("shopId") is Int||o.get("shopId") is Long)&&o.get("purchaseMode") is String);ShopCreationPreset(o.getLong("shopId"),o.getString("purchaseMode"))}}}?:emptyList(),
+  groupPresets=d.optJSONArray("groupCreationPresets")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require((o.get("groupId") is Int||o.get("groupId") is Long)&&o.has("recipientId")&&(o.isNull("recipientId")||(o.get("recipientId") is Int||o.get("recipientId") is Long)));GroupCreationPreset(o.getLong("groupId"),if(o.isNull("recipientId"))null else o.getLong("recipientId"))}}}?:emptyList(),
   preferences=root.optJSONObject("preferences") ?: JSONObject()
  )
  }

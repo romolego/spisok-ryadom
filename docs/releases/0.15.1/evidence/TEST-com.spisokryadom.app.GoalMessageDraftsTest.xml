@@ -1,0 +1,4 @@
+<testsuite name="com.spisokryadom.app.GoalMessageDraftsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:23:15.478Z" time="9.355">
+  <testcase name="largeMessagesRestoreByPrivateFileTokenWithoutEnteringSavedStateBundle[28]" classname="com.spisokryadom.app.GoalMessageDraftsTest" time="2.882" />
+  <testcase name="largeMessagesRestoreByPrivateFileTokenWithoutEnteringSavedStateBundle" classname="com.spisokryadom.app.GoalMessageDraftsTest" time="6.467" />
+  </testsuite>

@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Refine090UiTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:30:40.841Z" time="38.66">
+  <testcase name="marketPavilionsAndOrdinaryShopsAreVisibleTogetherWithoutSelector[28]" classname="com.spisokryadom.app.Refine090UiTest" time="12.386" />
+  <testcase name="newDepartmentFromCardIsVisibleCreatedAndAssignedOnlyToChosenShop[28]" classname="com.spisokryadom.app.Refine090UiTest" time="2.683" />
+  <testcase name="newProductIsRevealedAfterClearingSearchAndFavoriteFilter[28]" classname="com.spisokryadom.app.Refine090UiTest" time="1.382" />
+  <testcase name="createdProductIsAlsoRevealedInsideItsShop[28]" classname="com.spisokryadom.app.Refine090UiTest" time="1.106" />
+  <testcase name="backSavesNewAndExistingCardAndReturnsToVisibleRow[28]" classname="com.spisokryadom.app.Refine090UiTest" time="1.37" />
+  <testcase name="favoriteShortcutAndOriginalRowBothRemainAndShareCartState[28]" classname="com.spisokryadom.app.Refine090UiTest" time="0.596" />
+  <testcase name="marketPavilionsAndOrdinaryShopsAreVisibleTogetherWithoutSelector" classname="com.spisokryadom.app.Refine090UiTest" time="12.021" />
+  <testcase name="newDepartmentFromCardIsVisibleCreatedAndAssignedOnlyToChosenShop" classname="com.spisokryadom.app.Refine090UiTest" time="2.605" />
+  <testcase name="newProductIsRevealedAfterClearingSearchAndFavoriteFilter" classname="com.spisokryadom.app.Refine090UiTest" time="1.33" />
+  <testcase name="createdProductIsAlsoRevealedInsideItsShop" classname="com.spisokryadom.app.Refine090UiTest" time="1.081" />
+  <testcase name="backSavesNewAndExistingCardAndReturnsToVisibleRow" classname="com.spisokryadom.app.Refine090UiTest" time="1.457" />
+  <testcase name="favoriteShortcutAndOriginalRowBothRemainAndShareCartState" classname="com.spisokryadom.app.Refine090UiTest" time="0.629" />
+  </testsuite>

@@ -30,7 +30,7 @@ class ShoppingWorkflowUiTest {
  @Before fun setup() {
   listOf("drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
   runBlocking {
-   db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll()
+   db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes()
    db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
    baton=db.shopDao().insert(ShopEntity(name="Батон"))
    yar=db.shopDao().insert(ShopEntity(name="Красный Яр"))
@@ -60,7 +60,7 @@ class ShoppingWorkflowUiTest {
   ui.onNodeWithText("Лекарство").assertDoesNotExist();ui.onNodeWithText("Продукты").assertIsDisplayed()
   ui.activityRule.scenario.recreate();waitText("Аптека")
   ui.onNodeWithText("Лекарство").assertDoesNotExist();shot("01-catalog-collapsed")
-  ui.onNodeWithText("Список").performClick();waitText("Яблоки Гала")
+  ui.onNodeWithText("Покупки").performClick();waitText("Яблоки Гала")
   ui.onNodeWithText("Группы").performClick();waitText("Аптека")
   ui.onNodeWithContentDescription("Свернуть: Аптека").performClick()
   ui.onNodeWithText("Лекарство").assertDoesNotExist()
@@ -69,29 +69,24 @@ class ShoppingWorkflowUiTest {
   ui.onNodeWithContentDescription("Развернуть: Аптека").performClick();ui.onNodeWithText("Лекарство").assertIsDisplayed()
  }
 
- @Test fun textViewStaysAfterSaveAndReflectsTheSameBasketAfterReopening() {
+ @Test fun textEditsStayDuringRecreationButAreDiscardedOnClosing(){
   val ids=runBlocking {
-   val pending=app.container.shoppingListRepository.addProduct(apple,2.0)
-   val bought=app.container.shoppingListRepository.addProduct(pasta,1.0).also{app.container.shoppingListRepository.markBought(it)}
-   pending to bought
+   app.container.shoppingListRepository.addProduct(apple,2.0) to app.container.shoppingListRepository.addProduct(pasta,1.0).also{app.container.shoppingListRepository.markBought(it)}
   }
-  waitText("Яблоки Гала")
-  ui.onNodeWithContentDescription("Текстовый список").performClick()
+  waitText("Яблоки Гала");ui.onNodeWithContentDescription("Текстовый список").performClick()
   ui.waitUntil(20_000){ui.onAllNodes(hasSetTextAction() and hasText("Яблоки Гала",substring=true)).fetchSemanticsNodes().isNotEmpty()}
   val editor=ui.onNodeWithTag("bulk-editor")
-  editor.assertTextContains("Яблоки Гала — 2 кг",substring=true);assertFalse(editor.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text.contains("Спагетти"))
-  editor.performTextReplacement("Красный Яр · Мира, 10:\nЯблоки Гала — 3,5 кг")
-  ui.activityRule.scenario.recreate()
-  ui.waitUntil(20_000){ui.onAllNodes(hasSetTextAction() and hasText("3,5 кг",substring=true)).fetchSemanticsNodes().isNotEmpty()}
-  ui.onNodeWithText("Проверить изменения").performClick();waitText("Сохранить изменения")
-  ui.onNodeWithText("Сохранить изменения").performClick();waitText("Изменения сохранены")
-  ui.onNodeWithTag("bulk-editor").assertIsDisplayed().assertTextContains("3,5 кг",substring=true)
-  shot("03-persistent-text")
+  editor.assertTextContains("Яблоки Гала — 2 кг",substring=true)
+  assertFalse(editor.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text.contains("Спагетти"))
+  editor.performTextReplacement("Яблоки для друга — 3,5 кг")
+  ui.activityRule.scenario.recreate();waitText("Ваш список")
+  editor.assertTextContains("Яблоки для друга — 3,5 кг")
+  ui.onNodeWithText("Проверить изменения").assertDoesNotExist()
   ui.onNodeWithContentDescription("Назад").performClick();waitText("Яблоки Гала")
-  runBlocking {assertEquals(3.5,db.shoppingListEntryDao().getById(ids.first)!!.quantity,0.0);assertTrue(db.shoppingListEntryDao().getById(ids.second)!!.isBought);assertEquals(2,db.shoppingListEntryDao().getAllSync().size)}
+  runBlocking {assertEquals(2.0,db.shoppingListEntryDao().getById(ids.first)!!.quantity,0.0);assertTrue(db.shoppingListEntryDao().getById(ids.second)!!.isBought);assertEquals(2,db.shoppingListEntryDao().getAllSync().size)}
   ui.onNodeWithContentDescription("Текстовый список").performClick()
-  ui.waitUntil(20_000){ui.onAllNodes(hasSetTextAction() and hasText("3,5 кг",substring=true)).fetchSemanticsNodes().isNotEmpty()}
-  assertFalse(ui.onNodeWithTag("bulk-editor").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text.contains("Спагетти"))
+  ui.waitUntil(20_000){ui.onAllNodes(hasSetTextAction() and hasText("Яблоки Гала — 2 кг",substring=true)).fetchSemanticsNodes().isNotEmpty()}
+  editor.assertTextContains("Яблоки Гала — 2 кг",substring=true)
  }
 
  @Test fun groupSelectAndMoveTransferPendingToAChainAddressWithoutTouchingBought() {

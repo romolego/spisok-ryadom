@@ -1,0 +1,30 @@
+<testsuite name="com.spisokryadom.app.Refine120DataTest" tests="28" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:43:48.747Z" time="22.702">
+  <testcase name="departmentsAttachOnlyToSelectedStoresWithoutDuplicates[28]" classname="com.spisokryadom.app.Refine120DataTest" time="7.119" />
+  <testcase name="unavailablePointOrUnlinkedShopRejectsEntireSelection[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.484" />
+  <testcase name="boughtUrgencyAndInvalidBasketBatchLeaveEverythingIntact[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.464" />
+  <testcase name="mixedPurchaseStatusCanBuyReturnDeleteWithFactsPreserved[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.385" />
+  <testcase name="linkAdditionAndPointAssignmentPreserveOtherUnfinishedDraftChoices[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.435" />
+  <testcase name="closingCallerAfterCommitStillReconcilesRecoverableDraft[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.427" />
+  <testcase name="addingStoreResolvesAutomaticUnassignedPurchaseButPreservesExplicitNoShop[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.233" />
+  <testcase name="addingSeveralShopsIsIdempotentAndPreservesExistingRestrictionsAndPurchase[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.825" />
+  <testcase name="pointAssignmentLeavesOtherPointsAndOtherProductsAlone[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.164" />
+  <testcase name="departmentAssignmentRefreshesPendingOnlyAndClearsPointOverrideInWholeStoreScope[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.419" />
+  <testcase name="sixtyRecipientsAndGroupsChangeOnlyRequestedFreshFields[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.181" />
+  <testcase name="draftReconciliationPreservesRawInputButCannotUndoBatchOnRecovery[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.257" />
+  <testcase name="invalidProductOrClassifierRollsBackWholeBatch[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.139" />
+  <testcase name="deletingPurchasesCleansOnlyUnusedTemporaryCardsLikeSingleDelete[28]" classname="com.spisokryadom.app.Refine120DataTest" time="0.141" />
+  <testcase name="departmentsAttachOnlyToSelectedStoresWithoutDuplicates" classname="com.spisokryadom.app.Refine120DataTest" time="7.079" />
+  <testcase name="unavailablePointOrUnlinkedShopRejectsEntireSelection" classname="com.spisokryadom.app.Refine120DataTest" time="0.398" />
+  <testcase name="boughtUrgencyAndInvalidBasketBatchLeaveEverythingIntact" classname="com.spisokryadom.app.Refine120DataTest" time="0.324" />
+  <testcase name="mixedPurchaseStatusCanBuyReturnDeleteWithFactsPreserved" classname="com.spisokryadom.app.Refine120DataTest" time="0.241" />
+  <testcase name="linkAdditionAndPointAssignmentPreserveOtherUnfinishedDraftChoices" classname="com.spisokryadom.app.Refine120DataTest" time="0.336" />
+  <testcase name="closingCallerAfterCommitStillReconcilesRecoverableDraft" classname="com.spisokryadom.app.Refine120DataTest" time="0.24" />
+  <testcase name="addingStoreResolvesAutomaticUnassignedPurchaseButPreservesExplicitNoShop" classname="com.spisokryadom.app.Refine120DataTest" time="0.216" />
+  <testcase name="addingSeveralShopsIsIdempotentAndPreservesExistingRestrictionsAndPurchase" classname="com.spisokryadom.app.Refine120DataTest" time="0.767" />
+  <testcase name="pointAssignmentLeavesOtherPointsAndOtherProductsAlone" classname="com.spisokryadom.app.Refine120DataTest" time="0.167" />
+  <testcase name="departmentAssignmentRefreshesPendingOnlyAndClearsPointOverrideInWholeStoreScope" classname="com.spisokryadom.app.Refine120DataTest" time="0.519" />
+  <testcase name="sixtyRecipientsAndGroupsChangeOnlyRequestedFreshFields" classname="com.spisokryadom.app.Refine120DataTest" time="0.192" />
+  <testcase name="draftReconciliationPreservesRawInputButCannotUndoBatchOnRecovery" classname="com.spisokryadom.app.Refine120DataTest" time="0.254" />
+  <testcase name="invalidProductOrClassifierRollsBackWholeBatch" classname="com.spisokryadom.app.Refine120DataTest" time="0.151" />
+  <testcase name="deletingPurchasesCleansOnlyUnusedTemporaryCardsLikeSingleDelete" classname="com.spisokryadom.app.Refine120DataTest" time="0.131" />
+  </testsuite>

@@ -1,0 +1,4 @@
+<testsuite name="com.spisokryadom.app.IndependentShopPickerAuditTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-19T09:02:15.728Z" time="37.435">
+  <testcase name="visiblePickerCheckboxMustReceivePhysicalTap[28]" classname="com.spisokryadom.app.IndependentShopPickerAuditTest" time="16.112" />
+  <testcase name="visiblePickerCheckboxMustReceivePhysicalTap" classname="com.spisokryadom.app.IndependentShopPickerAuditTest" time="21.305" />
+  </testsuite>

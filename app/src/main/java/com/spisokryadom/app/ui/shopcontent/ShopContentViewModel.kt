@@ -104,7 +104,7 @@ class ShopContentViewModel(
         viewModelScope.launch(errors) {
             shoppingListRepository.getAllEntries().collect { entries ->
                 _shoppingListEntries.value = entries
-                    .filter { !it.isBought && it.assignedShopId==shopId }.sortedBy{it.id}.groupBy{it.productId}
+                    .filter { it.listId==null&&!it.isBought && it.assignedShopId==shopId }.sortedBy{it.id}.groupBy{it.productId}
             }
         }
         viewModelScope.launch(errors) {
@@ -148,7 +148,7 @@ class ShopContentViewModel(
 
     init {
         viewModelScope.launch(errors){
-            combine(_uiState.map{it.products}.distinctUntilChanged(),shopRepository.observeBranches(),productRepository.observeBranchAvailability(),shoppingListRepository.getAllEntries()){products,allPoints,availability,entries->PointData(products,allPoints,availability,entries)}
+            combine(_uiState.map{it.products}.distinctUntilChanged(),shopRepository.observeBranches(),productRepository.observeBranchAvailability(),shoppingListRepository.getAllEntries()){products,allPoints,availability,entries->PointData(products,allPoints,availability,entries.filter{it.listId==null})}
                 .combine(_departments){data,departments->data.copy(departments=departments)}
                 .combine(_shops){data,shops->data.copy(shops=shops)}
                 .combine(productRepository.observeBranchDepartments()){data,overrides->data to overrides}
@@ -184,10 +184,17 @@ class ShopContentViewModel(
         }
     }
 
-    fun quickAddToShoppingList(product:ProductEntity,branchId:Long?=null){viewModelScope.launch(errors){shoppingListRepository.addProduct(product.id,choice=com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT,shopId=shopId,branchId=branchId)}}
-    fun incrementEntry(entryId:Long){viewModelScope.launch(errors){shoppingListRepository.adjustByDefaultStep(entryId,1)}}
-    fun decrementEntry(entryId:Long){viewModelScope.launch(errors){shoppingListRepository.adjustByDefaultStep(entryId,-1)}}
-    fun setEntryQuantity(entryId:Long,quantity:Double){viewModelScope.launch(errors){if(quantity<=0)shoppingListRepository.removeEntry(entryId)else shoppingListRepository.updateQuantity(entryId,quantity)}}
+    private fun purchaseCommand(block: suspend () -> Unit) {
+        val generation = com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
+        viewModelScope.launch(errors) {
+            com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation, block)
+        }
+    }
+
+    fun quickAddToShoppingList(product:ProductEntity,branchId:Long?=null){purchaseCommand{shoppingListRepository.addProduct(product.id,choice=com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT,shopId=shopId,branchId=branchId)}}
+    fun incrementEntry(entryId:Long){purchaseCommand{shoppingListRepository.adjustByDefaultStep(entryId,1,regularOnly=true)}}
+    fun decrementEntry(entryId:Long){purchaseCommand{shoppingListRepository.adjustByDefaultStep(entryId,-1,regularOnly=true)}}
+    fun setEntryQuantity(entryId:Long,quantity:Double){purchaseCommand{if(quantity<=0)shoppingListRepository.removeEntry(entryId,regularOnly=true)else shoppingListRepository.updateQuantity(entryId,quantity,regularOnly=true)}}
 
     // --- Pick existing products mode ---
 

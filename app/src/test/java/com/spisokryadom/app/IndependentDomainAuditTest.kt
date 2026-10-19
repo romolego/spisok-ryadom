@@ -40,7 +40,7 @@ class IndependentDomainAuditTest {
  private lateinit var classifiers:ClassifierRepository
  private lateinit var basket:ShoppingListRepository
  private val store=ViewModelStore()
- private fun await(condition:()->Boolean){val end=System.nanoTime()+10_000_000_000;while(!condition()&&System.nanoTime()<end){Shadows.shadowOf(Looper.getMainLooper()).idle();Thread.sleep(5)};assertTrue("ViewModel did not finish",condition())}
+ private fun await(condition:()->Boolean){val end=System.nanoTime()+10_000_000_000;while(!condition()&&System.nanoTime()<end){Shadows.shadowOf(Looper.getMainLooper()).idle();Thread.sleep(5)};assertTrue("ViewModel did not finish; mutex="+ProductEditorTransactions.mutex.isLocked+"; catalog="+(store["catalog"] as? ProductDatabaseViewModel)?.uiState?.value?.error+"; shop="+(store["shop"] as? ShopContentViewModel)?.uiState?.value?.error+"; list="+(store["list"] as? ShoppingListViewModel)?.uiState?.value?.error,condition())}
  @Before fun setup()=runBlocking {
   context=ApplicationProvider.getApplicationContext<Application>()
   val prefs=context.getSharedPreferences("independent_domain_location",0);prefs.edit().clear().commit()
@@ -53,13 +53,21 @@ class IndependentDomainAuditTest {
   classifiers=ClassifierRepository(db.productGroupDao(),db.recipientDao(),db.unitDao(),db)
   basket=ShoppingListRepository(db.shoppingListEntryDao(),db,locations)
  }
- @After fun cleanup(){store.clear();locations.closeForTest();db.close()}
+ @After fun cleanup(){
+  store.clear()
+  // A SQLite row can be visible before its VM transaction resumes on Main and
+  // releases the restore mutex. Drain that completion before closing/resetting
+  // the test database and its paused Looper; never unlock a live job by hand.
+  await { !ProductEditorTransactions.mutex.isLocked }
+  locations.closeForTest();db.close()
+ }
  private fun viewModel(repo:ShoppingListRepository=basket)=ShoppingListViewModel(repo,products,shops,classifiers,context.getSharedPreferences("independent_domain_list",0)).also{store.put("list",it)}
 
  @Test fun quantityStepMustNotUseDefaultNumberFromAnotherUnit()=runBlocking {
   val id=db.productDao().insert(ProductEntity(name="Гайки",defaultUnit="шт",defaultQuantity=100.0))
   val entry=basket.addProduct(id,0.5,"кг",ShopChoice.NONE)
   val vm=viewModel();await{vm.uiState.value.totalCount==1&&vm.uiState.value.groups.flatMap{it.entries}.single().defaultQuantity==100.0}
+  assertEquals("The rendered step must match the purchase unit",1.0,vm.uiState.value.groups.flatMap{it.entries}.single().quantityStep,0.0)
   vm.increaseQuantity(entry)
   await{runBlocking{db.shoppingListEntryDao().getById(entry)!!.quantity!=0.5}}
   assertEquals("100 шт must not become a 100 кг increment",1.5,db.shoppingListEntryDao().getById(entry)!!.quantity,0.0)

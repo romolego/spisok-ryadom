@@ -1,0 +1,6 @@
+<testsuite name="com.spisokryadom.app.OrderMotionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:49:02.495Z" time="22.079">
+  <testcase name="unequalRowsBothSlideAndRapidReverseKeepsCurrentPosition[28]" classname="com.spisokryadom.app.OrderMotionTest" time="10.435" />
+  <testcase name="lazyRowsSlideInBothDirectionsWithoutMovingTheViewport[28]" classname="com.spisokryadom.app.OrderMotionTest" time="0.381" />
+  <testcase name="unequalRowsBothSlideAndRapidReverseKeepsCurrentPosition" classname="com.spisokryadom.app.OrderMotionTest" time="10.884" />
+  <testcase name="lazyRowsSlideInBothDirectionsWithoutMovingTheViewport" classname="com.spisokryadom.app.OrderMotionTest" time="0.368" />
+  </testsuite>

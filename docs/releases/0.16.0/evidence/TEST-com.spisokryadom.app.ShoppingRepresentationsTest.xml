@@ -1,0 +1,26 @@
+<testsuite name="com.spisokryadom.app.ShoppingRepresentationsTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:27:53.343Z" time="10.091">
+  <testcase name="clearingBoughtInOnePlacePreservesTheOtherAddressAndPendingEntries" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="6.565" />
+  <testcase name="newPermanentTextProductKeepsTheStoreForFutureAutomaticPurchases" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.365" />
+  <testcase name="collapsedGroupIdentityPersistsIndependentlyByViewAndStableId" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.167" />
+  <testcase name="copyingTheCatalogueLinkIsIdempotentAndNeverTouchesPurchasesOrProductMetadata" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.124" />
+  <testcase name="removingOnlyExclusivePointIsRejectedWithoutChangingTheChain" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.1" />
+  <testcase name="deletingTextRemovesOnlyPendingAndUndoRestoresTemporaryProductAndMetadata" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.237" />
+  <testcase name="oldUnsavedBulkDraftIsKeptAlongsideExistingPendingPurchases" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.201" />
+  <testcase name="editingPurchaseFactsCannotChangeItsPlaceOrIdentity" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.104" />
+  <testcase name="quantitiesAtDifferentPointsNeverCollapseIntoOnePurchase" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.07" />
+  <testcase name="editingTextShopAndUnitRetainsPurchaseIdentityNotesAndUrgency" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.185" />
+  <testcase name="chainPriorityRespectsExclusiveProductAvailability" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.126" />
+  <testcase name="equalPriorityRetailersKeepTheirAlphabeticNeighboursDuringExplicitMove" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.085" />
+  <testcase name="textIsPersistentRepresentationWithoutDoublingAndBoughtRowsAreProtected" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.27" />
+  <testcase name="fifteenPurchasesMoveOnlyFourPendingAndPreserveAllTheirFields" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.117" />
+  <testcase name="malformedBranchInFullBackupCannotReplaceTheCurrentBasket" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.205" />
+  <testcase name="placeChoicesIntersectCatalogueAvailabilityAndExcludeOtherCitiesAndUnlinkedShops" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.1" />
+  <testcase name="explicitPointReorderingPreservesPurchaseAssignmentsAndOverridesUrgencyBoost" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.085" />
+  <testcase name="ambiguousSameProductRowsRequireIdentityChoiceInsteadOfDiscardingNotes" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.144" />
+  <testcase name="zipFiveRoundTripsAddressesRestrictionsPurchasesAndCollapsedPreferences" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.215" />
+  <testcase name="textTransactionRollsBackEarlierEditsAndNewProductsWhenALaterRowFails" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.074" />
+  <testcase name="olderFullZipFourGetsOnePointFromEachOldShopAddress" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.211" />
+  <testcase name="unsavedDraftSurvivesAndStaleTextCannotOverwriteNewBasketQuantity" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.182" />
+  <testcase name="invalidPointRollsBackTheWholeSelectionAndAutomaticMoveUsesIndividualPoints" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.081" />
+  <testcase name="stalePlaceSelectionIsRecheckedAndRollsBackTheWholeMove" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.075" />
+  </testsuite>

@@ -1,0 +1,11 @@
+<testsuite name="com.spisokryadom.app.UxLayoutTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:29:16.346Z" time="46.939">
+  <testcase name="compactKeyboardSizedViewportKeepsMultilineEditorAndActionVisible[28]" classname="com.spisokryadom.app.UxLayoutTest" time="16.255" />
+  <testcase name="editingMessageNeverCreatesProductsOrPurchases[28]" classname="com.spisokryadom.app.UxLayoutTest" time="1.162" />
+  <testcase name="cityIsOnlyInSettingsAndLongPlusHasNoAction[28]" classname="com.spisokryadom.app.UxLayoutTest" time="3.578" />
+  <testcase name="catalogAndShopCardsRemainReadableWithAddedAndLongNamedProducts[28]" classname="com.spisokryadom.app.UxLayoutTest" time="2.196" />
+  <testcase name="compactKeyboardSizedViewportKeepsMultilineEditorAndActionVisible" classname="com.spisokryadom.app.UxLayoutTest" time="18.43" />
+  <testcase name="editingMessageNeverCreatesProductsOrPurchases" classname="com.spisokryadom.app.UxLayoutTest" time="0.65" />
+  <testcase name="cityIsOnlyInSettingsAndLongPlusHasNoAction" classname="com.spisokryadom.app.UxLayoutTest" time="1.468" />
+  <testcase name="imeInsetsAreConsumedOnceInTheActualNavigationTree" classname="com.spisokryadom.app.UxLayoutTest" time="0.559" />
+  <testcase name="catalogAndShopCardsRemainReadableWithAddedAndLongNamedProducts" classname="com.spisokryadom.app.UxLayoutTest" time="2.612" />
+  </testsuite>

@@ -14,8 +14,9 @@ class ShopRepository(
     val locations: LocationRepository,
     private val db: AppDatabase, private val catalogueEdits:CatalogueEdits?=null
 ) {
-    suspend fun saveWithDepartments(shop:ShopEntity, departments:List<ShopDepartmentEntity>, branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>?=null,networkName:String?=null,venueNames:Map<Long,String> = emptyMap(),branchOrders:Map<Long,List<Long>> = emptyMap(),convertToVenue:Boolean=false):Long = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+    suspend fun saveWithDepartments(shop:ShopEntity, departments:List<ShopDepartmentEntity>, branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>?=null,networkName:String?=null,venueNames:Map<Long,String> = emptyMap(),branchOrders:Map<Long,List<Long>> = emptyMap(),convertToVenue:Boolean=false,purchaseMode:String?=null):Long = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         require(shop.name.isNotBlank()) { "Укажите название магазина" }
+        require(com.spisokryadom.app.util.AppearanceColors.validOptional(shop.shoppingBackground)){"Выберите цвет фона магазина"}
         require(db.cityDao().getById(shop.cityId)!=null) { "Город удалён" }
         // Detach old venue memberships before changing the retailer's city. Both
         // assignments are saved in this transaction; failure rolls everything back.
@@ -29,6 +30,7 @@ class ShopRepository(
             db.retailStructureDao().updateNetwork(network.copy(name=networkName.trim()));shop
         }
         val id=if(shop.id==0L)shopDao.insert(resolved) else { require(shopDao.getById(shop.id)!=null);shopDao.update(resolved);shop.id }
+        purchaseMode?.let{require(it in com.spisokryadom.app.util.PurchaseModes.labels);db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(id,it))}
         val pendingBefore=db.shoppingListEntryDao().getAllSync().filter{!it.isBought&&it.assignedShopId==id}
         val retained=departments.filter{it.id>0}.map{it.id}.toSet()
         departmentDao.getByShopIdSync(id).filter{it.id !in retained}.forEach{departmentDao.delete(it)}
@@ -105,6 +107,8 @@ class ShopRepository(
         }
     }
     suspend fun markManualOrderOverride(id: Long)=shopDao.markManualOrderOverride(id)
+    fun creationPresets()=db.creationPresetDao().observeShops()
+    suspend fun purchaseMode(shopId:Long)=db.creationPresetDao().shopMode(shopId)?:"inherit"
     fun getCityShops(): Flow<List<ShopEntity>> = locations.cityShops
     fun getAllShops(): Flow<List<ShopEntity>> = shopDao.getAllOrdered()
     fun getShopsForDisplay():Flow<List<ShopEntity>> = kotlinx.coroutines.flow.combine(getAllShops(),observeBranches(),venues()){shops,b,v->
@@ -203,6 +207,7 @@ class ShopRepository(
      * Products and purchase IDs, notes, photos, and quantities are preserved atomically. */
     suspend fun convertToVenue(shopId:Long):Long= withCatalogueEdits(db,catalogueEdits) { db.withTransaction{
         val shop=shopDao.getById(shopId)?:error("Магазин удалён")
+        val purchaseMode=db.creationPresetDao().shopMode(shopId)
         val points=db.shopBranchDao().forShop(shopId)
         require(points.isNotEmpty()){ "Добавьте хотя бы одну точку" }
         val venueId=db.retailStructureDao().insertVenue(com.spisokryadom.app.data.entity.VenueEntity(cityId=shop.cityId,name=shop.name,address=shop.address,note=shop.note))
@@ -223,7 +228,8 @@ class ShopRepository(
         links.forEach{db.productShopLinkDao().delete(it)}
         val owners=mutableMapOf<Long,Long>();val deptMap=mutableMapOf<Pair<Long,Long>,Long>()
         points.forEachIndexed{index,point->
-            val owner=shopDao.insert(ShopEntity(name=point.address,cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop))
+            val owner=shopDao.insert(ShopEntity(name=point.address,cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground))
+            purchaseMode?.let{db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(owner,it))}
             owners[point.id]=owner
             db.shopBranchDao().update(point.copy(shopId=owner,venueId=venueId,displayOrder=0))
             shopDao.update(shopDao.getById(owner)!!.copy(address=point.address))
