@@ -11,6 +11,7 @@ import kotlinx.coroutines.sync.withLock
 
 class LocationRepository(private val citiesDao: CityDao, private val shopsDao: ShopDao, private val prefs: SharedPreferences) : AutoCloseable {
     override fun close(){prefs.unregisterOnSharedPreferenceChangeListener(listener);scope.cancel()}
+    suspend fun closeAndJoin(){close();scope.coroutineContext[Job]?.join()}
     private val edits=Mutex()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val selected = MutableStateFlow(prefs.getLong("active_city", 1))
@@ -21,6 +22,7 @@ class LocationRepository(private val citiesDao: CityDao, private val shopsDao: S
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == "active_city") selected.value = prefs.getLong("active_city",1) }
     init { prefs.registerOnSharedPreferenceChangeListener(listener) }
     fun select(id: Long) { selected.value=id; prefs.edit().putLong("active_city",id).apply() }
+    suspend fun shopsForCity(cityId:Long) = shopsDao.getAllSync().filter { it.cityId == cityId }
     suspend fun currentId(): Long {
         val list=citiesDao.getAllSync(); return list.find { it.id==selected.value }?.id ?: list.firstOrNull()?.id ?: 1
     }
@@ -38,6 +40,7 @@ class LocationRepository(private val citiesDao: CityDao, private val shopsDao: S
         require(citiesDao.getAllSync().size>1) { "Нужен хотя бы один город" }
         require(shopsDao.getAllSync().none { it.cityId==city.id }) { "Сначала перенесите магазины этого города" }
         citiesDao.deleteEmpty(city.id)
+        require(citiesDao.getById(city.id)==null){"Сначала перенесите рынки и торговые центры этого города"}
         if(selected.value==city.id)select(citiesDao.getAllSync().first().id)
     }
 }

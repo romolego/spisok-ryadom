@@ -49,8 +49,10 @@ data class SettingsUiState(
 // ── Department group model (cross-shop) ──────────────────────────────────────
 
 data class DepartmentGroup(
+    val id:Long,
     val name: String,
     val shops: List<ShopEntity>,
+    val accent:String="",val iconKey:String="",
     val totalDepartments: Int
 )
 
@@ -64,7 +66,8 @@ data class UrgencyDefaultsState(
 // ── Add-to-list defaults state ──────────────────────────────────────────────
 
 data class AddToListDefaultsState(
-    val saveNewProductToDatabase: Boolean = true
+    val saveNewProductToDatabase: Boolean = true,
+    val rememberShopPriorityOnMove:Boolean=false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -168,9 +171,12 @@ class SettingsViewModel(
         return AddToListDefaultsState(
             saveNewProductToDatabase = prefs.getBoolean(
                 ShoppingListViewModel.PREF_GLOBAL_SAVE_NEW_PRODUCT_TO_DB, true
-            )
+            ),
+            rememberShopPriorityOnMove=prefs.getBoolean("remember_shop_priority_on_move",false)
         )
     }
+
+    fun setRememberShopPriorityOnMove(value:Boolean){prefs.edit().putBoolean("remember_shop_priority_on_move",value).apply()}
 
     fun setGlobalSaveNewProductToDatabase(value: Boolean) {
         prefs.edit().putBoolean(
@@ -347,55 +353,43 @@ class SettingsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val departmentGroups: StateFlow<List<DepartmentGroup>> =
-        combine(allDepartments, allShops) { departments, shops ->
+        combine(allDepartments, allShops,shopRepository.departmentTypes()) { departments, shops,types ->
             val shopMap = shops.associateBy { it.id }
             departments
-                .groupBy { it.name }
-                .map { (name, deps) ->
+                .groupBy { it.typeId }.let{byType->types.map{type->
+                    val deps=byType[type.id].orEmpty()
                     val shopIds = deps.map { it.shopId }.distinct()
                     DepartmentGroup(
-                        name = name,
+                        id=type.id,name = type.name,accent=type.accent,iconKey=type.iconKey,
                         shops = shopIds.mapNotNull { shopMap[it] },
                         totalDepartments = deps.size
                     )
-                }
-                .sortedBy { it.name.lowercase() }
+                }}
+
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _selectedDepartmentGroup = MutableStateFlow<String?>(null)
-    val selectedDepartmentGroup: StateFlow<String?> = _selectedDepartmentGroup.asStateFlow()
+    private val _selectedDepartmentGroup = MutableStateFlow<Long?>(null)
+    val selectedDepartmentGroup: StateFlow<Long?> = _selectedDepartmentGroup.asStateFlow()
 
     val selectedDepartmentGroupShops: StateFlow<List<ShopEntity>> =
         combine(_selectedDepartmentGroup, departmentGroups) { name, groups ->
-            if (name != null) groups.find { it.name == name }?.shops ?: emptyList()
+            if (name != null) groups.find { it.id == name }?.shops ?: emptyList()
             else emptyList()
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun selectDepartmentGroup(name: String?) {
+    fun selectDepartmentGroup(name: Long?) {
         _selectedDepartmentGroup.value = name
     }
 
-    fun renameDepartmentGroup(oldName: String, newName: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
-            shopRepository.renameDepartmentGlobally(oldName, newName)
-            if (_selectedDepartmentGroup.value == oldName) {
-                _selectedDepartmentGroup.value = newName
-            }
-        }
-    }
+    fun renameDepartmentGroup(id:Long,newName:String){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.renameDepartmentGlobally(id,newName)}}
+    fun deleteDepartmentGroup(id:Long){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.deleteDepartmentGlobally(id);if(_selectedDepartmentGroup.value==id)_selectedDepartmentGroup.value=null}}
 
-    fun deleteDepartmentGroup(name: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
-            shopRepository.deleteDepartmentGlobally(name)
-            if (_selectedDepartmentGroup.value == name) {
-                _selectedDepartmentGroup.value = null
-            }
-        }
-    }
-
+    fun moveDepartment(id:Long,delta:Int){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.moveDepartmentType(id,delta)}}
+    fun alphabetize(kind:String){viewModelScope.launch(Dispatchers.IO+errors){if(kind=="dept")shopRepository.alphabetizeDepartmentTypes()else classifierRepository.alphabetize(kind)}}
+    fun style(kind:String,id:Long,accent:String,icon:String){viewModelScope.launch(Dispatchers.IO+errors){if(kind=="dept")shopRepository.styleDepartmentType(id,accent,icon)else classifierRepository.style(kind,id,accent,icon)}}
     fun createDepartmentGroup(name: String) {
         viewModelScope.launch(Dispatchers.IO+errors) {
-            shopRepository.addDepartmentInCity(name,shopRepository.locations.currentId())
+            shopRepository.createDepartmentType(name)
         }
     }
 

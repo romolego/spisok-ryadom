@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.Refine110DataTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:15:37.267Z" time="14.606">
+  <testcase name="additionalDestinationUsesSameContextWithoutChangingFacts[28]" classname="com.spisokryadom.app.Refine110DataTest" time="6.672" />
+  <testcase name="widgetCheckboxChangesActualBasketAndIsIdempotent[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.175" />
+  <testcase name="actionTokensAreCompleteAndColdLaunchTargetsAreExplicit[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.132" />
+  <testcase name="staleWidgetDoesNotOverwriteEditedMovedOrDeletedPurchase[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.099" />
+  <testcase name="textAndSharePreserveRussianAndExcludeBought[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.099" />
+  <testcase name="physicalPlaceShowsVenueAndPavilionOnce[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.091" />
+  <testcase name="widgetShowsFreshNamesPlaceQuantityAndBoughtState[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.093" />
+  <testcase name="retailerContextDoesNotClaimMixedStreetAndMallOutlets[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.083" />
+  <testcase name="additionalDestinationUsesSameContextWithoutChangingFacts" classname="com.spisokryadom.app.Refine110DataTest" time="6.472" />
+  <testcase name="widgetCheckboxChangesActualBasketAndIsIdempotent" classname="com.spisokryadom.app.Refine110DataTest" time="0.117" />
+  <testcase name="actionTokensAreCompleteAndColdLaunchTargetsAreExplicit" classname="com.spisokryadom.app.Refine110DataTest" time="0.095" />
+  <testcase name="staleWidgetDoesNotOverwriteEditedMovedOrDeletedPurchase" classname="com.spisokryadom.app.Refine110DataTest" time="0.092" />
+  <testcase name="textAndSharePreserveRussianAndExcludeBought" classname="com.spisokryadom.app.Refine110DataTest" time="0.108" />
+  <testcase name="physicalPlaceShowsVenueAndPavilionOnce" classname="com.spisokryadom.app.Refine110DataTest" time="0.081" />
+  <testcase name="widgetShowsFreshNamesPlaceQuantityAndBoughtState" classname="com.spisokryadom.app.Refine110DataTest" time="0.082" />
+  <testcase name="retailerContextDoesNotClaimMixedStreetAndMallOutlets" classname="com.spisokryadom.app.Refine110DataTest" time="0.098" />
+</testsuite>

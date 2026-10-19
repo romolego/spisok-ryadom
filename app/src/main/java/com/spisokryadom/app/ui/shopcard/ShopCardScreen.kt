@@ -1,6 +1,5 @@
 package com.spisokryadom.app.ui.shopcard
 
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,17 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,24 +32,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.ShopDepartmentEntity
 import com.spisokryadom.app.ui.components.ConfirmDialog
 import com.spisokryadom.app.ui.components.EditableSection
-import com.spisokryadom.app.ui.components.InputDialogWithSuggestions
 import com.spisokryadom.app.ui.components.MultiSelectDialog
 import com.spisokryadom.app.ui.components.SectionHeader
 
@@ -77,10 +73,13 @@ fun ShopCardScreen(
     }
 
     var showAddDepartmentDialog by remember { mutableStateOf(false) }
-    var renamingDepartment by remember { mutableStateOf<ShopDepartmentEntity?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showConvertConfirm by remember { mutableStateOf(false) }
+    if(showConvertConfirm)ConfirmDialog("Преобразовать в рынок или ТЦ?","Каждая точка станет отдельным магазином внутри «${state.name}». Товары и покупки сохранятся.",onConfirm={viewModel.convertToVenue();showConvertConfirm=false},onDismiss={showConvertConfirm=false})
     var isDepartmentsEditing by remember { mutableStateOf(false) }
 
+    var resetDepartmentOrder by remember{mutableStateOf(false)}
+    if(resetDepartmentOrder)com.spisokryadom.app.ui.components.ConfirmDialog("Сортировать по алфавиту?","Текущий порядок групп магазина будет сброшен.",{if(state.isNew)viewModel.sortPendingDepartmentsAlphabetically()else viewModel.sortDepartmentsAlphabetically();resetDepartmentOrder=false},{resetDepartmentOrder=false})
     if (showAddDepartmentDialog) {
         val existingDepartmentNames = if (!state.isNew) {
             state.departments.map { it.name }.toSet()
@@ -112,25 +111,11 @@ fun ShopCardScreen(
         )
     }
 
-    renamingDepartment?.let { dept ->
-        InputDialogWithSuggestions(
-            title = "Переименовать группу",
-            initialValue = dept.name,
-            label = "Название группы",
-            suggestions = state.allDepartmentNames,
-            onConfirm = { newName ->
-                viewModel.updateDepartment(dept.copy(name = newName.trim()))
-                renamingDepartment = null
-            },
-            onDismiss = { renamingDepartment = null }
-        )
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(if (state.isNew) "Новый магазин" else "Редактирование магазина")
+                    Text(if (state.isNew) "Новый магазин" else "Магазин",maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -149,7 +134,7 @@ fun ShopCardScreen(
                     }
                     TextButton(
                         onClick = { viewModel.save() },
-                        enabled = state.name.isNotBlank() && !state.isSaving && !state.isLoading
+                        enabled = state.name.isNotBlank() && !state.isSaving && !state.isPhotoBusy && !state.isLoading && state.branches.all{it.address.isNotBlank()} && state.departments.all{it.name.isNotBlank()} && state.pendingDepartments.all{it.name.isNotBlank()}
                     ) {
                         Text("Сохранить")
                     }
@@ -157,10 +142,16 @@ fun ShopCardScreen(
             )
         }
     ) { padding ->
+        if(state.isLoading){
+            androidx.compose.foundation.layout.Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){androidx.compose.material3.CircularProgressIndicator()}
+            return@Scaffold
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .consumeWindowInsets(padding)
+                .imePadding()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -174,13 +165,22 @@ fun ShopCardScreen(
             )
 
             com.spisokryadom.app.ui.components.CityField(state.cityId,viewModel::updateCity)
-                OutlinedTextField(
-                value = state.address,
-                onValueChange = { viewModel.updateAddress(it) },
-                label = { Text("Адрес") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,state.venues.filter{it.cityId==state.cityId},state.venueNames,viewModel::updateVenueName,pointGroups={point->
+                val types=state.departments.distinctBy{it.typeId}.filter{it.typeId>0}
+                if(point.id>0&&types.size>1){
+                    Text("Порядок групп в точке",style=MaterialTheme.typography.titleSmall)
+                    val order=state.branchOrders[point.id].orEmpty()
+                    val sorted=types.sortedWith(compareBy<ShopDepartmentEntity>{order.indexOf(it.typeId).takeIf{idx->idx>=0}?:Int.MAX_VALUE}.thenBy{it.displayOrder})
+                    com.spisokryadom.app.ui.components.AnimatedOrderColumn(sorted,{it.typeId}){index,group->
+                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                            Text(group.name,Modifier.weight(1f))
+                            fun move(delta:Int){val ids=sorted.map{it.typeId}.toMutableList();ids.add(index+delta,ids.removeAt(index));viewModel.updateBranchOrder(point.id,ids)}
+                            com.spisokryadom.app.ui.components.ReorderButtons({move(-1)},{move(1)},index>0,index<sorted.lastIndex)
+                        }
+                    }
+                }
+            })
+            if(!state.isNew&&state.branches.isNotEmpty())TextButton(onClick={showConvertConfirm=true},enabled=!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в рынок или ТЦ")}
 
             OutlinedTextField(
                 value = state.note,
@@ -191,14 +191,10 @@ fun ShopCardScreen(
                 maxLines = 4
             )
 
+            com.spisokryadom.app.ui.components.OptionalRetailField("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName,canRename=true)
+
             // ── Настройки срочности ──────────────────────────────────────
             SectionHeader(title = "Настройки срочности")
-
-            Text(
-                "Локальные настройки этого магазина. Имеют приоритет над глобальными.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
 
             // Show urgent in collapsed
             Text(
@@ -219,6 +215,7 @@ fun ShopCardScreen(
                     )
                     Text(
                         text = option.label,
+                        modifier = Modifier.padding(start=8.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -245,307 +242,52 @@ fun ShopCardScreen(
                     )
                     Text(
                         text = option.label,
+                        modifier = Modifier.padding(start=8.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
 
-            // Группы магазина
-            if (!state.isNew) {
-                val sortedDepartments = state.departments.sortedBy { it.displayOrder }
-
-                EditableSection(
-                    title = "Группы магазина",
-                    isEditing = isDepartmentsEditing,
-                    onToggleEdit = { isDepartmentsEditing = it },
-                    isEmpty = state.departments.isEmpty(),
-                    emptyMessage = "Нет групп",
-                    viewContent = {
-                        sortedDepartments.forEach { dept ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = dept.name,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    editContent = {
-                        sortedDepartments.forEachIndexed { index, dept ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = dept.name,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-                                    // Переместить вверх
-                                    if (index > 0) {
-                                        IconButton(
-                                            onClick = {
-                                                viewModel.moveDepartmentUp(dept)
-                                                scope.launch { scrollState.animateScrollBy(-itemScrollPx) }
-                                            },
-                                            modifier = Modifier.size(32.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.KeyboardArrowUp,
-                                                contentDescription = "Переместить вверх",
-                                                modifier = Modifier.size(18.dp),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    } else {
-                                        Spacer(modifier = Modifier.size(32.dp))
-                                    }
-
-                                    // Переместить вниз
-                                    if (index < sortedDepartments.size - 1) {
-                                        IconButton(
-                                            onClick = {
-                                                viewModel.moveDepartmentDown(dept)
-                                                scope.launch { scrollState.animateScrollBy(itemScrollPx) }
-                                            },
-                                            modifier = Modifier.size(32.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.KeyboardArrowDown,
-                                                contentDescription = "Переместить вниз",
-                                                modifier = Modifier.size(18.dp),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    } else {
-                                        Spacer(modifier = Modifier.size(32.dp))
-                                    }
-
-                                    // Переименовать
-                                    IconButton(
-                                        onClick = { renamingDepartment = dept },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Edit,
-                                            contentDescription = "Переименовать",
-                                            modifier = Modifier.size(18.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-
-                                    // Удалить
-                                    IconButton(
-                                        onClick = { viewModel.deleteDepartment(dept) },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Close,
-                                            contentDescription = "Удалить",
-                                            modifier = Modifier.size(18.dp),
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
+            val departments = if(state.isNew)state.pendingDepartments.map {
+                ShopDepartmentEntity(id=it.tempId,shopId=0,name=it.name,displayOrder=it.displayOrder)
+            }.sortedBy{it.displayOrder} else state.departments.sortedBy{it.displayOrder}
+            EditableSection(
+                title="Группы магазина",isEditing=isDepartmentsEditing,onToggleEdit={isDepartmentsEditing=it},
+                isEmpty=departments.isEmpty(),emptyMessage="Нет групп",
+                viewContent={departments.forEach{dept->key(dept.id){
+                    Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){
+                        com.spisokryadom.app.ui.components.MarkedLabel(dept.name,state.departmentTypes.find{it.id==dept.typeId}?.accent.orEmpty(),state.departmentTypes.find{it.id==dept.typeId}?.iconKey.orEmpty(),Modifier.padding(12.dp),small=true)
+                    }
+                }}},
+                editContent={
+                    val focus=androidx.compose.ui.platform.LocalFocusManager.current
+                    com.spisokryadom.app.ui.components.AnimatedOrderColumn(departments,{it.id}){index,dept->
+                        Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){
+                            Column(Modifier.padding(12.dp)){
+                                OutlinedTextField(dept.name,{value->
+                                    if(state.isNew)viewModel.renamePendingDepartment(dept.id,value)
+                                    else viewModel.updateDepartment(dept.copy(name=value))
+                                },label={Text("Название группы")},singleLine=true,isError=dept.name.isBlank(),modifier=Modifier.fillMaxWidth())
+                                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){
+                                    com.spisokryadom.app.ui.components.ReorderButtons(
+                                        onUp={focus.clearFocus();if(state.isNew)viewModel.movePendingDepartmentUp(dept.id)else viewModel.moveDepartmentUp(dept)},
+                                        onDown={focus.clearFocus();if(state.isNew)viewModel.movePendingDepartmentDown(dept.id)else viewModel.moveDepartmentDown(dept)},
+                                        canMoveUp=index>0,canMoveDown=index<departments.lastIndex)
+                                    IconButton(onClick={if(state.isNew)viewModel.deletePendingDepartment(dept.id)else viewModel.deleteDepartment(dept)}){
+                                        Icon(Icons.Filled.Delete,"Удалить группу: ${dept.name}")
                                     }
                                 }
                             }
-                        }
-
-                        if (sortedDepartments.size >= 2) {
-                            OutlinedButton(
-                                onClick = { viewModel.sortDepartmentsAlphabetically() },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Filled.SortByAlpha, contentDescription = null)
-                                Text("  По алфавиту")
-                            }
-                        }
-
-                        OutlinedButton(
-                            onClick = { showAddDepartmentDialog = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Filled.Add, contentDescription = null)
-                            Text("  Добавить группы")
                         }
                     }
-                )
-            } else {
-                // New shop: pending departments
-                val sortedPending = state.pendingDepartments.sortedBy { it.displayOrder }
-
-                var renamingPendingId by remember { mutableStateOf<Long?>(null) }
-
-                renamingPendingId?.let { pendingId ->
-                    val pendingDept = state.pendingDepartments.find { it.tempId == pendingId }
-                    if (pendingDept != null) {
-                        InputDialogWithSuggestions(
-                            title = "Переименовать группу",
-                            initialValue = pendingDept.name,
-                            label = "Название группы",
-                            suggestions = state.allDepartmentNames,
-                            onConfirm = { newName ->
-                                viewModel.renamePendingDepartment(pendingId, newName)
-                                renamingPendingId = null
-                            },
-                            onDismiss = { renamingPendingId = null }
-                        )
+                    if(departments.size>=2)OutlinedButton(onClick={resetDepartmentOrder=true},modifier=Modifier.fillMaxWidth()){
+                        Icon(Icons.Filled.SortByAlpha,null);Text("По алфавиту")
+                    }
+                    OutlinedButton(onClick={showAddDepartmentDialog=true},modifier=Modifier.fillMaxWidth()){
+                        Icon(Icons.Filled.Add,null);Text("Добавить группы")
                     }
                 }
-
-                EditableSection(
-                    title = "Группы магазина",
-                    isEditing = isDepartmentsEditing,
-                    onToggleEdit = { isDepartmentsEditing = it },
-                    isEmpty = sortedPending.isEmpty(),
-                    emptyMessage = "Нет групп",
-                    viewContent = {
-                        sortedPending.forEach { pending ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = pending.name,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    editContent = {
-                        sortedPending.forEachIndexed { index, pending ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = pending.name,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-                                    if (index > 0) {
-                                        IconButton(
-                                            onClick = {
-                                                viewModel.movePendingDepartmentUp(pending.tempId)
-                                                scope.launch { scrollState.animateScrollBy(-itemScrollPx) }
-                                            },
-                                            modifier = Modifier.size(32.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.KeyboardArrowUp,
-                                                contentDescription = "Переместить вверх",
-                                                modifier = Modifier.size(18.dp),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    } else {
-                                        Spacer(modifier = Modifier.size(32.dp))
-                                    }
-
-                                    if (index < sortedPending.size - 1) {
-                                        IconButton(
-                                            onClick = {
-                                                viewModel.movePendingDepartmentDown(pending.tempId)
-                                                scope.launch { scrollState.animateScrollBy(itemScrollPx) }
-                                            },
-                                            modifier = Modifier.size(32.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.KeyboardArrowDown,
-                                                contentDescription = "Переместить вниз",
-                                                modifier = Modifier.size(18.dp),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    } else {
-                                        Spacer(modifier = Modifier.size(32.dp))
-                                    }
-
-                                    IconButton(
-                                        onClick = { renamingPendingId = pending.tempId },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Edit,
-                                            contentDescription = "Переименовать",
-                                            modifier = Modifier.size(18.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-
-                                    IconButton(
-                                        onClick = { viewModel.deletePendingDepartment(pending.tempId) },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Close,
-                                            contentDescription = "Удалить",
-                                            modifier = Modifier.size(18.dp),
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        if (sortedPending.size >= 2) {
-                            OutlinedButton(
-                                onClick = { viewModel.sortPendingDepartmentsAlphabetically() },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Filled.SortByAlpha, contentDescription = null)
-                                Text("  По алфавиту")
-                            }
-                        }
-
-                        OutlinedButton(
-                            onClick = { showAddDepartmentDialog = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Filled.Add, contentDescription = null)
-                            Text("  Добавить группы")
-                        }
-                    }
-                )
-            }
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
         }

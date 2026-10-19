@@ -1,7 +1,16 @@
 package com.spisokryadom.app.ui.shopcontent
 
+import com.spisokryadom.app.ui.batch.*
+import androidx.compose.material.icons.filled.Checklist
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +55,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,75 +69,78 @@ fun ShopContentScreen(
     onNavigateBack: () -> Unit,
     onNavigateToProductCard: (Long) -> Unit,
     onCreateNewProduct: () -> Unit,
-    viewModel: ShopContentViewModel = viewModel(factory = ShopContentViewModel.factory(shopId))
+    focusProductId:Long=-1L,
+    onFocusHandled:()->Unit={},
+    viewModel: ShopContentViewModel = viewModel(factory = ShopContentViewModel.factory(shopId)),
+    batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory)
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val selection=rememberBatchSelection(state.products.map{it.product.id}.toSet(),shopId,loaded=!state.isLoading)
+    var batchIds by remember{mutableStateOf<Set<Long>?>(null)}
+    batchIds?.let{ids->BatchProductSheet(ids,{batchIds=null},{batchIds=null;selection.clear()},shopId=shopId,vm=batchVM)}
     state.error?.let{message->androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={androidx.compose.material3.TextButton(onClick=viewModel::clearError){Text("Понятно")}})}
+    val expansion=com.spisokryadom.app.ui.components.rememberGroups("product_db_prefs","shop_points_$shopId")
+    val listState=androidx.compose.foundation.lazy.rememberLazyListState()
+    val density=androidx.compose.ui.platform.LocalDensity.current
+    var highlighted by remember{mutableStateOf<Long?>(null)}
+    androidx.compose.runtime.LaunchedEffect(highlighted){if(highlighted!=null){kotlinx.coroutines.delay(2400);highlighted=null}}
+    androidx.compose.runtime.LaunchedEffect(focusProductId,state.sections,expansion.collapsed){
+        if(focusProductId>0){
+            val target=state.sections.firstOrNull{it.products.any{p->p.product.id==focusProductId}}
+            if(target!=null){
+                val key="point_${target.id?:0}"
+                if(key in expansion.collapsed)expansion.expand(key)
+                else {
+                    val keys=buildList<String>{add("spacer");state.sections.forEach{section->
+                        val k="point_${section.id?:0}"
+                        if(section.id!=null||state.sections.size>1)add(k)
+                        if(k !in expansion.collapsed)section.products.groupBy{it.departmentName}.forEach{(dep,products)->
+                            if(dep!=null||section.products.any{it.departmentName!=null})add("${k}_department_${dep.orEmpty()}")
+                            products.forEach{add("${k}_${it.link.id}")}
+                        }
+                    }}
+                    val row=target.products.first{it.product.id==focusProductId}
+                    val index=keys.indexOf("${key}_${row.link.id}")
+                    if(index>=0){listState.scrollToItem(index,-with(density){24.dp.roundToPx()});highlighted=focusProductId;onFocusHandled()}
+                }
+            }
+        }
+    }
+
     var fabExpanded by remember { mutableStateOf(false) }
 
-    // Pick products fullscreen dialog
+    // The picker replaces the screen; it must own both pointer input and Back.
     if (state.showPickProducts) {
+        BackHandler(onBack = viewModel::closePickProducts)
         PickProductsDialog(
-            shopName = state.shop?.name ?: "",
+            shopName = state.shop?.let{com.spisokryadom.app.ui.components.LocalPlaceLabels.current.shop(it.id,it.name)} ?: "",
             searchQuery = state.pickSearchQuery,
             products = state.pickProducts,
             onSearchQueryChange = { viewModel.setPickSearchQuery(it) },
             onToggleProduct = { viewModel.toggleProductLink(it) },
             onDismiss = { viewModel.closePickProducts() }
         )
-    }
-
+    } else {
     Scaffold(
+        snackbarHost={BatchFeedback(batchVM)},
         topBar = {
             TopAppBar(
-                title = { Text(state.shop?.name ?: "") },
+                title = { Text(if(selection.active)"Выбрано: ${selection.ids.size}"else state.shop?.let{com.spisokryadom.app.ui.components.LocalPlaceLabels.current.shop(it.id,it.name)} ?: "",maxLines=1,overflow=TextOverflow.Ellipsis) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                    IconButton(onClick = {if(selection.active)selection.clear()else onNavigateBack()}) {
+                        Icon(if(selection.active)Icons.Filled.Close else Icons.AutoMirrored.Filled.ArrowBack, contentDescription = if(selection.active)"Отменить выбор"else "Назад")
                     }
-                }
+                },
+                actions={if(selection.active)BatchTopActions(selection,state.products.map{it.product.id}.toSet(),{batchIds=selection.ids})else IconButton(onClick={selection.active=true},enabled=state.products.isNotEmpty()){Icon(Icons.Default.Checklist,"Выбрать товары")}}
             )
         },
         floatingActionButton = {
-            if (state.products.isNotEmpty()) {
-                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (fabExpanded) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "Добавить из базы",
-                                style = MaterialTheme.typography.labelLarge,
-                                modifier = Modifier.padding(end = 8.dp)
-                            )
-                            SmallFloatingActionButton(
-                                onClick = {
-                                    fabExpanded = false
-                                    viewModel.openPickProducts()
-                                }
-                            ) {
-                                Icon(Icons.Filled.Inventory2, contentDescription = "Добавить из базы")
-                            }
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "Создать новый товар",
-                                style = MaterialTheme.typography.labelLarge,
-                                modifier = Modifier.padding(end = 8.dp)
-                            )
-                            SmallFloatingActionButton(
-                                onClick = {
-                                    fabExpanded = false
-                                    onCreateNewProduct()
-                                }
-                            ) {
-                                Icon(Icons.Filled.Add, contentDescription = "Создать новый товар")
-                            }
-                        }
-                    }
-                    FloatingActionButton(onClick = { fabExpanded = !fabExpanded }) {
-                        Icon(
-                            if (fabExpanded) Icons.Filled.Close else Icons.Filled.Add,
-                            contentDescription = "Добавить товар"
-                        )
+            if (state.products.isNotEmpty()&&!selection.active) {
+                Box {
+                    FloatingActionButton(onClick={fabExpanded=true}){Icon(Icons.Filled.Add,"Добавить товар")}
+                    androidx.compose.material3.DropdownMenu(expanded=fabExpanded,onDismissRequest={fabExpanded=false}){
+                        androidx.compose.material3.DropdownMenuItem(text={Text("Добавить из базы")},leadingIcon={Icon(Icons.Filled.Inventory2,null)},onClick={fabExpanded=false;viewModel.openPickProducts()})
+                        androidx.compose.material3.DropdownMenuItem(text={Text("Создать новый товар")},leadingIcon={Icon(Icons.Filled.Add,null)},onClick={fabExpanded=false;onCreateNewProduct()})
                     }
                 }
             }
@@ -179,26 +192,52 @@ fun ShopContentScreen(
             }
         } else {
             LazyColumn(
+                state=listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = 12.dp).padding(bottom=88.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 item { Spacer(modifier = Modifier.height(4.dp)) }
-                items(state.products, key = { it.link.id }) { productUi ->
-                    ShopProductItem(
-                        productUi = productUi,
-                        onCartClick = { viewModel.quickAddToShoppingList(productUi.product) },
-                        onIncrement = { viewModel.incrementQuantity(productUi.product.id) },
-                        onDecrement = { viewModel.decrementQuantity(productUi.product.id) },
-                        onSetQuantity = { qty -> viewModel.setQuantity(productUi.product.id, qty) },
-                        onLongPress = { onNavigateToProductCard(productUi.product.id) }
-                    )
+                state.sections.forEach{section->
+                    val key="point_${section.id?:0}"
+                    if(section.id!=null||state.sections.size>1)item(key=key){
+                        val expanded=key !in expansion.collapsed
+                        androidx.compose.material3.OutlinedCard(Modifier.fillMaxWidth().animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300))){
+                            Column(Modifier.fillMaxWidth().padding(12.dp)){
+                                Row(Modifier.fillMaxWidth().clickable{expansion.toggle(key)},verticalAlignment=Alignment.CenterVertically){
+                                    if(selection.active)BatchToggle(section.products.map{it.product.id}.toSet(),selection,section.name)
+                                    com.spisokryadom.app.ui.components.CollapseChevron(!expanded,if(expanded)"Свернуть точку: ${section.name}"else "Развернуть точку: ${section.name}")
+                                    Text(section.name,Modifier.weight(1f).padding(horizontal=8.dp),style=MaterialTheme.typography.titleSmall)
+                                    Text(section.products.size.toString(),style=MaterialTheme.typography.labelMedium)
+                                }
+                                if(expanded){section.note?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodyMedium)};section.photoUri?.let{com.spisokryadom.app.ui.components.BranchPhotoPreview(it)}}
+                            }
+                        }
+                    }
+                    if(key !in expansion.collapsed)section.products.groupBy{it.departmentName}.forEach{(department,products)->
+                      if(department!=null||section.products.any{it.departmentName!=null})item(key="${key}_department_${department.orEmpty()}"){Row(verticalAlignment=Alignment.CenterVertically){
+                       if(selection.active)BatchToggle(products.map{it.product.id}.toSet(),selection,department?:"Без группы магазина")
+                       com.spisokryadom.app.ui.components.DepartmentHeading(department?:"Без группы магазина",state.departmentTypes[department]?.accent.orEmpty(),state.departmentTypes[department]?.iconKey.orEmpty(),Modifier.weight(1f))
+                      }}
+                      items(products,key={"${key}_${it.link.id}"}){productUi->
+                        if(selection.active)BatchRow(productUi.product.id,productUi.product.name,productUi.product.id in selection.ids,{selection.toggle(productUi.product.id)},productUi.departmentName,Modifier.testTag("shop-product-${section.id?:0}-${productUi.product.id}"),favorite=productUi.product.isFavorite)
+                        else ShopProductItem(productUi,
+                            modifier=Modifier.testTag("shop-product-${section.id?:0}-${productUi.product.id}").then(if(highlighted==productUi.product.id)Modifier.border(2.dp,MaterialTheme.colorScheme.primary,MaterialTheme.shapes.large)else Modifier).animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
+                            onCartClick={viewModel.quickAddToShoppingList(productUi.product,section.id)},
+                            onIncrement={productUi.listEntryId?.let(viewModel::incrementEntry)},
+                            onDecrement={productUi.listEntryId?.let(viewModel::decrementEntry)},
+                            onSetQuantity={qty->productUi.listEntryId?.let{viewModel.setEntryQuantity(it,qty)}},
+                            onLongPress={onNavigateToProductCard(productUi.product.id)},
+                            onEntryAdjust={id,direction->if(direction>0)viewModel.incrementEntry(id)else viewModel.decrementEntry(id)},onEntrySet=viewModel::setEntryQuantity)
+                    }
+                    }
                 }
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
+    }
     }
 }
 
@@ -215,7 +254,7 @@ private fun PickProductsDialog(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Добавить товары в «$shopName»") },
+                title = { Text("Добавить товары",maxLines=1,overflow=TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Filled.Close, contentDescription = "Закрыть")
@@ -327,7 +366,7 @@ private fun PickProductItem(
     val product = pickUi.product
 
     val bgColor = if (pickUi.isLinked) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+        MaterialTheme.colorScheme.primaryContainer
     } else {
         MaterialTheme.colorScheme.surface
     }
@@ -335,7 +374,8 @@ private fun PickProductItem(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = bgColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (pickUi.isLinked) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             modifier = Modifier
@@ -347,11 +387,12 @@ private fun PickProductItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = product.name,
+                        modifier = Modifier.weight(1f, fill = false),
                         style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
+                    if(product.isFavorite){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар: ${product.name}",Modifier.size(18.dp),tint=MaterialTheme.colorScheme.primary)}
                     if (pickUi.isLinked) {
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
@@ -361,6 +402,7 @@ private fun PickProductItem(
                         )
                     }
                 }
+                com.spisokryadom.app.ui.components.accentColor(product.accent)?.let{Box(Modifier.padding(top=3.dp).width(36.dp).height(2.dp).background(it))}
                 val details = buildList {
                     if (!product.defaultUnit.isNullOrBlank()) {
                         val qty = product.defaultQuantity?.let { q ->
@@ -394,30 +436,39 @@ private fun PickProductItem(
 @Composable
 private fun ShopProductItem(
     productUi: ShopProductUi,
+    modifier:Modifier=Modifier,
     onCartClick: () -> Unit,
     onIncrement: () -> Unit,
     onDecrement: () -> Unit,
     onSetQuantity: (Double) -> Unit,
-    onLongPress: () -> Unit
+    onLongPress: () -> Unit,
+    onEntryAdjust:(Long,Int)->Unit,
+    onEntrySet:(Long,Double)->Unit
 ) {
+    if(productUi.purchases.size>1){
+        com.spisokryadom.app.ui.components.MultiplePurchaseCard(productUi.product.name,productUi.purchases,onEntryAdjust,onEntrySet,onLongPress,modifier,favorite=productUi.product.isFavorite,accent=productUi.product.accent)
+        return
+    }
+
     val product = productUi.product
     val isInList = productUi.isInShoppingList
 
     val bgColor = if (isInList) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+        MaterialTheme.colorScheme.primaryContainer
     } else {
         MaterialTheme.colorScheme.surface
     }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = { },
                 onLongClick = onLongPress
             ),
         colors = CardDefaults.cardColors(containerColor = bgColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (isInList) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             modifier = Modifier
@@ -429,10 +480,12 @@ private fun ShopProductItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = product.name,
+                        modifier = Modifier.weight(1f, fill = false),
                         style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
+                    if(product.isFavorite){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary)}
                     if (isInList) {
                         Spacer(modifier = Modifier.width(6.dp))
                         Icon(
@@ -444,6 +497,7 @@ private fun ShopProductItem(
                     }
                 }
 
+                com.spisokryadom.app.ui.components.accentColor(product.accent)?.let{Box(Modifier.padding(top=3.dp).width(36.dp).height(2.dp).background(it))}
                 val details = buildList {
                     productUi.departmentName?.let { add(it) }
                     if (!product.defaultUnit.isNullOrBlank()) {
@@ -455,7 +509,6 @@ private fun ShopProductItem(
                         add(unitStr)
                     }
                     if (product.purchaseType == "online") add("онлайн")
-                    add("приоритет: ${productUi.link.priority}")
                 }
                 if (details.isNotEmpty()) {
                     Text(
@@ -468,16 +521,19 @@ private fun ShopProductItem(
                 }
             }
 
+            Spacer(Modifier.width(10.dp))
             if (isInList && productUi.listQuantity != null) {
-                InlineQuantityControl(
-                    quantity = productUi.listQuantity,
-                    unit = productUi.listUnit ?: "",
-                    onIncrement = onIncrement,
-                    onDecrement = onDecrement,
-                    onSetQuantity = onSetQuantity
-                )
+                androidx.compose.runtime.key(productUi.listEntryId) {
+                    InlineQuantityControl(
+                        quantity = productUi.listQuantity,
+                        unit = productUi.listUnit ?: "",
+                        onIncrement = onIncrement,
+                        onDecrement = onDecrement,
+                        onSetQuantity = onSetQuantity
+                    )
+                }
             } else {
-                IconButton(onClick = onCartClick) {
+                IconButton(onClick = onCartClick,modifier=Modifier.testTag("shop-add-${product.id}")) {
                     Icon(
                         Icons.Filled.AddShoppingCart,
                         contentDescription = "Добавить в список",

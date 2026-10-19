@@ -31,4 +31,16 @@ class SearchAndParserTest {
         val start=System.nanoTime();val result=FuzzySearch.filterAndSort(catalog,"яблки");val ms=(System.nanoTime()-start)/1_000_000
         assertEquals("Яблоки Гала",result.first());println("Fuzzy search 5001 items: $ms ms (JVM, not device UI)")
     }
+
+    @Test fun storeHeadersCarryToFollowingPurchasesAndAreNotProducts() {
+        val rows=ShoppingTextParser.parse("Хлеб 1\nКрасный Яр:\n- Бананы 4\nЯблоки 0,5 кг\n\nБатон:\nМолоко 2 л\nБез магазина:\nГубка 2")
+        assertEquals(listOf("Хлеб","Бананы","Яблоки","Молоко","Губка"),rows.map{it.name})
+        assertEquals(listOf(null,"Красный Яр","Красный Яр","Батон","Без магазина"),rows.map{it.shopName})
+        assertEquals("0,5",rows[2].quantity)
+    }
+    @Test fun emptyOrDanglingStoreHeadersRequireCorrection() {
+        listOf(":\nМолоко 1", "Батон:", "Батон:\nКрасный Яр:\nМолоко 1").forEach{raw->
+            assertThrows(raw,IllegalArgumentException::class.java){ShoppingTextParser.parse(raw)}
+        }
+    }
 }

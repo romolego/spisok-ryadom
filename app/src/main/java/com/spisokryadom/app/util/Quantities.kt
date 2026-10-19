@@ -14,4 +14,10 @@ object Quantities {
         "г.", "грамм", "грамма", "граммов", "гр", "гр." -> "г"
         else -> it
     } }
+    /** A card's number is a step only in the unit that gives that number meaning. */
+    fun step(entryUnit: String, defaultUnit: String?, defaultQuantity: Double?): Double =
+        defaultQuantity?.takeIf {
+            it.isFinite() && it >= 0.000001 && it <= 1_000_000_000.0 &&
+                unit(entryUnit) == unit(defaultUnit.orEmpty())
+        } ?: 1.0
 }

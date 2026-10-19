@@ -5,7 +5,10 @@ import androidx.room.PrimaryKey
 import androidx.room.ForeignKey
 import androidx.room.Index
 
-@Entity(tableName = "shops", indices = [Index("cityId")])
+@Entity(tableName = "shops", foreignKeys=[
+ ForeignKey(entity=CityEntity::class,parentColumns=["id"],childColumns=["cityId"],onDelete=ForeignKey.RESTRICT),
+ ForeignKey(entity=RetailNetworkEntity::class,parentColumns=["id"],childColumns=["networkId"],onDelete=ForeignKey.SET_NULL)
+], indices = [Index("cityId"),Index("networkId")])
 data class ShopEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -19,5 +22,6 @@ data class ShopEntity(
     val boostUrgentShop: Boolean? = null,
     /** true if user manually reordered this shop — suppresses auto-boost */
     val manualOrderOverride: Boolean = false,
-    val cityId: Long = 1
+    val cityId: Long = 1,
+    val networkId:Long? = null
 )

@@ -9,6 +9,6 @@ interface CityDao {
     @Query("SELECT * FROM cities WHERE id=:id") suspend fun getById(id: Long): CityEntity?
     @Insert suspend fun insert(city: CityEntity): Long
     @Update suspend fun update(city: CityEntity)
-    @Query("DELETE FROM cities WHERE id=:id AND id NOT IN (SELECT cityId FROM shops)") suspend fun deleteEmpty(id: Long)
+    @Query("DELETE FROM cities WHERE id=:id AND id NOT IN (SELECT cityId FROM shops) AND id NOT IN (SELECT cityId FROM venues)") suspend fun deleteEmpty(id: Long)
     @Query("DELETE FROM cities") suspend fun deleteAll()
 }

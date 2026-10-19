@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.BranchMigrationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:05:01.327Z" time="6.601">
+  <testcase name="v8ToV9PreservesData" classname="com.spisokryadom.app.BranchMigrationTest" time="6.601" />
+</testsuite>

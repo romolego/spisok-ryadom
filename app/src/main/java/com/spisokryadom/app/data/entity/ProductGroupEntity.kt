@@ -8,5 +8,7 @@ data class ProductGroupEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String,
-    val displayOrder: Int = 0
+    val displayOrder: Int = 0,
+    @androidx.room.ColumnInfo(defaultValue="''") val accent:String="",
+    @androidx.room.ColumnInfo(defaultValue="''") val iconKey:String=""
 )

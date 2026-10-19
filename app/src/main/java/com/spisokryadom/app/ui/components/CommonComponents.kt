@@ -6,6 +6,9 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.key
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,6 +65,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.spisokryadom.app.util.FuzzySearch
+import com.spisokryadom.app.util.Quantities
 
 @Composable
 fun ConfirmDialog(
@@ -92,6 +97,7 @@ fun InputDialog(
 ) {
     var text by rememberSaveable(title,initialValue) { mutableStateOf(initialValue) }
     AlertDialog(
+        modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
@@ -137,6 +143,7 @@ fun InputDialogWithSuggestions(
     }
 
     AlertDialog(
+        modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
@@ -193,139 +200,33 @@ fun InputDialogWithSuggestions(
  * Уже добавленные элементы показываются как неактивные с пометкой «(добавлена)».
  */
 @Composable
-fun MultiSelectDialog(
-    title: String,
-    availableItems: List<String>,
-    alreadyAddedItems: Set<String>,
-    newItemLabel: String = "Новое название",
-    onConfirm: (List<String>) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var selectedItems by remember { mutableStateOf(setOf<String>()) }
-    var newItemText by remember { mutableStateOf("") }
-    var customItems by remember { mutableStateOf(listOf<String>()) }
-
-    val selectableItems = availableItems.filter { it !in alreadyAddedItems }
-    val hasAnythingToConfirm = selectedItems.isNotEmpty() || customItems.isNotEmpty()
-
-    val addNewItem = {
-        val trimmed = newItemText.trim()
-        if (trimmed.isNotBlank()) {
-            when {
-                trimmed in alreadyAddedItems -> { /* already added, ignore */ }
-                trimmed in selectableItems -> selectedItems = selectedItems + trimmed
-                trimmed !in customItems -> customItems = customItems + trimmed
-            }
-            newItemText = ""
-        }
+fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems:Set<String>,newItemLabel:String="Новое название",onConfirm:(List<String>)->Unit,onDismiss:()->Unit) {
+ var selected by remember{mutableStateOf(setOf<String>())};var input by remember{mutableStateOf("")};var custom by remember{mutableStateOf(listOf<String>())}
+ val normalize=com.spisokryadom.app.util.FuzzySearch::normalize
+ val added=alreadyAddedItems.map(normalize).toSet()
+ val rows=(availableItems+alreadyAddedItems+custom).distinctBy(normalize)
+ fun add(){val value=input.trim();if(value.isNotBlank()){
+  val known=rows.find{normalize(it)==normalize(value)}
+  if(normalize(value) !in added){if(known!=null)selected=selected+known else {custom=custom+value;selected=selected+value}}
+  input=""
+ }}
+ val width=minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-32.dp)
+ AlertDialog(modifier=Modifier.width(width),properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false),onDismissRequest=onDismiss,title={Text(title)},text={
+  Column(Modifier.verticalScroll(rememberScrollState())){
+   rows.forEach{name->key(name){
+    val locked=normalize(name) in added;val checked=locked||name in selected
+    Row(Modifier.fillMaxWidth().toggleable(value=checked,enabled=!locked,role=Role.Checkbox,onValueChange={v->selected=if(v)selected+name else selected-name}).padding(vertical=2.dp),verticalAlignment=Alignment.CenterVertically){
+     Box(Modifier.size(48.dp),contentAlignment=Alignment.Center){Checkbox(checked,onCheckedChange=null,enabled=!locked)}
+     Column(Modifier.weight(1f)){Text(name,style=MaterialTheme.typography.bodyMedium,color=if(locked)MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface);if(locked)Text("Добавлена",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
     }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState())
-            ) {
-                // Selectable items (available but not yet added)
-                selectableItems.forEach { name ->
-                    val isSelected = name in selectedItems
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                selectedItems = if (isSelected) selectedItems - name
-                                else selectedItems + name
-                            }
-                            .padding(vertical = 2.dp)
-                    ) {
-                        Checkbox(
-                            checked = isSelected,
-                            onCheckedChange = { checked ->
-                                selectedItems = if (checked) selectedItems + name
-                                else selectedItems - name
-                            }
-                        )
-                        Text(name, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-
-                // Already added items (disabled)
-                alreadyAddedItems.forEach { name ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp)
-                    ) {
-                        Checkbox(checked = true, onCheckedChange = null, enabled = false)
-                        Text(
-                            text = name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "(добавлена)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                // Custom items added in this session
-                customItems.forEach { name ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { customItems = customItems - name }
-                            .padding(vertical = 2.dp)
-                    ) {
-                        Checkbox(
-                            checked = true,
-                            onCheckedChange = { customItems = customItems - name }
-                        )
-                        Text(name, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Input for creating brand-new items
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = newItemText,
-                        onValueChange = { newItemText = it },
-                        label = { Text(newItemLabel) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { addNewItem() }),
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(
-                        onClick = { addNewItem() },
-                        enabled = newItemText.isNotBlank()
-                    ) {
-                        Icon(Icons.Filled.Add, contentDescription = "Добавить")
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(selectedItems.toList() + customItems) },
-                enabled = hasAnythingToConfirm
-            ) { Text("Добавить") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
+   }}
+   Spacer(Modifier.height(8.dp))
+   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+    OutlinedTextField(input,{input=it},label={Text(newItemLabel)},singleLine=true,keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={add()}),modifier=Modifier.weight(1f))
+    IconButton(onClick={add()},enabled=input.isNotBlank()){Icon(Icons.Filled.Add,"Добавить название")}
+   }
+  }
+ },confirmButton={TextButton(onClick={onConfirm(rows.filter{it in selected&&normalize(it) !in added})},enabled=selected.isNotEmpty()){Text("Добавить")}},dismissButton={TextButton(onClick=onDismiss){Text("Отмена")}})
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -339,17 +240,19 @@ fun <T> DropdownSelector(
     modifier: Modifier = Modifier,
     allowCreate: Boolean = false,
     onCreateNew: (() -> Unit)? = null,
-    createLabel: String = "Создать..."
+    createLabel: String = "Создать...",
+    itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано"
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = it },
+        onExpandedChange = { expanded=it },
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = selectedItem?.let { itemLabel(it) } ?: "",
+            value = selectedItem?.let { itemLabel(it) } ?: noneLabel,
+            leadingIcon=selectedItem?.let { item -> appearanceIcon(itemIcon(item))?.let{vector->{Icon(vector,null,tint=accentColor(itemAccent(item))?:MaterialTheme.colorScheme.primary)}}},
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -362,20 +265,20 @@ fun <T> DropdownSelector(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            if (selectedItem != null) {
+            items.forEach { item ->
                 DropdownMenuItem(
-                    text = { Text("Не задано", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    text = { MarkedLabel(itemLabel(item),itemAccent(item),itemIcon(item),small=true) },
                     onClick = {
-                        onSelect(null)
+                        onSelect(item)
                         expanded = false
                     }
                 )
             }
-            items.forEach { item ->
+            run {
                 DropdownMenuItem(
-                    text = { Text(itemLabel(item)) },
+                    text = { Text(noneLabel, color = MaterialTheme.colorScheme.onSurfaceVariant) },
                     onClick = {
-                        onSelect(item)
+                        onSelect(null)
                         expanded = false
                     }
                 )
@@ -394,9 +297,12 @@ fun <T> DropdownSelector(
                     }
                 )
             }
+
+
         }
     }
 }
+
 
 /**
  * Поле количества и единицы измерения.
@@ -524,7 +430,7 @@ fun PurchaseTypeSelector(
             )
             Text(
                 "Оффлайн",
-                modifier = Modifier.clickable { onTypeChange("offline") }
+                modifier = Modifier.padding(start=8.dp).clickable { onTypeChange("offline") }
             )
             Spacer(modifier = Modifier.width(16.dp))
             RadioButton(
@@ -533,7 +439,7 @@ fun PurchaseTypeSelector(
             )
             Text(
                 "Онлайн",
-                modifier = Modifier.clickable { onTypeChange("online") }
+                modifier = Modifier.padding(start=8.dp).clickable { onTypeChange("online") }
             )
         }
     }
@@ -568,7 +474,8 @@ fun EditableSection(
     editContent: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     emptyMessage: String? = null,
-    isEmpty: Boolean = false
+    isEmpty: Boolean = false,
+    editDescription:String = "Редактировать"
 ) {
     Column(modifier = modifier) {
         // Header with edit toggle
@@ -591,7 +498,7 @@ fun EditableSection(
             ) {
                 Icon(
                     imageVector = if (isEditing) Icons.Filled.Check else Icons.Filled.Edit,
-                    contentDescription = if (isEditing) "Готово" else "Редактировать",
+                    contentDescription = if (isEditing) "Готово" else editDescription,
                     tint = if (isEditing)
                         MaterialTheme.colorScheme.primary
                     else
@@ -648,6 +555,7 @@ fun InlineQuantityControl(
     decrementEnabled: Boolean = true
 ) {
     var isEditing by remember { mutableStateOf(false) }
+    var quantityError by remember { mutableStateOf(false) }
     val qtyStr = remember(quantity) {
         if (quantity == quantity.toLong().toDouble()) quantity.toLong().toString()
         else quantity.toString()
@@ -660,13 +568,13 @@ fun InlineQuantityControl(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             IconButton(
                 onClick = onDecrement,
                 enabled = decrementEnabled,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     Icons.Filled.Remove,
@@ -680,8 +588,26 @@ fun InlineQuantityControl(
             if (isEditing) {
                 val focusRequester = remember { FocusRequester() }
                 val focusManager = LocalFocusManager.current
-                var textFieldValue by remember(qtyStr) {
+                var textFieldValue by remember {
                     mutableStateOf(TextFieldValue(qtyStr, TextRange(0, qtyStr.length)))
+                }
+                var hasReceivedFocus by remember { mutableStateOf(false) }
+                var finished by remember { mutableStateOf(false) }
+
+                // Initial unfocused notifications do not mean the editor lost focus.
+                // Done can also trigger focus loss: both paths share one commit guard.
+                val finishEditing = {
+                    if (!finished) {
+                        val parsed = Quantities.parse(textFieldValue.text)
+                        if (parsed == null) {
+                            quantityError = true
+                        } else {
+                            finished = true
+                            quantityError = false
+                            isEditing = false
+                            onSetQuantity(parsed)
+                        }
+                    }
                 }
 
                 LaunchedEffect(Unit) {
@@ -691,10 +617,10 @@ fun InlineQuantityControl(
                 BasicTextField(
                     value = textFieldValue,
                     onValueChange = { newValue ->
-                        val filtered = newValue.text.filter { c -> c.isDigit() || c == '.' }
-                        if (filtered.isEmpty() || filtered.matches(Regex("^\\d*\\.?\\d*$"))) {
-                            textFieldValue = newValue.copy(text = filtered)
-                        }
+                        // Preserve the input, including decimal commas and invalid signs,
+                        // so an invalid -5 can never silently become a valid 5.
+                        textFieldValue = newValue
+                        quantityError = false
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Decimal,
@@ -702,29 +628,26 @@ fun InlineQuantityControl(
                     ),
                     keyboardActions = KeyboardActions(
                         onDone = {
-                            val newQty = com.spisokryadom.app.util.Quantities.parse(textFieldValue.text)
-                            if (newQty != null) {
-                                onSetQuantity(newQty)
+                            finishEditing()
+                            if (finished) {
+                                focusManager.clearFocus()
                             }
-                            isEditing = false
-                            focusManager.clearFocus()
                         }
                     ),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = if (quantityError) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.onSurface
                     ),
                     singleLine = true,
                     modifier = Modifier
                         .widthIn(min = 36.dp, max = 56.dp)
                         .focusRequester(focusRequester)
                         .onFocusChanged { state ->
-                            if (!state.isFocused && isEditing) {
-                                val newQty = com.spisokryadom.app.util.Quantities.parse(textFieldValue.text)
-                                if (newQty != null) {
-                                    onSetQuantity(newQty)
-                                }
-                                isEditing = false
+                            if (state.isFocused) {
+                                hasReceivedFocus = true
+                            } else if (hasReceivedFocus && !finished) {
+                                finishEditing()
                             }
                         }
                 )
@@ -734,15 +657,15 @@ fun InlineQuantityControl(
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .widthIn(min = 36.dp)
-                        .clickable { isEditing = true }
+                        .widthIn(min = 36.dp, max = 72.dp)
+                        .clickable { quantityError = false; isEditing = true }
                         .padding(horizontal = 4.dp, vertical = 4.dp)
                 )
             }
 
             IconButton(
                 onClick = onIncrement,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     Icons.Filled.Add,
@@ -758,6 +681,13 @@ fun InlineQuantityControl(
                 text = unit,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (isEditing && quantityError) {
+            Text(
+                text = "Некорректное количество",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }

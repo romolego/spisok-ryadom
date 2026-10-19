@@ -38,6 +38,6 @@ class CardDraftTest {
    assertNotNull(db.shopDepartmentDao().getById(dept));card.save();await{card.uiState.value.isSaved||card.uiState.value.error!=null};assertNull(card.uiState.value.error);assertNull(db.shopDepartmentDao().getById(dept))
    val fresh=ProductCardViewModel(-1,productRepository=products,shopRepository=shops,classifierRepository=classifiers);store.put("fresh",fresh);fresh.updateName("Новый");fresh.save();fresh.save();await{fresh.uiState.value.isSaved||fresh.uiState.value.error!=null}
    assertNull(fresh.uiState.value.error);assertEquals(1,db.productDao().getAllSync().count{it.name=="Новый"})
-  }finally{store.clear();locations.close();db.close()}
+  }finally{store.clear();locations.closeForTest();db.close()}
  }
 }

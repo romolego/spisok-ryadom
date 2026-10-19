@@ -44,5 +44,8 @@ data class ProductEntity(
     val priceValue: Double? = null,
     val priceDate: String? = null,
     val isTemporary: Boolean = false,
-    val stableId: String = java.util.UUID.randomUUID().toString()
+    val stableId: String = java.util.UUID.randomUUID().toString(),
+    @androidx.room.ColumnInfo(defaultValue="0") val preferCityShopOrder:Boolean=false,
+    @androidx.room.ColumnInfo(defaultValue="0") val isFavorite:Boolean=false,
+    @androidx.room.ColumnInfo(defaultValue="''") val accent:String=""
 )

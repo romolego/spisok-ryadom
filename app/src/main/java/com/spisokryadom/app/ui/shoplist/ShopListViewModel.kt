@@ -14,8 +14,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+data class ShopListGroup(val key:String,val venue:com.spisokryadom.app.data.entity.VenueEntity?,val shops:List<ShopEntity>)
+
 data class ShopListUiState(
     val shops: List<ShopEntity> = emptyList(),
+    val venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),
+    val groups:List<ShopListGroup> = emptyList(),
     val isLoading: Boolean = true,
     val isEditing: Boolean = false,
     val error:String?=null
@@ -32,12 +36,30 @@ class ShopListViewModel(
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
     init {
         viewModelScope.launch(errors) {
-            shopRepository.getCityShops().collect { shops ->
-                _uiState.value = _uiState.value.copy(shops = shops, isLoading = false)
-            }
+            kotlinx.coroutines.flow.combine(shopRepository.getCityShops(),shopRepository.observeBranches(),shopRepository.venues()){shops,branches,venues->
+                val currentVenues=venues.filter{it.cityId==shopRepository.locations.currentId()}
+                fun address(shop:ShopEntity,points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>)=shop.copy(address=points.minWithOrNull(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})?.address)
+                val physical=shops.map{shop->address(shop,branches.filter{it.shopId==shop.id})}
+                val knownVenues=currentVenues.map{it.id}.toSet()
+                val groups=buildList{
+                    shops.forEach{shop->
+                        val points=branches.filter{it.shopId==shop.id}
+                        val outside=points.filter{it.venueId !in knownVenues}
+                        if(points.isEmpty()||outside.isNotEmpty())add(ShopListGroup("shop_${shop.id}",null,listOf(address(shop,outside))))
+                    }
+                    currentVenues.forEach{venue->
+                        val local=shops.mapNotNull{shop->val points=branches.filter{it.shopId==shop.id&&it.venueId==venue.id};if(points.isEmpty())null else address(shop,points)}
+                        add(ShopListGroup("venue_${venue.id}",venue,local))
+                    }
+                }.sortedWith(compareBy<ShopListGroup>{it.shops.minOfOrNull{s->s.displayOrder}?:Int.MAX_VALUE}.thenBy{it.venue?.id?:0L}.thenBy{it.key})
+                Triple(physical,currentVenues,groups)
+            }.collect{(shops,venues,groups)->_uiState.value=_uiState.value.copy(shops=shops,venues=venues,groups=groups,isLoading=false)}
         }
     }
 
+    fun createVenue(name:String,done:()->Unit){viewModelScope.launch(errors){shopRepository.ensureVenue(shopRepository.locations.currentId(),name);done()}}
+    fun saveVenue(venue:com.spisokryadom.app.data.entity.VenueEntity){viewModelScope.launch(errors){shopRepository.updateVenue(venue)}}
+    fun removeVenue(id:Long){viewModelScope.launch(errors){shopRepository.deleteVenue(id)}}
     fun deleteShop(shop: ShopEntity) {
         viewModelScope.launch(errors) { shopRepository.deleteShop(shop) }
     }

@@ -38,7 +38,7 @@ class RepositoryRegressionTest {
         basket=ShoppingListRepository(db.shoppingListEntryDao(),db,locations)
         backup=BackupManager(context,db)
     }
-    @After fun close(){locations.close();db.close()}
+    @After fun close(){locations.closeForTest();db.close()}
     private suspend fun product(name:String="Яблоки Гала",temporary:Boolean=false)=db.productDao().insert(ProductEntity(name=name,isTemporary=temporary))
     private suspend fun shop(name:String,city:Long)=db.shopDao().insert(ShopEntity(name=name,cityId=city))
     private suspend fun seed():Triple<Long,Long,Long>{

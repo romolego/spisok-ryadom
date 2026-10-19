@@ -13,9 +13,8 @@ android {
         applicationId = "com.spisokryadom.app"
         minSdk = 26
         targetSdk = 35
-        manifestPlaceholders["appLabel"] = "Список рядом"
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 18
+        versionName = "0.12.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions { annotationProcessorOptions { arguments["room.schemaLocation"] = "$projectDir/schemas" } }
     }
@@ -23,7 +22,7 @@ android {
     flavorDimensions += "installation"
     productFlavors {
         create("standard") { dimension = "installation" }
-        create("parallel") { dimension = "installation"; applicationIdSuffix = ".next"; manifestPlaceholders["appLabel"] = "Список рядом · новая" }
+        create("parallel") { dimension = "installation"; applicationIdSuffix = ".next" }
     }
     signingConfigs { create("localRelease") {
         storeFile = rootProject.file(".local/signing/local-development.jks")
@@ -101,4 +100,12 @@ dependencies {
 
     // Core
     implementation("androidx.core:core-ktx:1.15.0")
+}
+
+// Native Robolectric SQLite handles must not outlive a sandbox on Windows.
+// A fresh worker for each class avoids cross-sandbox native finalizer crashes.
+tasks.withType<Test>().configureEach {
+    forkEvery = 1
+    maxParallelForks = 1
+    maxHeapSize = "768m"
 }

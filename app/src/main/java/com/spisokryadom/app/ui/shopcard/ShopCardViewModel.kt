@@ -44,13 +44,22 @@ data class ShopCardUiState(
     val note: String = "",
     val displayOrder: String = "0",
     val cityId: Long = 1,
+    val networkId:Long?=null,
+    val networkName:String="",
+    val networks:List<com.spisokryadom.app.data.entity.RetailNetworkEntity> = emptyList(),
+    val venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),
+    val venueNames:Map<Long,String> = emptyMap(),
+    val branchOrders:Map<Long,List<Long>> = emptyMap(),
+    val branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity> = emptyList(),
     val departments: List<ShopDepartmentEntity> = emptyList(),
     val pendingDepartments: List<PendingDepartment> = emptyList(),
     val allDepartmentNames: List<String> = emptyList(),
+    val departmentTypes:List<com.spisokryadom.app.data.entity.DepartmentTypeEntity> = emptyList(),
     val isSaved: Boolean = false,
     val isDeleted: Boolean = false,
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
+    val isPhotoBusy:Boolean=false,
     val error: String? = null,
     /** Per-shop urgency: show urgent in collapsed */
     val showUrgentInCollapsed: UrgencyOverride = UrgencyOverride.USE_GLOBAL,
@@ -64,13 +73,19 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     private var currentShopId=shopId
     private var nextTempId=1L
     init {
+        viewModelScope.launch{shopRepository.departmentTypes().collect{_uiState.value=_uiState.value.copy(departmentTypes=it)}}
         command {
+            viewModelScope.launch { shopRepository.networks().collect{_uiState.value=_uiState.value.copy(networks=it)} }
+            viewModelScope.launch { shopRepository.venues().collect{_uiState.value=_uiState.value.copy(venues=it)} }
             if(shopId>0){
                 val shop=shopRepository.getShopById(shopId)?:error("Магазин удалён")
-                _uiState.value=_uiState.value.copy(isNew=false,name=shop.name,address=shop.address.orEmpty(),note=shop.note.orEmpty(),cityId=shop.cityId,
+                val branches=shopRepository.branches(shopId)
+                val departments=shopRepository.getDepartmentsByShopIdSync(shopId)
+                val orders=shopRepository.branchOrders().groupBy{it.branchId}.mapValues{it.value.sortedBy{it.displayOrder}.map{it.typeId}}
+                _uiState.value=_uiState.value.copy(isNew=false,name=shop.name,networkId=shop.networkId,branchOrders=orders,address=shop.address.orEmpty(),note=shop.note.orEmpty(),cityId=shop.cityId,
                     displayOrder=shop.displayOrder.toString(),showUrgentInCollapsed=booleanToOverride(shop.showUrgentInCollapsed),boostUrgentShop=booleanToOverride(shop.boostUrgentShop),
-                    departments=shopRepository.getDepartmentsByShopIdSync(shopId),isLoading=false)
-            }else _uiState.value=_uiState.value.copy(cityId=shopRepository.locations.currentId(),isLoading=false)
+                    branches=branches,departments=departments,isLoading=false)
+            }else {val city=shopRepository.locations.currentId();_uiState.value=_uiState.value.copy(cityId=city,isLoading=false)}
         }
         viewModelScope.launch { shopRepository.getDistinctDepartmentNames().collect{names->_uiState.value=_uiState.value.copy(allDepartmentNames=names)} }
     }
@@ -79,22 +94,30 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     private fun overrideToBoolean(value:UrgencyOverride):Boolean?=when(value){UrgencyOverride.USE_GLOBAL->null;UrgencyOverride.YES->true;UrgencyOverride.NO->false}
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
     fun updateName(value:String){_uiState.value=_uiState.value.copy(name=value)}
-    fun updateCity(id:Long){_uiState.value=_uiState.value.copy(cityId=id)}
-    fun updateAddress(value:String){_uiState.value=_uiState.value.copy(address=value)}
+    fun updateCity(id:Long){if(id==_uiState.value.cityId)return;_uiState.value=_uiState.value.copy(cityId=id,branches=_uiState.value.branches.map{it.copy(venueId=null)},venueNames=emptyMap())}
+    fun updateNetwork(id:Long?){_uiState.value=_uiState.value.copy(networkId=id)}
+    fun updateNetworkName(name:String){_uiState.value=_uiState.value.copy(networkName=name)}
+    fun updateVenueName(branchId:Long,name:String){_uiState.value=_uiState.value.copy(venueNames=_uiState.value.venueNames+(branchId to name))}
+    fun convertToVenue(){if(!_uiState.value.isNew)saveDraft(convert=true)}
+    fun updateAddress(value:String){_uiState.value=_uiState.value.copy(address=value,branches=if(value.isBlank())emptyList()else listOf(com.spisokryadom.app.data.entity.ShopBranchEntity(shopId=shopId.coerceAtLeast(0),address=value)))}
+    fun updateBranches(value:List<com.spisokryadom.app.data.entity.ShopBranchEntity>){_uiState.value=_uiState.value.copy(branches=value)}
+    fun updateBranchOrder(branchId:Long,values:List<Long>){_uiState.value=_uiState.value.copy(branchOrders=_uiState.value.branchOrders+(branchId to values))}
+    fun updatePhotoBusy(value:Boolean){_uiState.value=_uiState.value.copy(isPhotoBusy=value)}
     fun updateNote(value:String){_uiState.value=_uiState.value.copy(note=value)}
     fun updateShowUrgentInCollapsed(value:UrgencyOverride){_uiState.value=_uiState.value.copy(showUrgentInCollapsed=value)}
     fun updateBoostUrgentShop(value:UrgencyOverride){_uiState.value=_uiState.value.copy(boostUrgentShop=value)}
-    fun save(){
-        val state=_uiState.value;if(state.isSaving||state.name.isBlank()||state.isLoading)return
+    fun save()=saveDraft(convert=false)
+    private fun saveDraft(convert:Boolean){
+        val state=_uiState.value;if(state.isSaving||state.isPhotoBusy||state.name.isBlank()||state.isLoading)return
         _uiState.value=state.copy(isSaving=true,error=null)
         command {
             val old=if(state.isNew)null else shopRepository.getShopById(currentShopId)?:error("Магазин удалён")
             val order=if(state.isNew)(shopRepository.getAllShopsSync().filter{it.cityId==state.cityId}.maxOfOrNull{it.displayOrder}?:0)+1 else state.displayOrder.toIntOrNull()?:0
-            val shop=ShopEntity(id=old?.id?:0,name=state.name.trim(),address=state.address.trim().ifBlank{null},note=state.note.trim().ifBlank{null},cityId=state.cityId,displayOrder=order,
+            val shop=ShopEntity(id=old?.id?:0,networkId=state.networkId,name=state.name.trim(),address=state.address.trim().ifBlank{null},note=state.note.trim().ifBlank{null},cityId=state.cityId,displayOrder=order,
                 showUrgentInCollapsed=overrideToBoolean(state.showUrgentInCollapsed),boostUrgentShop=overrideToBoolean(state.boostUrgentShop),
                 manualOrderOverride=if(old?.boostUrgentShop==overrideToBoolean(state.boostUrgentShop))old?.manualOrderOverride?:false else false)
             val departments=if(state.isNew)state.pendingDepartments.sortedBy{it.displayOrder}.map{ShopDepartmentEntity(shopId=0,name=it.name,displayOrder=it.displayOrder)}else state.departments.sortedBy{it.displayOrder}
-            currentShopId=shopRepository.saveWithDepartments(shop,departments)
+            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,state.venueNames,state.branchOrders.filterKeys{id->state.branches.any{it.id==id}}.mapValues{(_,types)->types.filter{type->state.departments.any{it.typeId==type}}},convertToVenue=convert)
             _uiState.value=_uiState.value.copy(isSaving=false,isSaved=true)
         }
     }
@@ -104,13 +127,13 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
         if(state.isNew){val old=state.pendingDepartments;val keys=old.map{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.toSet();_uiState.value=state.copy(pendingDepartments=old+unique.filter{com.spisokryadom.app.util.FuzzySearch.normalize(it) !in keys}.mapIndexed{i,name->PendingDepartment(nextTempId++,name,old.size+i+1)})}
         else {val old=state.departments;val keys=old.map{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.toSet();_uiState.value=state.copy(departments=old+unique.filter{com.spisokryadom.app.util.FuzzySearch.normalize(it) !in keys}.mapIndexed{i,name->ShopDepartmentEntity(id=-(nextTempId++),shopId=currentShopId,name=name,displayOrder=old.size+i+1)})}
     }
-    fun updateDepartment(dept:ShopDepartmentEntity){if(dept.name.isBlank())return;_uiState.value=_uiState.value.copy(departments=_uiState.value.departments.map{if(it.id==dept.id)dept else it})}
+    fun updateDepartment(dept:ShopDepartmentEntity){_uiState.value=_uiState.value.copy(departments=_uiState.value.departments.map{if(it.id==dept.id)dept else it})}
     fun deleteDepartment(dept:ShopDepartmentEntity){_uiState.value=_uiState.value.copy(departments=_uiState.value.departments.filter{it.id!=dept.id})}
     private fun moveDepartment(dept:ShopDepartmentEntity,delta:Int){val list=_uiState.value.departments.sortedBy{it.displayOrder}.toMutableList();val i=list.indexOfFirst{it.id==dept.id};val j=i+delta;if(i<0||j !in list.indices)return;list.add(j,list.removeAt(i));_uiState.value=_uiState.value.copy(departments=list.mapIndexed{idx,d->d.copy(displayOrder=idx+1)})}
     fun moveDepartmentUp(dept:ShopDepartmentEntity)=moveDepartment(dept,-1)
     fun moveDepartmentDown(dept:ShopDepartmentEntity)=moveDepartment(dept,1)
     fun deletePendingDepartment(id:Long){_uiState.value=_uiState.value.copy(pendingDepartments=_uiState.value.pendingDepartments.filter{it.tempId!=id})}
-    fun renamePendingDepartment(id:Long,name:String){if(name.isBlank())return;_uiState.value=_uiState.value.copy(pendingDepartments=_uiState.value.pendingDepartments.map{if(it.tempId==id)it.copy(name=name.trim())else it})}
+    fun renamePendingDepartment(id:Long,name:String){_uiState.value=_uiState.value.copy(pendingDepartments=_uiState.value.pendingDepartments.map{if(it.tempId==id)it.copy(name=name)else it})}
     private fun movePending(id:Long,delta:Int){val list=_uiState.value.pendingDepartments.sortedBy{it.displayOrder}.toMutableList();val i=list.indexOfFirst{it.tempId==id};val j=i+delta;if(i<0||j !in list.indices)return;list.add(j,list.removeAt(i));_uiState.value=_uiState.value.copy(pendingDepartments=list.mapIndexed{idx,d->d.copy(displayOrder=idx+1)})}
     fun movePendingDepartmentUp(id:Long)=movePending(id,-1)
     fun movePendingDepartmentDown(id:Long)=movePending(id,1)

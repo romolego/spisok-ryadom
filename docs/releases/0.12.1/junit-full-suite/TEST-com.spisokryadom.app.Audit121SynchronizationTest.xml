@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.Audit121SynchronizationTest" tests="22" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:02:26.954Z" time="18.005">
+  <testcase name="singleAndBatchLinkAdditionKeepAlreadyConfiguredRawStoreChoices[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="7.621" />
+  <testcase name="unrelatedFavoriteKeepsTemporaryDepartmentLabelsInBothDraftLinkRepresentations[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.188" />
+  <testcase name="resolvedTemporaryDepartmentFollowsRenameWithoutRecreatingItsFormerName[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.215" />
+  <testcase name="creatingPointForRestrictedProductSurvivesLaterDraftRecovery[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.215" />
+  <testcase name="classifierCleanupPreservesDifferentValidRawChoicesAndTemporaryDepartment[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.272" />
+  <testcase name="failedExternalCommandRollsBackDatabaseAndLeavesExactRawDraftIntact[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.174" />
+  <testcase name="deletingLastRawSelectedPointKeepsAnEmptyRestrictionInsteadOfAllRemainingPoints[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.175" />
+  <testcase name="canonicalSubsetExtensionKeepsRawAllPointsChoiceWithoutInventingRestriction[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.191" />
+  <testcase name="nullableCommandResultExecutesExactlyOnceWithAndWithoutSynchronizer[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.102" />
+  <testcase name="singleUrgencyRejectsBoughtPurchaseJustLikeBatchAndPreservesHistory[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.115" />
+  <testcase name="unrelatedFavoriteKeepsEmptyRawRestrictionAndRecoveryCannotBroadenAvailability[28]" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.166" />
+  <testcase name="singleAndBatchLinkAdditionKeepAlreadyConfiguredRawStoreChoices" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="6.807" />
+  <testcase name="unrelatedFavoriteKeepsTemporaryDepartmentLabelsInBothDraftLinkRepresentations" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.195" />
+  <testcase name="resolvedTemporaryDepartmentFollowsRenameWithoutRecreatingItsFormerName" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.271" />
+  <testcase name="creatingPointForRestrictedProductSurvivesLaterDraftRecovery" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.189" />
+  <testcase name="classifierCleanupPreservesDifferentValidRawChoicesAndTemporaryDepartment" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.254" />
+  <testcase name="failedExternalCommandRollsBackDatabaseAndLeavesExactRawDraftIntact" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.147" />
+  <testcase name="deletingLastRawSelectedPointKeepsAnEmptyRestrictionInsteadOfAllRemainingPoints" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.175" />
+  <testcase name="canonicalSubsetExtensionKeepsRawAllPointsChoiceWithoutInventingRestriction" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.181" />
+  <testcase name="nullableCommandResultExecutesExactlyOnceWithAndWithoutSynchronizer" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.097" />
+  <testcase name="singleUrgencyRejectsBoughtPurchaseJustLikeBatchAndPreservesHistory" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.106" />
+  <testcase name="unrelatedFavoriteKeepsEmptyRawRestrictionAndRecoveryCannotBroadenAvailability" classname="com.spisokryadom.app.Audit121SynchronizationTest" time="0.132" />
+</testsuite>

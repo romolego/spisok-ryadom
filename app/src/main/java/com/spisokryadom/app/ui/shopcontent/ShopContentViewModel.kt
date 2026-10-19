@@ -26,6 +26,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import com.spisokryadom.app.util.FuzzySearch
 
 /**
@@ -39,8 +41,12 @@ data class ShopProductUi(
     val listEntryId: Long? = null,
     val listQuantity: Double? = null,
     val listUnit: String? = null,
-    val listShopName: String? = null
+    val listShopName: String? = null,
+    val purchases:List<com.spisokryadom.app.ui.components.PendingPurchase> = emptyList()
 )
+
+private data class PointData(val products:List<ShopProductUi>,val points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>,val availability:List<com.spisokryadom.app.data.entity.ProductBranchAvailabilityEntity>,val entries:List<ShoppingListEntryEntity>,val departments:Map<Long,ShopDepartmentEntity> = emptyMap(),val shops:Map<Long,ShopEntity> = emptyMap())
+data class ShopPointSection(val id:Long?,val name:String,val note:String?,val photoUri:String?,val products:List<ShopProductUi>)
 
 data class PickProductUi(
     val product: ProductEntity,
@@ -49,12 +55,14 @@ data class PickProductUi(
 
 data class ShopContentUiState(
     val shop: ShopEntity? = null,
+    val departmentTypes:Map<String,com.spisokryadom.app.data.entity.DepartmentTypeEntity> = emptyMap(),
     val products: List<ShopProductUi> = emptyList(),
     val unitSuggestions: List<String> = emptyList(),
     val isLoading: Boolean = true,
     val showPickProducts: Boolean = false,
     val pickSearchQuery: String = "",
     val pickProducts: List<PickProductUi> = emptyList(),
+    val sections:List<ShopPointSection> = emptyList(),
     val error:String?=null
 )
 
@@ -71,13 +79,14 @@ class ShopContentViewModel(
 
     private val _allProducts = MutableStateFlow<Map<Long, ProductEntity>>(emptyMap())
     private val _departments = MutableStateFlow<Map<Long, ShopDepartmentEntity>>(emptyMap())
-    private val _shoppingListEntries = MutableStateFlow<Map<Long, ShoppingListEntryEntity>>(emptyMap())
+    private val _shoppingListEntries = MutableStateFlow<Map<Long, List<ShoppingListEntryEntity>>>(emptyMap())
     private val _shops = MutableStateFlow<Map<Long, ShopEntity>>(emptyMap())
 
     private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(error=e.message?:"Операция не выполнена")}
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
     private var searchJob:Job?=null
     init {
+        viewModelScope.launch(errors){shopRepository.departmentTypes().collect{_uiState.value=_uiState.value.copy(departmentTypes=it.associateBy{t->t.name})}}
         viewModelScope.launch(errors) {
             val shop = shopRepository.getShopById(shopId)
             _uiState.value = _uiState.value.copy(shop = shop)
@@ -95,8 +104,7 @@ class ShopContentViewModel(
         viewModelScope.launch(errors) {
             shoppingListRepository.getAllEntries().collect { entries ->
                 _shoppingListEntries.value = entries
-                    .filter { !it.isBought && it.assignedShopId==shopId }.sortedBy{it.id}.distinctBy{it.productId}
-                    .associateBy { it.productId }
+                    .filter { !it.isBought && it.assignedShopId==shopId }.sortedBy{it.id}.groupBy{it.productId}
             }
         }
         viewModelScope.launch(errors) {
@@ -119,12 +127,13 @@ class ShopContentViewModel(
             ) { links, products, departments, entryMap, shopMap ->
                 links.mapNotNull { link ->
                     val product = products[link.productId] ?: return@mapNotNull null
-                    val entry = entryMap[link.productId]
+                    val rows=entryMap[link.productId].orEmpty();val entry = rows.singleOrNull()
                     ShopProductUi(
                         product = product,
                         link = link,
                         departmentName = link.departmentId?.let { departments[it]?.name },
-                        isInShoppingList = entry != null,
+                        isInShoppingList = rows.isNotEmpty(),
+                        purchases=com.spisokryadom.app.ui.components.pendingPurchases(rows,shopMap,emptyMap()),
                         listEntryId = entry?.id,
                         listQuantity = entry?.quantity,
                         listUnit = entry?.unit,
@@ -132,15 +141,53 @@ class ShopContentViewModel(
                     )
                 }
             }.flowOn(Dispatchers.Default).collect { productUis ->
-                _uiState.value = _uiState.value.copy(products = productUis, isLoading = false)
+                _uiState.value = _uiState.value.copy(products = productUis.sortedWith(compareBy<ShopProductUi>{_departments.value[it.link.departmentId]?.displayOrder?:Int.MAX_VALUE}.thenByDescending{it.product.isFavorite}.thenBy{FuzzySearch.normalize(it.product.name)}), isLoading = false)
             }
         }
     }
 
-    fun quickAddToShoppingList(product:ProductEntity){viewModelScope.launch(errors){shoppingListRepository.addProduct(product.id,choice=com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT,shopId=shopId)}}
-    fun incrementQuantity(productId:Long){viewModelScope.launch(errors){val entry=_shoppingListEntries.value[productId]?:return@launch;shoppingListRepository.adjustQuantity(entry.id,_allProducts.value[productId]?.defaultQuantity?:1.0)}}
-    fun decrementQuantity(productId:Long){viewModelScope.launch(errors){val entry=_shoppingListEntries.value[productId]?:return@launch;shoppingListRepository.adjustQuantity(entry.id,-(_allProducts.value[productId]?.defaultQuantity?:1.0))}}
-    fun setQuantity(productId:Long,quantity:Double){viewModelScope.launch(errors){val entry=_shoppingListEntries.value[productId]?:return@launch;if(quantity<=0)shoppingListRepository.removeEntry(entry.id)else shoppingListRepository.updateQuantity(entry.id,quantity)}}
+    init {
+        viewModelScope.launch(errors){
+            combine(_uiState.map{it.products}.distinctUntilChanged(),shopRepository.observeBranches(),productRepository.observeBranchAvailability(),shoppingListRepository.getAllEntries()){products,allPoints,availability,entries->PointData(products,allPoints,availability,entries)}
+                .combine(_departments){data,departments->data.copy(departments=departments)}
+                .combine(_shops){data,shops->data.copy(shops=shops)}
+                .combine(productRepository.observeBranchDepartments()){data,overrides->data to overrides}
+                .combine(shopRepository.observeBranchOrders()){(data,overrides),orders->
+                val products=data.products;val allPoints=data.points;val availability=data.availability;val entries=data.entries
+                val overrideMap=overrides.associateBy{it.branchId to it.productId}
+                val pointRoutes=overrides.any{it.shopId==shopId}||orders.any{order->allPoints.any{it.id==order.branchId&&it.shopId==shopId}}
+                val orderMap=orders.associateBy{it.branchId to it.typeId}
+                val branchMap=allPoints.associateBy{it.id}
+                val departmentByType=data.departments.values.filter{it.shopId==shopId}.associateBy{it.typeId}
+                val pendingByProduct=entries.filter{!it.isBought&&it.assignedShopId==shopId}.groupBy{it.productId}
+                val points=allPoints.filter{it.shopId==shopId}.sortedWith(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})
+                val idsByPoint=availability.groupBy{it.branchId}.mapValues{(_,rows)->rows.map{it.productId}.toSet()}
+                val pendingByPoint=entries.filter{!it.isBought&&it.assignedShopId==shopId}.groupBy{it.assignedBranchId to it.productId}
+                if(points.isEmpty())listOf(ShopPointSection(null,"Все товары",null,null,products)) else {
+                    val result=points.map{point->
+                        val rows=products.filter{(pointRoutes&&!it.link.restrictBranches)||(it.link.restrictBranches&&it.product.id in idsByPoint[point.id].orEmpty())}.map{row->
+                            val rows=pendingByPoint[point.id to row.product.id].orEmpty();val entry=rows.singleOrNull()
+                            val group=overrideMap[point.id to row.product.id]?.typeId?.let{type->departmentByType[type]}
+                            row.copy(departmentName=group?.name?:row.departmentName,isInShoppingList=rows.isNotEmpty(),listEntryId=entry?.id,listQuantity=entry?.quantity,listUnit=entry?.unit,purchases=com.spisokryadom.app.ui.components.pendingPurchases(rows,data.shops,branchMap))
+                        }
+                        val sorted=rows.sortedWith(compareBy<ShopProductUi>{row->
+                            val type=overrideMap[point.id to row.product.id]?.typeId?:data.departments[row.link.departmentId]?.typeId
+                            orderMap[point.id to type]?.displayOrder?:departmentByType[type]?.displayOrder?:Int.MAX_VALUE
+                        }.thenByDescending{it.product.isFavorite}.thenBy{FuzzySearch.normalize(it.product.name)})
+                        ShopPointSection(point.id,point.address,point.note,point.photoUri,sorted)
+                    }.filter{it.products.isNotEmpty()}.toMutableList()
+                    val general=if(pointRoutes)emptyList()else products.filter{!it.link.restrictBranches}.map{row->row.copy(purchases=com.spisokryadom.app.ui.components.pendingPurchases(pendingByProduct[row.product.id].orEmpty(),data.shops,branchMap))}
+                    if(general.isNotEmpty())result.add(ShopPointSection(null,"Во всех точках",null,null,general))
+                    result
+                }
+            }.flowOn(Dispatchers.Default).collect{sections->_uiState.value=_uiState.value.copy(sections=sections)}
+        }
+    }
+
+    fun quickAddToShoppingList(product:ProductEntity,branchId:Long?=null){viewModelScope.launch(errors){shoppingListRepository.addProduct(product.id,choice=com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT,shopId=shopId,branchId=branchId)}}
+    fun incrementEntry(entryId:Long){viewModelScope.launch(errors){shoppingListRepository.adjustByDefaultStep(entryId,1)}}
+    fun decrementEntry(entryId:Long){viewModelScope.launch(errors){shoppingListRepository.adjustByDefaultStep(entryId,-1)}}
+    fun setEntryQuantity(entryId:Long,quantity:Double){viewModelScope.launch(errors){if(quantity<=0)shoppingListRepository.removeEntry(entryId)else shoppingListRepository.updateQuantity(entryId,quantity)}}
 
     // --- Pick existing products mode ---
 

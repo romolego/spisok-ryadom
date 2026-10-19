@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="com.spisokryadom.app.AuditStorage071Test" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-18T18:03:54.120Z" time="16.025">
+  <testcase name="validIntegerCityAndStringSetsRoundTripWithoutTypeCoercion[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="6.616" />
+  <testcase name="olderFullCopyWithoutPreferencesRemainsImportable[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.271" />
+  <testcase name="restoringMissingNewKeysNotifiesTheirRemovalOnBothAndroidVersions[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.273" />
+  <testcase name="olderCopyWithoutSelectionCanBeExportedAgainWhenCityIdsChanged[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.333" />
+  <testcase name="malformedPreferencesAreRejectedBeforeDatabaseOrSettingsReplacement[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.347" />
+  <testcase name="longRunningImportKeepsAgedStagedPhotosUntilCommitAndReleasesDirectoryLease[28]" classname="com.spisokryadom.app.AuditStorage071Test" time="0.236" />
+  <testcase name="validIntegerCityAndStringSetsRoundTripWithoutTypeCoercion" classname="com.spisokryadom.app.AuditStorage071Test" time="6.619" />
+  <testcase name="olderFullCopyWithoutPreferencesRemainsImportable" classname="com.spisokryadom.app.AuditStorage071Test" time="0.232" />
+  <testcase name="restoringMissingNewKeysNotifiesTheirRemovalOnBothAndroidVersions" classname="com.spisokryadom.app.AuditStorage071Test" time="0.248" />
+  <testcase name="olderCopyWithoutSelectionCanBeExportedAgainWhenCityIdsChanged" classname="com.spisokryadom.app.AuditStorage071Test" time="0.249" />
+  <testcase name="malformedPreferencesAreRejectedBeforeDatabaseOrSettingsReplacement" classname="com.spisokryadom.app.AuditStorage071Test" time="0.356" />
+  <testcase name="longRunningImportKeepsAgedStagedPhotosUntilCommitAndReleasesDirectoryLease" classname="com.spisokryadom.app.AuditStorage071Test" time="0.232" />
+</testsuite>

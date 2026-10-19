@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.spisokryadom.app.data.entity.ShopBranchEntity
+import com.spisokryadom.app.data.entity.ProductBranchAvailabilityEntity
+import com.spisokryadom.app.data.dao.ShopBranchDao
 import com.spisokryadom.app.data.dao.CityDao
 import com.spisokryadom.app.data.entity.CityEntity
 import androidx.room.migration.Migration
@@ -31,13 +34,19 @@ import com.spisokryadom.app.data.entity.UnitEntity
         ProductGroupEntity::class,
         RecipientEntity::class,
         ShopEntity::class,
-        ShopDepartmentEntity::class,
+        com.spisokryadom.app.data.entity.ShopDepartmentPlacementEntity::class,
+        com.spisokryadom.app.data.entity.DepartmentTypeEntity::class,
+        com.spisokryadom.app.data.entity.BranchDepartmentOrderEntity::class,
+        com.spisokryadom.app.data.entity.ProductBranchDepartmentEntity::class,
+        com.spisokryadom.app.data.entity.RetailNetworkEntity::class,
+        com.spisokryadom.app.data.entity.VenueEntity::class,
         ProductShopLinkEntity::class,
         ShoppingListEntryEntity::class,
         UnitEntity::class,
+        ShopBranchEntity::class, ProductBranchAvailabilityEntity::class, com.spisokryadom.app.data.entity.ProductBranchPriorityEntity::class,
         CityEntity::class
     ],
-    version = 8,
+    version = 13,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -49,7 +58,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun productShopLinkDao(): ProductShopLinkDao
     abstract fun shoppingListEntryDao(): ShoppingListEntryDao
     abstract fun unitDao(): UnitDao
+    abstract fun shopBranchDao(): ShopBranchDao
     abstract fun cityDao(): CityDao
+    abstract fun retailStructureDao(): com.spisokryadom.app.data.dao.RetailStructureDao
 
     companion object {
         @Volatile
@@ -129,15 +140,71 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db:SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS shop_branches (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, shopId INTEGER NOT NULL, address TEXT NOT NULL, displayOrder INTEGER NOT NULL, FOREIGN KEY(shopId) REFERENCES shops(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
+                db.execSQL("CREATE INDEX index_shop_branches_shopId ON shop_branches(shopId)")
+                db.execSQL("CREATE UNIQUE INDEX index_shop_branches_shopId_address ON shop_branches(shopId,address)")
+                db.execSQL("INSERT INTO shop_branches(id,shopId,address,displayOrder) SELECT id,id,trim(address),0 FROM shops WHERE address IS NOT NULL AND trim(address)!=''")
+                db.execSQL("ALTER TABLE product_shop_links ADD COLUMN restrictBranches INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("CREATE TABLE IF NOT EXISTS product_branch_availability (productId INTEGER NOT NULL, branchId INTEGER NOT NULL, PRIMARY KEY(productId,branchId), FOREIGN KEY(productId) REFERENCES products(id) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(branchId) REFERENCES shop_branches(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
+                db.execSQL("CREATE INDEX index_product_branch_availability_productId ON product_branch_availability(productId)")
+                db.execSQL("CREATE INDEX index_product_branch_availability_branchId ON product_branch_availability(branchId)")
+                db.execSQL("""CREATE TABLE IF NOT EXISTS `shopping_list_entries_new` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `productId` INTEGER NOT NULL, `quantity` REAL NOT NULL, `unit` TEXT NOT NULL, `assignedShopId` INTEGER, `assignedDepartmentId` INTEGER, `isBought` INTEGER NOT NULL, `isUrgent` INTEGER NOT NULL, `note` TEXT, `comment` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `assignedBranchId` INTEGER, FOREIGN KEY(`productId`) REFERENCES `products`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`assignedShopId`) REFERENCES `shops`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`assignedDepartmentId`) REFERENCES `shop_departments`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`assignedBranchId`) REFERENCES `shop_branches`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )""")
+                db.execSQL("INSERT INTO shopping_list_entries_new(`id`,`productId`,`quantity`,`unit`,`assignedShopId`,`assignedDepartmentId`,`isBought`,`isUrgent`,`note`,`comment`,`createdAt`,`updatedAt`,assignedBranchId) SELECT `id`,`productId`,`quantity`,`unit`,`assignedShopId`,`assignedDepartmentId`,`isBought`,`isUrgent`,`note`,`comment`,`createdAt`,`updatedAt`,(SELECT id FROM shop_branches WHERE shopId=shopping_list_entries.assignedShopId ORDER BY displayOrder,id LIMIT 1) FROM shopping_list_entries")
+                db.execSQL("DROP TABLE shopping_list_entries")
+                db.execSQL("ALTER TABLE shopping_list_entries_new RENAME TO shopping_list_entries")
+                listOf("productId","assignedShopId","assignedDepartmentId","assignedBranchId").forEach { db.execSQL("CREATE INDEX index_shopping_list_entries_$it ON shopping_list_entries($it)") }
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9,10) {
+            override fun migrate(db:SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE shop_branches ADD COLUMN note TEXT")
+                db.execSQL("ALTER TABLE shop_branches ADD COLUMN photoUri TEXT")
+            }
+        }
+
+        val MIGRATION_11_12 = object : Migration(11,12) {
+            override fun migrate(db:SupportSQLiteDatabase) {
+                for(table in listOf("product_groups","recipients","department_types")) {
+                    db.execSQL("ALTER TABLE $table ADD COLUMN accent TEXT NOT NULL DEFAULT ''")
+                    db.execSQL("ALTER TABLE $table ADD COLUMN iconKey TEXT NOT NULL DEFAULT ''")
+                }
+                db.execSQL("ALTER TABLE shopping_list_entries ADD COLUMN awaitingShopCityId INTEGER DEFAULT NULL")
+                db.execSQL("ALTER TABLE shopping_list_entries ADD COLUMN explicitNoShop INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE products ADD COLUMN accent TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE products ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE department_types ADD COLUMN displayOrder INTEGER NOT NULL DEFAULT 0")
+                // Repair pending catalogue projections from older versions. Historical
+                // bought rows and explicit nonempty units are never rewritten.
+                db.execSQL("UPDATE shopping_list_entries SET unit=COALESCE((SELECT defaultUnit FROM products p WHERE p.id=shopping_list_entries.productId),'') WHERE isBought=0 AND TRIM(unit)=''")
+                db.execSQL("UPDATE shopping_list_entries SET assignedDepartmentId=COALESCE((SELECT d.id FROM product_branch_departments pd JOIN shop_departments d ON d.shopId=pd.shopId AND d.typeId=pd.typeId WHERE pd.productId=shopping_list_entries.productId AND pd.branchId=shopping_list_entries.assignedBranchId LIMIT 1),(SELECT l.departmentId FROM product_shop_links l WHERE l.productId=shopping_list_entries.productId AND l.shopId=shopping_list_entries.assignedShopId)) WHERE isBought=0 AND EXISTS(SELECT 1 FROM product_shop_links l WHERE l.productId=shopping_list_entries.productId AND l.shopId=shopping_list_entries.assignedShopId)")
+                // Preserve the previous alphabetic order, including equal names.
+                db.execSQL("UPDATE department_types SET displayOrder=(SELECT COUNT(*) FROM department_types t WHERE t.name<department_types.name OR (t.name=department_types.name AND t.id<department_types.id))")
+            }
+        }
+        val MIGRATION_12_13 = object : Migration(12,13) {
+            override fun migrate(db:SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS product_branch_priorities (productId INTEGER NOT NULL, branchId INTEGER NOT NULL, shopId INTEGER NOT NULL, displayOrder INTEGER NOT NULL, PRIMARY KEY(productId,branchId), FOREIGN KEY(productId,shopId) REFERENCES product_shop_links(productId,shopId) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(branchId,shopId) REFERENCES shop_branches(id,shopId) ON UPDATE NO ACTION ON DELETE CASCADE)")
+                db.execSQL("CREATE INDEX index_product_branch_priorities_productId_shopId ON product_branch_priorities(productId,shopId)")
+                db.execSQL("CREATE INDEX index_product_branch_priorities_branchId_shopId ON product_branch_priorities(branchId,shopId)")
+            }
+        }
+        val MIGRATION_10_11 = RetailMigration
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
+                val appContext=context.applicationContext
                 val instance = Room.databaseBuilder(
-                    context.applicationContext,
+                    appContext,
                     AppDatabase::class.java,
                     "spisok_ryadom.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,13)})
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
                     .addCallback(object : RoomDatabase.Callback() {
+                        override fun onOpen(db: SupportSQLiteDatabase) { RetailConstraints.install(db) }
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             db.execSQL("INSERT OR IGNORE INTO cities(id,name) VALUES(1,'Мой город')")
                         }

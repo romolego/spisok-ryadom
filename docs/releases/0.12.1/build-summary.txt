@@ -1,0 +1,22 @@
+Список рядом 0.12.1 — final audit build summary
+
+Historical full run before public test fixture sanitization:
+:app:testStandardDebugUnitTest
+:app:assembleParallelRelease
+:app:lintParallelRelease
+
+BUILD SUCCESSFUL in 25m 42s
+88 actionable tasks: 21 executed, 67 up-to-date
+
+JUnit: 507 tests, 53 classes, 0 failures, 0 errors, 0 skipped.
+Lint: 0 errors, 116 warnings, 3 hints.
+
+This summary intentionally omits machine paths, hostname and raw environment output.
+The signed release APK was not changed by later test-only fixture sanitization.
+
+Public fixture follow-up run (affected class only):
+:app:testStandardDebugUnitTest --tests com.spisokryadom.app.Refine080DataTest
+BUILD SUCCESSFUL in 1m 21s
+6 tests, 0 failures, 0 errors, 0 skipped (API 28 and 35).
+139 app production/build/schema files outside app/src/test: 0 hash mismatches.
+The other 501 historical tests were not changed; the full suite was not repeated.

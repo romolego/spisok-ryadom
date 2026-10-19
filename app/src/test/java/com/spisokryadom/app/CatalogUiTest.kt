@@ -23,7 +23,7 @@ class CatalogUiTest {
  @get:Rule val ui=createAndroidComposeRule<MainActivity>()
  private fun waitText(text:String){ui.waitUntil(20_000){ui.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()}}
  private fun shot(name:String){ui.runOnIdle{val v=ui.activity.window.decorView;val b=Bitmap.createBitmap(v.width,v.height,Bitmap.Config.ARGB_8888);v.draw(Canvas(b));val f=File("../.local/ui-verification/$name.png");f.parentFile!!.mkdirs();f.outputStream().use{b.compress(Bitmap.CompressFormat.PNG,100,it)};b.recycle()}}
- @After fun cleanup(){val app=ApplicationProvider.getApplicationContext<SpisokRyadomApp>();ui.activityRule.scenario.close();app.container.locations.close();app.container.database.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
+ @After fun cleanup(){val app=ApplicationProvider.getApplicationContext<SpisokRyadomApp>();ui.activityRule.scenario.close();app.container.locations.closeForTest();app.container.database.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
  @Test fun largeCatalogFuzzySearchAndSmallScreenAdding() {
   val app=ApplicationProvider.getApplicationContext<SpisokRyadomApp>();val db=app.container.database
   runBlocking{db.withTransaction{
@@ -35,6 +35,10 @@ class CatalogUiTest {
   ui.onNodeWithText("Товары").performClick();waitText("Товаров: 5001")
   val composed=ui.onAllNodesWithText("Товар ",substring=true).fetchSemanticsNodes().size
   assertTrue("Lazy catalogue must compose a bounded viewport, actual=$composed",composed<35)
+  ui.onNodeWithContentDescription("Свернуть: Все товары").performClick()
+  assertEquals(0,ui.onAllNodesWithText("Товар ",substring=true).fetchSemanticsNodes().size)
+  ui.onNodeWithContentDescription("Развернуть: Все товары").performClick()
+  assertTrue("Expanding 5001 products must still compose only the viewport",ui.onAllNodesWithText("Товар ",substring=true).fetchSemanticsNodes().size<35)
   ui.onNode(hasScrollToIndexAction()).performScrollToIndex(5001);ui.onNodeWithText("Яблоки Гала").assertIsDisplayed()
   ui.onNode(hasSetTextAction()).performTextReplacement("яблыки");waitText("Товаров: 1");ui.onNodeWithText("Яблоки Гала").assertIsDisplayed();shot("05-fuzzy-small")
   ui.onNodeWithText("Группы").performClick();ui.onNode(hasSetTextAction()).performTextClearance();waitText("Товаров: 5001")
@@ -44,10 +48,10 @@ class CatalogUiTest {
   waitText("Яблоки Гала");ui.onNodeWithText("Яблоки Гала").performScrollTo().performClick()
   ui.onNode(hasSetTextAction() and hasText("Количество")).performTextReplacement("0,75")
   ui.onNodeWithText("Добавить в список").performScrollTo().performClick()
-  waitText("Добавлено в список")
+  waitText("Список покупок")
   runBlocking{assertEquals(.75,db.shoppingListEntryDao().getAllSync().single().quantity,0.0);assertEquals(5001,db.productDao().getAllSync().size)}
-  ui.onNodeWithContentDescription("Назад").performClick();waitText("Список покупок");waitText("Яблоки Гала")
-  ui.onNodeWithText("Яблоки Гала").performClick()
+  waitText("Список покупок");waitText("Яблоки Гала")
+  ui.onNodeWithText("Яблоки Гала").performClick();waitText("Параметры покупки");ui.onNodeWithText("Параметры покупки").performClick()
   ui.onNode(hasSetTextAction() and hasText("Количество")).performTextReplacement("0,25")
   ui.runOnIdle{val v=org.robolectric.shadows.ShadowDialog.getLatestDialog().window!!.decorView;val b=Bitmap.createBitmap(v.width,v.height,Bitmap.Config.ARGB_8888);v.draw(Canvas(b));val f=File("../.local/ui-verification/07-edit-dialog.png");f.parentFile!!.mkdirs();f.outputStream().use{b.compress(Bitmap.CompressFormat.PNG,100,it)};b.recycle()}
   ui.onNodeWithText("Сохранить").performClick()

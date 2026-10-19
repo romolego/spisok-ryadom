@@ -38,7 +38,7 @@ interface ProductShopLinkDao {
     @Query("DELETE FROM product_shop_links")
     suspend fun deleteAll()
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(link: ProductShopLinkEntity): Long
 
     @Update

@@ -17,10 +17,8 @@ sealed class Routes(val route: String) {
         fun createRoute(shopId: Long = -1L) = "shop_card/$shopId"
     }
     data object Settings : Routes("settings")
-    data object AddToList : Routes("add_to_list?preselectedShopId={preselectedShopId}") {
-        fun createRoute(preselectedShopId: Long? = null): String {
-            return if (preselectedShopId != null) "add_to_list?preselectedShopId=$preselectedShopId"
-            else "add_to_list"
-        }
+    data object AddToList : Routes("add_to_list?preselectedShopId={preselectedShopId}&preselectedBranchId={preselectedBranchId}") {
+        fun createRoute(preselectedShopId:Long?=null,preselectedBranchId:Long?=null):String =
+            "add_to_list?preselectedShopId=${preselectedShopId ?: -1L}&preselectedBranchId=${preselectedBranchId ?: -1L}"
     }
 }
