@@ -34,7 +34,7 @@ class ProductFlowUiTest {
  private fun newProduct(){ui.onNodeWithText("Товары").performClick();waitText("База товаров");ui.onNodeWithContentDescription("Новый товар").performClick();waitText("Название товара")}
  @Before fun seed(){
   listOf("drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
-  runBlocking{db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.productGroupDao().deleteAll();db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
+  runBlocking{db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.productGroupDao().deleteAll();db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
    shop=db.shopDao().insert(ShopEntity(name="Командор",displayOrder=0));other=db.shopDao().insert(ShopEntity(name="Батон",displayOrder=1))
    points=(1..5).map{db.shopBranchDao().insert(ShopBranchEntity(shopId=shop,address="Адрес $it",displayOrder=it))}
    med=db.productGroupDao().insert(ProductGroupEntity(name="Аптека",displayOrder=0));food=db.productGroupDao().insert(ProductGroupEntity(name="Продукты",displayOrder=1))

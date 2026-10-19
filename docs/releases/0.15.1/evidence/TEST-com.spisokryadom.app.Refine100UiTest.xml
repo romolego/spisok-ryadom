@@ -1,0 +1,18 @@
+<testsuite name="com.spisokryadom.app.Refine100UiTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:31:43.243Z" time="38.932">
+  <testcase name="newShopCanBeCreatedAndLinkedInsideMove[28]" classname="com.spisokryadom.app.Refine100UiTest" time="13.143" />
+  <testcase name="newProductExistingMatchesShowFavoriteStar[28]" classname="com.spisokryadom.app.Refine100UiTest" time="1.505" />
+  <testcase name="cardOutletPriorityAutosavesAndUpdatesTheSamePendingPurchase[28]" classname="com.spisokryadom.app.Refine100UiTest" time="1.221" />
+  <testcase name="addSearchShowsFavoriteStarInsteadOfRetiredTextMatching[28]" classname="com.spisokryadom.app.Refine100UiTest" time="0.572" />
+  <testcase name="settingRemembersSelectedStoreAndOutletForFuturePurchases[28]" classname="com.spisokryadom.app.Refine100UiTest" time="0.887" />
+  <testcase name="storeDatabasePickerShowsStarOnSearchResult[28]" classname="com.spisokryadom.app.Refine100UiTest" time="0.889" />
+  <testcase name="emptyDestinationListCanAttachExactOutletAndMoveWithoutLeaving[28]" classname="com.spisokryadom.app.Refine100UiTest" time="0.573" />
+  <testcase name="addPurchaseSearchShowsStarsWithoutPromotingFavorite[28]" classname="com.spisokryadom.app.Refine100UiTest" time="0.546" />
+  <testcase name="newShopCanBeCreatedAndLinkedInsideMove" classname="com.spisokryadom.app.Refine100UiTest" time="13.194" />
+  <testcase name="newProductExistingMatchesShowFavoriteStar" classname="com.spisokryadom.app.Refine100UiTest" time="1.314" />
+  <testcase name="cardOutletPriorityAutosavesAndUpdatesTheSamePendingPurchase" classname="com.spisokryadom.app.Refine100UiTest" time="1.251" />
+  <testcase name="addSearchShowsFavoriteStarInsteadOfRetiredTextMatching" classname="com.spisokryadom.app.Refine100UiTest" time="0.565" />
+  <testcase name="settingRemembersSelectedStoreAndOutletForFuturePurchases" classname="com.spisokryadom.app.Refine100UiTest" time="1.126" />
+  <testcase name="storeDatabasePickerShowsStarOnSearchResult" classname="com.spisokryadom.app.Refine100UiTest" time="0.959" />
+  <testcase name="emptyDestinationListCanAttachExactOutletAndMoveWithoutLeaving" classname="com.spisokryadom.app.Refine100UiTest" time="0.604" />
+  <testcase name="addPurchaseSearchShowsStarsWithoutPromotingFavorite" classname="com.spisokryadom.app.Refine100UiTest" time="0.569" />
+  </testsuite>

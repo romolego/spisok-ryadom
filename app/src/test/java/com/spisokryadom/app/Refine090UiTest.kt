@@ -36,7 +36,7 @@ class Refine090UiTest {
  @Before fun setup()=runBlocking{
   listOf("drafts","product_card_drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
   db.withTransaction{
-   db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks()
+   db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks()
    db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
    baton=db.shopDao().insert(ShopEntity(name="Батон"));other=db.shopDao().insert(ShopEntity(name="Другой",displayOrder=5))
    db.shopDepartmentDao().insert(ShopDepartmentEntity(shopId=baton,name="Молочка"))

@@ -1,0 +1,4 @@
+<testsuite name="com.spisokryadom.app.AuditUiNavigation071Test" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:43:27.267Z" time="26.604">
+  <testcase name="addingFromNoAddressBlockKeepsThatExactBlockAcrossNavigation[28]" classname="com.spisokryadom.app.AuditUiNavigation071Test" time="13.645" />
+  <testcase name="addingFromNoAddressBlockKeepsThatExactBlockAcrossNavigation" classname="com.spisokryadom.app.AuditUiNavigation071Test" time="12.946" />
+  </testsuite>

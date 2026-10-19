@@ -1,0 +1,84 @@
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preStandardDebugBuild UP-TO-DATE
+> Task :app:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app:generateStandardDebugResValues UP-TO-DATE
+> Task :app:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateStandardDebugResources UP-TO-DATE
+> Task :app:mergeStandardDebugResources UP-TO-DATE
+> Task :app:packageStandardDebugResources UP-TO-DATE
+> Task :app:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app:createStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app:processStandardDebugMainManifest UP-TO-DATE
+> Task :app:processStandardDebugManifest UP-TO-DATE
+> Task :app:processStandardDebugManifestForPackage UP-TO-DATE
+> Task :app:processStandardDebugResources UP-TO-DATE
+> Task :app:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app:preStandardDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileStandardDebugUnitTest UP-TO-DATE
+> Task :app:mergeStandardDebugShaders UP-TO-DATE
+> Task :app:compileStandardDebugShaders NO-SOURCE
+> Task :app:generateStandardDebugAssets UP-TO-DATE
+> Task :app:mergeStandardDebugAssets UP-TO-DATE
+> Task :app:packageStandardDebugUnitTestForUnitTest
+> Task :app:processStandardDebugUnitTestManifest
+> Task :app:generateStandardDebugUnitTestConfig
+> Task :app:kspStandardDebugKotlin
+> Task :app:compileStandardDebugKotlin
+> Task :app:compileStandardDebugJavaWithJavac UP-TO-DATE
+> Task :app:processStandardDebugJavaRes
+> Task :app:bundleStandardDebugClassesToCompileJar
+> Task :app:bundleStandardDebugClassesToRuntimeJar
+> Task :app:kspStandardDebugUnitTestKotlin
+> Task :app:compileStandardDebugUnitTestKotlin
+> Task :app:compileStandardDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processStandardDebugUnitTestJavaRes UP-TO-DATE
+> Task :app:testStandardDebugUnitTest
+Checked com.spisokryadom.app.Refine160DataTest: 34 tests, 0 failures, 0 skipped
+
+Refine160UiTest > nameSuggestionsDisappearOnOpeningGroupAndReturnOnlyOnNameFocus[28] FAILED
+    androidx.compose.ui.test.ComposeTimeoutException: Condition still not satisfied after 25000 ms
+        at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$AndroidComposeUiTestImpl.waitUntil(ComposeUiTest.android.kt:441)
+        at androidx.compose.ui.test.junit4.AndroidComposeTestRule.waitUntil(AndroidComposeTestRule.android.kt:306)
+        at com.spisokryadom.app.Refine160UiTest.waitFor(Refine160UiTest.kt:37)
+        at com.spisokryadom.app.Refine160UiTest.waitText(Refine160UiTest.kt:38)
+        at com.spisokryadom.app.Refine160UiTest.nameSuggestionsDisappearOnOpeningGroupAndReturnOnlyOnNameFocus(Refine160UiTest.kt:68)
+
+Refine160UiTest > oneCommonShopIsSelectedAutomaticallyAndApplyActuallyUpdatesAllThree[28] FAILED
+    java.lang.AssertionError: Failed to inject touch input.
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (ContentDescription = 'Выбрать все' (ignoreCase: false))
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.ActionsKt.performTouchInput(Actions.kt:394)
+        at androidx.compose.ui.test.Actions_androidKt.performClickImpl(Actions.android.kt:20)
+        at androidx.compose.ui.test.ActionsKt.performClick(Actions.kt:54)
+        at com.spisokryadom.app.Refine160UiTest.batchDepartment(Refine160UiTest.kt:54)
+        at com.spisokryadom.app.Refine160UiTest.oneCommonShopIsSelectedAutomaticallyAndApplyActuallyUpdatesAllThree(Refine160UiTest.kt:56)
+
+Refine160UiTest > voiceActivityCancellationKeepsSearchAndSuccessfulResultOnlyChangesQuery[28] FAILED
+    java.lang.AssertionError: Failed to assert the following: (Text + EditableText contains 'Жидкость' (ignoreCase: false))
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (Text + EditableText contains 'Поиск по названию...' (ignoreCase: false))
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:263)
+        at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:255)
+        at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:209)
+        at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+        at com.spisokryadom.app.Refine160UiTest.voiceActivityCancellationKeepsSearchAndSuccessfulResultOnlyChangesQuery(Refine160UiTest.kt:81)
+
+Refine160UiTest > severalCommonShopsRequireExplicitChoiceAndThenEnableApply[28] FAILED
+    java.lang.AssertionError: Failed to inject touch input.
+    Reason: Expected exactly '1' node but could not find any node that satisfies: (ContentDescription = 'Выбрать все' (ignoreCase: false))
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:178)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+        at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+        at androidx.compose.ui.test.ActionsKt.performTouchInput(Actions.kt:394)
+        at androidx.compose.ui.test.Actions_androidKt.performClickImpl(Actions.android.kt:20)
+        at androidx.compose.ui.test.ActionsKt.performClick(Actions.kt:54)
+        at com.spisokryadom.app.Refine160UiTest.batchDepartment(Refine160UiTest.kt:54)
+        at com.spisokryadom.app.Refine160UiTest.severalCommonShopsRequireExplicitChoiceAndThenEnableApply(Refine160UiTest.kt:61)

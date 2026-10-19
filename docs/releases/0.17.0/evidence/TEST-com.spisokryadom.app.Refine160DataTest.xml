@@ -1,0 +1,36 @@
+<testsuite name="com.spisokryadom.app.Refine160DataTest" tests="34" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:47:25.304Z" time="39.174">
+  <testcase name="newBlankNameCannotDeleteItsAlreadyUsedProduct[28]" classname="com.spisokryadom.app.Refine160DataTest" time="7.54" />
+  <testcase name="startupSkipsManualRawEvenWhenAutoSaveWasReenabled[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.441" />
+  <testcase name="livePreferenceDisablesQueuedCommit[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.989" />
+  <testcase name="seededRouteEncodesReservedCharactersWithoutChangingTitle[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.413" />
+  <testcase name="manualNewCardBackDiscardsAndDoesNotRecover[28]" classname="com.spisokryadom.app.Refine160DataTest" time="1.048" />
+  <testcase name="disabledAutosaveDoesNotRecoverOldEnabledDraft[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.416" />
+  <testcase name="manualExistingBackDiscardsButExplicitSaveWritesAllFields[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.954" />
+  <testcase name="voiceIntentAndResultAreSearchOnlyAndCancellationKeepsQuery[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.397" />
+  <testcase name="existingBlankNameDoesNotSilentlyCloseOrDeletePurchases[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.564" />
+  <testcase name="clearedNewNameWithdrawsOldRowAndBackRetainsOnlyUnnamedRaw[28]" classname="com.spisokryadom.app.Refine160DataTest" time="1.129" />
+  <testcase name="manualSaveCreatesOnceAndKeepsLinks[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.913" />
+  <testcase name="searchExactnessIgnoresFavoritesFilterAndFuzzyMatches[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.714" />
+  <testcase name="manualDirectNavigationAndStartupDoNotResurrectRawCard[28]" classname="com.spisokryadom.app.Refine160DataTest" time="1.044" />
+  <testcase name="searchSeedIsIndependentOfUnrelatedUnfinishedNewCard[28]" classname="com.spisokryadom.app.Refine160DataTest" time="1.266" />
+  <testcase name="clearingNameAndImmediatelyClearingVmRemovesAutoCreatedRow[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.874" />
+  <testcase name="clearingNameAndImmediatelyGoingBackRemovesAutoCreatedRow[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.597" />
+  <testcase name="autosavePreferenceRoundTripsThroughFullBackup[28]" classname="com.spisokryadom.app.Refine160DataTest" time="0.554" />
+  <testcase name="newBlankNameCannotDeleteItsAlreadyUsedProduct" classname="com.spisokryadom.app.Refine160DataTest" time="7.436" />
+  <testcase name="startupSkipsManualRawEvenWhenAutoSaveWasReenabled" classname="com.spisokryadom.app.Refine160DataTest" time="0.414" />
+  <testcase name="livePreferenceDisablesQueuedCommit" classname="com.spisokryadom.app.Refine160DataTest" time="0.748" />
+  <testcase name="seededRouteEncodesReservedCharactersWithoutChangingTitle" classname="com.spisokryadom.app.Refine160DataTest" time="0.402" />
+  <testcase name="manualNewCardBackDiscardsAndDoesNotRecover" classname="com.spisokryadom.app.Refine160DataTest" time="1.057" />
+  <testcase name="disabledAutosaveDoesNotRecoverOldEnabledDraft" classname="com.spisokryadom.app.Refine160DataTest" time="0.418" />
+  <testcase name="manualExistingBackDiscardsButExplicitSaveWritesAllFields" classname="com.spisokryadom.app.Refine160DataTest" time="0.931" />
+  <testcase name="voiceIntentAndResultAreSearchOnlyAndCancellationKeepsQuery" classname="com.spisokryadom.app.Refine160DataTest" time="0.379" />
+  <testcase name="existingBlankNameDoesNotSilentlyCloseOrDeletePurchases" classname="com.spisokryadom.app.Refine160DataTest" time="0.564" />
+  <testcase name="clearedNewNameWithdrawsOldRowAndBackRetainsOnlyUnnamedRaw" classname="com.spisokryadom.app.Refine160DataTest" time="1.111" />
+  <testcase name="manualSaveCreatesOnceAndKeepsLinks" classname="com.spisokryadom.app.Refine160DataTest" time="0.867" />
+  <testcase name="searchExactnessIgnoresFavoritesFilterAndFuzzyMatches" classname="com.spisokryadom.app.Refine160DataTest" time="0.702" />
+  <testcase name="manualDirectNavigationAndStartupDoNotResurrectRawCard" classname="com.spisokryadom.app.Refine160DataTest" time="1.024" />
+  <testcase name="searchSeedIsIndependentOfUnrelatedUnfinishedNewCard" classname="com.spisokryadom.app.Refine160DataTest" time="1.245" />
+  <testcase name="clearingNameAndImmediatelyClearingVmRemovesAutoCreatedRow" classname="com.spisokryadom.app.Refine160DataTest" time="0.896" />
+  <testcase name="clearingNameAndImmediatelyGoingBackRemovesAutoCreatedRow" classname="com.spisokryadom.app.Refine160DataTest" time="0.594" />
+  <testcase name="autosavePreferenceRoundTripsThroughFullBackup" classname="com.spisokryadom.app.Refine160DataTest" time="0.51" />
+  </testsuite>

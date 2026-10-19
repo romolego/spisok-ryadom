@@ -1,0 +1,9 @@
+<testsuite name="com.spisokryadom.app.IndependentDomainAuditTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-19T09:01:40.324Z" time="5.923">
+  <testcase name="movingShopMustPreserveConcurrentQuantityBoughtAndUrgencyChanges" classname="com.spisokryadom.app.IndependentDomainAuditTest" time="4.152" />
+  <testcase name="quantityStepMustNotUseDefaultNumberFromAnotherUnit" classname="com.spisokryadom.app.IndependentDomainAuditTest" time="0.448" />
+  <testcase name="departmentFallbackAndDetailCommandsPreserveOtherFields" classname="com.spisokryadom.app.IndependentDomainAuditTest" time="0.223" />
+  <testcase name="catalogEntryCommandsStayOnDisplayedIdentityAndUseEntryUnit" classname="com.spisokryadom.app.IndependentDomainAuditTest" time="0.448" />
+  <testcase name="defaultStepUsesCanonicalUnitAndValidCardValues" classname="com.spisokryadom.app.IndependentDomainAuditTest" time="0.158" />
+  <testcase name="catalogQuantityControlMustModifyTheEntryItDisplays" classname="com.spisokryadom.app.IndependentDomainAuditTest" time="0.273" />
+  <testcase name="shopContentEntryControlsUseMatchingUnitAndPreserveOtherPurchases" classname="com.spisokryadom.app.IndependentDomainAuditTest" time="0.219" />
+  </testsuite>

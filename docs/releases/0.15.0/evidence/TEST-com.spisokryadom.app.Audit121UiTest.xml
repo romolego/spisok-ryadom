@@ -1,0 +1,18 @@
+<testsuite name="com.spisokryadom.app.Audit121UiTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-19T08:55:41.794Z" time="38.984">
+  <testcase name="purchaseSelectionSurvivesActivityRecreationAndBackOnlyCancelsSelection[28]" classname="com.spisokryadom.app.Audit121UiTest" time="12.116" />
+  <testcase name="boughtPurchaseMenuDoesNotOfferPendingOnlyUrgencyOrMove[28]" classname="com.spisokryadom.app.Audit121UiTest" time="0.758" />
+  <testcase name="collapsedDepartmentAndVenueSelectionOverlapWithoutDuplicateOrOutsideRows[28]" classname="com.spisokryadom.app.Audit121UiTest" time="1.624" />
+  <testcase name="nonDefaultCatalogueSelectionRestoresBeforeLoadedModeAndRealModeChangeClearsIt[28]" classname="com.spisokryadom.app.Audit121UiTest" time="1.09" />
+  <testcase name="catalogueSelectionSurvivesActivityRecreationAndDoesNotChangeDatabase[28]" classname="com.spisokryadom.app.Audit121UiTest" time="0.804" />
+  <testcase name="fullRestoreInvalidatesProductAndStoreSelectionsSavedInOtherTabsWithReusedIds[28]" classname="com.spisokryadom.app.Audit121UiTest" time="1.618" />
+  <testcase name="shopListAndShopCatalogueKeepTheirLogicalSelectionAfterRecreation[28]" classname="com.spisokryadom.app.Audit121UiTest" time="0.657" />
+  <testcase name="shopBatchAddRequiresAndUsesExplicitPointInsteadOfDifferentPreferredPoint[28]" classname="com.spisokryadom.app.Audit121UiTest" time="0.752" />
+  <testcase name="purchaseSelectionSurvivesActivityRecreationAndBackOnlyCancelsSelection" classname="com.spisokryadom.app.Audit121UiTest" time="12.323" />
+  <testcase name="boughtPurchaseMenuDoesNotOfferPendingOnlyUrgencyOrMove" classname="com.spisokryadom.app.Audit121UiTest" time="0.639" />
+  <testcase name="collapsedDepartmentAndVenueSelectionOverlapWithoutDuplicateOrOutsideRows" classname="com.spisokryadom.app.Audit121UiTest" time="1.477" />
+  <testcase name="nonDefaultCatalogueSelectionRestoresBeforeLoadedModeAndRealModeChangeClearsIt" classname="com.spisokryadom.app.Audit121UiTest" time="1.051" />
+  <testcase name="catalogueSelectionSurvivesActivityRecreationAndDoesNotChangeDatabase" classname="com.spisokryadom.app.Audit121UiTest" time="0.826" />
+  <testcase name="fullRestoreInvalidatesProductAndStoreSelectionsSavedInOtherTabsWithReusedIds" classname="com.spisokryadom.app.Audit121UiTest" time="1.646" />
+  <testcase name="shopListAndShopCatalogueKeepTheirLogicalSelectionAfterRecreation" classname="com.spisokryadom.app.Audit121UiTest" time="0.749" />
+  <testcase name="shopBatchAddRequiresAndUsesExplicitPointInsteadOfDifferentPreferredPoint" classname="com.spisokryadom.app.Audit121UiTest" time="0.83" />
+  </testsuite>

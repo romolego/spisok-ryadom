@@ -1,0 +1,15 @@
+<testsuite name="com.spisokryadom.app.Refine080UiTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:18:36.732Z" time="29.655">
+  <testcase name="storeChoiceAlsoPutsExistingStoresBeforeNoneAndCreate[28]" classname="com.spisokryadom.app.Refine080UiTest" time="11.802" />
+  <testcase name="realDropdownValuesPrecedeNoneAndCreateWithoutChangingTheirMeaning[28]" classname="com.spisokryadom.app.Refine080UiTest" time="0.487" />
+  <testcase name="invalidHexCannotSaveAndNoColorClearsTheCustomChoice[28]" classname="com.spisokryadom.app.Refine080UiTest" time="0.668" />
+  <testcase name="creatingStoreBlocksPurchaseUntilTheStoreIsSelected[28]" classname="com.spisokryadom.app.Refine080UiTest" time="0.394" />
+  <testcase name="applicationLabelIsRealRussianResource[28]" classname="com.spisokryadom.app.Refine080UiTest" time="0.138" />
+  <testcase name="customHexAndCannedIconCanBeSelectedTogether[28]" classname="com.spisokryadom.app.Refine080UiTest" time="0.949" />
+  <testcase name="storeChoiceAlsoPutsExistingStoresBeforeNoneAndCreate" classname="com.spisokryadom.app.Refine080UiTest" time="12.082" />
+  <testcase name="realDropdownValuesPrecedeNoneAndCreateWithoutChangingTheirMeaning" classname="com.spisokryadom.app.Refine080UiTest" time="0.455" />
+  <testcase name="invalidHexCannotSaveAndNoColorClearsTheCustomChoice" classname="com.spisokryadom.app.Refine080UiTest" time="0.665" />
+  <testcase name="creatingStoreBlocksPurchaseUntilTheStoreIsSelected" classname="com.spisokryadom.app.Refine080UiTest" time="0.362" />
+  <testcase name="customColorControlsAndConfirmationWorkInLandscape" classname="com.spisokryadom.app.Refine080UiTest" time="0.623" />
+  <testcase name="applicationLabelIsRealRussianResource" classname="com.spisokryadom.app.Refine080UiTest" time="0.174" />
+  <testcase name="customHexAndCannedIconCanBeSelectedTogether" classname="com.spisokryadom.app.Refine080UiTest" time="0.843" />
+  </testsuite>

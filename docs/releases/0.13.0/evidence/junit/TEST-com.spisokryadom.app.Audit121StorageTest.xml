@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Audit121StorageTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T06:21:53.942Z" time="16.013">
+  <testcase name="classifierUnitRenameCannotBeRevertedByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="6.822" />
+  <testcase name="deletedStoreDepartmentCannotBeRecreatedFromResolvedTemporaryDraftIds[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.218" />
+  <testcase name="cancellationAtRestoreCommitCannotDeleteCommittedPhotosOrLeaveOldDrafts[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.351" />
+  <testcase name="deletedRecipientAndGroupDoNotTrapAnInterruptedEditorInForeignKeyErrors[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.22" />
+  <testcase name="transferExtensionCannotBeRemovedByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.199" />
+  <testcase name="rememberedTransferCannotBeUndoneByInterruptedEditorRecovery[28]" classname="com.spisokryadom.app.Audit121StorageTest" time="0.202" />
+  <testcase name="classifierUnitRenameCannotBeRevertedByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="6.844" />
+  <testcase name="deletedStoreDepartmentCannotBeRecreatedFromResolvedTemporaryDraftIds" classname="com.spisokryadom.app.Audit121StorageTest" time="0.26" />
+  <testcase name="cancellationAtRestoreCommitCannotDeleteCommittedPhotosOrLeaveOldDrafts" classname="com.spisokryadom.app.Audit121StorageTest" time="0.294" />
+  <testcase name="deletedRecipientAndGroupDoNotTrapAnInterruptedEditorInForeignKeyErrors" classname="com.spisokryadom.app.Audit121StorageTest" time="0.209" />
+  <testcase name="transferExtensionCannotBeRemovedByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="0.179" />
+  <testcase name="rememberedTransferCannotBeUndoneByInterruptedEditorRecovery" classname="com.spisokryadom.app.Audit121StorageTest" time="0.199" />
+  </testsuite>

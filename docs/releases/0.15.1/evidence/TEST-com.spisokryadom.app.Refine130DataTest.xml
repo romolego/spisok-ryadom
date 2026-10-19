@@ -1,0 +1,20 @@
+<testsuite name="com.spisokryadom.app.Refine130DataTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:34:28.684Z" time="17.694">
+  <testcase name="fullBackupRestoresShopBackgroundAndWidgetSettingsAndOlderCopiesDefault[28]" classname="com.spisokryadom.app.Refine130DataTest" time="7.461" />
+  <testcase name="malformedNewPreferencesAndBackgroundRejectBeforeDatabaseChanges[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.322" />
+  <testcase name="schema13MigratesWithoutChangingPurchases[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.285" />
+  <testcase name="everyGroupingPreservesAllRowsAndMissingClassifiers[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.285" />
+  <testcase name="widgetCheckboxUsesSameFreshTokenAfterRegrouping[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.195" />
+  <testcase name="urgencyRespectsManualOrderAndBoughtHistory[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.205" />
+  <testcase name="widgetSettingsAreIndependentPersistedAndDefensive[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.215" />
+  <testcase name="hidingDepartmentsDoesNotChangeTheShoppingRoute[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.174" />
+  <testcase name="shopsUseSeparatePhysicalBlocksAndTheirOwnDepartmentRoute[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.126" />
+  <testcase name="fullBackupRestoresShopBackgroundAndWidgetSettingsAndOlderCopiesDefault" classname="com.spisokryadom.app.Refine130DataTest" time="6.89" />
+  <testcase name="malformedNewPreferencesAndBackgroundRejectBeforeDatabaseChanges" classname="com.spisokryadom.app.Refine130DataTest" time="0.268" />
+  <testcase name="schema13MigratesWithoutChangingPurchases" classname="com.spisokryadom.app.Refine130DataTest" time="0.252" />
+  <testcase name="everyGroupingPreservesAllRowsAndMissingClassifiers" classname="com.spisokryadom.app.Refine130DataTest" time="0.211" />
+  <testcase name="widgetCheckboxUsesSameFreshTokenAfterRegrouping" classname="com.spisokryadom.app.Refine130DataTest" time="0.192" />
+  <testcase name="urgencyRespectsManualOrderAndBoughtHistory" classname="com.spisokryadom.app.Refine130DataTest" time="0.165" />
+  <testcase name="widgetSettingsAreIndependentPersistedAndDefensive" classname="com.spisokryadom.app.Refine130DataTest" time="0.171" />
+  <testcase name="hidingDepartmentsDoesNotChangeTheShoppingRoute" classname="com.spisokryadom.app.Refine130DataTest" time="0.13" />
+  <testcase name="shopsUseSeparatePhysicalBlocksAndTheirOwnDepartmentRoute" classname="com.spisokryadom.app.Refine130DataTest" time="0.131" />
+  </testsuite>

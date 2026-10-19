@@ -32,7 +32,7 @@ class Refine100UiTest {
  private fun shot(name:String,sheet:Boolean=false){ui.waitForIdle();ui.runOnIdle{val v=if(sheet)org.robolectric.shadows.ShadowDialog.getLatestDialog().window!!.decorView else ui.activity.window.decorView;val bitmap=Bitmap.createBitmap(v.width,v.height,Bitmap.Config.ARGB_8888);v.draw(Canvas(bitmap));val f=File("../.local/refinement-0.10.0/$name-api${android.os.Build.VERSION.SDK_INT}.png");f.parentFile!!.mkdirs();f.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()}}
  @Before fun seed(){runBlocking{
   listOf("drafts","product_card_drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
-  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks();db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
+  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks();db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
   a=db.shopDao().insert(ShopEntity(name="Батон"));b=db.shopDao().insert(ShopEntity(name="Красный Яр",displayOrder=1));first=db.shopBranchDao().insert(ShopBranchEntity(shopId=b,address="Весны, 1"));second=db.shopBranchDao().insert(ShopBranchEntity(shopId=b,address="Молокова, 54",displayOrder=1))
   p=app.container.productRepository.saveWithLinks(ProductEntity(name="Спагетти",defaultUnit="упаковка",preferCityShopOrder=true),listOf(ProductShopLinkEntity(productId=0,shopId=a)))
   db.productDao().insert(ProductEntity(name="Банан"));db.productDao().insert(ProductEntity(name="Банан спелый",isFavorite=true))
@@ -73,7 +73,9 @@ class Refine100UiTest {
   ui.onAllNodesWithText("Магазины").onLast().performClick();waitText("Батон");ui.onNodeWithText("Батон").performClick();waitText("Спагетти");ui.onNodeWithContentDescription("Добавить товар").performClick();ui.onNodeWithText("Добавить из базы").performClick();waitText("Добавить товары")
   ui.onNode(hasSetTextAction()).performTextInput("Банан");waitText("Банан спелый");ui.onNodeWithContentDescription("Избранный товар: Банан спелый").assertIsDisplayed();shot("07-search-stars-store")
  }
- @Test fun bulkMatchingCandidateMenuShowsFavoriteStar(){
-  ui.onNodeWithContentDescription("Текстовый список").performClick();waitText("Ваш список");ui.onNodeWithText("Ваш список").performTextReplacement("Банан");ui.onNodeWithText("Проверить изменения").performClick();waitText("Проверьте список");ui.onNodeWithText("Товар").performScrollTo().performClick();waitText("Банан спелый");ui.onNodeWithContentDescription("Избранный товар: Банан спелый").assertIsDisplayed();shot("08-search-stars-bulk")
+ @Test fun addSearchShowsFavoriteStarInsteadOfRetiredTextMatching(){
+  ui.onNodeWithContentDescription("Добавить в список").performClick();waitText("Название товара")
+  ui.onNodeWithText("Название товара").performTextInput("Банан");waitText("Банан спелый")
+  ui.onNodeWithContentDescription("Избранный товар: Банан спелый").assertIsDisplayed()
  }
 }

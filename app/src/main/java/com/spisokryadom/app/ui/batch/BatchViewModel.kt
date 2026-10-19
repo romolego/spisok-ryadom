@@ -30,7 +30,8 @@ class BatchViewModel(private val context:Context,
  fun run(done:()->Unit,block:suspend()->Unit){
   if(busy.value)return
   busy.value=true;error.value=null
-  viewModelScope.launch {try{withContext(Dispatchers.IO){block()};notice.value="Изменения сохранены";done()}catch(e:Exception){if(e is CancellationException)throw e;error.value=e.message?:"Операция не выполнена"}finally{busy.value=false}}
+  val generation=ProductEditorTransactions.generation.get()
+  viewModelScope.launch {try{withContext(Dispatchers.IO){ProductEditorTransactions.inGeneration(generation,block)};notice.value="Изменения сохранены";done()}catch(e:Exception){if(e is CancellationException)throw e;error.value=e.message?:"Операция не выполнена"}finally{busy.value=false}}
  }
  fun products(ids:Set<Long>,change:ProductBatchChange,done:()->Unit)=run(done){ProductDraftStore.applyBatch(context,productRepository,ids,change){batchRepository.changeProducts(ids,change)}}
  fun shops(ids:Set<Long>,types:Set<Long>,done:()->Unit)=run(done){batchRepository.addDepartments(ids,types)}

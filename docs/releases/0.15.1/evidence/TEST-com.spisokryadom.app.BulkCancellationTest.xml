@@ -1,0 +1,8 @@
+<testsuite name="com.spisokryadom.app.BulkCancellationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:19:58.182Z" time="8.904">
+  <testcase name="unknownOrAmbiguousHeaderNeverSilentlyCreatesOrChoosesAStore" classname="com.spisokryadom.app.BulkCancellationTest" time="7.264" />
+  <testcase name="cancellingReviewRetainsRawDraftAndRestoresItInFreshViewModel" classname="com.spisokryadom.app.BulkCancellationTest" time="0.239" />
+  <testcase name="reviewedChoiceAddsAtomicallyAndCanBeRetriedAfterAWriteFailure" classname="com.spisokryadom.app.BulkCancellationTest" time="0.278" />
+  <testcase name="storeTypoRequiresConfirmationAndShowsCandidate" classname="com.spisokryadom.app.BulkCancellationTest" time="0.177" />
+  <testcase name="storesFromHeadersOverrideDefaultsAndUndoRestoresTheBasket" classname="com.spisokryadom.app.BulkCancellationTest" time="0.219" />
+  <testcase name="cancelledOldReviewCannotOverwriteTheSubsequentReview" classname="com.spisokryadom.app.BulkCancellationTest" time="0.726" />
+  </testsuite>

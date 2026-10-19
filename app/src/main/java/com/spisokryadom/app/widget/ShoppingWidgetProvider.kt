@@ -41,6 +41,9 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
                 intent.getLongExtra("created",-1),intent.getLongExtra("updated",-1),intent.getBooleanExtra("bought",false),"","",false,intent.getStringExtra("revision")?:return null)
         }
         fun views(context:Context,id:Int)=RemoteViews(context.packageName,R.layout.shopping_widget).apply {
+            val settings=WidgetSettings.load(context.getSharedPreferences(WidgetSettings.PREFS,Context.MODE_PRIVATE))
+            setTextViewTextSize(R.id.widget_heading,android.util.TypedValue.COMPLEX_UNIT_SP,(settings.textSize+4).toFloat())
+            setTextViewTextSize(R.id.widget_empty,android.util.TypedValue.COMPLEX_UNIT_SP,settings.textSize.toFloat())
             val adapter=Intent(context,ShoppingWidgetService::class.java).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id)
                 .setData(Uri.parse("spisok-widget://list/$id"))
             setRemoteAdapter(R.id.widget_list,adapter)
@@ -54,10 +57,13 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
             val mutable=PendingIntent.FLAG_UPDATE_CURRENT or if(Build.VERSION.SDK_INT>=31)PendingIntent.FLAG_MUTABLE else 0
             setPendingIntentTemplate(R.id.widget_list,PendingIntent.getBroadcast(context,id,Intent(context,ShoppingWidgetProvider::class.java).setAction(ACTION).setData(Uri.parse("spisok-widget://click/$id")),mutable))
         }
-        fun refresh(context:Context) {
+        fun refresh(context:Context,updateLayout:Boolean=false) {
             val manager=AppWidgetManager.getInstance(context)
             val ids=manager.getAppWidgetIds(ComponentName(context,ShoppingWidgetProvider::class.java))
-            if(ids.isNotEmpty())manager.notifyAppWidgetViewDataChanged(ids,R.id.widget_list)
+            if(ids.isNotEmpty()){
+                if(updateLayout)ids.forEach{manager.updateAppWidget(it,views(context,it))}
+                manager.notifyAppWidgetViewDataChanged(ids,R.id.widget_list)
+            }
         }
     }
 }

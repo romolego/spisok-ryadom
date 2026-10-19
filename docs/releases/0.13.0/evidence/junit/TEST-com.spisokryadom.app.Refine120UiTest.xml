@@ -1,0 +1,20 @@
+<testsuite name="com.spisokryadom.app.Refine120UiTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-19T06:37:19.961Z" time="40.605">
+  <testcase name="recipientCanBeCreatedInlineAndAppliedToWholeSelection[28]" classname="com.spisokryadom.app.Refine120UiTest" time="12.934" />
+  <testcase name="shoppingMultiMoveAddsMissingLinksWithoutChangingOtherPurchaseFacts[28]" classname="com.spisokryadom.app.Refine120UiTest" time="0.848" />
+  <testcase name="actionSheetKeepsApplyVisibleWithLongScrollableOptionsInLandscape[28]" classname="com.spisokryadom.app.Refine120UiTest" time="1.133" />
+  <testcase name="twoSelectedStoresGainGroupAndThirdDoesNot[28]" classname="com.spisokryadom.app.Refine120UiTest" time="0.78" />
+  <testcase name="shopCatalogueBatchAssignsDepartmentAndUpdatesBasket[28]" classname="com.spisokryadom.app.Refine120UiTest" time="0.85" />
+  <testcase name="changingSearchPrunesHiddenSelectionAndBackCancelsMode[28]" classname="com.spisokryadom.app.Refine120UiTest" time="0.814" />
+  <testcase name="shoppingBatchUrgencyBuyReturnAndConfirmedDelete[28]" classname="com.spisokryadom.app.Refine120UiTest" time="1.071" />
+  <testcase name="favoriteShortcutAndShopDuplicatesAreOneLogicalSelection[28]" classname="com.spisokryadom.app.Refine120UiTest" time="0.769" />
+  <testcase name="wholeRecipientSectionAssignsSixtyItemsEvenWhenCollapsed[28]" classname="com.spisokryadom.app.Refine120UiTest" time="1.077" />
+  <testcase name="recipientCanBeCreatedInlineAndAppliedToWholeSelection" classname="com.spisokryadom.app.Refine120UiTest" time="13.179" />
+  <testcase name="shoppingMultiMoveAddsMissingLinksWithoutChangingOtherPurchaseFacts" classname="com.spisokryadom.app.Refine120UiTest" time="0.669" />
+  <testcase name="actionSheetKeepsApplyVisibleWithLongScrollableOptionsInLandscape" classname="com.spisokryadom.app.Refine120UiTest" time="1.066" />
+  <testcase name="twoSelectedStoresGainGroupAndThirdDoesNot" classname="com.spisokryadom.app.Refine120UiTest" time="0.749" />
+  <testcase name="shopCatalogueBatchAssignsDepartmentAndUpdatesBasket" classname="com.spisokryadom.app.Refine120UiTest" time="0.836" />
+  <testcase name="changingSearchPrunesHiddenSelectionAndBackCancelsMode" classname="com.spisokryadom.app.Refine120UiTest" time="0.838" />
+  <testcase name="shoppingBatchUrgencyBuyReturnAndConfirmedDelete" classname="com.spisokryadom.app.Refine120UiTest" time="1.085" />
+  <testcase name="favoriteShortcutAndShopDuplicatesAreOneLogicalSelection" classname="com.spisokryadom.app.Refine120UiTest" time="0.721" />
+  <testcase name="wholeRecipientSectionAssignsSixtyItemsEvenWhenCollapsed" classname="com.spisokryadom.app.Refine120UiTest" time="1.172" />
+  </testsuite>

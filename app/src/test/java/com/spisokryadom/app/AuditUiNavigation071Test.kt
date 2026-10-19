@@ -32,7 +32,7 @@ class AuditUiNavigation071Test {
  private fun waitText(text:String){ui.waitUntil(20_000){ui.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()}}
  @Before fun setup()=runBlocking{
   listOf("drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
-  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes()
+  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes()
   db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks();app.container.locations.select(1)
   shop=db.shopDao().insert(ShopEntity(name="Батон"));db.shopBranchDao().insert(ShopBranchEntity(shopId=shop,address="Весны, 7"))
   product=app.container.productRepository.saveWithLinks(ProductEntity(name="Чай",defaultUnit="уп",defaultQuantity=1.0),listOf(ProductShopLinkEntity(productId=0,shopId=shop)))

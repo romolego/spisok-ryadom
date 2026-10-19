@@ -1,0 +1,12 @@
+<testsuite name="com.spisokryadom.app.Refine140UiTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:58:27.407Z" time="32.723">
+  <testcase name="settingsSpacingAndBrowseToggleSurviveRecreation[28]" classname="com.spisokryadom.app.Refine140UiTest" time="13.335" />
+  <testcase name="shareUsesEditedTextAndReopeningRegeneratesFromUnchangedBasket[28]" classname="com.spisokryadom.app.Refine140UiTest" time="1.473" />
+  <testcase name="longPlusDoesNothingAndWidgetAddUsesSameBrowser[28]" classname="com.spisokryadom.app.Refine140UiTest" time="0.486" />
+  <testcase name="explicitShopPickerFiltersBeforeAnyTyping[28]" classname="com.spisokryadom.app.Refine140UiTest" time="0.92" />
+  <testcase name="blankPickerRepeatsFavoritesAndQuickAddKeepsItOpen[28]" classname="com.spisokryadom.app.Refine140UiTest" time="0.683" />
+  <testcase name="settingsSpacingAndBrowseToggleSurviveRecreation" classname="com.spisokryadom.app.Refine140UiTest" time="12.692" />
+  <testcase name="shareUsesEditedTextAndReopeningRegeneratesFromUnchangedBasket" classname="com.spisokryadom.app.Refine140UiTest" time="1.051" />
+  <testcase name="longPlusDoesNothingAndWidgetAddUsesSameBrowser" classname="com.spisokryadom.app.Refine140UiTest" time="0.473" />
+  <testcase name="explicitShopPickerFiltersBeforeAnyTyping" classname="com.spisokryadom.app.Refine140UiTest" time="0.923" />
+  <testcase name="blankPickerRepeatsFavoritesAndQuickAddKeepsItOpen" classname="com.spisokryadom.app.Refine140UiTest" time="0.666" />
+  </testsuite>

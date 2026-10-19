@@ -67,7 +67,10 @@ data class UrgencyDefaultsState(
 
 data class AddToListDefaultsState(
     val saveNewProductToDatabase: Boolean = true,
-    val rememberShopPriorityOnMove:Boolean=false
+    val rememberShopPriorityOnMove:Boolean=false,
+    val browseProductsOnAdd:Boolean=true,
+    val autoSaveProductCards:Boolean=true,
+    val defaultPurchaseType:String="offline",val missingUnit:String="шт"
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -172,11 +175,37 @@ class SettingsViewModel(
             saveNewProductToDatabase = prefs.getBoolean(
                 ShoppingListViewModel.PREF_GLOBAL_SAVE_NEW_PRODUCT_TO_DB, true
             ),
-            rememberShopPriorityOnMove=prefs.getBoolean("remember_shop_priority_on_move",false)
+            rememberShopPriorityOnMove=prefs.getBoolean("remember_shop_priority_on_move",false),
+            browseProductsOnAdd=prefs.getBoolean("browse_products_on_add",true),
+            autoSaveProductCards=com.spisokryadom.app.util.ProductEditingPreferences.enabled(prefs),
+            defaultPurchaseType=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).purchaseType,
+            missingUnit=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit
         )
     }
 
+    val groupCreationPresets=classifierRepository.creationPresets().stateIn(viewModelScope,kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),emptyList())
+    fun setGroupDefaultRecipient(groupId:Long,recipientId:Long?,done:(Boolean)->Unit={}){viewModelScope.launch{
+        try{classifierRepository.defaultRecipient(groupId,recipientId);done(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(message=e.message?:"Преднастройка не сохранена");done(false)}
+    }}
+    fun addStandardCategories(){viewModelScope.launch(errors){val added=classifierRepository.addStandardCategories();_uiState.value=_uiState.value.copy(message="Добавлено стандартных групп: $added")}}
+    fun setDefaultPurchaseType(value:String){if(value in setOf("offline","online"))prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.TYPE,value).apply()}
+    fun setMissingUnit(value:String){prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.UNIT,com.spisokryadom.app.util.Quantities.unit(value)).apply()}
+    fun setAutoSaveProductCards(value:Boolean){
+        prefs.edit().putBoolean(com.spisokryadom.app.util.ProductEditingPreferences.KEY,value).commit()
+        if(!value)viewModelScope.launch{com.spisokryadom.app.data.repository.ProductEditorTransactions.locked{
+            com.spisokryadom.app.ui.productcard.ProductDraftStore.preferences(context).edit().clear().commit()
+        }}
+    }
+    fun setBrowseProductsOnAdd(value:Boolean){prefs.edit().putBoolean("browse_products_on_add",value).apply()}
+
     fun setRememberShopPriorityOnMove(value:Boolean){prefs.edit().putBoolean("remember_shop_priority_on_move",value).apply()}
+
+    private val _widgetSettings=MutableStateFlow(com.spisokryadom.app.widget.WidgetSettings.load(prefs))
+    val widgetSettings:StateFlow<com.spisokryadom.app.widget.WidgetSettings> = _widgetSettings.asStateFlow()
+    fun updateWidgetSettings(value:com.spisokryadom.app.widget.WidgetSettings){
+        value.save(prefs)
+        _widgetSettings.value=com.spisokryadom.app.widget.WidgetSettings.load(prefs)
+    }
 
     fun setGlobalSaveNewProductToDatabase(value: Boolean) {
         prefs.edit().putBoolean(
@@ -205,6 +234,7 @@ class SettingsViewModel(
 
     private val preferenceListener=SharedPreferences.OnSharedPreferenceChangeListener{_,_->
         _urgencyDefaults.value=loadUrgencyDefaults();_addToListDefaults.value=loadAddToListDefaults()
+        _widgetSettings.value=com.spisokryadom.app.widget.WidgetSettings.load(prefs)
     }
     init { prefs.registerOnSharedPreferenceChangeListener(preferenceListener) }
     override fun onCleared(){prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener);super.onCleared()}
@@ -327,12 +357,14 @@ class SettingsViewModel(
     fun renameUnit(unit: UnitEntity, newName: String) {
         viewModelScope.launch(Dispatchers.IO+errors) {
             classifierRepository.renameUnitAndProducts(unit,newName)
+            if(com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit==com.spisokryadom.app.util.Quantities.unit(unit.name))setMissingUnit(newName)
         }
     }
 
     fun deleteUnit(unit: UnitEntity) {
         viewModelScope.launch(Dispatchers.IO+errors) {
             classifierRepository.deleteUnitAndProducts(unit)
+            if(com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit==com.spisokryadom.app.util.Quantities.unit(unit.name))setMissingUnit("")
             if (_selectedUnitId.value == unit.id) {
                 _selectedUnitId.value = null
             }
@@ -413,3 +445,4 @@ class SettingsViewModel(
         }
     }
 }
+

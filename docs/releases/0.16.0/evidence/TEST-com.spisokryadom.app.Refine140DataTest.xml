@@ -1,0 +1,18 @@
+<testsuite name="com.spisokryadom.app.Refine140DataTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:24:29.661Z" time="15.728">
+  <testcase name="browsePreferenceRoundTripsWithFullBackup[28]" classname="com.spisokryadom.app.Refine140DataTest" time="6.793" />
+  <testcase name="autoBrowseHasAlphabeticalWholeCatalogueAndRepeatedFavorites[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.187" />
+  <testcase name="disablingBrowseKeepsTypedSearchAndReactsToPreferenceChanges[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.185" />
+  <testcase name="typingNewProductStillCreatesAndAssignsIt[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.217" />
+  <testcase name="selectingWithoutTypingCanSetQuantityAndAdd[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.147" />
+  <testcase name="explicitOutletHonorsRestrictedAvailabilityAndShopChanges[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.118" />
+  <testcase name="shareMessageIgnoresOldDraftsAndNeverMutatesBasket[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.185" />
+  <testcase name="quickAddingSeveralProductsKeepsBrowserAndUsesDefaults[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.145" />
+  <testcase name="browsePreferenceRoundTripsWithFullBackup" classname="com.spisokryadom.app.Refine140DataTest" time="6.632" />
+  <testcase name="autoBrowseHasAlphabeticalWholeCatalogueAndRepeatedFavorites" classname="com.spisokryadom.app.Refine140DataTest" time="0.169" />
+  <testcase name="disablingBrowseKeepsTypedSearchAndReactsToPreferenceChanges" classname="com.spisokryadom.app.Refine140DataTest" time="0.172" />
+  <testcase name="typingNewProductStillCreatesAndAssignsIt" classname="com.spisokryadom.app.Refine140DataTest" time="0.164" />
+  <testcase name="selectingWithoutTypingCanSetQuantityAndAdd" classname="com.spisokryadom.app.Refine140DataTest" time="0.142" />
+  <testcase name="explicitOutletHonorsRestrictedAvailabilityAndShopChanges" classname="com.spisokryadom.app.Refine140DataTest" time="0.128" />
+  <testcase name="shareMessageIgnoresOldDraftsAndNeverMutatesBasket" classname="com.spisokryadom.app.Refine140DataTest" time="0.174" />
+  <testcase name="quickAddingSeveralProductsKeepsBrowserAndUsesDefaults" classname="com.spisokryadom.app.Refine140DataTest" time="0.154" />
+  </testsuite>

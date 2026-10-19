@@ -37,16 +37,18 @@ class ShoppingUiFlowTest {
    listOf("Бананы","Яблоки Гала").forEach{name->val id=c.database.productDao().insert(ProductEntity(name=name,defaultUnit="кг"));c.database.productShopLinkDao().insert(ProductShopLinkEntity(productId=id,shopId=shop));c.database.productShopLinkDao().insert(ProductShopLinkEntity(productId=id,shopId=irkutsk,priority=2))}
   }
   waitText("Список пуст");capture("01-empty")
-  ui.onNodeWithText("Текстовый список").assertDoesNotExist()
-  ui.onNodeWithContentDescription("Добавить в список").performTouchInput{longClick()}
-  ui.onNodeWithText("Текстовый список").performClick()
-  ui.onNode(hasSetTextAction() and hasText("Ваш список")).performTextReplacement("бананы 4\nяблки 0,5 кг\nмолоко 2 л")
-  ui.activityRule.scenario.recreate();waitText("Проверить изменения")
-  ui.onNode(hasSetTextAction() and hasText("Ваш список")).assertTextContains("бананы 4\nяблки 0,5 кг\nмолоко 2 л")
-  ui.onNodeWithText("Проверить изменения").performClick();waitText("Сохранить изменения")
-  ui.onNodeWithText("Выберите похожий товар").performScrollTo().performClick()
-  ui.onNodeWithText("Яблоки Гала",useUnmergedTree=true).performClick();capture("02-review")
-  ui.onNodeWithText("Сохранить изменения").performClick();waitText("Изменения сохранены")
+  runBlocking{
+   val ps=c.database.productDao().getAllSync()
+   c.shoppingListRepository.addProduct(ps.single{it.name=="Бананы"}.id,4.0)
+   c.shoppingListRepository.addProduct(ps.single{it.name=="Яблоки Гала"}.id,.5)
+   c.shoppingListRepository.addNewProduct("Молоко",2.0,"л",true)
+  }
+  waitText("Яблоки Гала")
+  ui.onNodeWithContentDescription("Текстовый список").performClick();waitText("Ваш список")
+  ui.onNodeWithTag("bulk-editor").performTextReplacement("Текст только для отправки")
+  ui.activityRule.scenario.recreate();waitText("Ваш список")
+  ui.onNodeWithTag("bulk-editor").assertTextContains("Текст только для отправки")
+  ui.onNodeWithText("Сохранить изменения").assertDoesNotExist()
   ui.onNodeWithContentDescription("Назад").performClick();waitText("Яблоки Гала");capture("03-basket")
   runBlocking{assertEquals(3,c.database.shoppingListEntryDao().getAllSync().size);val apples=c.database.productDao().getAllSync().single{it.name=="Яблоки Гала"};assertEquals(.5,c.database.shoppingListEntryDao().getAllSync().single{it.productId==apples.id}.quantity,0.0)}
   ui.onNodeWithContentDescription("Купить: Бананы").performClick();ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Вернуть в покупки: Бананы").fetchSemanticsNodes().isNotEmpty()}

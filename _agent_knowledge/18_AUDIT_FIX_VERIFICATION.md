@@ -64,7 +64,7 @@ Room/SQLite настоящие; UI в Robolectric native graphics API28/API35. �
 - Пакет com.spisokryadom.app.next, название «Список рядом · новая». apksigner v2 verified; сертификат `25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668` тот же, что у локальной0.2.0. Обновление поверх неё без удаления данных. Закрытый ключ остаётся вне Git.
 - Исходное приложение телефона остаётся отдельным. Его JSON переносит каталог, но не старую корзину. ZIPv4 нового приложения восстанавливает полный снимок.
 
-Пользовательские Install-0.2.1.html, Verification-0.2.1.html, verification-0.2.1.json с хешами исходников и verification-evidence-0.2.1.zip сохранены в C:\Users\Роман\Documents\Codex\2026-10-16\new-chat\outputs. Архив содержит JUnit, исходники тестов, production patch, Gradle/lint, подпись/manifest и PNG. APK0.2.0 и исходный независимый audit archive не перезаписаны.
+Пользовательские Install-0.2.1.html, Verification-0.2.1.html, verification-0.2.1.json с хешами исходников и verification-evidence-0.2.1.zip сохранены в %USERPROFILE%\Documents\Codex\2026-10-16\new-chat\outputs. Архив содержит JUnit, исходники тестов, production patch, Gradle/lint, подпись/manifest и PNG. APK0.2.0 и исходный независимый audit archive не перезаписаны.
 
 ## Границы достоверности
 

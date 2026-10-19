@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Audit151TransferTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:06:22.202Z" time="0.21">
+  <testcase name="realJsonArrayStillFailsInsteadOfBecomingAProduct" classname="com.spisokryadom.app.Audit151TransferTest" time="0.054" />
+  <testcase name="malformedAndOversizedCommentsFailWholeImport" classname="com.spisokryadom.app.Audit151TransferTest" time="0.054" />
+  <testcase name="noCommentKeepsOriginalV1WireFormat" classname="com.spisokryadom.app.Audit151TransferTest" time="0.027" />
+  <testcase name="bareUncheckedMessengerChecklistIsPlainTextRatherThanJson" classname="com.spisokryadom.app.Audit151TransferTest" time="0.008" />
+  <testcase name="exactPriceUpperBoundAppliesBeforeDoubleConversion" classname="com.spisokryadom.app.Audit151TransferTest" time="0.003" />
+  <testcase name="exactQuantityBoundsApplyBeforeDoubleConversion" classname="com.spisokryadom.app.Audit151TransferTest" time="0.002" />
+  <testcase name="bareCheckedMessengerChecklistKeepsUrgencyAndCheckedFlag" classname="com.spisokryadom.app.Audit151TransferTest" time="0.001" />
+  <testcase name="trailingZeroesAndScientificSixDecimalQuantityRemainValid" classname="com.spisokryadom.app.Audit151TransferTest" time="0.004" />
+  <testcase name="separateLongNoteAndCommentRoundTripWithoutMergingOrTruncation" classname="com.spisokryadom.app.Audit151TransferTest" time="0.048" />
+  <testcase name="textQuantityPrecisionCannotBeHiddenByDoubleRounding" classname="com.spisokryadom.app.Audit151TransferTest" time="0.001" />
+  <testcase name="v2CannotBeDowngradedToSilentlyLoseComments" classname="com.spisokryadom.app.Audit151TransferTest" time="0.003" />
+  <testcase name="jsonQuantityPrecisionCannotBeHiddenByDoubleRounding" classname="com.spisokryadom.app.Audit151TransferTest" time="0.002" />
+  </testsuite>

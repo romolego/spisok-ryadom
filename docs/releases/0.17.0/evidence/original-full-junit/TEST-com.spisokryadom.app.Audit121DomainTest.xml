@@ -1,0 +1,18 @@
+<testsuite name="com.spisokryadom.app.Audit121DomainTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:24:25.407Z" time="15.364">
+  <testcase name="conversionRetainsCityInheritanceWhenNoIndividualRouteConflicts[28]" classname="com.spisokryadom.app.Audit121DomainTest" time="6.806" />
+  <testcase name="linkAdditionUsesTheWaitingPurchasesCityAndNewPointDepartment[28]" classname="com.spisokryadom.app.Audit121DomainTest" time="0.161" />
+  <testcase name="marketConversionPreservesTheProductSpecificPreferredPavilion[28]" classname="com.spisokryadom.app.Audit121DomainTest" time="0.138" />
+  <testcase name="singleShopPickerAndBatchLinkResolveTheSameAutomaticPurchase[28]" classname="com.spisokryadom.app.Audit121DomainTest" time="0.157" />
+  <testcase name="copyingShopLinkResolvesWaitingPurchaseAndNeverMovesValidExplicitPurchase[28]" classname="com.spisokryadom.app.Audit121DomainTest" time="0.113" />
+  <testcase name="conversionPreservesCompetingRetailersAndOrdersInAnotherCity[28]" classname="com.spisokryadom.app.Audit121DomainTest" time="0.184" />
+  <testcase name="staleUiMoveRejectsTheWholeSelectionBeforeChangingAvailabilityOrPriority[28]" classname="com.spisokryadom.app.Audit121DomainTest" time="0.166" />
+  <testcase name="marketConversionPreservesPointOverrideWithInheritedCityShopOrder[28]" classname="com.spisokryadom.app.Audit121DomainTest" time="0.111" />
+  <testcase name="conversionRetainsCityInheritanceWhenNoIndividualRouteConflicts" classname="com.spisokryadom.app.Audit121DomainTest" time="6.536" />
+  <testcase name="linkAdditionUsesTheWaitingPurchasesCityAndNewPointDepartment" classname="com.spisokryadom.app.Audit121DomainTest" time="0.132" />
+  <testcase name="marketConversionPreservesTheProductSpecificPreferredPavilion" classname="com.spisokryadom.app.Audit121DomainTest" time="0.13" />
+  <testcase name="singleShopPickerAndBatchLinkResolveTheSameAutomaticPurchase" classname="com.spisokryadom.app.Audit121DomainTest" time="0.193" />
+  <testcase name="copyingShopLinkResolvesWaitingPurchaseAndNeverMovesValidExplicitPurchase" classname="com.spisokryadom.app.Audit121DomainTest" time="0.102" />
+  <testcase name="conversionPreservesCompetingRetailersAndOrdersInAnotherCity" classname="com.spisokryadom.app.Audit121DomainTest" time="0.175" />
+  <testcase name="staleUiMoveRejectsTheWholeSelectionBeforeChangingAvailabilityOrPriority" classname="com.spisokryadom.app.Audit121DomainTest" time="0.139" />
+  <testcase name="marketConversionPreservesPointOverrideWithInheritedCityShopOrder" classname="com.spisokryadom.app.Audit121DomainTest" time="0.101" />
+  </testsuite>

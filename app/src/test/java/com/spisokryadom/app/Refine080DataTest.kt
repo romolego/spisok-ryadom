@@ -54,7 +54,7 @@ class Refine080DataTest {
  }
  @Test fun colorAndIconVocabularyAcceptsLegacyAndCustomValues(){
   assertEquals(0xFF12ABEF.toInt(),accentColor("#12abef")!!.toArgb());assertNotNull(accentColor("green"));assertNull(accentColor("#GG1122"));assertNull(accentColor("#80123456"))
-  val all=appearanceOptions();assertEquals(60,all.size);assertEquals(60,all.map{it.first}.toSet().size)
+  val all=appearanceOptions();assertEquals(79,all.size);assertEquals(all.size,all.map{it.first}.toSet().size)
   all.forEach{assertNotNull("Missing icon ${it.first}",appearanceIcon(it.first))}
   assertNotNull(appearanceIcon("canned"));assertNotNull(appearanceIcon("nuts"));assertNotNull(appearanceIcon("dental"));assertNull(appearanceIcon("unknown-future-icon"))
  }

@@ -86,6 +86,8 @@ class BatchRepository(private val db:AppDatabase,private val products:ProductRep
  suspend fun changePurchases(ids:Set<Long>,change:PurchaseBatchChange)=db.withTransaction {
   require(ids.isNotEmpty()) { "Выберите покупки" }
   val rows=ids.sorted().map{db.shoppingListEntryDao().getById(it)?:error("Одна из покупок удалена. Обновите выбор")}
+  val visible=db.shoppingListEntryDao().getVisibleSync().map{it.id}.toSet()
+  require(ids.all{it in visible}) { "Состав покупок изменился. Обновите выбор" }
   if(change==PurchaseBatchChange.URGENT||change==PurchaseBatchChange.NOT_URGENT)require(rows.none{it.isBought}){"Срочность доступна для некупленных"}
   val now=System.currentTimeMillis()
   rows.forEach{row->

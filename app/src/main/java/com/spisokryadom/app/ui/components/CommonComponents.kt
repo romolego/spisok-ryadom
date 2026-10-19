@@ -241,13 +241,13 @@ fun <T> DropdownSelector(
     allowCreate: Boolean = false,
     onCreateNew: (() -> Unit)? = null,
     createLabel: String = "Создать...",
-    itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано"
+    itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано",allowNone:Boolean=true,onOpen:()->Unit={}
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded=it },
+        onExpandedChange = { if(it)onOpen();expanded=it },
         modifier = modifier
     ) {
         OutlinedTextField(
@@ -274,7 +274,7 @@ fun <T> DropdownSelector(
                     }
                 )
             }
-            run {
+            if(allowNone) {
                 DropdownMenuItem(
                     text = { Text(noneLabel, color = MaterialTheme.colorScheme.onSurfaceVariant) },
                     onClick = {
@@ -418,7 +418,8 @@ fun QuantityUnitInputWithSuggestions(
 fun PurchaseTypeSelector(
     selectedType: String,
     onTypeChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    allowedTypes:Set<String> = setOf("offline","online")
 ) {
     Column(modifier = modifier) {
         Text("Тип покупки", style = MaterialTheme.typography.labelLarge)
@@ -426,20 +427,20 @@ fun PurchaseTypeSelector(
         Row(verticalAlignment = Alignment.CenterVertically) {
             RadioButton(
                 selected = selectedType == "offline",
-                onClick = { onTypeChange("offline") }
+                onClick = { onTypeChange("offline") },enabled="offline" in allowedTypes
             )
             Text(
                 "Оффлайн",
-                modifier = Modifier.padding(start=8.dp).clickable { onTypeChange("offline") }
+                modifier = Modifier.padding(start=8.dp).clickable(enabled="offline" in allowedTypes) { onTypeChange("offline") }
             )
             Spacer(modifier = Modifier.width(16.dp))
             RadioButton(
                 selected = selectedType == "online",
-                onClick = { onTypeChange("online") }
+                onClick = { onTypeChange("online") },enabled="online" in allowedTypes
             )
             Text(
                 "Онлайн",
-                modifier = Modifier.padding(start=8.dp).clickable { onTypeChange("online") }
+                modifier = Modifier.padding(start=8.dp).clickable(enabled="online" in allowedTypes) { onTypeChange("online") }
             )
         }
     }

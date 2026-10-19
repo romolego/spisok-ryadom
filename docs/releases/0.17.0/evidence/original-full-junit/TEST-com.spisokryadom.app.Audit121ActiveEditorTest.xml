@@ -1,0 +1,8 @@
+<testsuite name="com.spisokryadom.app.Audit121ActiveEditorTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-19T16:24:07.370Z" time="15.404">
+  <testcase name="availabilityRebaseKeepsLocalAllPointsAndMergesOnlyExplicitSubsetDeltas[28]" classname="com.spisokryadom.app.Audit121ActiveEditorTest" time="6.996" />
+  <testcase name="activeEditorKeepsExternalUnitRenameAndNewLocalInputWhenFinishing[28]" classname="com.spisokryadom.app.Audit121ActiveEditorTest" time="0.614" />
+  <testcase name="clearingEditorWhileExternalCommandOwnsLockRebasesItsLastRawWrite[28]" classname="com.spisokryadom.app.Audit121ActiveEditorTest" time="0.262" />
+  <testcase name="availabilityRebaseKeepsLocalAllPointsAndMergesOnlyExplicitSubsetDeltas" classname="com.spisokryadom.app.Audit121ActiveEditorTest" time="6.693" />
+  <testcase name="activeEditorKeepsExternalUnitRenameAndNewLocalInputWhenFinishing" classname="com.spisokryadom.app.Audit121ActiveEditorTest" time="0.56" />
+  <testcase name="clearingEditorWhileExternalCommandOwnsLockRebasesItsLastRawWrite" classname="com.spisokryadom.app.Audit121ActiveEditorTest" time="0.262" />
+  </testsuite>

@@ -1,0 +1,6 @@
+<testsuite name="com.spisokryadom.app.DraftDepartmentTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:20:55.713Z" time="6.951">
+  <testcase name="newDepartmentAndRestrictionAreAtomicAndUnusedDraftIsNotStored" classname="com.spisokryadom.app.DraftDepartmentTest" time="6.646" />
+  <testcase name="groupCreatedElsewhereWhileProductIsOpenIsReusedWithinSameShop" classname="com.spisokryadom.app.DraftDepartmentTest" time="0.096" />
+  <testcase name="badBranchRollsBackProductAndNewGroup" classname="com.spisokryadom.app.DraftDepartmentTest" time="0.109" />
+  <testcase name="reusingProductPreservesOldLinkAndAttachesNewGroupAndSubset" classname="com.spisokryadom.app.DraftDepartmentTest" time="0.1" />
+  </testsuite>

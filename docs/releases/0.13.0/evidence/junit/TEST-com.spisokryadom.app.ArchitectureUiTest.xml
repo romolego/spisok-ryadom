@@ -1,0 +1,10 @@
+<testsuite name="com.spisokryadom.app.ArchitectureUiTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-19T06:20:41.361Z" time="33.926">
+  <testcase name="exactPointDepartmentCanBeEditedWithoutASecondProduct[28]" classname="com.spisokryadom.app.ArchitectureUiTest" time="13.886" />
+  <testcase name="marketConversionAndUnifiedListKeepPavilionsAndPurchases[28]" classname="com.spisokryadom.app.ArchitectureUiTest" time="1.19" />
+  <testcase name="networkAndVenueAreCreatedInlineAndSavedOnTheSamePhysicalPoint[28]" classname="com.spisokryadom.app.ArchitectureUiTest" time="1.32" />
+  <testcase name="multiplePurchasesRemainSeparateAndControlsChangeOnlyDisplayedEntry[28]" classname="com.spisokryadom.app.ArchitectureUiTest" time="0.69" />
+  <testcase name="exactPointDepartmentCanBeEditedWithoutASecondProduct" classname="com.spisokryadom.app.ArchitectureUiTest" time="13.503" />
+  <testcase name="marketConversionAndUnifiedListKeepPavilionsAndPurchases" classname="com.spisokryadom.app.ArchitectureUiTest" time="1.113" />
+  <testcase name="networkAndVenueAreCreatedInlineAndSavedOnTheSamePhysicalPoint" classname="com.spisokryadom.app.ArchitectureUiTest" time="1.398" />
+  <testcase name="multiplePurchasesRemainSeparateAndControlsChangeOnlyDisplayedEntry" classname="com.spisokryadom.app.ArchitectureUiTest" time="0.807" />
+  </testsuite>

@@ -67,7 +67,7 @@ IME300 geometry: editor=DpRect(left=16.0.dp, top=88.0.dp, right=344.0.dp, bottom
 
 Версия0.2.2 (4), API26+,target35,R8/shrinkResources. Пакет com.spisokryadom.app.next, «Список рядом · новая». apksigner v2 verified, прежний сертификат `25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668`. Обновление поверх0.2.0/0.2.1 без удаления данных; schema8.
 
-APK 1516722байт, SHA-256 `1788cdfdbabea0f1c520b82f9f9d20c6a3104ad3802059f3b017af876d8dea2e`. Пользовательские файлы в C:\Users\Роман\Documents\Codex\2026-10-16\new-chat\outputs: SpisokRyadom-0.2.2.apk, Install/Verification-0.2.2.html, JSON/sha256, verification-screens-0.2.2 и evidenceZIP. Архив: JUnit, тесты/fixtures, diff от0.2.1, подпись/manifest, lint/Gradle и PNG. Хеши всех production/test/schema-файлов в JSON; закрытый ключ не включён.
+APK 1516722байт, SHA-256 `1788cdfdbabea0f1c520b82f9f9d20c6a3104ad3802059f3b017af876d8dea2e`. Пользовательские файлы в %USERPROFILE%\Documents\Codex\2026-10-16\new-chat\outputs: SpisokRyadom-0.2.2.apk, Install/Verification-0.2.2.html, JSON/sha256, verification-screens-0.2.2 и evidenceZIP. Архив: JUnit, тесты/fixtures, diff от0.2.1, подпись/manifest, lint/Gradle и PNG. Хеши всех production/test/schema-файлов в JSON; закрытый ключ не включён.
 
 ## Границы
 

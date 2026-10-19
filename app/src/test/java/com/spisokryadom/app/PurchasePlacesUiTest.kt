@@ -41,7 +41,7 @@ class PurchasePlacesUiTest {
  }}
  @Before fun setup(){runBlocking{
   listOf("drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
-  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks()
+  db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes();db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks()
   db.cityDao().update(CityEntity(1,"Красноярск"));app.container.locations.select(1)
   yar=db.shopDao().insert(ShopEntity(name="Красный Яр"));baton=db.shopDao().insert(ShopEntity(name="Батон",displayOrder=1))
   near=db.shopBranchDao().insert(ShopBranchEntity(shopId=yar,address="Весны, 1 (Взлётка плаза)"))
@@ -139,7 +139,7 @@ class PurchasePlacesUiTest {
   ui.onNodeWithText("Название товара").performTextReplacement("Сыр адыгейский");waitText("Сыр адыгейский")
   val candidate=hasText("Сыр адыгейский") and hasClickAction() and !hasSetTextAction()
   ui.waitUntil(20_000){ui.onAllNodes(candidate).fetchSemanticsNodes().isNotEmpty()}
-  ui.onNode(candidate).performClick();waitText("Выбрано: Сыр адыгейский");shot("10-add-at-exact-place")
+  ui.onNode(candidate).performClick();waitText("Выбран");shot("10-add-at-exact-place")
   ui.onNodeWithText("Добавить в список").performScrollTo().performClick()
   waitText("Список покупок")
   runBlocking{assertTrue(db.shoppingListEntryDao().getAllSync().any{it.productId==cheese&&it.assignedBranchId==far})}

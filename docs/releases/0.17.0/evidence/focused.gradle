@@ -1,0 +1,6 @@
+allprojects { tasks.withType(Test).configureEach {
+ outputs.upToDateWhen { false }
+ include '**/Refine170DataTest.class', '**/Refine170UiTest.class'
+ testLogging { events 'failed'; exceptionFormat 'full'; showStandardStreams=false }
+ afterSuite { d,r -> if(d.className!=null) println("Checked ${d.className}: ${r.testCount} tests, ${r.failedTestCount} failures, ${r.skippedTestCount} skipped") }
+}}

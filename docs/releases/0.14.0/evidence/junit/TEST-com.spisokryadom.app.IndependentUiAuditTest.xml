@@ -1,0 +1,6 @@
+<testsuite name="com.spisokryadom.app.IndependentUiAuditTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:46:41.842Z" time="27.426">
+  <testcase name="changingDisplayedPurchaseDiscardsThePreviousInlineDraft[28]" classname="com.spisokryadom.app.IndependentUiAuditTest" time="12.471" />
+  <testcase name="inlineQuantityEditorMustRemainOpenForDecimalInput[28]" classname="com.spisokryadom.app.IndependentUiAuditTest" time="1.198" />
+  <testcase name="changingDisplayedPurchaseDiscardsThePreviousInlineDraft" classname="com.spisokryadom.app.IndependentUiAuditTest" time="12.68" />
+  <testcase name="inlineQuantityEditorMustRemainOpenForDecimalInput" classname="com.spisokryadom.app.IndependentUiAuditTest" time="1.065" />
+  </testsuite>

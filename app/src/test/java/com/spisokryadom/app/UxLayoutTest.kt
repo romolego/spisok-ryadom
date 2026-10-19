@@ -56,14 +56,13 @@ class UxLayoutTest {
         bitmap.recycle()
     } }
     private fun bulk() {
-        ui.onNodeWithContentDescription("Добавить в список").performTouchInput{longClick()}
-        ui.onNodeWithText("Текстовый список").performClick()
-        waitText("Проверить изменения")
+        ui.onNodeWithContentDescription("Текстовый список").performClick()
+        waitText("Ваш список")
     }
     @Before fun setup() {
         app.getSharedPreferences("drafts",0).edit().clear().commit()
         runBlocking {
-            db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll()
+            db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll();db.shopDao().deleteAll();db.shopDepartmentDao().clearTypes()
             db.cityDao().update(CityEntity(1,"Петропавловск-Камчатский"));app.container.locations.select(1)
         }
         waitText("Список пуст")
@@ -73,7 +72,7 @@ class UxLayoutTest {
         org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)
     }
 
-    @Test fun cityIsOnlyInSettingsAndPlusHasTwoDistinctGestures() {
+    @Test fun cityIsOnlyInSettingsAndLongPlusHasNoAction() {
         ui.onNodeWithText("Город:",substring=true).assertDoesNotExist()
         ui.onNodeWithContentDescription("Изменить город").assertDoesNotExist()
         ui.onNodeWithText("Текстовый список").assertDoesNotExist()
@@ -85,10 +84,10 @@ class UxLayoutTest {
         shot("02-single-add")
         ui.onNodeWithContentDescription("Назад").performClick()
         ui.onNodeWithContentDescription("Добавить в список").performTouchInput{longClick()}
-        ui.onNodeWithText("Текстовый список").assertIsDisplayed()
         ui.onNodeWithText("Добавить покупку").assertDoesNotExist()
-        shot("03-plus-menu")
-        ui.onNodeWithText("Текстовый список").performClick()
+        ui.onNodeWithText("Текстовый список").assertDoesNotExist()
+        ui.onNodeWithContentDescription("Текстовый список").performClick()
+        waitText("Ваш список")
         ui.onNodeWithTag("bulk-editor").assertIsDisplayed()
         ui.onNodeWithText("Город:",substring=true).assertDoesNotExist()
         ui.onNodeWithContentDescription("Изменить город").assertDoesNotExist()
@@ -122,7 +121,7 @@ class UxLayoutTest {
         val raw="Красный Яр:\nБананы 4\nЯблоки 0,5 кг\nОгурцы 2 кг\nБатон:\nМолоко 2 л"
         ui.onNodeWithTag("bulk-editor").performTextReplacement(raw)
         ui.onNodeWithTag("bulk-editor").assertHeightIsAtLeast(130.dp).assertTextContains(raw)
-        ui.onNodeWithText("Проверить изменения").assertIsDisplayed()
+        ui.onNodeWithContentDescription("Поделиться списком").assertIsDisplayed()
         shot("06-compact-editor")
     }
 
@@ -147,36 +146,21 @@ class UxLayoutTest {
         }
         ui.waitForIdle()
         ui.onNodeWithTag("bulk-editor").assertHeightIsAtLeast(130.dp)
-        val action=ui.onNodeWithText("Проверить изменения").getUnclippedBoundsInRoot()
+        val action=ui.onNodeWithContentDescription("Поделиться списком").getUnclippedBoundsInRoot()
         println("IME300 geometry: editor=${ui.onNodeWithTag("bulk-editor").getUnclippedBoundsInRoot()}, action=$action")
         assertTrue("Action must stay above injected 300dp IME; actual=$action",action.bottom<=341.dp)
         shot("06b-ime-insets")
     }
 
-    @Test fun perLineStoreCorrectionIsInteractiveAndHeadersAreNotPurchases() {
-        val ids=runBlocking {
-            val shop=db.shopDao().insert(ShopEntity(name="Красный Яр",cityId=1))
-            val other=db.shopDao().insert(ShopEntity(name="Батон",cityId=1))
-            val apples=db.productDao().insert(ProductEntity(name="Яблоки Гала",defaultUnit="кг"))
-            val milk=db.productDao().insert(ProductEntity(name="Молоко",defaultUnit="л"))
-            listOf(shop,other,apples,milk)
-        }
+    @Test fun editingMessageNeverCreatesProductsOrPurchases() {
         bulk()
-        ui.onNodeWithTag("bulk-editor").performTextReplacement("Красный Йар:\nЯблоки Гала 0,5 кг\nБатон:\nМолоко 2 л")
-        ui.onNodeWithText("Проверить изменения").performClick();waitText("Сохранить изменения")
-        ui.onNodeWithText("Выберите магазин").performScrollTo().performClick()
-        ui.onNodeWithText("Красный Яр").performClick()
-        shot("07-review")
-        ui.onNodeWithText("Сохранить изменения").performClick();waitText("Изменения сохранены")
-        runBlocking {
-            val rows=db.shoppingListEntryDao().getAllSync()
-            assertEquals(2,rows.size)
-            assertEquals(ids[0],rows.single{it.productId==ids[2]}.assignedShopId)
-            assertEquals(ids[1],rows.single{it.productId==ids[3]}.assignedShopId)
-            assertEquals(2,db.productDao().getAllSync().size)
-        }
-        ui.onNodeWithContentDescription("Назад").performClick();waitText("Яблоки Гала")
-        shot("08-basket")
+        ui.onNodeWithTag("bulk-editor").performTextReplacement("Красный Яр:\nЯблоки Гала — 0,5 кг\nБатон:\nМолоко — 2 л")
+        ui.onNodeWithContentDescription("Поделиться списком").assertIsEnabled()
+        ui.onNodeWithText("Проверить изменения").assertDoesNotExist()
+        runBlocking {assertEquals(0,db.shoppingListEntryDao().getAllSync().size);assertEquals(0,db.productDao().getAllSync().size)}
+        ui.onNodeWithContentDescription("Назад").performClick();waitText("Список пуст")
+        bulk()
+        assertEquals("",ui.onNodeWithTag("bulk-editor").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text)
     }
 
     @Test fun catalogAndShopCardsRemainReadableWithAddedAndLongNamedProducts() {

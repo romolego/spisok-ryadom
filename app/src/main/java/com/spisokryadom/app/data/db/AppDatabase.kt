@@ -30,6 +30,8 @@ import com.spisokryadom.app.data.entity.UnitEntity
 
 @Database(
     entities = [
+        com.spisokryadom.app.data.entity.ShopCreationPreset::class,
+        com.spisokryadom.app.data.entity.GroupCreationPreset::class,
         ProductEntity::class,
         ProductGroupEntity::class,
         RecipientEntity::class,
@@ -42,14 +44,16 @@ import com.spisokryadom.app.data.entity.UnitEntity
         com.spisokryadom.app.data.entity.VenueEntity::class,
         ProductShopLinkEntity::class,
         ShoppingListEntryEntity::class,
+        com.spisokryadom.app.data.entity.GoalListEntity::class,
         UnitEntity::class,
         ShopBranchEntity::class, ProductBranchAvailabilityEntity::class, com.spisokryadom.app.data.entity.ProductBranchPriorityEntity::class,
         CityEntity::class
     ],
-    version = 13,
+    version = 16,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
+    abstract fun creationPresetDao():com.spisokryadom.app.data.dao.CreationPresetDao
     abstract fun productDao(): ProductDao
     abstract fun productGroupDao(): ProductGroupDao
     abstract fun recipientDao(): RecipientDao
@@ -57,6 +61,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun shopDepartmentDao(): ShopDepartmentDao
     abstract fun productShopLinkDao(): ProductShopLinkDao
     abstract fun shoppingListEntryDao(): ShoppingListEntryDao
+    abstract fun goalListDao(): com.spisokryadom.app.data.dao.GoalListDao
     abstract fun unitDao(): UnitDao
     abstract fun shopBranchDao(): ShopBranchDao
     abstract fun cityDao(): CityDao
@@ -192,7 +197,28 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
         val MIGRATION_10_11 = RetailMigration
+        val MIGRATION_13_14 = object:Migration(13,14){
+            override fun migrate(db:SupportSQLiteDatabase){db.execSQL("ALTER TABLE shops ADD COLUMN shoppingBackground TEXT NOT NULL DEFAULT ''")}
+        }
+        val MIGRATION_14_15 = object:Migration(14,15){
+            override fun migrate(db:SupportSQLiteDatabase){
+                db.execSQL("CREATE TABLE IF NOT EXISTS goal_lists (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, stableId TEXT NOT NULL, name TEXT NOT NULL, showInPurchases INTEGER NOT NULL DEFAULT 0, createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL)")
+                db.execSQL("CREATE UNIQUE INDEX index_goal_lists_stableId ON goal_lists(stableId)")
+                // Nullable reference can be added without rebuilding purchase rows or changing IDs.
+                db.execSQL("ALTER TABLE shopping_list_entries ADD COLUMN listId INTEGER DEFAULT NULL REFERENCES goal_lists(id) ON DELETE CASCADE")
+                db.execSQL("CREATE INDEX index_shopping_list_entries_listId ON shopping_list_entries(listId)")
+                db.execSQL("ALTER TABLE shopping_list_entries ADD COLUMN plannedUnitPrice REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE shopping_list_entries ADD COLUMN customShopName TEXT DEFAULT NULL")
+                db.execSQL("ALTER TABLE shopping_list_entries ADD COLUMN customShopAddress TEXT DEFAULT NULL")
+            }
+        }
 
+        val MIGRATION_15_16=object:Migration(15,16){override fun migrate(db:SupportSQLiteDatabase){
+            db.execSQL("CREATE TABLE IF NOT EXISTS shop_creation_presets (shopId INTEGER NOT NULL, purchaseMode TEXT NOT NULL, PRIMARY KEY(shopId), FOREIGN KEY(shopId) REFERENCES shops(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
+            db.execSQL("CREATE TABLE IF NOT EXISTS group_creation_presets (groupId INTEGER NOT NULL, recipientId INTEGER, PRIMARY KEY(groupId), FOREIGN KEY(groupId) REFERENCES product_groups(id) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(recipientId) REFERENCES recipients(id) ON UPDATE NO ACTION ON DELETE SET NULL)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_group_creation_presets_recipientId ON group_creation_presets(recipientId)")
+            StandardCategories.install(db)
+        }}
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val appContext=context.applicationContext
@@ -201,12 +227,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "spisok_ryadom.db"
                 )
-                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,13)})
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
+                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,16)})
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16)
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) { RetailConstraints.install(db) }
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             db.execSQL("INSERT OR IGNORE INTO cities(id,name) VALUES(1,'Мой город')")
+                            StandardCategories.install(db)
                         }
                     })
                     .build()

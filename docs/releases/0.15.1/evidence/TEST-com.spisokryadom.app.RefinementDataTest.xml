@@ -1,0 +1,17 @@
+<testsuite name="com.spisokryadom.app.RefinementDataTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:36:28.375Z" time="8.718">
+  <testcase name="cardChangesImmediatelyRefreshPendingDepartmentAndInheritedUnitOnly" classname="com.spisokryadom.app.RefinementDataTest" time="6.828" />
+  <testcase name="favoriteAndColorCommandsPreservePurchaseAndProductIdentity" classname="com.spisokryadom.app.RefinementDataTest" time="0.137" />
+  <testcase name="newStoreIsInCurrentCityAndDoesNotInventProductLinks" classname="com.spisokryadom.app.RefinementDataTest" time="0.092" />
+  <testcase name="schema11UpgradesWithoutLosingNamesIdentitiesOrRelations" classname="com.spisokryadom.app.RefinementDataTest" time="0.225" />
+  <testcase name="configuringAnUnresolvedPurchaseAssignsItsOriginalCityButExplicitNoShopRemains" classname="com.spisokryadom.app.RefinementDataTest" time="0.332" />
+  <testcase name="pendingPointSpecificDepartmentChangesImmediatelyAndExplicitNoShopStaysUnassigned" classname="com.spisokryadom.app.RefinementDataTest" time="0.131" />
+  <testcase name="newAddressAndExplicitNoAddressCanBeSelectedDuringTextEntry" classname="com.spisokryadom.app.RefinementDataTest" time="0.098" />
+  <testcase name="selectingGlobalTypeOnlyCreatesOneLocalPlacementAndReusesIdentity" classname="com.spisokryadom.app.RefinementDataTest" time="0.102" />
+  <testcase name="oldJsonDefaultsToNoMarksAndRetainsOldGroupOrder" classname="com.spisokryadom.app.RefinementDataTest" time="0.076" />
+  <testcase name="removingCurrentStoreLinkRefreshesPendingButKeepsBoughtHistory" classname="com.spisokryadom.app.RefinementDataTest" time="0.097" />
+  <testcase name="globalDepartmentOrderAndStylesDoNotOverwriteLocalRoutes" classname="com.spisokryadom.app.RefinementDataTest" time="0.086" />
+  <testcase name="alphabeticalResetPreservesClassifierIdsRelationsAndAppearance" classname="com.spisokryadom.app.RefinementDataTest" time="0.111" />
+  <testcase name="completeBackupRoundTripPreservesAllMarksAndOrders" classname="com.spisokryadom.app.RefinementDataTest" time="0.213" />
+  <testcase name="unitRenameUpdatesPendingRowsButPreservesBoughtHistory" classname="com.spisokryadom.app.RefinementDataTest" time="0.117" />
+  <testcase name="creatingGlobalDepartmentNeverAttachesItToAnyShop" classname="com.spisokryadom.app.RefinementDataTest" time="0.07" />
+  </testsuite>

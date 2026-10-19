@@ -1,0 +1,4 @@
+<testsuite name="com.spisokryadom.app.MigrationRegressionTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:16:01.712Z" time="4.125">
+  <testcase name="schemaFromPhoneApkMigratesWithoutLosingBasket" classname="com.spisokryadom.app.MigrationRegressionTest" time="3.85" />
+  <testcase name="oldestDatabaseMigratesThroughEveryVersion" classname="com.spisokryadom.app.MigrationRegressionTest" time="0.275" />
+  </testsuite>

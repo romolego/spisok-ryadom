@@ -56,7 +56,7 @@ data class ShoppingListEntryUi(
     /** Default quantity from the product card — used as the increment/decrement step */
     val defaultQuantity: Double? = null,
     val productGroupId: Long? = null,
-    val recipientId: Long? = null, val branchAddress:String?=null,val branchPriority:Int=0,val localDepartmentOrder:Int=Int.MAX_VALUE
+    val recipientId: Long? = null, val branchAddress:String?=null,val branchPriority:Int=0,val localDepartmentOrder:Int=Int.MAX_VALUE,val listName:String?=null,val quantityStep:Double=1.0
 )
 
 /** Sub-group of entries within a shop, grouped by shop department (группа магазина) */
@@ -86,10 +86,11 @@ data class EntryGroup(
     val deptSubGroups: List<ShopDeptSubGroup> = emptyList(),
     val branchId: Long? = null,
     val address: String? = null,
-    val venueId:Long?=null,val venueName:String?=null,val venueAddress:String?=null,val accent:String="",val iconKey:String=""
+    val venueId:Long?=null,val venueName:String?=null,val venueAddress:String?=null,val accent:String="",val iconKey:String="",
+    val shoppingBackground:String="",val customShopName:String?=null,val customShopAddress:String?=null
 ) {
     /** A retailer ID is a command target; a place key identifies one visible purchase block. */
-    val placeKey: String get() = "${groupId ?: 0}:${branchId ?: 0}"
+    val placeKey: String get() = if(customShopName!=null||customShopAddress!=null) "hint:"+java.security.MessageDigest.getInstance("SHA-256").digest((customShopName.orEmpty()+"\u0000"+customShopAddress.orEmpty()).toByteArray(Charsets.UTF_8)).joinToString(""){"%02x".format(it)} else "${groupId ?: 0}:${branchId ?: 0}"
     val displayName: String get() = listOfNotNull(groupName, address).joinToString(" · ")
 }
 
@@ -193,6 +194,7 @@ class ShoppingListViewModel(
                 .combine(shopRepository.observeBranchOrders()){data,orders->data.copy(branchOrders=orders.associateBy{it.branchId to it.typeId})}
                 .combine(shopRepository.venues()){data,venues->data.copy(venues=venues.associateBy{it.id})}
                 .combine(shopRepository.departmentTypes()){data,types->data.copy(types=types.associateBy{it.id})}
+                .combine(shoppingListRepository.observeGoalLists()){data,lists->data.copy(goalListNames=lists.associate{it.id to it.name})}
                 .map(::buildUiState).flowOn(Dispatchers.Default).collect { state ->
                 _uiState.value = state.copy(error=_uiState.value.error)
             }
@@ -200,6 +202,7 @@ class ShoppingListViewModel(
     }
 
     private data class CombinedData(
+        val goalListNames:Map<Long,String> = emptyMap(),
         val venues:Map<Long,com.spisokryadom.app.data.entity.VenueEntity> = emptyMap(),val types:Map<Long,com.spisokryadom.app.data.entity.DepartmentTypeEntity> = emptyMap(),
         val entries: List<ShoppingListEntryEntity> = emptyList(),
         val products: Map<Long, ProductEntity> = emptyMap(),
@@ -237,12 +240,13 @@ class ShoppingListViewModel(
             val product = data.products[entry.productId]
             ShoppingListEntryUi(
                 entry = entry,
-                productName = product?.name ?: "?",isFavorite=product?.isFavorite?:false,accent=product?.accent.orEmpty(),
-                shopName = entry.assignedShopId?.let { id->data.shops[id]?.let{placeLabels.shop(id,it.name)} },
+                productName = product?.name ?: "?",listName=entry.listId?.let{data.goalListNames[it]},isFavorite=product?.isFavorite?:false,accent=product?.accent.orEmpty(),
+                shopName = entry.assignedShopId?.let { id->data.shops[id]?.let{placeLabels.shop(id,it.name)} } ?: entry.customShopName,
                 departmentName = entry.assignedDepartmentId?.let { data.departments[it]?.name },
                 groupName = product?.productGroupId?.let { data.groups[it]?.name },
                 recipientName = product?.recipientId?.let { data.recipients[it]?.name },
                 defaultQuantity = product?.defaultQuantity,
+                quantityStep = com.spisokryadom.app.util.Quantities.step(entry.unit, product?.defaultUnit, product?.defaultQuantity),
                 branchAddress=data.branches[entry.assignedBranchId]?.address,branchPriority=data.branches[entry.assignedBranchId]?.displayOrder?:0,
                 localDepartmentOrder=data.departments[entry.assignedDepartmentId]?.let{dept->data.branchOrders[entry.assignedBranchId to dept.typeId]?.displayOrder?:dept.displayOrder}?:Int.MAX_VALUE,
                 productGroupId = product?.productGroupId, recipientId=product?.recipientId
@@ -309,6 +313,7 @@ class ShoppingListViewModel(
                     groupId=shop.id,
                     groupName=if(shop.cityId==cityId)shop.name else "${shop.name} · ${cityNames[shop.cityId] ?: "Другой город"}",
                     entries=sorted, deptSubGroups=subs, branchId=branch, address=rows.first().branchAddress,
+                    shoppingBackground=shop.shoppingBackground,
                     hasBoughtEntries=sorted.any { it.entry.isBought }, canClearBought=true,
                     isCollapsed=collapsed, totalCount=sorted.size, boughtCount=sorted.count { it.entry.isBought },
                     showUrgentWhenCollapsed=resolveShowUrgentInCollapsed(shop,globalShowUrgent),
@@ -334,26 +339,25 @@ class ShoppingListViewModel(
         result.addAll(boosted)
         result.addAll(normal)
 
-        val noShopEntries = grouped[null]
-        if (!noShopEntries.isNullOrEmpty()) {
-            val deptSubGroups = buildDeptSubGroups(noShopEntries, departments)
-            val sorted = deptSubGroups.flatMap { it.entries }
-            val boughtCount = sorted.count { it.entry.isBought }
-            val urgentCount = sorted.count { it.entry.isUrgent && !it.entry.isBought }
-            result.add(EntryGroup(
-                groupId = null,
-                groupName = "Без магазина",
-                entries = sorted,
-                deptSubGroups = deptSubGroups,
-                hasBoughtEntries = boughtCount > 0,
-                canClearBought = true,
-                isCollapsed = ("closed:0:0" in collapsedShopIds || (COLLAPSED_NO_SHOP_ID.toString() in collapsedShopIds && "open:0:0" !in collapsedShopIds)),
-                totalCount = sorted.size,
-                boughtCount = boughtCount,
-                showUrgentWhenCollapsed = globalShowUrgent,
-                urgentCount = urgentCount
-            ))
-        }
+        val noShopEntries = grouped[null].orEmpty()
+        noShopEntries.groupBy { it.entry.customShopName to it.entry.customShopAddress }.entries
+            .sortedWith(compareBy<Map.Entry<Pair<String?,String?>,List<ShoppingListEntryUi>>>{it.key.first==null&&it.key.second==null}.thenBy{it.key.first}.thenBy{it.key.second})
+            .forEach { (hint,rows) ->
+                val deptSubGroups=buildDeptSubGroups(rows,departments)
+                val sorted=deptSubGroups.flatMap{it.entries}
+                val group=EntryGroup(groupId=null,groupName=hint.first?:if(hint.second!=null)"Место покупки"else "Без магазина",
+                    address=hint.second?.takeIf{it!=hint.first},entries=sorted,deptSubGroups=deptSubGroups,
+                    hasBoughtEntries=sorted.any{it.entry.isBought},canClearBought=true,totalCount=sorted.size,
+                    boughtCount=sorted.count{it.entry.isBought},showUrgentWhenCollapsed=globalShowUrgent,
+                    urgentCount=sorted.count{it.entry.isUrgent&&!it.entry.isBought},customShopName=hint.first,customShopAddress=hint.second)
+                val collapsed=when {
+                    "open:${group.placeKey}" in collapsedShopIds->false
+                    "closed:${group.placeKey}" in collapsedShopIds->true
+                    hint.first==null&&hint.second==null->COLLAPSED_NO_SHOP_ID.toString() in collapsedShopIds
+                    else->false
+                }
+                result.add(group.copy(isCollapsed=collapsed))
+            }
         return result
     }
 
@@ -472,24 +476,32 @@ class ShoppingListViewModel(
         }
     }
 
+    private fun purchaseCommand(onRejected: (() -> Unit)? = null, block: suspend () -> Unit) {
+        val generation = com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
+        viewModelScope.launch(errors) {
+            try { com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation, block) }
+            catch (error: Exception) { if (error is kotlinx.coroutines.CancellationException) throw error; onRejected?.invoke(); throw error }
+        }
+    }
+
     fun markBought(entryId: Long) {
-        viewModelScope.launch(errors) { shoppingListRepository.markBought(entryId) }
+        purchaseCommand { shoppingListRepository.markBought(entryId, strictVisible = true) }
     }
 
     fun markNotBought(entryId: Long) {
-        viewModelScope.launch(errors) { shoppingListRepository.markNotBought(entryId) }
+        purchaseCommand { shoppingListRepository.markNotBought(entryId, strictVisible = true) }
     }
 
     fun removeEntry(entryId: Long) {
-        viewModelScope.launch(errors) { shoppingListRepository.removeEntry(entryId) }
+        purchaseCommand { shoppingListRepository.removeEntry(entryId, strictVisible = true) }
     }
 
     fun clearBought() {
-        viewModelScope.launch(errors) { shoppingListRepository.clearBoughtEntries() }
+        purchaseCommand { shoppingListRepository.clearBoughtEntries() }
     }
 
     fun clearBoughtByShop(shopId: Long?) {
-        viewModelScope.launch(errors) {
+        purchaseCommand {
             if (shopId != null) {
                 shoppingListRepository.clearBoughtByShop(shopId)
             } else {
@@ -498,17 +510,17 @@ class ShoppingListViewModel(
         }
     }
 
-    fun toggleUrgent(entryId: Long) { viewModelScope.launch(errors){shoppingListRepository.toggleUrgent(entryId,strictPending=true)} }
+    fun toggleUrgent(entryId: Long) { purchaseCommand{shoppingListRepository.toggleUrgent(entryId,strictPending=true)} }
     suspend fun moveOptions(ids:Set<Long>,shopId:Long)=shoppingListRepository.moveOptions(ids,shopId)
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
-    fun movePendingToCurrentCity(){viewModelScope.launch(errors){shoppingListRepository.movePendingToCurrentCity()}}
+    fun movePendingToCurrentCity(){purchaseCommand{shoppingListRepository.movePendingToCurrentCity()}}
 
     fun movePurchases(ids:Set<Long>,shopId:Long?,branchId:Long?,onResult:(Boolean)->Unit) {
-        viewModelScope.launch {try{shoppingListRepository.movePending(ids,shopId,branchId,prefs.getBoolean("remember_shop_priority_on_move",false),strictPending=true);onResult(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message);onResult(false)}}
+        purchaseCommand(onRejected = { onResult(false) }) {try{shoppingListRepository.movePending(ids,shopId,branchId,prefs.getBoolean("remember_shop_priority_on_move",false),strictPending=true);onResult(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message);onResult(false)}}
     }
     fun changeShop(entryId: Long, newShopId: Long?, newDepartmentId: Long?) {
-        viewModelScope.launch(errors) {
-            shoppingListRepository.changeShop(entryId, newShopId, newDepartmentId)
+        purchaseCommand {
+            shoppingListRepository.changeShop(entryId, newShopId, newDepartmentId, strictVisible = true)
         }
     }
 
@@ -520,16 +532,16 @@ class ShoppingListViewModel(
     }
 
     fun updatePurchaseDetails(entryId: Long, quantity: Double, note: String?, comment: String?) {
-        viewModelScope.launch(errors) {
-            shoppingListRepository.updatePurchaseDetails(entryId, quantity, note, comment)
+        purchaseCommand {
+            shoppingListRepository.updatePurchaseDetails(entryId, quantity, note, comment, strictVisible = true)
         }
     }
 
     fun increaseQuantity(entryId: Long) {
-        viewModelScope.launch(errors) { shoppingListRepository.adjustByDefaultStep(entryId, 1) }
+        purchaseCommand { shoppingListRepository.adjustByDefaultStep(entryId, 1, strictVisible = true) }
     }
     fun decreaseQuantity(entryId: Long) {
-        viewModelScope.launch(errors) { shoppingListRepository.adjustByDefaultStep(entryId, -1) }
+        purchaseCommand { shoppingListRepository.adjustByDefaultStep(entryId, -1, strictVisible = true) }
     }
 
     fun toggleShopCollapsed(group: EntryGroup) {
@@ -542,15 +554,15 @@ class ShoppingListViewModel(
     }
 
     fun clearBoughtInPlace(group: EntryGroup) {
-        viewModelScope.launch(errors) { shoppingListRepository.clearBoughtInPlace(group.groupId,group.branchId) }
+        purchaseCommand { shoppingListRepository.clearBoughtInPlace(group.groupId,group.branchId,group.customShopName,group.customShopAddress) }
     }
     suspend fun purchasePlaces(ids:Set<Long>) = shoppingListRepository.purchasePlaces(ids)
     suspend fun additionalPurchasePlaces(ids:Set<Long>)=shoppingListRepository.additionalPurchasePlaces(ids)
-    fun createMoveShop(name:String,done:(com.spisokryadom.app.data.repository.ShoppingListRepository.PurchasePlace?)->Unit){viewModelScope.launch{
+    fun createMoveShop(name:String,done:(com.spisokryadom.app.data.repository.ShoppingListRepository.PurchasePlace?)->Unit){purchaseCommand(onRejected = { done(null) }){
         try{val id=shopRepository.createInCurrentCity(name);val shop=shopRepository.getShopById(id)?:error("Магазин удалён");val point=shopRepository.branches(id).firstOrNull();val venueName=point?.venueId?.let{v->shopRepository.venues().first().find{it.id==v}?.name};done(com.spisokryadom.app.data.repository.ShoppingListRepository.PurchasePlace(id,point?.id,shop.name,point?.address,venueName))}
         catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message);done(null)}
     }}
-    fun addPlaceAndMove(ids:Set<Long>,shopId:Long,branchId:Long?,onResult:(Boolean)->Unit){viewModelScope.launch{
+    fun addPlaceAndMove(ids:Set<Long>,shopId:Long,branchId:Long?,onResult:(Boolean)->Unit){purchaseCommand(onRejected = { onResult(false) }){
         try{shoppingListRepository.movePending(ids,shopId,branchId,prefs.getBoolean("remember_shop_priority_on_move",false),extendAvailability=true,strictPending=true);onResult(true)}
         catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message);onResult(false)}
     }}
@@ -559,7 +571,7 @@ class ShoppingListViewModel(
         return uiState.value.shops.filter{it.id !in linked}
     }
     fun copyToShop(productId:Long,shopId:Long,onResult:(Boolean)->Unit) {
-        viewModelScope.launch {
+        purchaseCommand(onRejected = { onResult(false) }) {
             try { productRepository.ensureShopLink(productId,shopId);onResult(true) }
             catch(e:Exception) { if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message);onResult(false) }
         }
@@ -567,10 +579,10 @@ class ShoppingListViewModel(
 
     fun movePlace(group:EntryGroup,target:EntryGroup) {
         val shop=group.groupId?:return;val targetShop=target.groupId?:return
-        viewModelScope.launch(errors){shopRepository.movePurchasePlace(shop,group.branchId,targetShop,target.branchId)}
+        purchaseCommand{shopRepository.movePurchasePlace(shop,group.branchId,targetShop,target.branchId)}
     }
-    fun moveShopUp(shopId:Long){viewModelScope.launch(errors){shopRepository.moveShop(shopId,-1)}}
-    fun moveShopDown(shopId:Long){viewModelScope.launch(errors){shopRepository.moveShop(shopId,1)}}
+    fun moveShopUp(shopId:Long){purchaseCommand{shopRepository.moveShop(shopId,-1)}}
+    fun moveShopDown(shopId:Long){purchaseCommand{shopRepository.moveShop(shopId,1)}}
 
     private fun loadCollapsedShopIds(): Set<String> {
         val raw = prefs.getStringSet(PREF_COLLAPSED_SHOPS, null) ?: return emptySet()

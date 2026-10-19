@@ -70,7 +70,7 @@ class Audit121UiTest {
             listOf("drafts", "product_card_drafts", "shopping_list_prefs", "product_db_prefs")
                 .forEach { app.getSharedPreferences(it, 0).edit().clear().commit() }
             db.shoppingListEntryDao().deleteAll()
-            db.productDao().deleteAll()
+            db.productDao().deleteAll();db.productGroupDao().deleteAll()
             db.shopDao().deleteAll()
             db.shopDepartmentDao().clearTypes()
             db.retailStructureDao().clearVenues()
@@ -333,7 +333,7 @@ class Audit121UiTest {
                 waitFor { ui.onAllNodesWithTag(row).fetchSemanticsNodes().isNotEmpty() }
                 ui.onNodeWithTag(row).performClick()
                 waitText("Выбрано: 1")
-                tab("Список")
+                tab("Покупки")
                 waitFor { ui.onAllNodesWithContentDescription("Настройки").fetchSemanticsNodes().isNotEmpty() }
                 ui.onNodeWithContentDescription("Настройки").performClick()
                 waitText("Импорт / Восстановление")

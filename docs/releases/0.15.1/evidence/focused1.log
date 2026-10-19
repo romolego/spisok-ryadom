@@ -1,0 +1,192 @@
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preStandardDebugBuild UP-TO-DATE
+> Task :app:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app:processStandardDebugNavigationResources
+> Task :app:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app:generateStandardDebugResValues UP-TO-DATE
+> Task :app:mapStandardDebugSourceSetPaths
+> Task :app:generateStandardDebugResources
+> Task :app:packageStandardDebugResources
+> Task :app:createStandardDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app:mergeStandardDebugResources
+> Task :app:parseStandardDebugLocalResources
+> Task :app:processStandardDebugMainManifest
+> Task :app:processStandardDebugManifest
+> Task :app:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app:preStandardDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileStandardDebugUnitTest UP-TO-DATE
+> Task :app:mergeStandardDebugShaders UP-TO-DATE
+> Task :app:compileStandardDebugShaders NO-SOURCE
+> Task :app:generateStandardDebugAssets UP-TO-DATE
+> Task :app:mergeStandardDebugAssets UP-TO-DATE
+> Task :app:processStandardDebugUnitTestManifest
+> Task :app:processStandardDebugManifestForPackage
+> Task :app:processStandardDebugResources
+> Task :app:packageStandardDebugUnitTestForUnitTest
+> Task :app:generateStandardDebugUnitTestConfig
+> Task :app:kspStandardDebugKotlin
+> Task :app:compileStandardDebugKotlin
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListScreen.kt:557:40 'val Icons.Filled.Label: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Label.
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListScreen.kt:559:35 'val Icons.Filled.FormatListBulleted: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.FormatListBulleted.
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListScreen.kt:1003:53 'val Icons.Filled.FormatListBulleted: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.FormatListBulleted.
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListScreen.kt:1004:37 'val Icons.Filled.FormatListBulleted: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.FormatListBulleted.
+w: file:///PROJECT/app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListScreen.kt:1005:37 'val Icons.Filled.Label: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Label.
+
+> Task :app:compileStandardDebugJavaWithJavac
+> Task :app:processStandardDebugJavaRes
+> Task :app:bundleStandardDebugClassesToCompileJar
+> Task :app:bundleStandardDebugClassesToRuntimeJar
+> Task :app:kspStandardDebugUnitTestKotlin
+> Task :app:compileStandardDebugUnitTestKotlin
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Audit151ShareTest.kt:27:46 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Audit151ShareTest.kt:76:28 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/GoalListsUiTest.kt:164:32 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/ProductFlowUiTest.kt:95:56 'fun addResolveInfoForIntent(p0: Intent!, p1: ResolveInfo!): Unit' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/ProductFlowUiTest.kt:97:26 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine130UiTest.kt:102:51 'field scaledDensity: Float' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine130UiTest.kt:103:55 'field scaledDensity: Float' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine140DataTest.kt:94:120 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///PROJECT/app/src/test/java/com/spisokryadom/app/Refine140UiTest.kt:88:147 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+
+> Task :app:compileStandardDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processStandardDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :app:testStandardDebugUnitTest
+Checked com.spisokryadom.app.ArchitectureDataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ArchitectureMigrationTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ArchitecturePolicyTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ArchitectureUiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121ActiveEditorTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121DomainTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121StorageTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121SynchronizationTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit121UiTest: 0 tests, 0 failures, 0 skipped
+
+Audit151BackupTest > initializationError FAILED
+    org.junit.runners.model.InvalidTestClassError: Invalid test class 'com.spisokryadom.app.Audit151BackupTest':
+      1. Method setup() should be void
+        at org.junit.runners.ParentRunner.validate(ParentRunner.java:525)
+        at org.junit.runners.ParentRunner.<init>(ParentRunner.java:92)
+        at org.junit.runners.BlockJUnit4ClassRunner.<init>(BlockJUnit4ClassRunner.java:74)
+        at org.robolectric.internal.SandboxTestRunner.<init>(SandboxTestRunner.java:95)
+        at org.robolectric.RobolectricTestRunner.<init>(RobolectricTestRunner.java:125)
+        at org.robolectric.RobolectricTestRunner.<init>(RobolectricTestRunner.java:120)
+        at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(Unknown Source)
+        at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Unknown Source)
+        at java.base/java.lang.reflect.Constructor.newInstance(Unknown Source)
+        at org.junit.internal.builders.AnnotatedBuilder.buildRunner(AnnotatedBuilder.java:104)
+        at org.junit.internal.builders.AnnotatedBuilder.runnerForClass(AnnotatedBuilder.java:86)
+        at org.junit.runners.model.RunnerBuilder.safeRunnerForClass(RunnerBuilder.java:70)
+        at org.junit.internal.builders.AllDefaultPossibilitiesBuilder.runnerForClass(AllDefaultPossibilitiesBuilder.java:37)
+        at org.junit.runners.model.RunnerBuilder.safeRunnerForClass(RunnerBuilder.java:70)
+        at org.junit.internal.requests.ClassRequest.createRunner(ClassRequest.java:28)
+        at org.junit.internal.requests.MemoizingRequest.getRunner(MemoizingRequest.java:19)
+        at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:77)
+        at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+        at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:40)
+        at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:54)
+        at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:53)
+        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+        at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+        at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+        at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+        at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+        at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:92)
+        at jdk.proxy1/jdk.proxy1.$Proxy4.processTestClass(Unknown Source)
+        at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:183)
+        at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:132)
+        at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:103)
+        at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:63)
+        at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+        at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:121)
+        at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+        at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+        at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Checked com.spisokryadom.app.Audit151BackupTest: 1 tests, 1 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151CrosscutTest: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151DomainTest: 22 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151MoneyTest: 4 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151ShareTest: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151TransferTest: 12 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Audit151UiTest: 16 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditDomain071Test: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditIntegrity071Test: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditStorage071Test: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditUi071Test: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.AuditUiNavigation071Test: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.BranchMigrationTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.BulkCancellationTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.CardDraftTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.CatalogUiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.DatabaseSmokeTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.DraftDepartmentTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.FuzzySearchRegressionTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalImportFileTest: 18 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListIntegrationTest: 36 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListStorageTest: 38 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListTransferTest: 19 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListWidgetTest: 10 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalListsUiTest: 18 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.GoalMessageDraftsTest: 2 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentDataAuditTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentDomainAuditTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentInlineFocusAuditTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentShopPickerAuditTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentUiAuditTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.IndependentUnitMigrationAuditTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.InlineStoreEditingTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.MarketDataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.MarketUiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.MigrationRegressionTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.OrderMotionTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.PhotoStoreTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ProductFlowUiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.PurchasePlacesUiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine080DataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine080UiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine090DataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine090UiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine100DataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine100UiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine110DataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine110UiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine120DataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine120UiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine130DataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine130UiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine140DataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.Refine140UiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.RefinementDataTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.RefinementUiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.RepositoryRegressionTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.SearchAndParserTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ShoppingRepresentationsTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ShoppingUiFlowTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.ShoppingWorkflowUiTest: 0 tests, 0 failures, 0 skipped
+Checked com.spisokryadom.app.UxLayoutTest: 0 tests, 0 failures, 0 skipped
+
+216 tests completed, 1 failed
+
+> Task :app:testStandardDebugUnitTest FAILED
+
+[Incubating] Problems report is available at: file:///PROJECT/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testStandardDebugUnitTest'.
+> There were failing tests. See the report at: file:///PROJECT/app/build/reports/tests/testStandardDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 8m 46s
+32 actionable tasks: 23 executed, 9 up-to-date

@@ -1,0 +1,11 @@
+<testsuite name="com.spisokryadom.app.AuditIntegrity071Test" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-19T12:18:28.291Z" time="7.774">
+  <testcase name="deletingLegacyAliasKeepsUnitWhileAnotherCanonicalClassifierRemains" classname="com.spisokryadom.app.AuditIntegrity071Test" time="6.708" />
+  <testcase name="harmlessShopSavePreservesExplicitManualDepartmentsAndTimestamps" classname="com.spisokryadom.app.AuditIntegrity071Test" time="0.159" />
+  <testcase name="marketConversionKeepsBoughtDepartmentHistoryAndRefreshesOnlyPending" classname="com.spisokryadom.app.AuditIntegrity071Test" time="0.176" />
+  <testcase name="deletingPointRecomputesPendingDepartmentWithoutReroutingOrRewritingHistory" classname="com.spisokryadom.app.AuditIntegrity071Test" time="0.157" />
+  <testcase name="marketConversionRespectsRestrictedAvailabilityAndPointDepartmentForNoAddressPurchase" classname="com.spisokryadom.app.AuditIntegrity071Test" time="0.119" />
+  <testcase name="deletingLocalOrGlobalPointDepartmentFallsBackToRemainingLinkDepartment" classname="com.spisokryadom.app.AuditIntegrity071Test" time="0.161" />
+  <testcase name="newUnitCanonicalizesAliasesAndReusesSameIdentity" classname="com.spisokryadom.app.AuditIntegrity071Test" time="0.082" />
+  <testcase name="legacyUnitAliasesRenameAndStaleDeleteFollowCurrentValueButKeepBoughtFacts" classname="com.spisokryadom.app.AuditIntegrity071Test" time="0.106" />
+  <testcase name="conversionUsesSavedDraftAndRollsBackWholeDraftIfConversionFails" classname="com.spisokryadom.app.AuditIntegrity071Test" time="0.106" />
+  </testsuite>

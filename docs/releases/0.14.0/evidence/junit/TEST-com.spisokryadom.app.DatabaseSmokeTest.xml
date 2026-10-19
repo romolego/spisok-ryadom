@@ -1,0 +1,3 @@
+<testsuite name="com.spisokryadom.app.DatabaseSmokeTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:44:56.980Z" time="3.654">
+  <testcase name="realRoomDatabaseOpens" classname="com.spisokryadom.app.DatabaseSmokeTest" time="3.654" />
+  </testsuite>

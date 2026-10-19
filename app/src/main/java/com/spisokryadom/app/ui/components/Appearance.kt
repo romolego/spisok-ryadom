@@ -67,11 +67,20 @@ private val symbols=listOf(
  "batteries" to ("Батарейки" to Icons.Filled.BatteryFull),
  "cables" to ("Кабели" to Icons.Filled.Cable),
  "power" to ("Электропитание" to Icons.Filled.Power),
+ "tableware" to ("Посуда и столовые приборы" to Icons.Filled.DinnerDining),
+ "man" to ("Мужчина" to Icons.Filled.Man),"woman" to ("Женщина" to Icons.Filled.Woman),
+ "person2" to ("Человек: вариант 2" to Icons.Filled.Person2),"person3" to ("Человек: вариант 3" to Icons.Filled.Person3),
+ "person4" to ("Человек: вариант 4" to Icons.Filled.Person4),"child" to ("Ребёнок" to Icons.Filled.ChildFriendly),
+ "elderly" to ("Пожилой человек" to Icons.Filled.Elderly),"family" to ("Семья" to Icons.Filled.FamilyRestroom),
+ "couple" to ("Пара" to Icons.Filled.People),"shared" to ("Общее / все" to Icons.Filled.Groups),
+ "work" to ("Коллеги / работа" to Icons.Filled.Work),"school" to ("Учёба" to Icons.Filled.School),
+ "dog" to ("Собака" to ShoppingSymbols.Dog),"cat" to ("Кошка" to ShoppingSymbols.Cat),
+ "toys" to ("Игрушки" to Icons.Filled.Toys),"crafts" to ("Творчество" to Icons.Filled.Brush),
+ "furniture" to ("Мебель" to Icons.Filled.Chair),"textile" to ("Домашний текстиль" to Icons.Filled.Bed),
  "other" to ("Разное" to Icons.Filled.Category))
 fun appearanceIcon(key:String):ImageVector?=symbols.find{it.first==key}?.second?.second
 fun appearanceOptions():List<Pair<String,String>> = symbols.map{it.first to it.second.first}
-fun accentColor(key:String):Color?=when(key){"green"->Color(0xFF52865B);"yellow"->Color(0xFFAD841F);"blue"->Color(0xFF4B81A5);"rose"->Color(0xFFA96D82);"violet"->Color(0xFF8670A8);else->
- if(key.matches(Regex("#[0-9a-fA-F]{6}")))Color(0xFF000000L or key.drop(1).toLong(16))else null}
+fun accentColor(key:String):Color?=com.spisokryadom.app.util.AppearanceColors.argb(key)?.let{Color(it)}
 fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toArgb() and 0xFFFFFF)
 @Composable fun MarkedLabel(name:String,accent:String="",iconKey:String="",modifier:Modifier=Modifier,small:Boolean=false){
  Row(modifier,verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){

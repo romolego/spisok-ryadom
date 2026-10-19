@@ -114,7 +114,16 @@ private val BatchSelectionSaver=mapSaver(
  val commonShops=options.shops.filter{s->ids.all{p->options.links.any{it.productId==p&&it.shopId==s.id}}}
  val branchChoices=options.branches.filter{b->b.shopId==targetShop&&ids.all{p->val link=options.links.find{it.productId==p&&it.shopId==b.shopId};link!=null&&(!link.restrictBranches||options.availability.any{it.productId==p&&it.branchId==b.id})}}
  val labels=LocalPlaceLabels.current
- fun choose(a:String){action=a;chosen=emptySet();none=false;creating=false;if(a=="basket")targetShop=shopId}
+ LaunchedEffect(action,options.isLoading,commonShops.map{it.id}) {
+  if(action=="department"&&!stores&&!options.isLoading&&targetShop !in commonShops.map{it.id}) {
+   targetShop=commonShops.find{it.id==shopId}?.id?:commonShops.singleOrNull()?.id
+   point=null
+  }
+ }
+ fun choose(a:String){action=a;chosen=emptySet();none=false;creating=false;point=null
+  if(a=="basket")targetShop=shopId
+  if(a=="department"&&!stores)targetShop=commonShops.find{it.id==shopId}?.id?:commonShops.singleOrNull()?.id
+ }
  val title=when(action){"basket"->"Место покупки";"recipient"->"Назначить получателя";"group"->"Назначить товарную группу";"shop"->"Добавить магазины к товарам";"department"->if(stores)"Добавить группы в магазины"else "Назначить группу магазина";else->"Выбрано: ${ids.size}"}
  ModalBottomSheet(onDismissRequest={if(!busy)onDismiss()},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)){
   Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding()){
@@ -135,6 +144,7 @@ private val BatchSelectionSaver=mapSaver(
     }else if(!options.isLoading){
      if(action=="department"&&!stores){
       Text("Магазин",style=MaterialTheme.typography.labelLarge)
+      if(targetShop==null)Text("Выберите магазин для назначения группы",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
       commonShops.forEach{s->OptionRow(labels.shop(s.id,s.name),targetShop==s.id,!busy){targetShop=s.id;point=null;chosen=emptySet();none=false}}
       if(targetShop!=null&&branchChoices.isNotEmpty()){
        Text("Точки",style=MaterialTheme.typography.labelLarge)
@@ -151,7 +161,7 @@ private val BatchSelectionSaver=mapSaver(
       else->options.types.map{it.id to it.name}
      }
      val multiple=action=="shop"||stores
-     values.forEach{(id,label)->OptionRow(label,id in chosen,!busy,multiple){none=false;chosen=if(multiple){if(id in chosen)chosen-id else chosen+id}else setOf(id)}}
+     values.forEach{(id,label)->OptionRow(label,id in chosen,!busy&&(action!="department"||stores||targetShop!=null),multiple){none=false;chosen=if(multiple){if(id in chosen)chosen-id else chosen+id}else setOf(id)}}
      if(action=="basket"){
       OptionRow("По приоритету для каждого товара",none,!busy){none=true;chosen=emptySet()}
       OptionRow("Без конкретного адреса",chosen==setOf(0L),!busy){none=false;chosen=setOf(0L)}

@@ -273,13 +273,10 @@ private fun PickProductsDialog(
                 onValueChange = onSearchQueryChange,
                 placeholder = { Text("Поиск по названию...") },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { onSearchQueryChange("") }) {
-                            Icon(Icons.Filled.Clear, contentDescription = "Очистить")
-                        }
-                    }
-                },
+                trailingIcon = { Row {
+                    if (searchQuery.isNotEmpty()) { IconButton(onClick = { onSearchQueryChange("") }) { Icon(Icons.Filled.Clear, contentDescription = "Очистить") } }
+                    com.spisokryadom.app.ui.components.VoiceSearchButton(onSearchQueryChange)
+                } },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()

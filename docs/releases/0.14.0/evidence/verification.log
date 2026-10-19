@@ -1,0 +1,151 @@
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preStandardDebugBuild UP-TO-DATE
+> Task :app:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app:generateStandardDebugResValues UP-TO-DATE
+> Task :app:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateStandardDebugResources UP-TO-DATE
+> Task :app:mergeStandardDebugResources UP-TO-DATE
+> Task :app:packageStandardDebugResources UP-TO-DATE
+> Task :app:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app:createStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app:processStandardDebugMainManifest UP-TO-DATE
+> Task :app:processStandardDebugManifest UP-TO-DATE
+> Task :app:processStandardDebugManifestForPackage UP-TO-DATE
+> Task :app:processStandardDebugResources UP-TO-DATE
+> Task :app:kspStandardDebugKotlin UP-TO-DATE
+> Task :app:compileStandardDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app:compileStandardDebugJavaWithJavac UP-TO-DATE
+> Task :app:bundleStandardDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleStandardDebugClassesToCompileJar UP-TO-DATE
+> Task :app:preStandardDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileStandardDebugUnitTest UP-TO-DATE
+> Task :app:mergeStandardDebugShaders UP-TO-DATE
+> Task :app:compileStandardDebugShaders NO-SOURCE
+> Task :app:generateStandardDebugAssets UP-TO-DATE
+> Task :app:mergeStandardDebugAssets UP-TO-DATE
+> Task :app:packageStandardDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processStandardDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateStandardDebugUnitTestConfig UP-TO-DATE
+> Task :app:processStandardDebugJavaRes UP-TO-DATE
+> Task :app:preParallelReleaseBuild UP-TO-DATE
+> Task :app:mergeParallelReleaseJniLibFolders UP-TO-DATE
+> Task :app:mergeParallelReleaseNativeLibs UP-TO-DATE
+> Task :app:stripParallelReleaseDebugSymbols UP-TO-DATE
+> Task :app:extractParallelReleaseNativeSymbolTables UP-TO-DATE
+> Task :app:mergeParallelReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkParallelReleaseDuplicateClasses UP-TO-DATE
+> Task :app:checkParallelReleaseAarMetadata UP-TO-DATE
+> Task :app:processParallelReleaseNavigationResources UP-TO-DATE
+> Task :app:compileParallelReleaseNavigationResources UP-TO-DATE
+> Task :app:generateParallelReleaseResValues UP-TO-DATE
+> Task :app:mapParallelReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateParallelReleaseResources UP-TO-DATE
+> Task :app:mergeParallelReleaseResources UP-TO-DATE
+> Task :app:packageParallelReleaseResources UP-TO-DATE
+> Task :app:parseParallelReleaseLocalResources UP-TO-DATE
+> Task :app:createParallelReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksParallelRelease UP-TO-DATE
+> Task :app:processParallelReleaseMainManifest UP-TO-DATE
+> Task :app:processParallelReleaseManifest UP-TO-DATE
+> Task :app:processParallelReleaseManifestForPackage UP-TO-DATE
+> Task :app:processParallelReleaseResources UP-TO-DATE
+> Task :app:kspParallelReleaseKotlin UP-TO-DATE
+> Task :app:compileParallelReleaseKotlin UP-TO-DATE
+> Task :app:javaPreCompileParallelRelease UP-TO-DATE
+> Task :app:compileParallelReleaseJavaWithJavac UP-TO-DATE
+> Task :app:mergeParallelReleaseArtProfile UP-TO-DATE
+> Task :app:expandParallelReleaseArtProfileWildcards UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeParallelReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :app:processParallelReleaseJavaRes UP-TO-DATE
+> Task :app:mergeParallelReleaseJavaResource UP-TO-DATE
+> Task :app:mergeParallelReleaseStartupProfile UP-TO-DATE
+> Task :app:minifyParallelReleaseWithR8 UP-TO-DATE
+> Task :app:compileParallelReleaseArtProfile UP-TO-DATE
+> Task :app:mergeParallelReleaseShaders UP-TO-DATE
+> Task :app:compileParallelReleaseShaders NO-SOURCE
+> Task :app:generateParallelReleaseAssets UP-TO-DATE
+> Task :app:mergeParallelReleaseAssets UP-TO-DATE
+> Task :app:compressParallelReleaseAssets UP-TO-DATE
+> Task :app:extractParallelReleaseVersionControlInfo UP-TO-DATE
+> Task :app:generateParallelReleaseLintVitalReportModel UP-TO-DATE
+> Task :app:lintVitalAnalyzeParallelRelease UP-TO-DATE
+> Task :app:lintVitalReportParallelRelease SKIPPED
+> Task :app:lintVitalParallelRelease SKIPPED
+> Task :app:convertShrunkResourcesToBinaryParallelRelease UP-TO-DATE
+> Task :app:optimizeParallelReleaseResources UP-TO-DATE
+> Task :app:collectParallelReleaseDependencies UP-TO-DATE
+> Task :app:sdkParallelReleaseDependencyData UP-TO-DATE
+> Task :app:validateSigningParallelRelease UP-TO-DATE
+> Task :app:writeParallelReleaseAppMetadata UP-TO-DATE
+> Task :app:writeParallelReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:packageParallelRelease UP-TO-DATE
+> Task :app:createParallelReleaseApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleParallelRelease UP-TO-DATE
+> Task :app:generateParallelReleaseLintReportModel UP-TO-DATE
+> Task :app:bundleParallelReleaseClassesToCompileJar UP-TO-DATE
+> Task :app:preParallelReleaseUnitTestBuild UP-TO-DATE
+> Task :app:generateParallelReleaseUnitTestLintModel
+> Task :app:lintAnalyzeParallelRelease UP-TO-DATE
+> Task :app:kspStandardDebugUnitTestKotlin
+> Task :app:compileStandardDebugUnitTestKotlin
+> Task :app:compileStandardDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processStandardDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :app:testStandardDebugUnitTest
+
+PurchasePlacesUiTest > missingNetworkCreatesInlineWithoutAnEmptyPopupAndCancelDoesNotWrite[28] PASSED
+
+PurchasePlacesUiTest > changePlaceUsesAvailabilityAndCopyOnlyAddsACatalogueLink[28] PASSED
+
+PurchasePlacesUiTest > legacyCollapsedRetailerPreferenceCanBeOverriddenForOneAddressOnly[28] PASSED
+
+> Task :app:lintAnalyzeParallelReleaseUnitTest
+
+> Task :app:testStandardDebugUnitTest
+
+PurchasePlacesUiTest > collapseMovesNeighbourGraduallyAndRemembersEachAddressIndependently[28] PASSED
+
+PurchasePlacesUiTest > addFromAPlaceHeaderRetainsThatExactPhysicalPoint[28] PASSED
+
+PurchasePlacesUiTest > eachPhysicalPlaceHasItsOwnHeaderAndAddressNeverLeaksIntoProductRows[28] PASSED
+
+PurchasePlacesUiTest > availabilityCheckboxHasAnExplicitGapAndOneWholeRowTouchTarget[28] PASSED
+
+PurchasePlacesUiTest > missingNetworkCreatesInlineWithoutAnEmptyPopupAndCancelDoesNotWrite PASSED
+
+PurchasePlacesUiTest > changePlaceUsesAvailabilityAndCopyOnlyAddsACatalogueLink PASSED
+
+PurchasePlacesUiTest > legacyCollapsedRetailerPreferenceCanBeOverriddenForOneAddressOnly PASSED
+
+PurchasePlacesUiTest > aLongPlaceListInAShortWindowKeepsTheConfirmationVisible PASSED
+
+PurchasePlacesUiTest > collapseMovesNeighbourGraduallyAndRemembersEachAddressIndependently PASSED
+
+PurchasePlacesUiTest > movingAnUrgentPointDownKeepsTheExplicitOrder PASSED
+
+PurchasePlacesUiTest > addFromAPlaceHeaderRetainsThatExactPhysicalPoint PASSED
+
+PurchasePlacesUiTest > eachPhysicalPlaceHasItsOwnHeaderAndAddressNeverLeaksIntoProductRows PASSED
+
+PurchasePlacesUiTest > availabilityCheckboxHasAnExplicitGapAndOneWholeRowTouchTarget PASSED
+
+> Task :app:lintReportParallelRelease UP-TO-DATE
+> Task :app:lintParallelRelease
+
+[Incubating] Problems report is available at: file:///PROJECT/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 2s
+88 actionable tasks: 6 executed, 82 up-to-date

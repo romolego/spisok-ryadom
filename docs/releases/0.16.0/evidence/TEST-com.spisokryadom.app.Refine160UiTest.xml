@@ -1,0 +1,14 @@
+<testsuite name="com.spisokryadom.app.Refine160UiTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-19T15:26:04.343Z" time="38.325">
+  <testcase name="nameSuggestionsDisappearOnOpeningGroupAndReturnOnlyOnNameFocus[28]" classname="com.spisokryadom.app.Refine160UiTest" time="14.027" />
+  <testcase name="settingsDisableAutosaveAndBackReallyDiscardsNewCard[28]" classname="com.spisokryadom.app.Refine160UiTest" time="1.482" />
+  <testcase name="oneCommonShopIsSelectedAutomaticallyAndApplyActuallyUpdatesAllThree[28]" classname="com.spisokryadom.app.Refine160UiTest" time="1.112" />
+  <testcase name="voiceActivityCancellationKeepsSearchAndSuccessfulResultOnlyChangesQuery[28]" classname="com.spisokryadom.app.Refine160UiTest" time="0.829" />
+  <testcase name="searchCreatesPrefilledCardAndSaveRevealsProductWithoutAddingPurchase[28]" classname="com.spisokryadom.app.Refine160UiTest" time="1.13" />
+  <testcase name="severalCommonShopsRequireExplicitChoiceAndThenEnableApply[28]" classname="com.spisokryadom.app.Refine160UiTest" time="0.675" />
+  <testcase name="nameSuggestionsDisappearOnOpeningGroupAndReturnOnlyOnNameFocus" classname="com.spisokryadom.app.Refine160UiTest" time="13.89" />
+  <testcase name="settingsDisableAutosaveAndBackReallyDiscardsNewCard" classname="com.spisokryadom.app.Refine160UiTest" time="1.404" />
+  <testcase name="oneCommonShopIsSelectedAutomaticallyAndApplyActuallyUpdatesAllThree" classname="com.spisokryadom.app.Refine160UiTest" time="1.016" />
+  <testcase name="voiceActivityCancellationKeepsSearchAndSuccessfulResultOnlyChangesQuery" classname="com.spisokryadom.app.Refine160UiTest" time="0.826" />
+  <testcase name="searchCreatesPrefilledCardAndSaveRevealsProductWithoutAddingPurchase" classname="com.spisokryadom.app.Refine160UiTest" time="1.264" />
+  <testcase name="severalCommonShopsRequireExplicitChoiceAndThenEnableApply" classname="com.spisokryadom.app.Refine160UiTest" time="0.654" />
+  </testsuite>

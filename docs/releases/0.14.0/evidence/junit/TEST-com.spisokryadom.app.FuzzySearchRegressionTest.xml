@@ -1,0 +1,5 @@
+<testsuite name="com.spisokryadom.app.FuzzySearchRegressionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-19T07:45:11.806Z" time="1.332">
+  <testcase name="acceptedLongInputHasBoundedWork" classname="com.spisokryadom.app.FuzzySearchRegressionTest" time="0.317" />
+  <testcase name="cancellationIsCheckedDuringDistanceAndCatalogueTraversal" classname="com.spisokryadom.app.FuzzySearchRegressionTest" time="0.06" />
+  <testcase name="boundedRankingAndTopFiveMatchFullReference" classname="com.spisokryadom.app.FuzzySearchRegressionTest" time="0.952" />
+  </testsuite>

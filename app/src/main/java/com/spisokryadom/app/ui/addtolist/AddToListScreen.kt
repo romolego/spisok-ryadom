@@ -5,14 +5,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.ShopEntity
-import com.spisokryadom.app.ui.components.CityPicker
+import com.spisokryadom.app.data.entity.ProductEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,43 +23,64 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
  val state by viewModel.uiState.collectAsStateWithLifecycle();val snack=remember{SnackbarHostState()}
  val focus=androidx.compose.ui.platform.LocalFocusManager.current
  LaunchedEffect(state.addedMessage){state.addedMessage?.let{viewModel.clearMessage();onNavigateBack()}}
+ LaunchedEffect(state.browseMessage){state.browseMessage?.let{snack.showSnackbar(it);viewModel.clearBrowseMessage()}}
  Scaffold(topBar={TopAppBar(title={Text("Добавить покупку")},navigationIcon={IconButton(onClick=onNavigateBack){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Назад")}})},snackbarHost={SnackbarHost(snack)}){padding->
-  LazyColumn(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding().padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
-   item(key="query"){OutlinedTextField(state.searchQuery,viewModel::onSearchQueryChanged,label={Text("Название товара")},singleLine=true,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth())}
-   if(state.isSearching)item(key="searching"){LinearProgressIndicator(Modifier.fillMaxWidth())}
-   items(if(state.selectedProduct==null)state.searchResults else listOf(state.selectedProduct!!),key={"product_${it.id}"},contentType={"candidate"}){p->
-    OutlinedCard(Modifier.fillMaxWidth().clickable(enabled=!state.isLoading&&!state.isSearching){focus.clearFocus();viewModel.selectProduct(p)}){
-     Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){
+  BoxWithConstraints(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
+   val listHeight=(maxHeight*0.55f).coerceIn(120.dp,360.dp)
+   LazyColumn(Modifier.testTag("add-screen-list").fillMaxSize().padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+    item(key="shop"){ShopChoiceField(state.shops,state.selectedShopId,viewModel::onShopSelected,enabled=!state.isLoading&&!state.isShopLocked,onCreate=viewModel::createShop)}
+    item(key="query"){OutlinedTextField(state.searchQuery,viewModel::onSearchQueryChanged,label={Text("Название товара")},singleLine=true,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth())}
+    if(state.isSearching)item(key="searching"){LinearProgressIndicator(Modifier.fillMaxWidth())}
+    if(state.selectedProduct==null&&(state.searchResults.isNotEmpty()||state.searchQuery.isBlank()&&state.browseProducts))item(key="candidates"){
+     OutlinedCard(Modifier.fillMaxWidth()) {
+      LazyColumn(Modifier.fillMaxWidth().heightIn(max=listHeight).testTag("add-candidates")) {
+       if(state.favoriteResults.isNotEmpty()) {
+        item(key="favorites-title"){Text("Избранные",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary)}
+        items(state.favoriteResults,key={"favorite_${it.id}"}){p->AddCandidate(p,state,"favorite",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)})}
+       }
+       if(state.searchQuery.isBlank()&&state.searchResults.isNotEmpty())item(key="all-title"){Text("Все товары",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall)}
+       items(state.searchResults,key={"product_${it.id}"}){p->AddCandidate(p,state,"all",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)})}
+       if(state.searchResults.isEmpty()&&!state.isSearching)item(key="empty"){Text("Пока нет подходящих товаров. Введите название, чтобы добавить новый.",Modifier.padding(12.dp),style=MaterialTheme.typography.bodyMedium)}
+      }
+     }
+    }
+    state.selectedProduct?.let{p->item(key="selected"){
+     OutlinedCard(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp)){
       com.spisokryadom.app.ui.components.ProductCandidateTitle(p,style=MaterialTheme.typography.titleMedium)
-      state.productContexts[p.id]?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)}
-      if(p.id==state.selectedProduct?.id)Text("Выбран",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
+      Text("Выбран",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
+      TextButton(onClick={viewModel.onSearchQueryChanged(state.searchQuery)}){Text("Выбрать другой товар")}
+     }}
+    }}
+    if(state.selectedProduct!=null||state.searchQuery.isNotBlank()) {
+     item(key="quantity"){
+      Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+       OutlinedTextField(state.quantity,viewModel::quantity,label={Text("Количество")},singleLine=true,modifier=Modifier.weight(1f),enabled=!state.isLoading,keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal))
+       OutlinedTextField(state.unit,viewModel::unit,label={Text("Единица")},singleLine=true,modifier=Modifier.weight(1f),enabled=!state.isLoading)
+      }
+     }
+     if(state.selectedProduct==null&&state.isNewProduct)item(key="new"){
+      Column{Text("Новый товар: ${state.searchQuery.trim()}");com.spisokryadom.app.ui.components.SelectionRow("Сохранить в базе товаров",state.saveToDatabase,viewModel::onSaveToDatabaseChanged,enabled=!state.isLoading)}
+     }
+     item(key="add"){
+      Button(onClick={focus.clearFocus();viewModel.add()},enabled=!state.isLoading&&!state.isSearching&&(state.selectedProduct!=null||state.isNewProduct),modifier=Modifier.fillMaxWidth()){
+       Text(if(state.isLoading)"Добавление…" else "Добавить в список")
+      }
      }
     }
+    state.error?.let{message->item(key="error"){Text(message,color=MaterialTheme.colorScheme.error)}}
+    item(key="bottom"){Spacer(Modifier.height(16.dp))}
    }
-   item(key="shop"){ShopChoiceField(state.shops,state.selectedShopId,viewModel::onShopSelected,enabled=!state.isLoading&&!state.isShopLocked,onCreate=viewModel::createShop)}
-   item(key="quantity"){
-    Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
-     state.selectedProduct?.let{Text("Выбрано: ${it.name}",color=MaterialTheme.colorScheme.primary)}
-     Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
-      OutlinedTextField(state.quantity,viewModel::quantity,label={Text("Количество")},singleLine=true,modifier=Modifier.weight(1f),enabled=!state.isLoading,keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal))
-      OutlinedTextField(state.unit,viewModel::unit,label={Text("Единица")},singleLine=true,modifier=Modifier.weight(1f),enabled=!state.isLoading)
-     }
-    }
-   }
-   if(state.selectedProduct==null&&state.isNewProduct)item(key="new"){
-    Column{
-     Text("Новый товар: ${state.searchQuery.trim()}")
-     com.spisokryadom.app.ui.components.SelectionRow("Сохранить в базе товаров",state.saveToDatabase,viewModel::onSaveToDatabaseChanged,enabled=!state.isLoading)
-    }
-   }
-   state.error?.let{message->item(key="error"){Text(message,color=MaterialTheme.colorScheme.error)}}
-   item(key="add"){
-    Button(onClick={focus.clearFocus();viewModel.add()},enabled=!state.isLoading&&!state.isSearching&&state.searchQuery.isNotBlank(),modifier=Modifier.fillMaxWidth()){
-     Text(if(state.isLoading)"Добавление…" else "Добавить в список")
-    }
-   }
-   item(key="bottom"){Spacer(Modifier.height(16.dp))}
   }
+ }
+}
+@Composable
+private fun AddCandidate(p:ProductEntity,state:AddToListUiState,section:String,onSelect:()->Unit,onAdd:()->Unit) {
+ Row(Modifier.fillMaxWidth().testTag("candidate-$section-${p.id}").clickable(enabled=!state.isLoading&&!state.isSearching,onClick=onSelect).padding(start=12.dp,top=6.dp,bottom=6.dp),verticalAlignment=Alignment.CenterVertically) {
+  Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)){
+   com.spisokryadom.app.ui.components.ProductCandidateTitle(p,style=MaterialTheme.typography.bodyLarge)
+   state.productContexts[p.id]?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)}
+  }
+  IconButton(onClick=onAdd,enabled=!state.isLoading&&!state.isSearching){Icon(Icons.Filled.AddShoppingCart,"Добавить: ${p.name}")}
  }
 }
 

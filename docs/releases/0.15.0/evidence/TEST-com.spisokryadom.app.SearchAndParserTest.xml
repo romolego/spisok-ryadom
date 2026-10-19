@@ -1,0 +1,12 @@
+<testsuite name="com.spisokryadom.app.SearchAndParserTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-19T09:15:52.963Z" time="0.3">
+  <testcase name="rankingLargeCatalog" classname="com.spisokryadom.app.SearchAndParserTest" time="0.236" />
+  <testcase name="russianCaseAndYoAreNormalized" classname="com.spisokryadom.app.SearchAndParserTest" time="0.015" />
+  <testcase name="negativeAmountRequiresCorrection" classname="com.spisokryadom.app.SearchAndParserTest" time="0.01" />
+  <testcase name="shortQueriesDoNotGiveRandomFuzzyMatches" classname="com.spisokryadom.app.SearchAndParserTest" time="0.003" />
+  <testcase name="emptyLinesAndLimits" classname="com.spisokryadom.app.SearchAndParserTest" time="0.023" />
+  <testcase name="storeHeadersCarryToFollowingPurchasesAndAreNotProducts" classname="com.spisokryadom.app.SearchAndParserTest" time="0.002" />
+  <testcase name="exactAndPrefixPrecedeTypos" classname="com.spisokryadom.app.SearchAndParserTest" time="0.002" />
+  <testcase name="invalidNumbersAreRejected" classname="com.spisokryadom.app.SearchAndParserTest" time="0.0" />
+  <testcase name="shoppingNotationIsParsed" classname="com.spisokryadom.app.SearchAndParserTest" time="0.001" />
+  <testcase name="emptyOrDanglingStoreHeadersRequireCorrection" classname="com.spisokryadom.app.SearchAndParserTest" time="0.005" />
+  </testsuite>
