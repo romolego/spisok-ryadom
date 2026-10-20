@@ -338,6 +338,25 @@ class ProductCardViewModel(
     }
 
     fun updateBranchPriorities(value:Map<Long,List<Long>>){edit{it.copy(branchPriorities=value)}}
+    /** Apply one shop dialog as one raw edit: no autosave of half-updated availability/group. */
+    fun configureShop(shopId:Long,departmentId:Long?,points:Set<Long>?,priority:List<Long>) {
+        edit { s ->
+            if(s.pendingShopLinks.none{it.shopId==shopId}&&s.shopLinks.none{it.link.shopId==shopId})return@edit s.copy(error="Магазин больше не привязан к товару")
+            val branches=s.branches.filter{it.shopId==shopId}.map{it.id}.toSet()
+            if(points!=null&&(points.isEmpty()||!branches.containsAll(points)))return@edit s.copy(error="Выберите хотя бы одну доступную точку магазина")
+            val departments=(s.allDepartments+s.pendingDepartments+s.departmentsForSelectedShop).filter{it.shopId==shopId}
+            if(departmentId!=null&&departments.none{it.id==departmentId})return@edit s.copy(error="Группа магазина больше недоступна")
+            val name=departments.find{it.id==departmentId}?.name
+            s.copy(
+                pendingShopLinks=s.pendingShopLinks.map{if(it.shopId==shopId)it.copy(departmentId=departmentId,departmentName=name)else it},
+                shopLinks=s.shopLinks.map{if(it.link.shopId==shopId)it.copy(link=it.link.copy(departmentId=departmentId),departmentName=name)else it},
+                branchSelections=if(points==null)s.branchSelections-shopId else s.branchSelections+(shopId to points),
+                branchPriorities=if(priority.isEmpty())s.branchPriorities-shopId else s.branchPriorities+(shopId to priority.distinct().filter{it in branches}),
+                // A confirmed shop group applies everywhere. Untouched legacy data stays backup-compatible.
+                branchDepartments=s.branchDepartments.filterKeys{id->s.branches.none{it.id==id&&it.shopId==shopId}}
+            )
+        }
+    }
     fun updateBranchSelections(value:Map<Long,Set<Long>>){
         refreshExternalDraft()
         val s=_uiState.value

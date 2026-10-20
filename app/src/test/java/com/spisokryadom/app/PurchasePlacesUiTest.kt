@@ -108,11 +108,13 @@ class PurchasePlacesUiTest {
   runBlocking {val link=db.productShopLinkDao().getLinksForProductSync(cheese).single();db.productShopLinkDao().update(link.copy(restrictBranches=true));db.shopBranchDao().insertAvailability(ProductBranchAvailabilityEntity(cheese,near))}
   ui.onNodeWithText("Товары").performClick();waitText("База товаров");waitText("Сыр адыгейский")
   ui.onNodeWithText("Сыр адыгейский").performTouchInput{longClick()};waitText("Название товара")
+  ui.onNodeWithText("1. Красный Яр").performScrollTo().performClick();waitText("Товар в магазине")
   ui.onNodeWithTag("branch-choice-$far-label",useUnmergedTree=true).performScrollTo()
   val control=ui.onNodeWithTag("branch-choice-$far-control",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
   val label=ui.onNodeWithTag("branch-choice-$far-label",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
   assertTrue("12dp gap must separate the control slot and text",label.left-control.right>=23f)
   ui.onNodeWithText("Молокова, 54").performClick();shot("07-checkbox-spacing")
+  ui.onNodeWithText("Применить").performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("База товаров")
   runBlocking{assertEquals(setOf(near,far),db.shopBranchDao().availability(cheese).map{it.branchId}.toSet())}
  }

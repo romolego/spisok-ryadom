@@ -62,13 +62,13 @@ class ArchitectureUiTest {
   runBlocking{val point=db.shopBranchDao().get(second)!!;assertEquals(shop,point.shopId);assertNotNull(point.venueId);assertEquals("Планета",db.retailStructureDao().venue(point.venueId!!)!!.name);assertEquals("Вход с парковки",point.note);assertEquals(2,db.shopBranchDao().forShop(shop).size)}
   reveal(hasText("Планета"));reveal(hasText("Командор") and hasText("В торговом центре"));reveal(hasText("Батон"));reveal(hasText("Командор") and hasText("Около дома"));ui.onNodeWithText("Рынок или ТЦ").assertDoesNotExist();shot("03-venue-browse")
  }
- @Test fun exactPointDepartmentCanBeEditedWithoutASecondProduct(){
+ @Test fun commonShopDepartmentAppliesToBothPointsWithoutASecondProduct(){
   ui.onNodeWithText("Товары").performClick();waitText("База товаров");waitText("Сыр");ui.onNodeWithText("Сыр").performClick();waitText("Название товара")
-  ui.onNodeWithText("Группы в отдельных точках").performScrollTo()
-  ui.onNodeWithContentDescription("Изменить группы в отдельных точках").performScrollTo().performClick()
-  ui.onNodeWithText("В торговом центре").performScrollTo().performClick();ui.onNodeWithText("Сыры").performClick();shot("04-point-group")
+  ui.onNodeWithText("Группы в отдельных точках").assertDoesNotExist()
+  ui.onNodeWithText("1. Командор").performScrollTo().performClick();waitText("Товар в магазине")
+  ui.onNodeWithText("Группа магазина").performClick();ui.onNodeWithText("Сыры").performClick();shot("04-shop-group");ui.onNodeWithText("Применить").performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("База товаров")
-  runBlocking{val fresh=app.container.shoppingListRepository.addProduct(product,unit="кг",choice=ShopChoice.EXPLICIT,shopId=shop,branchId=second);assertEquals(cheese,db.shoppingListEntryDao().getById(fresh)!!.assignedDepartmentId);assertEquals(1,db.productDao().getAllSync().size)}
+  runBlocking{val fresh=app.container.shoppingListRepository.addProduct(product,unit="кг",choice=ShopChoice.EXPLICIT,shopId=shop,branchId=second);assertEquals(cheese,db.shoppingListEntryDao().getById(fresh)!!.assignedDepartmentId);assertEquals(cheese,db.shoppingListEntryDao().getById(entryA)!!.assignedDepartmentId);assertEquals(cheese,db.shoppingListEntryDao().getById(entryB)!!.assignedDepartmentId);assertEquals(1,db.productDao().getAllSync().size)}
  }
  @Test fun marketConversionAndUnifiedListKeepPavilionsAndPurchases(){
   runBlocking{db.shopDao().update(db.shopDao().getById(shop)!!.copy(name="Енисейский привоз"))}

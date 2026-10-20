@@ -108,7 +108,6 @@ private val BatchSelectionSaver=mapSaver(
  var chosen by remember{mutableStateOf(emptySet<Long>())}
  var none by remember{mutableStateOf(false)}
  var targetShop by remember{mutableStateOf(shopId)}
- var point by remember{mutableStateOf<Long?>(null)}
  var creating by remember{mutableStateOf(false)}
  var name by remember{mutableStateOf("")}
  val commonShops=options.shops.filter{s->ids.all{p->options.links.any{it.productId==p&&it.shopId==s.id}}}
@@ -117,10 +116,9 @@ private val BatchSelectionSaver=mapSaver(
  LaunchedEffect(action,options.isLoading,commonShops.map{it.id}) {
   if(action=="department"&&!stores&&!options.isLoading&&targetShop !in commonShops.map{it.id}) {
    targetShop=commonShops.find{it.id==shopId}?.id?:commonShops.singleOrNull()?.id
-   point=null
   }
  }
- fun choose(a:String){action=a;chosen=emptySet();none=false;creating=false;point=null
+ fun choose(a:String){action=a;chosen=emptySet();none=false;creating=false
   if(a=="basket")targetShop=shopId
   if(a=="department"&&!stores)targetShop=commonShops.find{it.id==shopId}?.id?:commonShops.singleOrNull()?.id
  }
@@ -145,12 +143,7 @@ private val BatchSelectionSaver=mapSaver(
      if(action=="department"&&!stores){
       Text("Магазин",style=MaterialTheme.typography.labelLarge)
       if(targetShop==null)Text("Выберите магазин для назначения группы",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-      commonShops.forEach{s->OptionRow(labels.shop(s.id,s.name),targetShop==s.id,!busy){targetShop=s.id;point=null;chosen=emptySet();none=false}}
-      if(targetShop!=null&&branchChoices.isNotEmpty()){
-       Text("Точки",style=MaterialTheme.typography.labelLarge)
-       OptionRow("Все доступные точки",point==null,!busy){point=null;none=false}
-       branchChoices.forEach{b->OptionRow(labels.branch(b),point==b.id,!busy){point=b.id;none=false}}
-      }
+      commonShops.forEach{s->OptionRow(labels.shop(s.id,s.name),targetShop==s.id,!busy){targetShop=s.id;chosen=emptySet();none=false}}
       HorizontalDivider(Modifier.padding(vertical=8.dp))
      }
      val values=when(action){
@@ -166,7 +159,7 @@ private val BatchSelectionSaver=mapSaver(
       OptionRow("По приоритету для каждого товара",none,!busy){none=true;chosen=emptySet()}
       OptionRow("Без конкретного адреса",chosen==setOf(0L),!busy){none=false;chosen=setOf(0L)}
      }
-     if(action=="recipient"||action=="group"||(action=="department"&&!stores&&point==null))OptionRow("Не задано",none,!busy){none=true;chosen=emptySet()}
+     if(action=="recipient"||action=="group"||(action=="department"&&!stores))OptionRow("Не задано",none,!busy){none=true;chosen=emptySet()}
      if(action!="basket"){if(!creating)TextButton(onClick={creating=true},enabled=!busy){Text(when(action){"recipient"->"Новый получатель…";"group"->"Новая товарная группа…";"shop"->"Новый магазин…";else->"Новая группа магазина…"})}
      else{
       OutlinedTextField(name,{name=it},label={Text("Название")},enabled=!busy,modifier=Modifier.fillMaxWidth())
@@ -182,7 +175,7 @@ private val BatchSelectionSaver=mapSaver(
       if(action=="basket")vm.add(ids,shopId,onDone,if(none)null else id)
       else if(stores)vm.shops(ids,chosen,onDone)
       else{
-       val change=when(action){"recipient"->ProductBatchChange.Recipient(id);"group"->ProductBatchChange.Group(id);"shop"->ProductBatchChange.Shops(chosen);else->ProductBatchChange.Department(targetShop!!,id,point)}
+       val change=when(action){"recipient"->ProductBatchChange.Recipient(id);"group"->ProductBatchChange.Group(id);"shop"->ProductBatchChange.Shops(chosen);else->ProductBatchChange.Department(targetShop!!,id)}
        vm.products(ids,change,onDone)
       }
      },enabled=ready&&(chosen.isNotEmpty()||none)&&(action!="department"||stores||targetShop!=null),modifier=Modifier.weight(1f)){Text(if(busy)"Сохранение…"else "Применить к ${ids.size}")}

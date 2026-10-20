@@ -48,13 +48,13 @@ class ProductFlowUiTest {
   newDepartmentChoice()
   ui.onNodeWithText("Новая группа").performTextInput("Чай и кофе");ui.onNodeWithContentDescription("Создать группу магазина").performClick()
   assertTrue(runBlocking{db.shopDepartmentDao().getByShopIdSync(shop)}.isEmpty())
-  ui.onNode(isToggleable() and hasText("Только выбранные точки")).performScrollTo().performClick()
+  ui.onNodeWithText("Доступность товара").performScrollTo().performClick();ui.onNodeWithText("Только выбранные точки").performClick()
   ui.onNode(isToggleable() and hasText("Адрес 1")).performScrollTo().performClick()
-  ui.onNode(isToggleable() and hasText("Адрес 3")).performScrollTo().performClick()
-  ui.onNode(isToggleable() and hasText("Адрес 5")).performScrollTo().performClick();shot("01-shop-link-subset",true)
+  ui.onNode(isToggleable() and hasText("Адрес 2")).performScrollTo().performClick()
+  ui.onNode(isToggleable() and hasText("Адрес 4")).performScrollTo().performClick();shot("01-shop-link-subset",true)
   ui.onNodeWithText("Добавить",useUnmergedTree=true).performClick();ui.waitUntil(20_000){ui.onAllNodes(isDialog()).fetchSemanticsNodes().isEmpty()}
-  ui.onNodeWithText("Точки продажи товара").performScrollTo();shot("02-points-retained")
-  ui.onNode(isToggleable() and hasText("Адрес 3")).assertIsOn();ui.onNode(isToggleable() and hasText("Адрес 5")).assertIsOn()
+  ui.onNodeWithText("1. Командор").performScrollTo().performClick();waitText("Товар в магазине");shot("02-points-retained",true)
+  ui.onNode(isToggleable() and hasText("Адрес 3")).assertIsOn();ui.onNode(isToggleable() and hasText("Адрес 5")).assertIsOn();ui.onNodeWithText("Применить").performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("База товаров")
   runBlocking{val p=db.productDao().getAllSync().single();assertEquals("Листовой",p.note);val link=db.productShopLinkDao().getLinksForProductSync(p.id).single();assertTrue(link.restrictBranches);assertEquals("Чай и кофе",db.shopDepartmentDao().getById(link.departmentId!!)!!.name);assertEquals(setOf(points[2],points[4]),db.shopBranchDao().availability(p.id).map{it.branchId}.toSet());val id=app.container.shoppingListRepository.addProduct(p.id);assertEquals(points[2],db.shoppingListEntryDao().getAllSync().single().assignedBranchId)}
  }
@@ -93,12 +93,12 @@ class ProductFlowUiTest {
  @Test fun productPhotoCameraImportsAndPersistsAndCancelPreservesOldPhoto(){
   newProduct();ui.onNodeWithText("Название товара").performTextReplacement("Чай с фото")
   org.robolectric.Shadows.shadowOf(app.packageManager).addResolveInfoForIntent(android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE),android.content.pm.ResolveInfo().apply{activityInfo=android.content.pm.ActivityInfo().apply{name="CameraActivity";packageName="test.camera"}})
-  ui.onNodeWithText("Камера").performScrollTo().performClick();val started=org.robolectric.Shadows.shadowOf(ui.activity).nextStartedActivityForResult;assertNotNull(started)
+  ui.onNodeWithContentDescription("Камера").performScrollTo().performClick();val started=org.robolectric.Shadows.shadowOf(ui.activity).nextStartedActivityForResult;assertNotNull(started)
   val uri=started.intent.getParcelableExtra<android.net.Uri>(android.provider.MediaStore.EXTRA_OUTPUT)!!;assertEquals("content",uri.scheme)
   val bitmap=Bitmap.createBitmap(600,300,Bitmap.Config.ARGB_8888);bitmap.eraseColor(android.graphics.Color.rgb(34,110,95));Canvas(bitmap).drawText("Чай",30f,160f,android.graphics.Paint().apply{color=android.graphics.Color.WHITE;textSize=44f;isAntiAlias=true});app.contentResolver.openOutputStream(uri)!!.use{bitmap.compress(Bitmap.CompressFormat.JPEG,90,it)};bitmap.recycle()
   org.robolectric.Shadows.shadowOf(ui.activity).receiveResult(started.intent,android.app.Activity.RESULT_OK,null)
   ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Фото товара").fetchSemanticsNodes().isNotEmpty()};ui.onNodeWithContentDescription("Фото товара").performScrollTo();shot("04-product-camera")
-  ui.onNodeWithText("Камера").performScrollTo().performClick();val cancelled=org.robolectric.Shadows.shadowOf(ui.activity).nextStartedActivityForResult;org.robolectric.Shadows.shadowOf(ui.activity).receiveResult(cancelled.intent,android.app.Activity.RESULT_CANCELED,null)
+  ui.onNodeWithContentDescription("Изменить фото").performScrollTo().performClick();ui.onNodeWithText("Камера").performClick();val cancelled=org.robolectric.Shadows.shadowOf(ui.activity).nextStartedActivityForResult;org.robolectric.Shadows.shadowOf(ui.activity).receiveResult(cancelled.intent,android.app.Activity.RESULT_CANCELED,null)
   ui.onNodeWithContentDescription("Фото товара").assertExists();ui.onNodeWithText("Сохранить").performClick();waitText("База товаров")
   val path=runBlocking{db.productDao().getAllSync().single().photoUri!!};assertTrue(path.contains("product_photos"));assertTrue(File(path).isFile)
  }

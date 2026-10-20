@@ -1,3 +1,7 @@
+## Карточка товара0.19 ·20 октября2026
+
+ProductShopSettings.kt объединяет ProductShopDialog и ProductOutletOptions. ProductCardViewModel.configureShop атомарно меняет raw-настройки привязанного магазина и снимает его прежние branch department overrides; запись/синхронизация покупок идут прежним ProductEditDraft→ProductRepository. Product UI и массовая форма больше не создают отдельные группы по точкам; старые таблицы/backup остаются. BranchPhotoEditor.compact opt-in для товара. Room17/ZIP13 и виджет прежние. Подробнее45.
+
 ## Карточка магазина0.18 ·20 октября2026
 
 Расширение0.18: ShopCardBlocks — сводка места/блоки формы; ShopAppearance/ShopSymbol — логотип, значок и preview; ColorField — двумерный выбор. ShopEntity.iconKey/logoUri, Room17/ZIP13, PhotoStore.shop_logos и media leases/recovery поддерживают оформление. Прежние репозитории и модель мест/покупок остаются источником логики. См.44.

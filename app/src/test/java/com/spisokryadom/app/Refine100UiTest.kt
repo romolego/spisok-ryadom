@@ -58,7 +58,7 @@ class Refine100UiTest {
  }
  @Test fun cardOutletPriorityAutosavesAndUpdatesTheSamePendingPurchase(){
   runBlocking{app.container.productRepository.ensureShopLink(p,b);app.container.shoppingListRepository.movePending(setOf(entry),b,first)}
-  productCard();ui.onNodeWithText("Приоритет точек").performScrollTo().performClick();ui.onNodeWithContentDescription("Выше приоритет точки: Молокова, 54").performScrollTo().performClick();shot("04-product-outlet-priority")
+  productCard();ui.onNodeWithText("2. Красный Яр").performScrollTo().performClick();waitText("Товар в магазине");ui.onNodeWithText("Приоритет точек").performScrollTo().performClick();ui.onNodeWithContentDescription("Выше приоритет точки: Молокова, 54").performScrollTo().performClick();shot("04-product-outlet-priority",true);ui.onNodeWithText("Применить").performClick()
   try{waitDb{runBlocking{db.shoppingListEntryDao().getById(entry)!!.assignedBranchId==second}}}catch(e:Throwable){println("DIAGNOSTIC="+runBlocking{db.shopBranchDao().priorities().toString()+db.shoppingListEntryDao().getAllSync().toString()+app.getSharedPreferences("product_card_drafts",0).all.toString()});println(ui.onRoot().printToString());throw e};ui.onNodeWithContentDescription("Назад").performClick();waitText("Список покупок");waitText("Молокова, 54")
   runBlocking{assertEquals(3.0,db.shoppingListEntryDao().getById(entry)!!.quantity,0.0);assertEquals(1,db.shoppingListEntryDao().getAllSync().size)}
  }
