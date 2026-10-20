@@ -212,7 +212,7 @@ fun ShopCardScreen(
             }
 
             ShopAppearance(state.shoppingBackground,state.name,state.iconKey,state.logoUri,
-                viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy)
+                viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy,purchaseBackground=state.purchaseBackground,onPurchaseBackground=viewModel::updatePurchaseBackground)
 
             ShopCardBlock("Настройки срочности") {
                 DropdownSelector("Срочные в свёрнутом магазине",UrgencyOverride.entries,state.showUrgentInCollapsed,{it.label},

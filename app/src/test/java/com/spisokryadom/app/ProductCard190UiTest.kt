@@ -82,4 +82,13 @@ class ProductCard190UiTest {
   ui.onNodeWithContentDescription("Цвет товара").performScrollTo().performClick();ui.onNodeWithTag("appearance-custom-toggle").performScrollTo().performClick();ui.onNodeWithTag("appearance-options").performScrollToNode(hasTestTag("appearance-color-field"));ui.onNodeWithTag("appearance-color-field").performTouchInput{click(percentOffset(.25f,.2f))};shot("07-product-color-field")
   ui.onNodeWithTag("appearance-hex").performScrollTo().performTextReplacement("#BADHEX");ui.onNodeWithText("Применить оформление").assertIsNotEnabled();ui.onNodeWithTag("appearance-hex").performTextReplacement("#D6C67A");ui.onNodeWithText("Применить оформление").performClick();ui.onNodeWithText("Сохранить").performClick();waitText("База товаров");assertEquals("#D6C67A",runBlocking{db.productDao().getById(product)!!.accent})
  }
+ @Test fun personalStoreOrderOnlyAppearsForMultipleLinksAndDisappearsAfterRemoval(){
+  runBlocking{db.shopDao().insert(ShopEntity(name="Батон"))}
+  ui.onNodeWithContentDescription("Редактировать").performScrollTo().performClick();ui.onNodeWithText("Свой порядок магазинов").assertDoesNotExist()
+  ui.onNodeWithText("Добавить магазин").performScrollTo().performClick();ui.onNodeWithText("Магазин").performClick();ui.onNodeWithText("Батон").performClick();ui.onNodeWithText("Добавить").performClick()
+  waitFor{ui.onAllNodesWithText("Свой порядок магазинов").fetchSemanticsNodes().isNotEmpty()};ui.onNodeWithText("Свой порядок магазинов").performScrollTo().assertIsDisplayed()
+  ui.onAllNodesWithContentDescription("Удалить связь").onLast().performScrollTo().performClick();waitFor{ui.onAllNodesWithText("Свой порядок магазинов").fetchSemanticsNodes().isEmpty()}
+  ui.onNodeWithContentDescription("Удалить связь").performScrollTo().performClick();ui.onNodeWithText("Свой порядок магазинов").assertDoesNotExist()
+ }
+
 }

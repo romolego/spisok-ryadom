@@ -27,7 +27,8 @@ internal fun ShopCardBlock(title:String,action:(@Composable ()->Unit)?=null,cont
 internal fun ShopPlaceSummary(state:ShopCardUiState){
     Column(Modifier.testTag("shop-place-summary"),verticalArrangement=Arrangement.spacedBy(10.dp)){
         val memberships=state.branches.filter{it.venueId!=null||!state.venueNames[it.id].isNullOrBlank()}
-        Text(if(memberships.isEmpty())"Самостоятельный магазин"else if(memberships.size==state.branches.size)"Магазин / павильон на рынке или в ТЦ"else "Магазин с точками на рынке / в ТЦ",
+        val isNetwork=state.networkId!=null||state.networkName.isNotBlank()
+        Text(if(isNetwork)"Магазин сети"else if(memberships.isEmpty())"Самостоятельный магазин"else if(memberships.size==state.branches.size)"Магазин / павильон на рынке или в ТЦ"else "Магазин с точками на рынке / в ТЦ",
             style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary)
         Text(state.cities.find{it.id==state.cityId}?.name?:"Текущий город",style=MaterialTheme.typography.bodyMedium)
         state.networkName.ifBlank{state.networks.find{it.id==state.networkId}?.name.orEmpty()}.takeIf{it.isNotBlank()}?.let{
@@ -39,7 +40,7 @@ internal fun ShopPlaceSummary(state:ShopCardUiState){
                 Icon(Icons.Filled.LocationOn,null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant)
                 Column{
                     val venue=state.venueNames[branch.id]?.takeIf{it.isNotBlank()}?:state.venues.find{it.id==branch.venueId}?.name
-                    venue?.let{Text(it,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)}
+                    Text(venue?:"Отдельный адрес",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
                     Text(branch.address.ifBlank{"Укажите адрес"},style=MaterialTheme.typography.bodyMedium)
                     branch.note?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
                 }

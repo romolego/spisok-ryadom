@@ -13,8 +13,8 @@ android {
         applicationId = "com.spisokryadom.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 29
-        versionName = "0.21.0"
+        versionCode = 30
+        versionName = "0.22.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions { annotationProcessorOptions { arguments["room.schemaLocation"] = "$projectDir/schemas" } }
     }

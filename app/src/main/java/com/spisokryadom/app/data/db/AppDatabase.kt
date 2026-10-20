@@ -49,7 +49,7 @@ import com.spisokryadom.app.data.entity.UnitEntity
         ShopBranchEntity::class, ProductBranchAvailabilityEntity::class, com.spisokryadom.app.data.entity.ProductBranchPriorityEntity::class,
         CityEntity::class
     ],
-    version = 18,
+    version = 19,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -229,6 +229,9 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE $table ADD COLUMN favoriteOrder INTEGER NOT NULL DEFAULT 0")
             }
         }}
+        val MIGRATION_18_19=object:Migration(18,19){override fun migrate(db:SupportSQLiteDatabase){
+            db.execSQL("ALTER TABLE shops ADD COLUMN purchaseBackground TEXT NOT NULL DEFAULT ''")
+        }}
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val appContext=context.applicationContext
@@ -237,8 +240,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "spisok_ryadom.db"
                 )
-                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,18)})
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18)
+                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,19)})
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19)
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) { RetailConstraints.install(db) }
                         override fun onCreate(db: SupportSQLiteDatabase) {

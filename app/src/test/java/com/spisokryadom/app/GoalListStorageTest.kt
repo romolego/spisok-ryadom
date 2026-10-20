@@ -340,9 +340,9 @@ class GoalListStorageTest {
             old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt,assignedShopId,note,explicitNoShop)VALUES(19,18,4.5,'кг',1,1,100,200,17,'История',0)")
             old.version = 14
         }
-        val migrated = Room.databaseBuilder(app, AppDatabase::class.java, name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18).build()
+        val migrated = Room.databaseBuilder(app, AppDatabase::class.java, name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19).build()
         try {
-            assertEquals(18,migrated.openHelper.writableDatabase.version)
+            assertEquals(19,migrated.openHelper.writableDatabase.version)
             val row = migrated.shoppingListEntryDao().getById(19)!!
             assertEquals(18L, row.productId)
             assertEquals(17L, row.assignedShopId)

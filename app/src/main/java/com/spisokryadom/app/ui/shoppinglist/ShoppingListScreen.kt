@@ -458,7 +458,7 @@ private fun ShoppingListContent(
                                     ShoppingListItem(
                                         placementModifier=Modifier.animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
                                         entryUi = entryUi,
-                                        blockBackground=backgroundKey,
+                                        blockBackground=backgroundKey,purchaseBackground=if(isByShops)group.purchaseBackground else "",
                                         viewMode = state.viewMode,
                                         onToggleBought = {
                                             if (entryUi.entry.isBought) {
@@ -486,7 +486,7 @@ private fun ShoppingListContent(
                             ShoppingListItem(
                                         placementModifier=Modifier.animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
                                 entryUi = entryUi,
-                                        blockBackground=backgroundKey,
+                                        blockBackground=backgroundKey,purchaseBackground=if(isByShops)group.purchaseBackground else "",
                                 viewMode = state.viewMode,
                                 onToggleBought = {
                                     if (entryUi.entry.isBought) {
@@ -723,6 +723,7 @@ private fun EntryGroupHeader(
 private fun ShoppingListItem(
     placementModifier:Modifier=Modifier,
     blockBackground:String="",
+    purchaseBackground:String="",
     entryUi: ShoppingListEntryUi,
     viewMode: ViewMode,
     onToggleBought: () -> Unit,
@@ -741,7 +742,7 @@ private fun ShoppingListItem(
         targetValue = when {
             isBought -> MaterialTheme.colorScheme.surfaceVariant
             isUrgent -> MaterialTheme.colorScheme.errorContainer
-            else -> favoriteBackground(entryUi.isFavorite)
+            else -> favoriteBackground(entryUi.isFavorite,com.spisokryadom.app.ui.components.purchaseCardColor(blockBackground,purchaseBackground,MaterialTheme.colorScheme.surface))
         },
         label = "itemBg"
     )

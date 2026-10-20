@@ -34,9 +34,9 @@ class ArchitectureMigrationTest {
  }}
  @Test fun schema10MigrationRetainsIdentitiesAndRepairsOnlyOrphanedAvailability()=runBlocking{
   val name="architecture-old.db";old(name)
-  val db=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18).build()
+  val db=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19).build()
   try{
-   assertEquals(18,db.openHelper.writableDatabase.version)
+   assertEquals(19,db.openHelper.writableDatabase.version)
    val one=db.shopDepartmentDao().getById(11)!!;val two=db.shopDepartmentDao().getById(21)!!
    assertEquals(one.typeId,two.typeId);assertEquals(7,one.displayOrder);assertEquals(1,two.displayOrder)
    assertEquals(4L,db.productShopLinkDao().getLinksForProductSync(2).single().id)
@@ -70,10 +70,10 @@ class ArchitectureMigrationTest {
    SQLiteDatabase.openDatabase(app.getDatabasePath(name).path,null,SQLiteDatabase.OPEN_READONLY).use{assertEquals(10,it.version)}
    DatabaseRecovery.preserveBeforeUpgrade(app,11);calls.incrementAndGet();prepared.set(true)
   }
-  val db=Room.databaseBuilder(app,AppDatabase::class.java,name).openHelperFactory(factory).addMigrations(AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18).build()
+  val db=Room.databaseBuilder(app,AppDatabase::class.java,name).openHelperFactory(factory).addMigrations(AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19).build()
   try{
    assertFalse("Building the container must perform no recovery file I/O",prepared.get())
-   kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){assertEquals(1,db.cityDao().getAllSync().size);assertEquals(18,db.openHelper.writableDatabase.version);db.shopDao().getAllSync()}
+   kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){assertEquals(1,db.cityDao().getAllSync().size);assertEquals(19,db.openHelper.writableDatabase.version);db.shopDao().getAllSync()}
    assertTrue(prepared.get());assertEquals(1,calls.get())
   }finally{db.close();app.deleteDatabase(name)}
  }

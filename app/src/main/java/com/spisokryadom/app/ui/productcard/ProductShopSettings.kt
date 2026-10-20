@@ -53,6 +53,7 @@ internal fun ProductOutletOptions(
     enabled: Boolean = true
 ) {
     if (branches.isEmpty()) return
+    val labels=LocalPlaceLabels.current
     val points = branches.sortedWith(compareBy<ShopBranchEntity> { it.displayOrder }.thenBy { it.id })
     val ranked = points.filter { selected == null || it.id in selected }.sortedWith(
         compareBy<ShopBranchEntity> { priority.indexOf(it.id).takeIf { it >= 0 } ?: Int.MAX_VALUE }
@@ -68,7 +69,7 @@ internal fun ProductOutletOptions(
         )
         if (selected != null) {
             points.forEach { point ->
-                SelectionRow(point.address, point.id in selected, { checked ->
+                SelectionRow(labels.branch(point), point.id in selected, { checked ->
                     onSelection(if (checked) selected + point.id else selected - point.id)
                 }, tag = "branch-choice-${point.id}", enabled = enabled)
             }
@@ -89,7 +90,7 @@ internal fun ProductOutletOptions(
                     }
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(point.address, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    Text(labels.branch(point), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                     ReorderButtons({ move(-1) }, { move(1) }, enabled && index > 0, enabled && index < ranked.lastIndex,
                         "Выше приоритет точки: ${point.address}", "Ниже приоритет точки: ${point.address}")
                 }

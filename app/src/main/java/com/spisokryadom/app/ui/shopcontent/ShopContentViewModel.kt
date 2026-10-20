@@ -152,7 +152,8 @@ class ShopContentViewModel(
                 .combine(_departments){data,departments->data.copy(departments=departments)}
                 .combine(_shops){data,shops->data.copy(shops=shops)}
                 .combine(productRepository.observeBranchDepartments()){data,overrides->data to overrides}
-                .combine(shopRepository.observeBranchOrders()){(data,overrides),orders->
+                .combine(shopRepository.venues()){(data,overrides),venues->Triple(data,overrides,venues)}
+                .combine(shopRepository.observeBranchOrders()){(data,overrides,venues),orders->
                 val products=data.products;val allPoints=data.points;val availability=data.availability;val entries=data.entries
                 val overrideMap=overrides.associateBy{it.branchId to it.productId}
                 val pointRoutes=overrides.any{it.shopId==shopId}||orders.any{order->allPoints.any{it.id==order.branchId&&it.shopId==shopId}}
@@ -174,7 +175,7 @@ class ShopContentViewModel(
                             val type=overrideMap[point.id to row.product.id]?.typeId?:data.departments[row.link.departmentId]?.typeId
                             orderMap[point.id to type]?.displayOrder?:departmentByType[type]?.displayOrder?:Int.MAX_VALUE
                         }.thenByDescending{it.product.isFavorite}.thenBy{FuzzySearch.normalize(it.product.name)})
-                        ShopPointSection(point.id,point.address,point.note,point.photoUri,sorted)
+                        ShopPointSection(point.id,com.spisokryadom.app.domain.PlaceLabels(allPoints,venues).branch(point),point.note,point.photoUri,sorted)
                     }.filter{it.products.isNotEmpty()}.toMutableList()
                     val general=if(pointRoutes)emptyList()else products.filter{!it.link.restrictBranches}.map{row->row.copy(purchases=com.spisokryadom.app.ui.components.pendingPurchases(pendingByProduct[row.product.id].orEmpty(),data.shops,branchMap))}
                     if(general.isNotEmpty())result.add(ShopPointSection(null,"Во всех точках",null,null,general))

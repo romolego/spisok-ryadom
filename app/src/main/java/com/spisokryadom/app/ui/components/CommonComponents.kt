@@ -140,9 +140,7 @@ fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems
   if(normalize(value) !in added){if(known!=null)selected=selected+known else {custom=custom+value;selected=selected+value}}
   input=""
  }}
- val width=minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-32.dp)
- AlertDialog(modifier=Modifier.width(width),properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false),onDismissRequest=onDismiss,title={Text(title)},text={
-  Column(Modifier.verticalScroll(rememberScrollState())){
+ SelectionDialog(title,onDismiss,confirm={TextButton(onClick={onConfirm(rows.filter{it in selected&&normalize(it) !in added})},enabled=selected.isNotEmpty()){Text("Добавить")}}){
    (pinned.map{it to true}+rows.map{it to false}).forEachIndexed{index,(name,pin)->key(name,pin){
     if(pinned.isNotEmpty()&&(index==0||index==pinned.size))Text(if(index==0)"Избранные"else "Все значения",style=MaterialTheme.typography.labelMedium)
     val row:@Composable ()->Unit={
@@ -159,8 +157,7 @@ fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems
     OutlinedTextField(input,{input=it},label={Text(newItemLabel)},singleLine=true,keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={add()}),modifier=Modifier.weight(1f))
     IconButton(onClick={add()},enabled=input.isNotBlank()){Icon(Icons.Filled.Add,"Добавить название")}
    }
-  }
- },confirmButton={TextButton(onClick={onConfirm(rows.filter{it in selected&&normalize(it) !in added})},enabled=selected.isNotEmpty()){Text("Добавить")}},dismissButton={TextButton(onClick=onDismiss){Text("Отмена")}})
+ }
 
  }
 }
@@ -273,7 +270,7 @@ fun QuantityUnitInputWithSuggestions(
     var unitExpanded by remember { mutableStateOf(false) }
     val filteredSuggestions = remember(unit, unitSuggestions) {
         if (unit.isBlank()) unitSuggestions
-        else FuzzySearch.filterAndSort(unitSuggestions, unit)
+        else com.spisokryadom.app.util.UnitChoices.ranked(unitSuggestions, unit)
     }
 
     Row(modifier = modifier.fillMaxWidth()) {

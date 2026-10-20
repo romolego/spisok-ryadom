@@ -16,6 +16,7 @@ class ShopRepository(
     private val db: AppDatabase, private val catalogueEdits:CatalogueEdits?=null
 ) {
     suspend fun saveWithDepartments(shop:ShopEntity, departments:List<ShopDepartmentEntity>, branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>?=null,networkName:String?=null,venueNames:Map<Long,String> = emptyMap(),branchOrders:Map<Long,List<Long>> = emptyMap(),convertToVenue:Boolean=false,purchaseMode:String?=null):Long = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+        require(com.spisokryadom.app.util.PurchaseBackground.valid(shop.purchaseBackground)){"Выберите фон товаров магазина"}
         require(shop.name.isNotBlank()) { "Укажите название магазина" }
         require(com.spisokryadom.app.util.AppearanceColors.validOptional(shop.shoppingBackground)){"Выберите цвет фона магазина"}
         require(db.cityDao().getById(shop.cityId)!=null) { "Город удалён" }
@@ -217,7 +218,7 @@ class ShopRepository(
         links.forEach{db.productShopLinkDao().delete(it)}
         val owners=mutableMapOf<Long,Long>();val deptMap=mutableMapOf<Pair<Long,Long>,Long>()
         points.forEachIndexed{index,point->
-            val owner=shopDao.insert(ShopEntity(name=point.address,cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground,iconKey=shop.iconKey,logoUri=shop.logoUri))
+            val owner=shopDao.insert(ShopEntity(name=point.address,cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,iconKey=shop.iconKey,logoUri=shop.logoUri))
             purchaseMode?.let{db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(owner,it))}
             owners[point.id]=owner
             db.shopBranchDao().update(point.copy(shopId=owner,venueId=venueId,displayOrder=0))

@@ -27,5 +27,7 @@ data class ShopEntity(
     /** Empty means transparent; color is independent of group/product accents. */
     @androidx.room.ColumnInfo(defaultValue="''") val shoppingBackground:String="",
     @androidx.room.ColumnInfo(defaultValue="''") val iconKey:String="",
-    val logoUri:String?=null
+    val logoUri:String?=null,
+    /** Empty = ordinary cards; auto = stronger shop tint; otherwise a custom color. */
+    @androidx.room.ColumnInfo(defaultValue="''") val purchaseBackground:String=""
 )

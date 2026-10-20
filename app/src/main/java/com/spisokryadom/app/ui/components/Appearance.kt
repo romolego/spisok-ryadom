@@ -89,7 +89,7 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
  }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun AppearanceSheet(title:String,accent:String,iconKey:String="",withIcons:Boolean=true,onSave:(String,String)->Unit,onDismiss:()->Unit,preview:(@Composable (String,String)->Unit)?=null,withColors:Boolean=true){
+@Composable fun AppearanceSheet(title:String,accent:String,iconKey:String="",withIcons:Boolean=true,onSave:(String,String)->Unit,onDismiss:()->Unit,preview:(@Composable (String,String)->Unit)?=null,withColors:Boolean=true,noneIconLabel:String="Без значка"){
  var color by remember{mutableStateOf(accent)};var icon by remember{mutableStateOf(iconKey)}
  var custom by remember{mutableStateOf(false)};var hex by remember{mutableStateOf(colorHex(accentColor(accent)?:Color(0xFF4B81A5)))}
  var hue by remember{mutableStateOf(0f)};var saturation by remember{mutableStateOf(1f)};var brightness by remember{mutableStateOf(1f)}
@@ -123,7 +123,7 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
     }
     if(withIcons){
      item{OutlinedTextField(query,{query=it},label={Text("Найти значок")},singleLine=true,modifier=Modifier.testTag("appearance-icon-search").fillMaxWidth())}
-     item{ListItem(headlineContent={Text("Без значка")},leadingContent={RadioButton(icon.isBlank(),null)},modifier=Modifier.clickable{icon=""})}
+     item{ListItem(headlineContent={Text(noneIconLabel)},leadingContent={RadioButton(icon.isBlank(),null)},modifier=Modifier.clickable{icon=""})}
      items(filtered.chunked(2)){pair->Row(Modifier.fillMaxWidth()){pair.forEach{(key,value)->
       ListItem(headlineContent={Text(value.first,style=MaterialTheme.typography.bodySmall)},leadingContent={Icon(value.second,null,tint=if(key==icon)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)},modifier=Modifier.testTag("appearance-icon-$key").weight(1f).clickable{icon=key},colors=ListItemDefaults.colors(containerColor=if(key==icon)MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface))
      }}}

@@ -307,7 +307,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   require(s.departmentTypes.all{it.name.isNotBlank()&&it.normalizedName==FuzzySearch.normalize(it.name)}){"Неверная общая группа"}
   require(s.networks.all{it.name.isNotBlank()}&&s.venues.all{it.name.isNotBlank()&&it.cityId in cities}){"Неверная сеть или торговый комплекс"}
   val shopMap=s.shops.associateBy{it.id}
-  s.shops.forEach{require(it.cityId in cities){"Неизвестный город магазина"};require(it.networkId==null||it.networkId in networks){"Неизвестная сеть"};require(com.spisokryadom.app.util.AppearanceColors.validOptional(it.shoppingBackground)){"Некорректный цвет фона магазина"}}
+  s.shops.forEach{require(it.cityId in cities){"Неизвестный город магазина"};require(it.networkId==null||it.networkId in networks){"Неизвестная сеть"};require(com.spisokryadom.app.util.PurchaseBackground.valid(it.purchaseBackground)){"Некорректный фон товаров магазина"};require(com.spisokryadom.app.util.AppearanceColors.validOptional(it.shoppingBackground)){"Некорректный цвет фона магазина"}}
   val linkMap=s.links.associateBy{it.productId to it.shopId}
   val branches=s.branches.associateBy{it.id};ids(s.branches.map{it.id},"точки")
   s.branches.forEach{require(it.shopId in shops&&it.address.isNotBlank()){"Неверная точка магазина"};require(it.venueId==null||venues[it.venueId]?.cityId==shopMap[it.shopId]?.cityId){"Торговый комплекс относится к другому городу"}}
@@ -390,7 +390,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=15;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=16;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}

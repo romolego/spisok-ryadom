@@ -405,7 +405,7 @@ fun ProductCardScreen(
                     }
                 },
                 editContent = {
-                    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                    if((if(state.isNew)state.pendingShopLinks.map{it.shopId}else state.shopLinks.map{it.link.shopId}).distinct().size>1)Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
                         Text("Свой порядок магазинов",Modifier.weight(1f))
                         androidx.compose.material3.Switch(!state.preferCityShopOrder,{viewModel.useCityShopOrder(!it)})
                     }

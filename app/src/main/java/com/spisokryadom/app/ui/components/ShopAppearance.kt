@@ -36,7 +36,7 @@ fun ShopSymbol(iconKey:String="",logoUri:String?=null,size:Dp=24.dp){
 }
 
 @Composable
-fun ShopBlockPreview(background:String,name:String,iconKey:String,logoUri:String?,compact:Boolean=false){
+fun ShopBlockPreview(background:String,name:String,iconKey:String,logoUri:String?,compact:Boolean=false,purchaseBackground:String=""){
     val short=compact&&androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp<500
     Column(Modifier.fillMaxWidth().testTag("shop-appearance-preview")
         .background(shoppingBlockColor(background,MaterialTheme.colorScheme.surface)?:Color.Transparent,RoundedCornerShape(12.dp))
@@ -46,7 +46,7 @@ fun ShopBlockPreview(background:String,name:String,iconKey:String,logoUri:String
             Text(name.ifBlank{"Магазин"},style=MaterialTheme.typography.titleSmall,maxLines=2)
         }
         if(!compact)Text("Группа магазина",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-        if(!short)Surface(shape=RoundedCornerShape(10.dp),color=MaterialTheme.colorScheme.surface){
+        if(!short)Surface(shape=RoundedCornerShape(10.dp),color=purchaseCardColor(background,purchaseBackground,MaterialTheme.colorScheme.surface)){
             Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                 Icon(Icons.Filled.CheckBoxOutlineBlank,null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Пример товара",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
@@ -57,7 +57,8 @@ fun ShopBlockPreview(background:String,name:String,iconKey:String,logoUri:String
 }
 
 @Composable
-fun ShopAppearance(background:String,name:String,iconKey:String,logoUri:String?,onBackground:(String)->Unit,onIcon:(String)->Unit,onLogo:(String?)->Unit,onBusy:(Boolean)->Unit,externalPhotoBusy:Boolean=false){
+fun ShopAppearance(background:String,name:String,iconKey:String,logoUri:String?,onBackground:(String)->Unit,onIcon:(String)->Unit,onLogo:(String?)->Unit,onBusy:(Boolean)->Unit,externalPhotoBusy:Boolean=false,purchaseBackground:String="",onPurchaseBackground:(String)->Unit={}){
+    var itemColors by remember{mutableStateOf(false)}
     var colors by remember{mutableStateOf(false)};var icons by remember{mutableStateOf(false)}
     var lastColor by rememberSaveable{mutableStateOf(background.ifEmpty{"rose"})}
     var busy by remember{mutableStateOf(false)};var error by remember{mutableStateOf<String?>(null)}
@@ -72,8 +73,9 @@ fun ShopAppearance(background:String,name:String,iconKey:String,logoUri:String?,
         }
     }}
     if(colors)AppearanceSheet("Фон блока магазина",background,withIcons=false,onSave={c,_->if(c.isNotEmpty())lastColor=c;onBackground(c);colors=false},onDismiss={colors=false},
-        preview={c,_->ShopBlockPreview(c,name,iconKey,logoUri,compact=true)})
-    if(icons)AppearanceSheet("Значок магазина","",iconKey,withColors=false,onSave={_,i->onIcon(i);icons=false},onDismiss={icons=false})
+        preview={c,_->ShopBlockPreview(c,name,iconKey,logoUri,compact=true,purchaseBackground=purchaseBackground)})
+    if(icons)AppearanceSheet("Значок магазина","",iconKey,withColors=false,noneIconLabel="Обычный значок магазина",onSave={_,i->onIcon(i);icons=false},onDismiss={icons=false})
+    if(itemColors)AppearanceSheet("Фон товаров магазина",purchaseBackground.takeUnless{it=="auto"}.orEmpty(),withIcons=false,onSave={c,_->onPurchaseBackground(c);itemColors=false},onDismiss={itemColors=false},preview={c,_->ShopBlockPreview(background,name,iconKey,logoUri,compact=true,purchaseBackground=c)})
     OutlinedCard(Modifier.fillMaxWidth().testTag("shop-background-settings"),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){
         Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
             Text("Оформление в списке покупок",style=MaterialTheme.typography.titleMedium)
@@ -85,7 +87,7 @@ fun ShopAppearance(background:String,name:String,iconKey:String,logoUri:String?,
                 OutlinedButton(onClick={icons=true},enabled=!busy&&!externalPhotoBusy,modifier=Modifier.weight(1f)){Text("Значок")}
                 OutlinedButton(onClick={gallery.launch("image/*")},enabled=!busy&&!externalPhotoBusy,modifier=Modifier.weight(1f)){Text("Логотип")}
             }
-            if(logoUri!=null||iconKey.isNotEmpty())TextButton(onClick={onLogo(null);onIcon("")},enabled=!busy&&!externalPhotoBusy){Text("Убрать значок и логотип")}
+            if(logoUri!=null||iconKey.isNotEmpty())TextButton(onClick={onLogo(null);onIcon("")},enabled=!busy&&!externalPhotoBusy){Text("Вернуть обычный значок")}
             if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
             error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
             androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().testTag("shop-background-switch")
@@ -94,8 +96,12 @@ fun ShopAppearance(background:String,name:String,iconKey:String,logoUri:String?,
                 Switch(background.isNotEmpty(),null)
             }
             if(background.isNotEmpty())OutlinedButton(onClick={colors=true},modifier=Modifier.testTag("shop-background-color")){Text("Цвет фона")}
+            DropdownSelector("Фон товаров",listOf("","auto","custom"),if(purchaseBackground.isBlank()||purchaseBackground=="auto")purchaseBackground else "custom",
+                {when(it){"auto"->"В тон подложки";"custom"->"Свой цвет";else->"Обычный фон"}},
+                {mode->when(mode){"auto"->onPurchaseBackground("auto");"custom"->{onPurchaseBackground(purchaseBackground.takeUnless{it.isBlank()||it=="auto"}?:background.ifBlank{"rose"});itemColors=true};""->onPurchaseBackground("")}},allowNone=false)
+            if(purchaseBackground.isNotBlank()&&purchaseBackground!="auto")OutlinedButton(onClick={itemColors=true}){Text("Цвет фона товаров")}
             Text("Предпросмотр",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-            ShopBlockPreview(background,name,iconKey,logoUri)
+            ShopBlockPreview(background,name,iconKey,logoUri,purchaseBackground=purchaseBackground)
         }
     }
 }
