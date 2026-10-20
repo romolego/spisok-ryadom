@@ -18,16 +18,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.testTag
+import com.spisokryadom.app.ui.components.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -60,6 +63,8 @@ fun ShopCardScreen(
     viewModel: ShopCardViewModel = viewModel(factory = ShopCardViewModel.factory(shopId))
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val validBranches=state.branches.all{it.address.isNotBlank()}&&
+        state.branches.map{it.address.trim().lowercase(java.util.Locale.ROOT)}.distinct().size==state.branches.size
     state.error?.let { message -> androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={TextButton(onClick=viewModel::clearError){Text("Понятно")}}) }
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
@@ -76,6 +81,7 @@ fun ShopCardScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showConvertConfirm by remember { mutableStateOf(false) }
     if(showConvertConfirm)ConfirmDialog("Преобразовать в рынок или ТЦ?","Каждая точка станет отдельным магазином внутри «${state.name}». Товары и покупки сохранятся.",onConfirm={viewModel.convertToVenue();showConvertConfirm=false},onDismiss={showConvertConfirm=false})
+    var isPlaceEditing by rememberSaveable { mutableStateOf(false) }
     var isDepartmentsEditing by remember { mutableStateOf(false) }
 
     var resetDepartmentOrder by remember{mutableStateOf(false)}
@@ -88,7 +94,7 @@ fun ShopCardScreen(
         }
         MultiSelectDialog(
             title = "Добавить группы магазина",
-            availableItems = state.allDepartmentNames,
+            availableItems = state.allDepartmentNames,alphabetical=true,favorites=state.departmentTypes.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.name},
             alreadyAddedItems = existingDepartmentNames,
             newItemLabel = "Новая группа",
             onConfirm = { names ->
@@ -134,7 +140,7 @@ fun ShopCardScreen(
                     }
                     TextButton(
                         onClick = { viewModel.save() },
-                        enabled = state.name.isNotBlank() && !state.isSaving && !state.isPhotoBusy && !state.isLoading && state.branches.all{it.address.isNotBlank()} && state.departments.all{it.name.isNotBlank()} && state.pendingDepartments.all{it.name.isNotBlank()}
+                        enabled = state.name.isNotBlank() && !state.isSaving && !state.isPhotoBusy && !state.isLoading && validBranches && state.departments.all{it.name.isNotBlank()} && state.pendingDepartments.all{it.name.isNotBlank()}
                     ) {
                         Text("Сохранить")
                     }
@@ -153,7 +159,7 @@ fun ShopCardScreen(
                 .consumeWindowInsets(padding)
                 .imePadding()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(scrollState),
+                .verticalScroll(scrollState).testTag("shop-card-scroll"),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedTextField(
@@ -164,7 +170,13 @@ fun ShopCardScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            com.spisokryadom.app.ui.components.CityField(state.cityId,viewModel::updateCity)
+            ShopCardBlock("Место магазина",action={
+                TextButton(onClick={isPlaceEditing=!isPlaceEditing},enabled=!state.isPhotoBusy&&(!isPlaceEditing||validBranches)){
+                    Text(if(isPlaceEditing)"Готово"else "Править")
+                }
+            }) {
+                if(isPlaceEditing){
+                    CityField(state.cityId,viewModel::updateCity)
             com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,state.venues.filter{it.cityId==state.cityId},state.venueNames,viewModel::updateVenueName,pointGroups={point->
                 val types=state.departments.distinctBy{it.typeId}.filter{it.typeId>0}
                 if(point.id>0&&types.size>1){
@@ -179,84 +191,41 @@ fun ShopCardScreen(
                         }
                     }
                 }
-            })
-            if(!state.isNew&&state.branches.isNotEmpty())TextButton(onClick={showConvertConfirm=true},enabled=!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в рынок или ТЦ")}
+            },unified=true,externalPhotoBusy=state.isPhotoBusy)
 
-            com.spisokryadom.app.ui.components.DropdownSelector(
-                label="Тип покупок в магазине",items=com.spisokryadom.app.util.PurchaseModes.labels.keys.toList(),
-                selectedItem=state.purchaseMode,itemLabel={com.spisokryadom.app.util.PurchaseModes.labels.getValue(it)},
-                onSelect={it?.let(viewModel::updatePurchaseMode)},allowNone=false,modifier=Modifier.fillMaxWidth())
-            OutlinedTextField(
-                value = state.note,
-                onValueChange = { viewModel.updateNote(it) },
-                label = { Text("Заметка") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
-                maxLines = 4
-            )
-
-            com.spisokryadom.app.ui.components.OptionalRetailField("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName,canRename=true)
-
-            com.spisokryadom.app.ui.components.ShoppingBlockAppearance(state.shoppingBackground,state.name,viewModel::updateShoppingBackground)
-
-            // ── Настройки срочности ──────────────────────────────────────
-            SectionHeader(title = "Настройки срочности")
-
-            // Show urgent in collapsed
-            Text(
-                "Срочные товары в свернутом магазине",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            UrgencyOverride.entries.forEach { option ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { viewModel.updateShowUrgentInCollapsed(option) }
-                        .padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = state.showUrgentInCollapsed == option,
-                        onClick = { viewModel.updateShowUrgentInCollapsed(option) }
-                    )
-                    Text(
-                        text = option.label,
-                        modifier = Modifier.padding(start=8.dp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                    RetailRelationSelector("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName)
+                    if(!state.isNew&&state.branches.isNotEmpty()){
+                        HorizontalDivider()
+                        Text("Рынок или ТЦ объединяет самостоятельные магазины и павильоны. При преобразовании каждая точка станет отдельным магазином внутри него.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                        TextButton(onClick={showConvertConfirm=true},enabled=validBranches&&!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в рынок или ТЦ")}
+                    }
+                }else ShopPlaceSummary(state)
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            ShopCardBlock("Покупки в магазине") {
+                DropdownSelector(label="Тип покупок в магазине",items=com.spisokryadom.app.util.PurchaseModes.labels.keys.toList(),
+                    selectedItem=state.purchaseMode,itemLabel={com.spisokryadom.app.util.PurchaseModes.labels.getValue(it)},
+                    itemVector={when(it){"online"->Icons.Filled.Language;"offline"->Icons.Filled.Store;"both"->Icons.Filled.SwapHoriz;else->Icons.Filled.Settings}},
+                    onSelect={it?.let(viewModel::updatePurchaseMode)},allowNone=false,modifier=Modifier.fillMaxWidth())
+                OutlinedTextField(value=state.note,onValueChange=viewModel::updateNote,label={Text("Короткая заметка")},
+                    modifier=Modifier.fillMaxWidth(),minLines=1,maxLines=3)
+            }
 
-            // Boost urgent shop
-            Text(
-                "Поднимать магазин при наличии срочных",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            UrgencyOverride.entries.forEach { option ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { viewModel.updateBoostUrgentShop(option) }
-                        .padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = state.boostUrgentShop == option,
-                        onClick = { viewModel.updateBoostUrgentShop(option) }
-                    )
-                    Text(
-                        text = option.label,
-                        modifier = Modifier.padding(start=8.dp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+            ShopAppearance(state.shoppingBackground,state.name,state.iconKey,state.logoUri,
+                viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy)
+
+            ShopCardBlock("Настройки срочности") {
+                DropdownSelector("Срочные в свёрнутом магазине",UrgencyOverride.entries,state.showUrgentInCollapsed,{it.label},
+                    {it?.let(viewModel::updateShowUrgentInCollapsed)},allowNone=false)
+                DropdownSelector("Поднимать магазин со срочными",UrgencyOverride.entries,state.boostUrgentShop,{it.label},
+                    {it?.let(viewModel::updateBoostUrgentShop)},allowNone=false)
             }
 
             val departments = if(state.isNew)state.pendingDepartments.map {
                 ShopDepartmentEntity(id=it.tempId,shopId=0,name=it.name,displayOrder=it.displayOrder)
             }.sortedBy{it.displayOrder} else state.departments.sortedBy{it.displayOrder}
+            androidx.compose.material3.OutlinedCard(Modifier.fillMaxWidth(),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){
+            Column(Modifier.padding(16.dp)){
             EditableSection(
                 title="Группы магазина",isEditing=isDepartmentsEditing,onToggleEdit={isDepartmentsEditing=it},
                 isEmpty=departments.isEmpty(),emptyMessage="Нет групп",
@@ -295,6 +264,7 @@ fun ShopCardScreen(
                 }
             )
 
+            }}
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

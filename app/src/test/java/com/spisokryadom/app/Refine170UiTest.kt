@@ -72,7 +72,7 @@ class Refine170UiTest {
   ui.onNodeWithTag("appearance-icon-search").performScrollTo().performTextInput("Кошка");ui.onNodeWithTag("appearance-icon-cat").performScrollTo().performClick();shot("07-recipient-cat-icon");ui.onNodeWithText("Применить оформление").performClick();waitFor{runBlocking{db.recipientDao().getById(pet)?.iconKey=="cat"}}
  }
  @Test fun standardCategoriesButtonIsIdempotentAndDoesNotPopulateShops(){
-  settings();ui.onNodeWithText("Дополнить стандартными группами").performScrollTo().performClick();waitFor{runBlocking{db.shopDepartmentDao().types().size==30}};ui.onNodeWithText("Дополнить стандартными группами").performClick();waitFor{runBlocking{db.productGroupDao().getAllSync().size==31}};assertTrue(runBlocking{db.shopDepartmentDao().getAllSync().isEmpty()});shot("08-standard-library-control")
+  settings();ui.onNodeWithTag("settings-list").performScrollToNode(hasText("Добавить недостающие группы"));ui.onNodeWithText("Добавить недостающие группы").performClick();waitFor{runBlocking{db.shopDepartmentDao().types().size==30}};ui.onNodeWithText("Добавить недостающие группы").performClick();waitFor{runBlocking{db.productGroupDao().getAllSync().size==31}};assertTrue(runBlocking{db.shopDepartmentDao().getAllSync().isEmpty()});shot("08-standard-library-control")
  }
  @Test fun quickAddFromSearchUsesStorePresetAndFallbackUnit(){
   runBlocking{db.creationPresetDao().setShop(ShopCreationPreset(shop,"online"))};ProductEditingPreferences.preferences(app).edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.UNIT,"ед").commit()

@@ -54,6 +54,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import com.spisokryadom.app.ui.components.favoriteStyle
+import com.spisokryadom.app.ui.components.favoriteWeight
+import com.spisokryadom.app.ui.components.favoriteBackground
+import com.spisokryadom.app.ui.components.favoriteSurface
+import com.spisokryadom.app.ui.components.FavoriteBlock
+import com.spisokryadom.app.ui.components.LocalFavoriteBlock
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -370,7 +376,7 @@ private fun PickProductItem(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = bgColor),
+        colors = CardDefaults.cardColors(containerColor = favoriteBackground(product.isFavorite,bgColor)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, if (pickUi.isLinked) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outlineVariant)
     ) {
@@ -384,12 +390,13 @@ private fun PickProductItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = product.name,
+                        fontWeight=favoriteWeight(product.isFavorite),
                         modifier = Modifier.weight(1f, fill = false),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if(product.isFavorite){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар: ${product.name}",Modifier.size(18.dp),tint=MaterialTheme.colorScheme.primary)}
+                    if(product.isFavorite&&favoriteStyle().star){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар: ${product.name}",Modifier.size(18.dp),tint=MaterialTheme.colorScheme.primary)}
                     if (pickUi.isLinked) {
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
@@ -463,7 +470,7 @@ private fun ShopProductItem(
                 onClick = { },
                 onLongClick = onLongPress
             ),
-        colors = CardDefaults.cardColors(containerColor = bgColor),
+        colors = CardDefaults.cardColors(containerColor = favoriteBackground(product.isFavorite,bgColor)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, if (isInList) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outlineVariant)
     ) {
@@ -477,12 +484,13 @@ private fun ShopProductItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = product.name,
+                        fontWeight=favoriteWeight(product.isFavorite),
                         modifier = Modifier.weight(1f, fill = false),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if(product.isFavorite){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary)}
+                    if(product.isFavorite&&favoriteStyle().star){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary)}
                     if (isInList) {
                         Spacer(modifier = Modifier.width(6.dp))
                         Icon(

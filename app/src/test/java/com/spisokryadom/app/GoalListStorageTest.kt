@@ -137,14 +137,14 @@ class GoalListStorageTest {
         val destination = goals.addCatalogue(b, product, quantity = 3.0)
         goals.setBought(source, true)
         goals.toggleUrgent(source)
-        goals.moveEntries(setOf(source), b)
+        goals.moveEntriesExpected(mapOf(source to a), b)
         assertTrue(goals.snapshot(a).entries.isEmpty())
         val moved = goals.snapshot(b).entries.associateBy { it.id }
         assertEquals(setOf(source, destination), moved.keys)
         assertEquals(2.0, moved.getValue(source).quantity, 0.0)
         assertTrue(moved.getValue(source).isBought)
         assertTrue(moved.getValue(source).isUrgent)
-        goals.moveEntries(setOf(source), null)
+        goals.moveEntriesExpected(mapOf(source to b), null)
         assertNull(db.shoppingListEntryDao().getById(source)!!.listId)
     }
 
@@ -152,7 +152,7 @@ class GoalListStorageTest {
         val a = goals.create("Первый")
         val b = goals.create("Второй")
         val row = goals.addQuick(a, "Покупка")
-        assertTrue(runCatching { goals.moveEntries(setOf(row, 99999L), b) }.isFailure)
+        assertTrue(runCatching { goals.moveEntriesExpected(mapOf(row to a, 99999L to a), b) }.isFailure)
         assertEquals(a, db.shoppingListEntryDao().getById(row)!!.listId)
     }
 
@@ -225,7 +225,7 @@ class GoalListStorageTest {
         goals.clearBought(a)
         assertNull(db.shoppingListEntryDao().getById(first))
         assertNotNull(db.shoppingListEntryDao().getById(second))
-        goals.moveEntries(setOf(second), null)
+        goals.moveEntriesExpected(mapOf(second to b), null)
         assertTrue(runCatching { goals.removeItem(second) }.isFailure)
         assertNotNull(db.shoppingListEntryDao().getById(second))
     }
@@ -340,9 +340,9 @@ class GoalListStorageTest {
             old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt,assignedShopId,note,explicitNoShop)VALUES(19,18,4.5,'кг',1,1,100,200,17,'История',0)")
             old.version = 14
         }
-        val migrated = Room.databaseBuilder(app, AppDatabase::class.java, name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16).build()
+        val migrated = Room.databaseBuilder(app, AppDatabase::class.java, name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18).build()
         try {
-            assertEquals(16, migrated.openHelper.writableDatabase.version)
+            assertEquals(18,migrated.openHelper.writableDatabase.version)
             val row = migrated.shoppingListEntryDao().getById(19)!!
             assertEquals(18L, row.productId)
             assertEquals(17L, row.assignedShopId)

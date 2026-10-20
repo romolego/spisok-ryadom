@@ -120,19 +120,19 @@ class ShoppingWorkflowUiTest {
  @Test fun storeEditorOffersMultipleRankedAddressesAndProductEditorCanRestrictPoints() {
   ui.onNodeWithText("Магазины").performClick();waitText("Красный Яр")
   ui.onNodeWithText("Красный Яр").performTouchInput{longClick()}
-  waitText("Адреса и точки магазина")
-  ui.onNodeWithText("Адреса и точки магазина").performScrollTo()
+  waitText("Место магазина")
+  ui.onNodeWithText("Место магазина").performScrollTo()
   waitText("Мира, 10");ui.onNodeWithText("Мира, 10").assertExists();shot("06-chain-addresses")
-  ui.onNodeWithContentDescription("Изменить адрес: Ленина, 20").performScrollTo().performClick()
+  ui.onNodeWithText("Править").performScrollTo().performClick()
   ui.onNodeWithContentDescription("Точка выше: Ленина, 20").performScrollTo().performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   assertEquals(far,runBlocking{db.shopBranchDao().forShop(yar)}.first().id)
   ui.onNodeWithText("Товары").performClick();waitText("Товаров: 2")
   ui.onNodeWithText("Спагетти").performTouchInput{longClick()}
-  waitText("Точки продажи товара");ui.onNodeWithText("Точки продажи товара").performScrollTo()
-  ui.onNodeWithText("Только выбранные точки").performScrollTo().assertIsDisplayed()
-  ui.onNode(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.Role,androidx.compose.ui.semantics.Role.Switch)).performClick()
-  ui.onNodeWithText("Мира, 10").performScrollTo();shot("07-product-points")
+  waitText("Привязанные магазины");ui.onNodeWithText("1. Красный Яр").performScrollTo().performClick();waitText("Товар в магазине")
+  ui.onNodeWithText("Доступность товара").performScrollTo().performClick();ui.onNodeWithText("Только выбранные точки").performClick()
+  ui.onNode(isToggleable() and hasText("Мира, 10")).performScrollTo().performClick();shot("07-product-points")
+  ui.onNodeWithText("Применить").performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("Товаров: 2")
   runBlocking {assertTrue(db.productShopLinkDao().getLinksForProductSync(pasta).single().restrictBranches);assertEquals(far,db.shopBranchDao().availability(pasta).single().branchId)}
  }

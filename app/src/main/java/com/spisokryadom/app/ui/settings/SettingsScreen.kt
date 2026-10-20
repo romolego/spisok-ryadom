@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
@@ -28,7 +29,7 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
  val listState=androidx.compose.foundation.lazy.rememberLazyListState()
  val state by viewModel.uiState.collectAsStateWithLifecycle();val snack=remember{SnackbarHostState()}
  val recipients by viewModel.recipients.collectAsStateWithLifecycle();val groups by viewModel.productGroups.collectAsStateWithLifecycle();val units by viewModel.units.collectAsStateWithLifecycle();val depts by viewModel.departmentGroups.collectAsStateWithLifecycle()
- val viewport=rememberReorderViewport(listState,recipients.map{"r${it.id}"}+groups.map{"g${it.id}"}+units.map{"u${it.id}"}+depts.map{"d${it.id}"})
+ val viewport=rememberReorderViewport(listState,recipients.map{"r${it.id}"}+groups.map{"g${it.id}:${it.isFavorite}:${it.favoriteOrder}"}+units.map{"u${it.id}"}+depts.map{"d${it.id}:${it.isFavorite}:${it.favoriteOrder}"})
  val recipientEdit by viewModel.recipientsEditMode.collectAsStateWithLifecycle();val groupEdit by viewModel.groupsEditMode.collectAsStateWithLifecycle();val unitEdit by viewModel.unitsEditMode.collectAsStateWithLifecycle();val deptEdit by viewModel.deptGroupsEditMode.collectAsStateWithLifecycle()
  val recipientId by viewModel.selectedRecipientId.collectAsStateWithLifecycle();val groupId by viewModel.selectedGroupId.collectAsStateWithLifecycle();val unitId by viewModel.selectedUnitId.collectAsStateWithLifecycle();val deptName by viewModel.selectedDepartmentGroup.collectAsStateWithLifecycle()
  val recipientProducts by viewModel.selectedRecipientProducts.collectAsStateWithLifecycle();val groupProducts by viewModel.selectedGroupProducts.collectAsStateWithLifecycle();val unitProducts by viewModel.selectedUnitProducts.collectAsStateWithLifecycle();val deptShops by viewModel.selectedDepartmentGroupShops.collectAsStateWithLifecycle()
@@ -40,7 +41,7 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
  presetGroup?.let{group->AlertDialog(modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),onDismissRequest={if(!presetBusy)presetGroup=null},title={Text("Преднастройка группы")},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
   Text(group.name)
   DropdownSelector(label="Получатель по умолчанию",items=recipients,selectedItem=recipients.find{it.id==presetRecipient},itemLabel={it.name},onSelect={if(!presetBusy)presetRecipient=it?.id},noneLabel="Не назначать автоматически")
-  Text("Применяется к новым товарам. Явный выбор получателя в карточке сохраняется.",style=MaterialTheme.typography.bodySmall)
+  HelpButton("Получатель по умолчанию","Применяется к новым товарам. Явный выбор получателя в карточке сохраняется.")
  }},confirmButton={TextButton(enabled=!presetBusy,onClick={presetBusy=true;viewModel.setGroupDefaultRecipient(group.id,presetRecipient){saved->presetBusy=false;if(saved)presetGroup=null}}){Text(if(presetBusy)"Сохранение…"else "Сохранить")}},dismissButton={TextButton(enabled=!presetBusy,onClick={presetGroup=null}){Text("Отмена")}})}
  val widgetSettings by viewModel.widgetSettings.collectAsStateWithLifecycle()
  var editKind by rememberSaveable{mutableStateOf<String?>(null)};var editId by rememberSaveable{mutableStateOf("")};var editName by rememberSaveable{mutableStateOf("")}
@@ -88,58 +89,75 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
     SettingSwitch("Сохранять приоритет магазина при переносе товара",defaults.rememberShopPriorityOnMove,viewModel::setRememberShopPriorityOnMove)
     SettingSwitch("Новые товары по умолчанию сохранять в базе",defaults.saveNewProductToDatabase,viewModel::setGlobalSaveNewProductToDatabase)
     SettingSwitch("Показывать товары до ввода названия",defaults.browseProductsOnAdd,viewModel::setBrowseProductsOnAdd)
-    SettingSwitch("Автосохранение карточек товаров",defaults.autoSaveProductCards,viewModel::setAutoSaveProductCards)
-    Text("Если выключено, изменения карточки сохраняются только кнопкой «Сохранить».",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+    SettingSwitch("Автосохранение карточек товаров",defaults.autoSaveProductCards,viewModel::setAutoSaveProductCards,help="Если выключено, изменения карточки сохраняются только кнопкой «Сохранить». Если включено, незавершённый ввод сохраняется при выходе.")
     }}
    }
    item(key="creation_defaults"){
     OutlinedCard(colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
      Text("Новые товары",style=MaterialTheme.typography.titleMedium)
+     var quantity by rememberSaveable{mutableStateOf(java.math.BigDecimal.valueOf(defaults.missingQuantity).stripTrailingZeros().toPlainString())}
+     var quantityFocused by remember{mutableStateOf(false)}
+     LaunchedEffect(defaults.missingQuantity){if(!quantityFocused)quantity=java.math.BigDecimal.valueOf(defaults.missingQuantity).stripTrailingZeros().toPlainString()}
+     SettingWithHelp("Количество, если не заполнено","Подставляется при сохранении новой карточки, если количество не введено. Явно введённое количество сохраняется без замены."){
+      OutlinedTextField(value=quantity,onValueChange={quantity=it;viewModel.setMissingQuantity(it)},label={Text("Количество, если не заполнено")},singleLine=true,isError=com.spisokryadom.app.util.Quantities.parse(quantity)==null,keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),modifier=Modifier.fillMaxWidth().onFocusChanged{quantityFocused=it.isFocused})
+     }
      DropdownSelector(label="Тип покупки по умолчанию",items=listOf("offline","online"),selectedItem=defaults.defaultPurchaseType,itemLabel={if(it=="online")"Онлайн"else "Офлайн"},onSelect={it?.let(viewModel::setDefaultPurchaseType)},allowNone=false)
-     DropdownSelector(label="Если единица не заполнена",items=(units.map{com.spisokryadom.app.util.Quantities.unit(it.name)}+defaults.missingUnit).filter{it.isNotBlank()}.distinct(),selectedItem=defaults.missingUnit.ifBlank{null},itemLabel={it},onSelect={viewModel.setMissingUnit(it.orEmpty())},noneLabel="Оставлять пустой")
-     Text("Пустое количество при сохранении карточки — 1. Единица подставляется при записи, форма остаётся свободной для ввода.",style=MaterialTheme.typography.bodySmall)
-     OutlinedButton(onClick=viewModel::addStandardCategories){Text("Дополнить стандартными группами")}
-     Text("Добавляет недостающие товарные группы и отделы. Магазины и существующие товары не меняются.",style=MaterialTheme.typography.bodySmall)
+     SettingWithHelp("Если единица не заполнена","Единица подставляется при сохранении новой карточки. До сохранения поле остаётся свободным для ввода."){DropdownSelector(label="Если единица не заполнена",items=(units.map{com.spisokryadom.app.util.Quantities.unit(it.name)}+defaults.missingUnit).filter{it.isNotBlank()}.distinct(),selectedItem=defaults.missingUnit.ifBlank{null},itemLabel={it},onSelect={viewModel.setMissingUnit(it.orEmpty())},noneLabel="Оставлять пустой")}
+
     }}
    }
    item(key="widget_settings"){WidgetSettingsCard(widgetSettings,viewModel::updateWidgetSettings)}
+   item(key="favorite_settings"){FavoriteSettingsCard()}
+   item(key="dropdowns_title"){Column{
+    Text("Выпадающие списки",style=MaterialTheme.typography.headlineSmall,modifier=Modifier.padding(top=16.dp))
+    Row(verticalAlignment=Alignment.CenterVertically){OutlinedButton(onClick=viewModel::addStandardCategories,modifier=Modifier.weight(1f)){Text("Добавить недостающие группы")};HelpButton("Готовые группы","Добавляет недостающие товарные группы и группы магазинов из встроенного набора. Ваши названия, товары, маршруты и связи не меняются. Отделы не назначаются автоматически всем магазинам. Если набор уже полный, повторное нажатие ничего не добавляет.")}
+   }}
    item(key="recipient_title"){ManagerTitle("Получатели",recipientEdit,viewModel::toggleRecipientsEditMode)}
    itemsIndexed(recipients,key={_,v->"recipient_${v.id}"},contentType={_,_->"manager"}){index,item->
     Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,recipientEdit,{viewModel.selectRecipient(item.id)},{edit("recipient",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteRecipient(item)}},{viewport.capture();viewModel.moveRecipientUp(item)},{viewport.capture();viewModel.moveRecipientDown(item)},index==0,index==recipients.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("recipient",item.id,item.accent to item.iconKey)})}
    }
    if(recipientEdit)item(key="recipient_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("recipient","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить получателя")};IconButton(onClick={sortKind="recipient"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Получатели")}}}
    item(key="group_title"){ManagerTitle("Товарные группы",groupEdit,viewModel::toggleGroupsEditMode)}
-   itemsIndexed(groups,key={_,v->"group_${v.id}"},contentType={_,_->"manager"}){index,item->
-    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,groupEdit,{viewModel.selectProductGroup(item.id)},{edit("group",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteProductGroup(item)}},{viewport.capture();viewModel.moveProductGroupUp(item)},{viewport.capture();viewModel.moveProductGroupDown(item)},index==0,index==groups.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("group",item.id,item.accent to item.iconKey)},
+   val favoriteGroups=groups.filter{it.isFavorite}.sortedWith(compareBy<com.spisokryadom.app.data.entity.ProductGroupEntity>{it.favoriteOrder}.thenBy{it.name})
+   if(favoriteGroups.isNotEmpty())item(key="group_favorites_title"){FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные",Modifier.padding(8.dp),style=MaterialTheme.typography.titleSmall)}}
+   itemsIndexed(favoriteGroups+groups,key={i,v->if(i<favoriteGroups.size)"group_favorite_${v.id}"else "group_${v.id}"},contentType={_,_->"manager"}){index,item->
+    val pinned=index<favoriteGroups.size
+    val row:@Composable ()->Unit={ManagerRow(item.name,groupEdit,{viewModel.selectProductGroup(item.id)},{edit("group",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteProductGroup(item)}},{viewport.capture();viewModel.moveProductGroupUp(item)},{viewport.capture();viewModel.moveProductGroupDown(item)},index==0,index==favoriteGroups.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("group",item.id,item.accent to item.iconKey)},
      subtitle=groupPresets.find{it.groupId==item.id}?.recipientId?.let{id->recipients.find{it.id==id}?.name?.let{"Получатель по умолчанию: $it"}},
-     onDefaults={presetRecipient=groupPresets.find{it.groupId==item.id}?.recipientId;presetGroup=item})}
+     onDefaults={presetRecipient=groupPresets.find{it.groupId==item.id}?.recipientId;presetGroup=item},reorderable=pinned,favorite=item.isFavorite,onFavorite={viewModel.favoriteGroup(item.id,!item.isFavorite)})}
+    if(pinned)FavoriteBlock(Modifier.fillMaxWidth()){row()}else Column{if(index==favoriteGroups.size&&favoriteGroups.isNotEmpty())Text("Все группы · А–Я",Modifier.padding(vertical=8.dp),style=MaterialTheme.typography.titleSmall);row()}
    }
-   if(groupEdit)item(key="group_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("group","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить группу товаров")};IconButton(onClick={sortKind="group"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Товарные группы")}}}
+   if(groupEdit)item(key="group_add"){TextButton(onClick={edit("group","","")}){Icon(Icons.Filled.Add,null);Text("Добавить группу товаров")}}
    item(key="unit_title"){ManagerTitle("Единицы измерения",unitEdit,viewModel::toggleUnitsEditMode)}
    itemsIndexed(units,key={_,v->"unit_${v.id}"},contentType={_,_->"manager"}){index,item->
     Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,unitEdit,{viewModel.selectUnit(item.id)},{edit("unit",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteUnit(item)}},{viewport.capture();viewModel.moveUnitUp(item)},{viewport.capture();viewModel.moveUnitDown(item)},index==0,index==units.lastIndex)}
    }
    if(unitEdit)item(key="unit_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("unit","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить единицу")};IconButton(onClick={sortKind="unit"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Единицы измерения")}}}
    item(key="dept_title"){ManagerTitle("Группы магазинов",deptEdit,viewModel::toggleDeptGroupsEditMode)}
-   itemsIndexed(depts,key={_,v->"dept_${v.id}"},contentType={_,_->"manager"}){index,item->
-    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,deptEdit,{viewModel.selectDepartmentGroup(item.id)},{edit("dept",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteDepartmentGroup(item.id)}},{viewport.capture();viewModel.moveDepartment(item.id,-1)},{viewport.capture();viewModel.moveDepartment(item.id,1)},index==0,index==depts.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("dept",item.id,item.accent to item.iconKey)})}
+   val favoriteDepts=depts.filter{it.isFavorite}.sortedWith(compareBy<DepartmentGroup>{it.favoriteOrder}.thenBy{it.name})
+   if(favoriteDepts.isNotEmpty())item(key="dept_favorites_title"){FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные",Modifier.padding(8.dp),style=MaterialTheme.typography.titleSmall)}}
+   itemsIndexed(favoriteDepts+depts,key={i,v->if(i<favoriteDepts.size)"dept_favorite_${v.id}"else "dept_${v.id}"},contentType={_,_->"manager"}){index,item->
+    val pinned=index<favoriteDepts.size
+    val row:@Composable ()->Unit={ManagerRow(item.name,deptEdit,{viewModel.selectDepartmentGroup(item.id)},{edit("dept",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteDepartmentGroup(item.id)}},{viewport.capture();viewModel.moveDepartment(item.id,-1)},{viewport.capture();viewModel.moveDepartment(item.id,1)},index==0,index==favoriteDepts.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("dept",item.id,item.accent to item.iconKey)},reorderable=pinned,favorite=item.isFavorite,onFavorite={viewModel.favoriteDepartment(item.id,!item.isFavorite)})}
+    if(pinned)FavoriteBlock(Modifier.fillMaxWidth()){row()}else Column{if(index==favoriteDepts.size&&favoriteDepts.isNotEmpty())Text("Все группы · А–Я",Modifier.padding(vertical=8.dp),style=MaterialTheme.typography.titleSmall);row()}
    }
-   if(deptEdit)item(key="dept_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("dept","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить группу магазина")};IconButton(onClick={sortKind="dept"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Группы магазинов")}}}
+   if(deptEdit)item(key="dept_add"){TextButton(onClick={edit("dept","","")}){Icon(Icons.Filled.Add,null);Text("Добавить группу магазина")}}
    item{Spacer(Modifier.height(32.dp))}
   }
  }
 }
-@Composable private fun SettingSwitch(label:String,value:Boolean,onChange:(Boolean)->Unit){Row(Modifier.fillMaxWidth().padding(vertical=6.dp).heightIn(min=48.dp).toggleable(value,role=androidx.compose.ui.semantics.Role.Switch,onValueChange=onChange).padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f).padding(end=16.dp),style=MaterialTheme.typography.bodyLarge.copy(lineHeight=21.sp));Switch(value,null)}}
+@Composable internal fun SettingSwitch(label:String,value:Boolean,onChange:(Boolean)->Unit,help:String?=null){Row(Modifier.fillMaxWidth().padding(vertical=6.dp).heightIn(min=48.dp).toggleable(value,role=androidx.compose.ui.semantics.Role.Switch,onValueChange=onChange).padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f).padding(end=16.dp),style=MaterialTheme.typography.bodyLarge.copy(lineHeight=21.sp));if(help!=null)HelpButton(label,help);Switch(value,null)}}
 @Composable private fun ManagerTitle(title:String,edit:Boolean,onEdit:()->Unit){HorizontalDivider();Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text(title,Modifier.weight(1f),style=MaterialTheme.typography.titleLarge);TextButton(onClick=onEdit,modifier=Modifier.testTag("manager-edit-$title")){Text(if(edit)"Готово" else "Править")}}}
-@Composable private fun ManagerRow(name:String,editing:Boolean,onSelect:()->Unit,onRename:()->Unit,onDelete:()->Unit,onUp:()->Unit,onDown:()->Unit,first:Boolean,last:Boolean,accent:String="",iconKey:String="",onStyle:(()->Unit)?=null,subtitle:String?=null,onDefaults:(()->Unit)?=null){
+@Composable private fun ManagerRow(name:String,editing:Boolean,onSelect:()->Unit,onRename:()->Unit,onDelete:()->Unit,onUp:()->Unit,onDown:()->Unit,first:Boolean,last:Boolean,accent:String="",iconKey:String="",onStyle:(()->Unit)?=null,subtitle:String?=null,onDefaults:(()->Unit)?=null,reorderable:Boolean=true,favorite:Boolean=false,onFavorite:(()->Unit)?=null){
  Column(Modifier.fillMaxWidth()){
-  MarkedLabel(name,accent,iconKey,Modifier.fillMaxWidth().clickable(onClick=onSelect).padding(vertical=12.dp))
+  FavoriteMarkedLabel(name,accent,iconKey,favorite,Modifier.fillMaxWidth().clickable(onClick=onSelect).padding(vertical=12.dp))
   subtitle?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
   if(editing)Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically){
-   ReorderButtons(onUp,onDown,!first,!last,"Вверх: $name","Вниз: $name")
-   if(onDefaults!=null)IconButton(onClick=onDefaults){Icon(Icons.Filled.PersonAdd,"Преднастройка: $name")}
-   if(onStyle!=null)IconButton(onClick=onStyle){Icon(Icons.Filled.Palette,"Оформление: $name")}
-   IconButton(onClick=onRename){Icon(Icons.Filled.Edit,"Переименовать: $name")};IconButton(onClick=onDelete){Icon(Icons.Filled.Delete,"Удалить: $name")}
+   if(reorderable)ReorderButtons(onUp,onDown,!first,!last,"Вверх: $name","Вниз: $name")
+   if(onFavorite!=null)IconButton(onClick=onFavorite){Icon(if(favorite)Icons.Filled.Star else Icons.Filled.StarBorder,if(favorite)"Убрать из избранного: $name"else "В избранное: $name")}
+   if((onFavorite==null||!reorderable)&&onDefaults!=null)IconButton(onClick=onDefaults){Icon(Icons.Filled.PersonAdd,"Преднастройка: $name")}
+   if((onFavorite==null||!reorderable)&&onStyle!=null)IconButton(onClick=onStyle){Icon(Icons.Filled.Palette,"Оформление: $name")}
+   if(onFavorite==null||!reorderable){IconButton(onClick=onRename){Icon(Icons.Filled.Edit,"Переименовать: $name")};IconButton(onClick=onDelete){Icon(Icons.Filled.Delete,"Удалить: $name")}}
   }
  }
 }

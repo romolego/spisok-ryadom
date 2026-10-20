@@ -87,7 +87,7 @@ class Audit121SynchronizationTest {
         val original = products.getProductById(product)!!
         val originalLinks = products.getShopLinksForProductSync(product)
         val originalAvailability = products.branchAvailability(product)
-        products.setFavorite(otherProduct, true)
+        BatchRepository(db,products,basket).changeProducts(setOf(otherProduct),ProductBatchChange.Favorite(true))
         val raw = currentDraft()
         assertTrue("An empty subset is an unfinished restricted choice, not all points", raw.state.branchSelections.containsKey(shop))
         assertTrue(raw.state.branchSelections.getValue(shop).isEmpty())
@@ -156,17 +156,19 @@ class Audit121SynchronizationTest {
         assertEquals(setOf(first), products.branchAvailability(product).map { it.branchId }.toSet())
     }
 
-    @Test fun creatingPointForRestrictedProductSurvivesLaterDraftRecovery() = runBlocking {
+    @Test fun addingStorePointDoesNotExpandRestrictedProductAvailabilityDuringRecovery() = runBlocking {
         draft(mapOf(shop to setOf(first)))
-        val added = shops.createPoint(shop, "Алексеева, 10", productId = product)
+        val originalPoints=shops.branches(shop)
+        shops.saveWithDepartments(shops.getShopById(shop)!!,shops.getDepartmentsByShopIdSync(shop),originalPoints+ShopBranchEntity(shopId=shop,address="Алексеева, 10"))
+        val added=shops.branches(shop).single{it.address=="Алексеева, 10"}.id
         assertEquals(shop, db.shopBranchDao().get(added)!!.shopId)
-        assertEquals(setOf(first, added), products.branchAvailability(product).map { it.branchId }.toSet())
-        assertEquals(setOf(first, added), currentDraft().state.branchSelections[shop])
+        assertEquals(setOf(first), products.branchAvailability(product).map { it.branchId }.toSet())
+        assertEquals(setOf(first), currentDraft().state.branchSelections[shop])
         ProductDraftStore.recover(app, products, shops)
-        assertEquals(setOf(first, added), products.branchAvailability(product).map { it.branchId }.toSet())
+        assertEquals(setOf(first), products.branchAvailability(product).map { it.branchId }.toSet())
         assertTrue(products.getShopLinksForProductSync(product).single().restrictBranches)
         assertEquals(rawNote, products.getProductById(product)!!.note)
-        assertEquals(added, shops.createPoint(shop, "Алексеева, 10", productId = product))
+        shops.saveWithDepartments(shops.getShopById(shop)!!,shops.getDepartmentsByShopIdSync(shop),shops.branches(shop))
         assertEquals(3, shops.branches(shop).size)
     }
 
@@ -233,7 +235,7 @@ class Audit121SynchronizationTest {
         ))
         ProductDraftStore.write(preferences, "product_$product", raw)
         val canonical = products.getProductById(product)!!
-        products.setFavorite(otherProduct, true)
+        BatchRepository(db,products,basket).changeProducts(setOf(otherProduct),ProductBatchChange.Favorite(true))
         val preserved = currentDraft()
         assertEquals("0,", preserved.state.defaultQuantity)
         assertEquals(rawNote, preserved.state.note)

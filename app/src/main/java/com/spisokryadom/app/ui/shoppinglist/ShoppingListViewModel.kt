@@ -87,7 +87,7 @@ data class EntryGroup(
     val branchId: Long? = null,
     val address: String? = null,
     val venueId:Long?=null,val venueName:String?=null,val venueAddress:String?=null,val accent:String="",val iconKey:String="",
-    val shoppingBackground:String="",val customShopName:String?=null,val customShopAddress:String?=null
+    val shoppingBackground:String="",val shopIconKey:String="",val shopLogoUri:String?=null,val customShopName:String?=null,val customShopAddress:String?=null
 ) {
     /** A retailer ID is a command target; a place key identifies one visible purchase block. */
     val placeKey: String get() = if(customShopName!=null||customShopAddress!=null) "hint:"+java.security.MessageDigest.getInstance("SHA-256").digest((customShopName.orEmpty()+"\u0000"+customShopAddress.orEmpty()).toByteArray(Charsets.UTF_8)).joinToString(""){"%02x".format(it)} else "${groupId ?: 0}:${branchId ?: 0}"
@@ -313,7 +313,7 @@ class ShoppingListViewModel(
                     groupId=shop.id,
                     groupName=if(shop.cityId==cityId)shop.name else "${shop.name} · ${cityNames[shop.cityId] ?: "Другой город"}",
                     entries=sorted, deptSubGroups=subs, branchId=branch, address=rows.first().branchAddress,
-                    shoppingBackground=shop.shoppingBackground,
+                    shoppingBackground=shop.shoppingBackground,shopIconKey=shop.iconKey,shopLogoUri=shop.logoUri,
                     hasBoughtEntries=sorted.any { it.entry.isBought }, canClearBought=true,
                     isCollapsed=collapsed, totalCount=sorted.size, boughtCount=sorted.count { it.entry.isBought },
                     showUrgentWhenCollapsed=resolveShowUrgentInCollapsed(shop,globalShowUrgent),
@@ -522,13 +522,6 @@ class ShoppingListViewModel(
         purchaseCommand {
             shoppingListRepository.changeShop(entryId, newShopId, newDepartmentId, strictVisible = true)
         }
-    }
-
-    suspend fun getLinkedShopsForProduct(productId: Long): List<ShopEntity> {
-        val links = productRepository.getShopLinksForProductSync(productId)
-        val shopMap = _shops.value
-        val city=shopRepository.locations.currentId()
-        return links.mapNotNull { link -> shopMap[link.shopId] }.filter{it.cityId==city}
     }
 
     fun updatePurchaseDetails(entryId: Long, quantity: Double, note: String?, comment: String?) {

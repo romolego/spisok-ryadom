@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.components
+import androidx.compose.runtime.CompositionLocalProvider
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -122,89 +123,17 @@ fun InputDialog(
 }
 
 /**
- * Диалог ввода текста с подсказками из существующих значений.
- * Подсказки работают через единый механизм приблизительного поиска [FuzzySearch].
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun InputDialogWithSuggestions(
-    title: String,
-    initialValue: String = "",
-    label: String = "",
-    suggestions: List<String>,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var text by rememberSaveable(title,initialValue) { mutableStateOf(initialValue) }
-    var expanded by remember { mutableStateOf(false) }
-    val filteredSuggestions = remember(text, suggestions) {
-        if (text.isBlank()) suggestions
-        else FuzzySearch.filterAndSort(suggestions, text)
-    }
-
-    AlertDialog(
-        modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                ExposedDropdownMenuBox(
-                    expanded = expanded && filteredSuggestions.isNotEmpty(),
-                    onExpandedChange = { expanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = text,
-                        onValueChange = {
-                            text = it
-                            expanded = true
-                        },
-                        label = { Text(label) },
-                        singleLine = true,
-                        modifier = Modifier
-                            .menuAnchor(MenuAnchorType.PrimaryEditable)
-                            .fillMaxWidth()
-                    )
-                    if (filteredSuggestions.isNotEmpty()) {
-                        ExposedDropdownMenu(
-                            expanded = expanded && filteredSuggestions.isNotEmpty(),
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            filteredSuggestions.forEach { suggestion ->
-                                DropdownMenuItem(
-                                    text = { Text(suggestion) },
-                                    onClick = {
-                                        text = suggestion
-                                        expanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (text.isNotBlank()) onConfirm(text.trim()) },
-                enabled = text.isNotBlank()
-            ) { Text("Сохранить") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
-}
-
-/**
  * Диалог множественного выбора из существующих элементов с возможностью создания новых.
  * Уже добавленные элементы показываются как неактивные с пометкой «(добавлена)».
  */
 @Composable
-fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems:Set<String>,newItemLabel:String="Новое название",onConfirm:(List<String>)->Unit,onDismiss:()->Unit) {
+fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems:Set<String>,newItemLabel:String="Новое название",onConfirm:(List<String>)->Unit,onDismiss:()->Unit,favorites:List<String> = emptyList(),alphabetical:Boolean=false) {
  var selected by remember{mutableStateOf(setOf<String>())};var input by remember{mutableStateOf("")};var custom by remember{mutableStateOf(listOf<String>())}
  val normalize=com.spisokryadom.app.util.FuzzySearch::normalize
  val added=alreadyAddedItems.map(normalize).toSet()
- val rows=(availableItems+alreadyAddedItems+custom).distinctBy(normalize)
+ val rawRows=(availableItems+alreadyAddedItems+custom).distinctBy(normalize)
+ val rows=if(alphabetical)com.spisokryadom.app.util.alphabetical(rawRows){it}else rawRows
+ val pinned=favorites.mapNotNull{fav->rows.find{normalize(it)==normalize(fav)}}.distinctBy(normalize)
  fun add(){val value=input.trim();if(value.isNotBlank()){
   val known=rows.find{normalize(it)==normalize(value)}
   if(normalize(value) !in added){if(known!=null)selected=selected+known else {custom=custom+value;selected=selected+value}}
@@ -213,12 +142,16 @@ fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems
  val width=minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-32.dp)
  AlertDialog(modifier=Modifier.width(width),properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false),onDismissRequest=onDismiss,title={Text(title)},text={
   Column(Modifier.verticalScroll(rememberScrollState())){
-   rows.forEach{name->key(name){
+   (pinned.map{it to true}+rows.map{it to false}).forEachIndexed{index,(name,pin)->key(name,pin){
+    if(pinned.isNotEmpty()&&(index==0||index==pinned.size))Text(if(index==0)"Избранные"else "Все значения",style=MaterialTheme.typography.labelMedium)
+    val row:@Composable ()->Unit={
     val locked=normalize(name) in added;val checked=locked||name in selected
     Row(Modifier.fillMaxWidth().toggleable(value=checked,enabled=!locked,role=Role.Checkbox,onValueChange={v->selected=if(v)selected+name else selected-name}).padding(vertical=2.dp),verticalAlignment=Alignment.CenterVertically){
      Box(Modifier.size(48.dp),contentAlignment=Alignment.Center){Checkbox(checked,onCheckedChange=null,enabled=!locked)}
-     Column(Modifier.weight(1f)){Text(name,style=MaterialTheme.typography.bodyMedium,color=if(locked)MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface);if(locked)Text("Добавлена",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
+     Column(Modifier.weight(1f)){FavoriteMarkedLabel(name,favorite=pinned.any{normalize(it)==normalize(name)},small=true);if(locked)Text("Добавлена",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
     }
+    }
+    if(pin)FavoriteBlock(Modifier.fillMaxWidth()){row()}else row()
    }}
    Spacer(Modifier.height(8.dp))
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
@@ -241,7 +174,8 @@ fun <T> DropdownSelector(
     allowCreate: Boolean = false,
     onCreateNew: (() -> Unit)? = null,
     createLabel: String = "Создать...",
-    itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано",allowNone:Boolean=true,onOpen:()->Unit={}
+    itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано",allowNone:Boolean=true,onOpen:()->Unit={},itemVector:(T)->androidx.compose.ui.graphics.vector.ImageVector?={null},
+    itemFavorite:(T)->Boolean={false},favoriteOrder:(T)->Int={0},alphabetical:Boolean=false
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -252,7 +186,7 @@ fun <T> DropdownSelector(
     ) {
         OutlinedTextField(
             value = selectedItem?.let { itemLabel(it) } ?: noneLabel,
-            leadingIcon=selectedItem?.let { item -> appearanceIcon(itemIcon(item))?.let{vector->{Icon(vector,null,tint=accentColor(itemAccent(item))?:MaterialTheme.colorScheme.primary)}}},
+            leadingIcon=selectedItem?.let { item -> (itemVector(item)?:appearanceIcon(itemIcon(item)))?.let{vector->{Icon(vector,null,tint=accentColor(itemAccent(item))?:MaterialTheme.colorScheme.primary)}}},
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -265,14 +199,25 @@ fun <T> DropdownSelector(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            items.forEach { item ->
+            val base=if(alphabetical)com.spisokryadom.app.util.alphabetical(items,itemLabel)else items
+            val pinned=base.filter(itemFavorite).sortedBy(favoriteOrder)
+            val rows=if(pinned.isEmpty())base.map{it to false}else pinned.map{it to true}+base.map{it to false}
+            rows.forEachIndexed { index,(item,pinnedCopy) ->
+                if(pinned.isNotEmpty()&&(index==0||index==pinned.size)){
+                    if(index==0)FavoriteBlock{Text("Избранные",Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=8.dp),style=MaterialTheme.typography.labelMedium)}
+                    else Text("Все значения",Modifier.padding(horizontal=16.dp,vertical=8.dp),style=MaterialTheme.typography.labelMedium)
+                }
+                CompositionLocalProvider(LocalFavoriteBlock provides pinnedCopy){
                 DropdownMenuItem(
-                    text = { MarkedLabel(itemLabel(item),itemAccent(item),itemIcon(item),small=true) },
+                    modifier=if(pinnedCopy)Modifier.favoriteBlock()else Modifier,
+                    text = { FavoriteMarkedLabel(itemLabel(item),itemAccent(item),if(itemVector(item)==null)itemIcon(item)else "",itemFavorite(item),small=true) },
+                    leadingIcon=itemVector(item)?.let{v->{Icon(v,null,tint=MaterialTheme.colorScheme.primary)}},
                     onClick = {
                         onSelect(item)
                         expanded = false
                     }
                 )
+                }
             }
             if(allowNone) {
                 DropdownMenuItem(
@@ -300,44 +245,6 @@ fun <T> DropdownSelector(
 
 
         }
-    }
-}
-
-
-/**
- * Поле количества и единицы измерения.
- * Простая версия без подсказок — используется там, где подсказки не нужны.
- */
-@Composable
-fun QuantityUnitInput(
-    quantity: String,
-    unit: String,
-    onQuantityChange: (String) -> Unit,
-    onUnitChange: (String) -> Unit,
-    quantityLabel: String = "Количество",
-    unitLabel: String = "Ед. изм.",
-    modifier: Modifier = Modifier
-) {
-    Row(modifier = modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = quantity,
-            onValueChange = { value ->
-                if (value.isEmpty() || value.matches(Regex("^\\d*[.,]?\\d*$"))) {
-                    onQuantityChange(value)
-                }
-            },
-            label = { Text(quantityLabel) },
-            singleLine = true,
-            modifier = Modifier.weight(1f)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        OutlinedTextField(
-            value = unit,
-            onValueChange = onUnitChange,
-            label = { Text(unitLabel) },
-            singleLine = true,
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 

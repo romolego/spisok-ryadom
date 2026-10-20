@@ -1,0 +1,63 @@
+{
+  "version": "0.18.0",
+  "sourceCommit": "973c977",
+  "description": "Карточка магазина: единый редактор места, значок/логотип, поле цвета и предпросмотр.",
+  "apk": {
+    "version": "0.18.0",
+    "versionCode": 25,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2021350,
+    "sha256": "49599b48e6813011da53c0d61c3dabb7c60c8227f6d6d6b59c302997541eaa85",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 17,
+    "backupFormat": 13
+  },
+  "checks": {
+    "classes": 77,
+    "tests": 931,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testExecution": {
+    "kind": "complete regression plus full recheck of six adapted historical test classes",
+    "completeRun": {
+      "classes": 77,
+      "tests": 931,
+      "failures": 10,
+      "errors": 0,
+      "skipped": 0
+    },
+    "adaptedTestsRecheck": {
+      "classes": 6,
+      "tests": 113,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "finalUniqueResults": {
+      "classes": 77,
+      "tests": 931,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "adaptedTestFiles": [
+      "app/src/test/java/com/spisokryadom/app/MarketUiTest.kt",
+      "app/src/test/java/com/spisokryadom/app/PurchasePlacesUiTest.kt",
+      "app/src/test/java/com/spisokryadom/app/Refine170DataTest.kt",
+      "app/src/test/java/com/spisokryadom/app/RefinementDataTest.kt",
+      "app/src/test/java/com/spisokryadom/app/ShoppingRepresentationsTest.kt",
+      "app/src/test/java/com/spisokryadom/app/ShoppingWorkflowUiTest.kt"
+    ],
+    "productionSchemaBuildUnchanged": true,
+    "testCasesPreserved": true
+  },
+  "lint": {
+    "Error": 0,
+    "Warning": 125,
+    "Hint": 3
+  },
+  "physicalPhoneTested": false,
+  "publicationNote": "Previously delivered local APK, published unchanged with 0.20.1 history. Tests are historical complete run plus documented class rechecks, not a new single run."
+}

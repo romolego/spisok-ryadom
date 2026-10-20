@@ -194,13 +194,6 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
         db.productDao().deleteUnusedTemporary()
     }
 
-    /** A move preserves row IDs, quantity and historical flags; it never merges across owners. */
-    suspend fun moveEntries(ids: Set<Long>, targetListId: Long?) = db.withTransaction {
-        require(ids.isNotEmpty()) { "Выберите покупки" }
-        if (targetListId != null) requireList(targetListId)
-        val rows = ids.map { entries.getById(it) ?: error("Покупка удалена") }
-        rows.forEach { entries.update(it.copy(listId = targetListId, updatedAt = System.currentTimeMillis())) }
-    }
 
     /** A selection is valid only while every row still belongs to its original owner. */
     suspend fun moveEntriesExpected(expectedOwners: Map<Long, Long?>, targetListId: Long?) = db.withTransaction {

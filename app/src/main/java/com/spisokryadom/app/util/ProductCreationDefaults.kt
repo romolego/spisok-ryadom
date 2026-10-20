@@ -2,11 +2,12 @@ package com.spisokryadom.app.util
 
 import android.content.SharedPreferences
 
-data class ProductCreationDefaults(val purchaseType:String="offline",val missingUnit:String="шт") {
+data class ProductCreationDefaults(val purchaseType:String="offline",val missingUnit:String="шт",val missingQuantity:Double=1.0) {
  companion object {
   const val TYPE="new_product_purchase_type"
+  const val QUANTITY="new_product_missing_quantity"
   const val UNIT="new_product_missing_unit"
-  fun read(prefs:SharedPreferences)=ProductCreationDefaults(prefs.getString(TYPE,"offline").orEmpty().takeIf{it in setOf("online","offline")}?:"offline",Quantities.unit(prefs.getString(UNIT,"шт").orEmpty()))
+  fun read(prefs:SharedPreferences)=ProductCreationDefaults(prefs.getString(TYPE,"offline").orEmpty().takeIf{it in setOf("online","offline")}?:"offline",Quantities.unit(prefs.getString(UNIT,"шт").orEmpty()),Quantities.parse(prefs.getString(QUANTITY,"1").orEmpty())?:1.0)
  }
 }
 

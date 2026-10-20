@@ -25,5 +25,7 @@ data class ShopEntity(
     val cityId: Long = 1,
     val networkId:Long? = null,
     /** Empty means transparent; color is independent of group/product accents. */
-    @androidx.room.ColumnInfo(defaultValue="''") val shoppingBackground:String=""
+    @androidx.room.ColumnInfo(defaultValue="''") val shoppingBackground:String="",
+    @androidx.room.ColumnInfo(defaultValue="''") val iconKey:String="",
+    val logoUri:String?=null
 )

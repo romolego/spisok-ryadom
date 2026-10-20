@@ -14,7 +14,6 @@ import com.spisokryadom.app.widget.WidgetItem
 import com.spisokryadom.app.widget.WidgetSettings
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.*
-import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
@@ -97,7 +96,7 @@ class GoalListIntegrationTest {
         val before = state()
         val file = export()
         val root = manifest(file)
-        assertEquals(12, root.getInt("version"))
+        assertEquals(14,root.getInt("version"))
         assertEquals(2, backup.inspect(file).goalLists)
         assertEquals(3, backup.inspect(file).entries)
         goals.deleteList(hidden)
@@ -419,17 +418,4 @@ class GoalListIntegrationTest {
         assertTrue(renderShoppingText(shopping.textSnapshot()).contains("[Для праздника]"))
     }
 
-    @Test fun legacyTextTransactionUndoNeverCollectsHiddenPurchases() = runBlocking {
-        val regular = shopping.addProduct(catalogue(), quantity = 2.0, choice = ShopChoice.NONE)
-        val hidden = goals.create("Защищён")
-        val protected = goals.addQuick(hidden, "Скрытая покупка")
-        val before = db.shoppingListEntryDao().getById(protected)!!
-        val regularRow = db.shoppingListEntryDao().getById(regular)!!
-        val receipt = shopping.replacePendingText(shopping.textSnapshot().entries, listOf(ShoppingListRepository.PurchaseRequest(
-            productId = regularRow.productId, name = "Огурцы", quantity = 3.0, unit = "кг", choice = ShopChoice.NONE, entryId = regular)))
-        assertFalse(protected in receipt.before || protected in receipt.after)
-        shopping.undoBatch(receipt)
-        assertEquals(before, db.shoppingListEntryDao().getById(protected))
-        assertEquals(2.0, db.shoppingListEntryDao().getById(regular)!!.quantity, 0.0)
-    }
 }

@@ -10,5 +10,7 @@ data class ProductGroupEntity(
     val name: String,
     val displayOrder: Int = 0,
     @androidx.room.ColumnInfo(defaultValue="''") val accent:String="",
-    @androidx.room.ColumnInfo(defaultValue="''") val iconKey:String=""
+    @androidx.room.ColumnInfo(defaultValue="''") val iconKey:String="",
+    @androidx.room.ColumnInfo(defaultValue="0") val isFavorite:Boolean=false,
+    @androidx.room.ColumnInfo(defaultValue="0") val favoriteOrder:Int=0
 )

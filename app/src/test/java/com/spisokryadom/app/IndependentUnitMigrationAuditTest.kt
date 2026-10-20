@@ -16,7 +16,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.SQLiteMode
-import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[28],application=Application::class)
@@ -36,8 +35,8 @@ class IndependentUnitMigrationAuditTest {
    old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt) VALUES(1,1,2.0,'КГ.',0,0,1,1)")
    old.version=7
   }
-  val db=Room.databaseBuilder(context,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_7_8,AppDatabase.MIGRATION_8_9,AppDatabase.MIGRATION_9_10,AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16).build()
-  assertEquals(16,db.openHelper.writableDatabase.version)
+  val db=Room.databaseBuilder(context,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_7_8,AppDatabase.MIGRATION_8_9,AppDatabase.MIGRATION_9_10,AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18).build()
+  assertEquals(18,db.openHelper.writableDatabase.version)
   val locations=LocationRepository(db.cityDao(),db.shopDao(),context.getSharedPreferences("location_prefs",0))
   try{
    val basket=ShoppingListRepository(db.shoppingListEntryDao(),db,locations)
@@ -49,7 +48,7 @@ class IndependentUnitMigrationAuditTest {
   }finally{locations.closeForTest();db.close();context.deleteDatabase(name)}
  }
 
- @Test fun existingVersion8AliasesConsolidateSafelyAndBatchUndoRestoresEveryRow()=runBlocking {
+ @Test fun existingVersion8AliasesConsolidateSafelyWithoutChangingAnnotatedOrBoughtRows()=runBlocking {
   val context=ApplicationProvider.getApplicationContext<Application>()
   val db=Room.inMemoryDatabaseBuilder(context,AppDatabase::class.java).allowMainThreadQueries().build()
   db.cityDao().insert(CityEntity(1,"Мой город"))
@@ -65,17 +64,15 @@ class IndependentUnitMigrationAuditTest {
    val pieces=dao.insert(ShoppingListEntryEntity(productId=p,quantity=6.0,unit="шт"))
    val before=dao.getAllSync().associateBy{it.id}
    val basket=ShoppingListRepository(dao,db,locations)
-   val receipt=basket.addBatch(listOf(ShoppingListRepository.PurchaseRequest(p,"Картофель",1.0,"кг")),1)
+   basket.addProduct(p,1.0,"кг",ShopChoice.NONE)
    assertEquals(4,dao.getAllSync().size)
    assertEquals(6.0,dao.getById(first)!!.quantity,0.0)
    assertEquals("кг",dao.getById(first)!!.unit);assertTrue(dao.getById(first)!!.isUrgent)
    assertNull(dao.getById(second))
    listOf(note,bought,pieces).forEach{assertEquals(before[it],dao.getById(it))}
-   basket.undoBatch(receipt)
-   assertEquals("Undo must also restore rows consolidated while adding",before,dao.getAllSync().associateBy{it.id})
    assertEquals(first,basket.addProduct(p,1.0,"кг",ShopChoice.NONE))
    assertEquals(first,basket.addProduct(p,1.0,"КИЛОГРАММ",ShopChoice.NONE))
-   assertEquals(7.0,dao.getById(first)!!.quantity,0.0)
+   assertEquals(8.0,dao.getById(first)!!.quantity,0.0)
    assertEquals(4,dao.getAllSync().size)
   }finally{locations.closeForTest();db.close()}
  }

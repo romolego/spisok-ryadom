@@ -151,7 +151,7 @@ class IndependentDomainAuditTest {
   db.productShopLinkDao().insert(ProductShopLinkEntity(productId=p,shopId=b,departmentId=preferred))
   basket.changeShop(id,b,null)
   assertEquals(preferred,basket.getEntryById(id)!!.assignedDepartmentId)
-  basket.updateEntryDetails(id,3.0,b,"  Для супа  ","  Не резать  ")
+  basket.updatePurchaseDetails(id,3.0,"  Для супа  ","  Не резать  ")
   val result=basket.getEntryById(id)!!
   assertTrue(result.isBought);assertTrue(result.isUrgent)
   assertEquals(3.0,result.quantity,0.0);assertEquals(preferred,result.assignedDepartmentId)

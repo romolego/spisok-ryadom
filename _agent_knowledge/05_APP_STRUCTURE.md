@@ -1,3 +1,19 @@
+## Аудит0.20.1
+
+Структура0.20.1: DemoDataProvider, legacy text harness/parser и неиспользуемые UI/команды удалены. ShoppingBlockColor хранит действующий общий helper. Общая запись группы магазина и generation guard описаны41/47. Room18/ZIP14.
+
+## Уточнение0.20 ·20 октября2026
+
+FavoriteAppearanceProvider в теме, FavoriteBlock/MarkedLabel и prefs задают общую политику избранного. ProductGroupEntity/DepartmentTypeEntity получили isFavorite/favoriteOrder. ProductCreationDefaults дополнен missingQuantity. Room18/ZIP14. Подробнее46_FAVORITES_SETTINGS_200.md.
+
+## Карточка товара0.19 ·20 октября2026
+
+ProductShopSettings.kt: ProductShopDialog (ограниченный диалог с прокруткой тела), ProductOutletOptions (null/all, subset, независимый priority). ProductCardViewModel.configureShop — единое raw-изменение настроек магазина. BranchPhotoEditor.compact включается только карточкой товара. Entity/Room17/ZIP13 прежние; старые таблицы групп по точкам оставлены для совместимости. См.45.
+
+## Карточка магазина0.18 ·20 октября2026
+
+Room17 добавляет в shops optional iconKey/logoUri. ShopSymbol используется в списке магазинов, заголовках покупок и preview. Полная копияZIP13 переносит PNG логотипа; прежние данные/ID сохраняются. Подробнее44.
+
 ## Организация проекта и публикация ·20 октября2026
 
 Текущее связное описание слоёв, сущностей и потоков находится в41_ARCHITECTURE_ATLAS.md; таблица файлов и правила проверки —42_MAINTENANCE_GUIDE.md. Исторические уточнения ниже сохраняют причины эволюции.

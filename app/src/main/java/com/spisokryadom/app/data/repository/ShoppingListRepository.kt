@@ -4,13 +4,11 @@ import com.spisokryadom.app.data.db.AppDatabase
 import com.spisokryadom.app.data.dao.ShoppingListEntryDao
 import com.spisokryadom.app.data.entity.*
 import com.spisokryadom.app.util.Quantities
-import com.spisokryadom.app.util.FuzzySearch
 import kotlinx.coroutines.flow.Flow
 
 enum class ShopChoice { AUTO, NONE, EXPLICIT }
 class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private val db: AppDatabase, private val locations: LocationRepository, private val catalogueEdits:CatalogueEdits?=null) {
     fun getAllEntries(): Flow<List<ShoppingListEntryEntity>> = entryDao.getAll()
-    fun getEntriesByShop(shopId: Long) = entryDao.getByShopId(shopId)
     suspend fun getEntryById(id: Long) = entryDao.getById(id)
     private suspend fun assignments(productId:Long?=null)=com.spisokryadom.app.domain.AssignmentCatalogue(
         if(productId==null)db.productDao().getAllSync()else listOfNotNull(db.productDao().getById(productId)),db.shopDao().getAllSync(),
@@ -24,12 +22,6 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         ShopChoice.EXPLICIT->com.spisokryadom.app.domain.RetailerChoice.Exact(requireNotNull(id){"Выберите магазин"})
     }
     private fun outletChoice(id:Long?)=when(id){null,-1L->com.spisokryadom.app.domain.OutletChoice.Preferred;0L->com.spisokryadom.app.domain.OutletChoice.Unassigned;else->com.spisokryadom.app.domain.OutletChoice.Exact(id)}
-    suspend fun resolveShop(productId:Long,cityId:Long,choice:ShopChoice,explicitId:Long?):Pair<Long?,Long?> = assignments(productId).retailer(productId,cityId,retailerChoice(choice,explicitId))
-    data class AssignmentPreview(val shops:Map<Long,ShopEntity>,val automaticShops:Map<Long,Long?>)
-    suspend fun assignmentPreview(productIds:Set<Long>,cityId:Long):AssignmentPreview=db.withTransaction{
-        val catalogue=assignments()
-        AssignmentPreview(db.shopDao().getAllSync().associateBy{it.id},productIds.associateWith{catalogue.retailer(it,cityId,com.spisokryadom.app.domain.RetailerChoice.Automatic).first})
-    }
     suspend fun addProduct(productId: Long, quantity: Double?=null, unit: String?=null, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null,listId:Long?=null,plannedUnitPrice:Double?=null): Long {
         val cityId=locations.currentId()
         return db.withTransaction {
@@ -60,9 +52,6 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
             entryDao.insert(row)
         }
     }
-    /** Internal restoration boundary: preserves deliberate/historical assignments.
-     * Interactive additions must use addProduct/addNewProduct and the current catalogue policy. */
-    internal suspend fun addEntry(entry: ShoppingListEntryEntity): Long = addOrMergeEntry(entry)
     internal suspend fun addOrMergeEntry(entry: ShoppingListEntryEntity): Long = db.withTransaction {
         validateTarget(entry)
         entryDao.addOrMerge(entry.copy(quantity=Quantities.valid(entry.quantity),unit=Quantities.unit(entry.unit)))
@@ -124,17 +113,6 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         val entry=entryDao.getById(id)?:error("Покупка уже удалена")
         entryDao.update(entry.copy(quantity=Quantities.valid(quantity),note=note?.trim()?.ifBlank{null},comment=comment?.trim()?.ifBlank{null},updatedAt=System.currentTimeMillis()))
     }
-    suspend fun updateEntryDetails(id: Long, quantity: Double, shopId: Long?, note: String?, comment: String?) = db.withTransaction {
-        val entry = entryDao.getById(id) ?: return@withTransaction
-        val point=if(shopId==entry.assignedShopId)entry.assignedBranchId else resolveBranch(entry.productId,shopId)
-        val department=resolveDepartment(entry,shopId,null,true)
-        val changed = entry.copy(explicitNoShop=if(shopId==entry.assignedShopId)entry.explicitNoShop else shopId==null,awaitingShopCityId=entry.awaitingShopCityId.takeIf{shopId==entry.assignedShopId},quantity = Quantities.valid(quantity), assignedShopId = shopId, customShopName=null,customShopAddress=null,assignedBranchId=point,
-            assignedDepartmentId = if(shopId==entry.assignedShopId)department else departmentAtPoint(entry.productId,shopId,point,department),
-            note = note?.trim()?.ifBlank { null }, comment = comment?.trim()?.ifBlank { null },
-            updatedAt = System.currentTimeMillis())
-        validateTarget(changed)
-        entryDao.update(changed)
-    }
     /** Preferred product link, then a department with the old name in the target shop. */
     private suspend fun resolveDepartment(entry: ShoppingListEntryEntity, shopId: Long?, explicitId: Long?, keepOnSameShop: Boolean): Long? {
         if (shopId == null) {
@@ -181,47 +159,6 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
                 entryDao.update(entry.copy(explicitNoShop=false,awaitingShopCityId=city.takeIf{target.shopId==null},assignedShopId=target.shopId,assignedDepartmentId=target.departmentId,assignedBranchId=target.branchId,updatedAt=System.currentTimeMillis()))
             }
         }
-    }
-    data class PurchaseRequest(val productId:Long?,val name:String,val quantity:Double,val unit:String,val permanent:Boolean=false,val choice:ShopChoice=ShopChoice.AUTO,val shopId:Long?=null,val entryId:Long?=null,val branchId:Long?=null,val assignmentExplicit:Boolean=false)
-    data class BatchReceipt(val before:Map<Long,ShoppingListEntryEntity>,val after:Map<Long,ShoppingListEntryEntity>,val count:Int)
-    suspend fun addBatch(requests:List<PurchaseRequest>,expectedCityId:Long):BatchReceipt {
-        require(requests.isNotEmpty()) { "Выберите хотя бы одну строку" }
-        require(requests.size<=200)
-        require(locations.currentId()==expectedCityId) { "Город изменился. Проверьте список ещё раз" }
-        return db.withTransaction {
-            val before=entryDao.getAllSync().associateBy{it.id};val catalogue=assignments();val cards=db.productDao().getAllSync().associateBy{it.id}
-            val created=mutableMapOf<Pair<String,String>,Long>()
-            requests.forEach{request->
-                val key=FuzzySearch.normalize(request.name) to Quantities.unit(request.unit)
-                val existing=request.productId ?: created[key]
-                if(existing!=null){
-                    require(existing in cards||existing in created.values){"Товар удалён"}
-                    val current=if(existing in created.values)assignments(existing)else catalogue
-                    val target=current.resolve(existing,expectedCityId,retailerChoice(request.choice,request.shopId),outletChoice(request.branchId))
-                    if(existing in created.values&&request.permanent)retainCreatedProduct(existing,target.shopId)
-                    entryDao.addOrMerge(ShoppingListEntryEntity(productId=existing,explicitNoShop=request.choice==ShopChoice.NONE,awaitingShopCityId=expectedCityId.takeIf{request.choice==ShopChoice.AUTO&&target.shopId==null},quantity=Quantities.valid(request.quantity),unit=Quantities.unit(request.unit),assignedShopId=target.shopId,assignedDepartmentId=target.departmentId,assignedBranchId=target.branchId))
-                }
-                else addNewProduct(request.name,request.quantity,request.unit,request.permanent,request.choice,request.shopId,request.branchId).also{entryId->created[key]=entryDao.getById(entryId)!!.productId}
-            }
-            val after=entryDao.getAllSync().associateBy{it.id}
-            val affected=(before.keys+after.keys).filter{before[it]!=after[it]}.toSet()
-            BatchReceipt(before.filterKeys{it in affected},after.filterKeys{it in affected},requests.size)
-        }
-    }
-    /** A repeated new line keeps one card; an explicit catalogue choice wins over temporary use. */
-    private suspend fun retainCreatedProduct(productId:Long,shopId:Long?) {
-        val product=db.productDao().getById(productId)?:error("Товар удалён")
-        if(product.isTemporary)db.productDao().update(product.copy(isTemporary=false))
-        if(shopId!=null){
-            val links=db.productShopLinkDao().getLinksForProductSync(productId)
-            if(links.none{it.shopId==shopId})db.productShopLinkDao().insert(ProductShopLinkEntity(productId=productId,shopId=shopId,priority=(links.maxOfOrNull{it.priority}?:0)+1))
-        }
-    }
-    suspend fun undoBatch(receipt:BatchReceipt)=db.withTransaction {
-        val affected=receipt.before.keys+receipt.after.keys
-        affected.forEach{id->require(entryDao.getById(id)==receipt.after[id]){"Покупки уже изменены; автоматическая отмена недоступна"}}
-        affected.forEach{id->val old=receipt.before[id];if(old==null)entryDao.deleteById(id)else entryDao.insert(old)}
-        db.productDao().deleteUnusedTemporary()
     }
 
     fun observeBranches()=db.shopBranchDao().observeAll()
@@ -329,35 +266,6 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
     data class TextSnapshot(val entries:List<ShoppingListEntryEntity>,val products:List<ProductEntity>,val shops:List<ShopEntity>,val branches:List<ShopBranchEntity>,val venues:List<VenueEntity> = emptyList(),val goalLists:List<GoalListEntity> = emptyList())
     suspend fun textSnapshot():TextSnapshot=db.withTransaction {
         TextSnapshot(entryDao.getVisibleSync().filter{!it.isBought},db.productDao().getAllSync(),db.shopDao().getAllSync(),db.shopBranchDao().getAll(),db.retailStructureDao().venues(),db.goalListDao().getAllSync())
-    }
-    suspend fun replacePendingText(base:List<ShoppingListEntryEntity>,requests:List<PurchaseRequest>):BatchReceipt=db.withTransaction {
-        val actual=entryDao.getVisibleSync()
-        require(actual.filter{!it.isBought}.associateBy{it.id}==base.associateBy{it.id}){"Корзина изменилась. Обновите текст из корзины, чтобы не затереть новые изменения"}
-        require(requests.size<=2000){"Не более 2000 покупок за один раз"}
-        val referenced=requests.mapNotNull{it.entryId}
-        require(referenced.distinct().size==referenced.size&&referenced.all{id->base.any{it.id==id}}){"Одна покупка выбрана для нескольких строк"}
-        val before=entryDao.getAllSync().associateBy{it.id};val city=locations.currentId();val catalogue=assignments()
-        val created=mutableMapOf<Pair<String,String>,Long>()
-        val keep=mutableSetOf<Long>()
-        requests.forEach{request->
-            val old=request.entryId?.let{before.getValue(it)}
-            val key=FuzzySearch.normalize(request.name) to Quantities.unit(request.unit)
-            val reusedCreated=request.productId==null&&created[key]?.let{it>0}==true
-            val product=request.productId?.also{require(db.productDao().getById(it)!=null){"Товар удалён"}} ?: created.getOrPut(key) { -1L }.takeIf{it>0} ?: db.productDao().insert(ProductEntity(name=request.name.trim().also{require(it.isNotBlank())},defaultUnit=Quantities.unit(request.unit).ifBlank{null},isTemporary=!request.permanent,preferCityShopOrder=true)).also{created[key]=it}
-            val current=if(reusedCreated)assignments(product)else catalogue
-            val target=if(request.choice==ShopChoice.EXPLICIT&&old!=null&&old.assignedShopId==request.shopId&&old.productId==product)request.shopId to old.assignedDepartmentId else current.retailer(product,city,retailerChoice(request.choice,request.shopId))
-            if(request.productId==null&&request.permanent&&product in created.values)retainCreatedProduct(product,target.first)
-            val preserveUnspecifiedAddress=!request.assignmentExplicit&&old?.assignedBranchId==null&&request.branchId == -1L
-            val preserveAssignment=old!=null&&old.productId==product&&old.assignedShopId==target.first&&request.choice==ShopChoice.EXPLICIT&&(request.branchId==null||request.branchId==old.assignedBranchId||preserveUnspecifiedAddress)
-            val branch=if(preserveAssignment)old!!.assignedBranchId else current.outlet(product,target.first,outletChoice(request.branchId))
-            val waiting=if(!request.assignmentExplicit&&old!=null&&old.productId==product&&old.assignedShopId==target.first&&old.assignedBranchId==branch)old.awaitingShopCityId else city.takeIf{request.choice==ShopChoice.AUTO&&target.first==null}
-            val row=(old?:ShoppingListEntryEntity(productId=product)).copy(explicitNoShop=if(!request.assignmentExplicit&&old!=null&&old.productId==product&&old.assignedShopId==target.first&&old.assignedBranchId==branch)old.explicitNoShop else request.choice==ShopChoice.NONE,awaitingShopCityId=waiting,productId=product,quantity=Quantities.valid(request.quantity),unit=Quantities.unit(request.unit),assignedShopId=target.first,assignedDepartmentId=if(preserveAssignment)old!!.assignedDepartmentId else current.department(product,target.first,branch,target.second),assignedBranchId=branch,updatedAt=old?.updatedAt?:System.currentTimeMillis())
-            validateTarget(row)
-            if(old==null)keep+=entryDao.insert(row)else{if(row!=old)entryDao.update(row.copy(updatedAt=System.currentTimeMillis()));keep+=old.id}
-        }
-        base.filter{it.id !in keep}.forEach{entryDao.deleteById(it.id)}
-        val after=entryDao.getAllSync().associateBy{it.id};val affected=(before.keys+after.keys).filter{before[it]!=after[it]}.toSet()
-        BatchReceipt(before.filterKeys{it in affected},after.filterKeys{it in affected},requests.size)
     }
 
 

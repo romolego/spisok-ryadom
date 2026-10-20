@@ -189,7 +189,7 @@ class Audit121DomainTest {
                 val entry = basket.addProduct(p)
                 assertEquals(expectedShop, db.shoppingListEntryDao().getById(entry)!!.assignedShopId)
                 basket.removeEntry(entry)
-                products.deleteShopLink(products.getShopLinksForProductSync(p).first { it.shopId == expectedShop })
+                products.toggleShopLink(p, expectedShop)
             }
         }
         consumeRetailers(listOf(before, preferredPavilion, fallbackPavilion, after))

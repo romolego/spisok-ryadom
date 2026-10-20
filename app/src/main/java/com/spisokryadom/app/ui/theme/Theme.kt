@@ -52,6 +52,6 @@ fun SpisokRyadomTheme(content: @Composable () -> Unit) {
             large = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
             extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(26.dp)
         ),
-        content = content
+        content = { com.spisokryadom.app.ui.components.FavoriteAppearanceProvider(content) }
     )
 }

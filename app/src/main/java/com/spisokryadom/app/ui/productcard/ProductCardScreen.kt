@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.size
@@ -19,12 +17,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -79,7 +75,6 @@ fun ProductCardScreen(
     var nameFocused by remember { mutableStateOf(false) }
     val nameFocusManager=androidx.compose.ui.platform.LocalFocusManager.current
     val leaveName={ nameFocused=false;nameFocusManager.clearFocus() }
-    val focus=androidx.compose.ui.platform.LocalFocusManager.current
 
     LaunchedEffect(state.usedExistingId){state.usedExistingId?.let(onUseExistingProduct)}
     LaunchedEffect(state.isSaved) {
@@ -138,13 +133,13 @@ fun ProductCardScreen(
         AddShopLinkDialog(
             shops = state.shops,
             existingShopIds = existingShopIds,
-            onConfirm = { shopId, departmentId, points ->
-                viewModel.updateBranchSelections(if(points==null)state.branchSelections-shopId else state.branchSelections+(shopId to points))
+            onConfirm = { shopId, departmentId, points, priority ->
                 if (state.isNew) {
                     viewModel.addPendingShopLink(shopId, departmentId)
                 } else {
                     viewModel.addShopLink(shopId, departmentId)
                 }
+                viewModel.configureShop(shopId, departmentId, points, priority)
                 showAddShopLinkDialog = false
             },
             onDismiss = { showAddShopLinkDialog = false },
@@ -161,48 +156,27 @@ fun ProductCardScreen(
         )
     }
 
-    // Department editing dialog for pending links
-    editingPendingLinkId?.let { tempId ->
-        val pendingLink = state.pendingShopLinks.find { it.tempId == tempId }
-        if (pendingLink != null) {
-            DepartmentSelectDialog(
-                shopName = pendingLink.shopName,
-                departments = state.departmentsForSelectedShop,
-                currentDepartmentId = pendingLink.departmentId,
-                types=state.departmentTypes,
-            suggestedDepartmentId = state.suggestedDepartmentId,
-                suggestedDepartmentReason = state.suggestedDepartmentReason,
-                onConfirm = { deptId ->
-                    viewModel.updatePendingShopLinkDepartment(tempId, deptId)
-                    editingPendingLinkId = null
-                },
-                onCreateDepartment={name,done->viewModel.createShopDepartment(pendingLink.shopId,name,done)},
-                creatingDepartment=state.isCreatingDepartment,
-                onDismiss = { editingPendingLinkId = null }
-            )
-        }
-    }
-
-    // Department editing dialog for existing links
-    editingExistingLinkId?.let { linkId ->
-        val linkUi = state.shopLinks.find { it.link.id == linkId }
-        if (linkUi != null) {
-            DepartmentSelectDialog(
-                shopName = linkUi.shopName,
-                departments = state.departmentsForSelectedShop,
-                currentDepartmentId = linkUi.link.departmentId,
-                types=state.departmentTypes,
-            suggestedDepartmentId = state.suggestedDepartmentId,
-                suggestedDepartmentReason = state.suggestedDepartmentReason,
-                onConfirm = { deptId ->
-                    viewModel.updateShopLinkDepartment(linkUi.link, deptId)
-                    editingExistingLinkId = null
-                },
-                onCreateDepartment={name,done->viewModel.createShopDepartment(linkUi.link.shopId,name,done)},
-                creatingDepartment=state.isCreatingDepartment,
-                onDismiss = { editingExistingLinkId = null }
-            )
-        }
+    val editingShopId = editingPendingLinkId?.let { id -> state.pendingShopLinks.find { it.tempId == id }?.shopId }
+        ?: editingExistingLinkId?.let { id -> state.shopLinks.find { it.link.id == id }?.link?.shopId }
+    editingShopId?.let { shopId ->
+        val pending = state.pendingShopLinks.find { it.shopId == shopId }
+        val existing = state.shopLinks.find { it.link.shopId == shopId }
+        ShopProductSettingsDialog(
+            shopName = pending?.shopName ?: existing?.shopName.orEmpty(),
+            departments = (state.allDepartments + state.pendingDepartments).filter { it.shopId == shopId }.distinctBy { it.id },
+            currentDepartmentId = pending?.departmentId ?: existing?.link?.departmentId,
+            branches = state.branches.filter { it.shopId == shopId },
+            currentPoints = state.branchSelections[shopId],
+            currentPriority = state.branchPriorities[shopId].orEmpty(),
+            types = state.departmentTypes,
+            onConfirm = { department, points, priority ->
+                viewModel.configureShop(shopId, department, points, priority)
+                editingPendingLinkId = null; editingExistingLinkId = null
+            },
+            onCreateDepartment = { name, done -> viewModel.createShopDepartment(shopId, name, done) },
+            creatingDepartment = state.isCreatingDepartment,
+            onDismiss = { editingPendingLinkId = null; editingExistingLinkId = null }
+        )
     }
 
     // --- Main content ---
@@ -301,12 +275,10 @@ fun ProductCardScreen(
                     TextButton(onClick={viewModel.save(allowDuplicate=true)},enabled=!state.isSaving){Text("Создать отдельный товар")}
                 }
             }
-            if(state.isNew&&preselectedShopId>0)com.spisokryadom.app.ui.components.BranchAvailabilityEditor(
-                state.pendingShopLinks.map{it.shopId to it.shopName},state.branches,state.branchSelections,viewModel::updateBranchSelections,state.branchPriorities,viewModel::updateBranchPriorities)
             DropdownSelector(
                 label="Товарная группа",onOpen=leaveName,items=state.groups,selectedItem=state.groups.find{it.id==state.productGroupId},
                 itemLabel={it.name},onSelect={viewModel.updateProductGroup(it?.id)},modifier=Modifier.fillMaxWidth(),
-                allowCreate=true,onCreateNew={showNewGroupDialog=true},createLabel="Новая группа…",itemIcon={it.iconKey},itemAccent={it.accent})
+                allowCreate=true,onCreateNew={showNewGroupDialog=true},createLabel="Новая группа…",itemIcon={it.iconKey},itemAccent={it.accent},itemFavorite={it.isFavorite},favoriteOrder={it.favoriteOrder},alphabetical=true)
 
             DropdownSelector(
                 label = "Получатель",onOpen=leaveName,
@@ -391,7 +363,7 @@ fun ProductCardScreen(
 
             com.spisokryadom.app.ui.components.BranchPhotoEditor(
                 path=state.photoUri,onChange={viewModel.updatePhotoUri(it.orEmpty())},onBusyChange=viewModel::photoBusy,
-                title="Фото товара",directory="product_photos"
+                title="Фото товара",directory="product_photos",compact=true,enabled=!state.isPhotoBusy
             )
 
             // --- Unified shop links section ---
@@ -411,7 +383,11 @@ fun ProductCardScreen(
                             ShopLinkViewCard(
                                 orderNumber = index + 1,
                                 shopName = pendingLink.shopName,
-                                departmentName = pendingLink.departmentName
+                                departmentName = pendingLink.departmentName,
+                                onEditDepartment = {
+                                    editingPendingLinkId = pendingLink.tempId
+                                    viewModel.loadDepartmentsForShop(pendingLink.shopId)
+                                }
                             )
                         }
                     } else {
@@ -487,23 +463,6 @@ fun ProductCardScreen(
                 }
             )
 
-            if(!(state.isNew&&preselectedShopId>0))com.spisokryadom.app.ui.components.BranchAvailabilityEditor(
-                if(state.isNew)sortedPendingLinks.map{it.shopId to it.shopName}else sortedExistingLinks.map{it.link.shopId to it.shopName},
-                state.branches,state.branchSelections,viewModel::updateBranchSelections,state.branchPriorities,viewModel::updateBranchPriorities
-            )
-            var editingPointGroups by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
-            val linkedIds=(if(state.isNew)sortedPendingLinks.map{it.shopId}else sortedExistingLinks.map{it.link.shopId}).toSet()
-            val groupPoints=state.branches.filter{it.shopId in linkedIds&&(it.shopId !in state.branchSelections||it.id in state.branchSelections[it.shopId].orEmpty())}
-            if(groupPoints.size>1)com.spisokryadom.app.ui.components.EditableSection(
-                title="Группы в отдельных точках",isEditing=editingPointGroups,onToggleEdit={editingPointGroups=it},isEmpty=false,emptyMessage="",editDescription="Изменить группы в отдельных точках",
-                viewContent={groupPoints.filter{it.id in state.branchDepartments}.forEach{point->
-                    Text(point.address+": "+((state.allDepartments+state.pendingDepartments).find{it.id==state.branchDepartments[point.id]}?.name.orEmpty()))
-                }},
-                editContent={groupPoints.forEach{point->
-                    DepartmentChoice((state.allDepartments+state.pendingDepartments).filter{it.shopId==point.shopId},state.branchDepartments[point.id],
-                        {viewModel.updateBranchDepartment(point.id,it)},
-                        {name,done->viewModel.createShopDepartment(point.shopId,name,done)},state.isCreatingDepartment,state.departmentTypes,label=point.address,noneLabel="Без отдельной группы")
-                }})
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -607,7 +566,7 @@ private fun ShopLinkEditCard(
 @Composable
 private fun AddShopLinkDialog(
     shops:List<ShopEntity>,existingShopIds:Set<Long>,
-    onConfirm:(Long,Long?,Set<Long>?)->Unit,onDismiss:()->Unit,onLoadDepartments:(Long)->Unit,
+    onConfirm:(Long,Long?,Set<Long>?,List<Long>)->Unit,onDismiss:()->Unit,onLoadDepartments:(Long)->Unit,
     departmentsForShop:List<ShopDepartmentEntity>,suggestedDepartmentId:Long?,suggestedDepartmentReason:String?,
     branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>,
     onCreateDepartment:(Long,String,(Long)->Unit)->Unit,onCreateShop:(String,(Long)->Unit)->Unit,creatingDepartment:Boolean,departmentsShopId:Long?,types:List<com.spisokryadom.app.data.entity.DepartmentTypeEntity>
@@ -617,39 +576,39 @@ private fun AddShopLinkDialog(
     var shopId by androidx.compose.runtime.saveable.rememberSaveable{mutableLongStateOf(0L)}
     var creatingShop by remember{mutableStateOf(false)}
     var departmentId by remember(shopId){mutableStateOf<Long?>(null)}
-    var selections by remember(shopId){mutableStateOf<Map<Long,Set<Long>>>(emptyMap())}
+    var points by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf<List<Long>?>(null)}
+    var priority by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf(emptyList<Long>())}
     var userSelected by remember(shopId){mutableStateOf(false)}
     LaunchedEffect(shopId){if(shopId>0)onLoadDepartments(shopId)}
     LaunchedEffect(suggestedDepartmentId,departmentsShopId){if(departmentsShopId==shopId&&!userSelected)departmentId=suggestedDepartmentId}
     val validDepartments=departmentsForShop.filter{it.shopId==shopId}
-    val selectedPoints=selections[shopId]
-    val dialogWidth=(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp-48).dp
-    AlertDialog(modifier=Modifier.width(dialogWidth),onDismissRequest={if(!creatingDepartment)onDismiss()},title={Text("Добавить магазин")},text={
-        Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)){
+    val selectedPoints=points?.toSet()
+    ProductShopDialog("Добавить магазин","Добавить",{onConfirm(shopId,departmentId,selectedPoints,priority)},onDismiss,
+        shopId>0&&(selectedPoints==null||selectedPoints.isNotEmpty()),creatingDepartment){
             DropdownSelector(label="Магазин",noneLabel="Без магазина",items=available,selectedItem=available.find{it.id==shopId},itemLabel={placeLabels.shop(it.id,it.name)},onSelect={if(!creatingDepartment)shopId=it?.id?:0L},allowCreate=true,onCreateNew={creatingShop=true},createLabel="Новый магазин…")
             if(creatingShop)com.spisokryadom.app.ui.components.InlineCreateValue("Название магазина",{name,done->onCreateShop(name){shopId=it;creatingShop=false;done()}},{creatingShop=false})
             if(shopId>0){
                 androidx.compose.runtime.key(shopId){DepartmentChoice(validDepartments,departmentId,{departmentId=it;userSelected=true},{name,done->onCreateDepartment(shopId,name,done)},creatingDepartment,types)}
-                com.spisokryadom.app.ui.components.BranchAvailabilityEditor(listOf(shopId to (available.find{it.id==shopId}?.name.orEmpty())),branches,selections,{selections=it})
+                ProductOutletOptions(branches.filter{it.shopId==shopId},selectedPoints,{points=it?.toList()},priority,{priority=it},!creatingDepartment)
             }
 
-        }
-    },confirmButton={TextButton(onClick={if(shopId==0L)onDismiss()else onConfirm(shopId,departmentId,selectedPoints)},enabled=shopId>=0&&!creatingDepartment&&(selectedPoints==null||selectedPoints.isNotEmpty())){Text("Добавить")}},
-    dismissButton={TextButton(onClick=onDismiss,enabled=!creatingDepartment){Text("Отмена")}})
+    }
 }
 
 @Composable
-private fun DepartmentSelectDialog(
-    shopName:String,departments:List<ShopDepartmentEntity>,currentDepartmentId:Long?,
-    suggestedDepartmentId:Long?,suggestedDepartmentReason:String?,onConfirm:(Long?)->Unit,onDismiss:()->Unit,
+internal fun ShopProductSettingsDialog(
+    shopName:String, departments:List<ShopDepartmentEntity>, currentDepartmentId:Long?,
+    branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>,currentPoints:Set<Long>?,currentPriority:List<Long>,
+    onConfirm:(Long?,Set<Long>?,List<Long>)->Unit,onDismiss:()->Unit,
     onCreateDepartment:(String,(Long)->Unit)->Unit,creatingDepartment:Boolean,types:List<com.spisokryadom.app.data.entity.DepartmentTypeEntity>
-){
-    var selected by remember{mutableStateOf(currentDepartmentId)}
-    val dialogWidth=(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp-48).dp
-    AlertDialog(modifier=Modifier.width(dialogWidth),onDismissRequest={if(!creatingDepartment)onDismiss()},title={Text("Группа магазина")},text={
-        Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)){
-            Text(shopName,style=MaterialTheme.typography.titleSmall)
-            DepartmentChoice(departments,selected,{selected=it},onCreateDepartment,creatingDepartment,types)
-        }
-    },confirmButton={TextButton(onClick={onConfirm(selected)},enabled=!creatingDepartment){Text("Применить")}},dismissButton={TextButton(onClick=onDismiss,enabled=!creatingDepartment){Text("Отмена")}})
+) {
+    var selected by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(currentDepartmentId) }
+    var points by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(currentPoints?.toList()) }
+    var priority by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(currentPriority) }
+    ProductShopDialog("Товар в магазине","Применить",{onConfirm(selected,points?.toSet(),priority)},onDismiss,
+        points==null||points!!.isNotEmpty(),creatingDepartment){
+        Text(shopName,style=MaterialTheme.typography.titleSmall)
+        DepartmentChoice(departments,selected,{selected=it},onCreateDepartment,creatingDepartment,types)
+        ProductOutletOptions(branches,points?.toSet(),{points=it?.toList()},priority,{priority=it},!creatingDepartment)
+    }
 }

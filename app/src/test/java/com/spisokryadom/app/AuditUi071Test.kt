@@ -9,7 +9,6 @@ import com.spisokryadom.app.data.db.AppDatabase
 import com.spisokryadom.app.data.db.RetailConstraints
 import com.spisokryadom.app.data.entity.*
 import com.spisokryadom.app.data.repository.*
-import com.spisokryadom.app.ui.bulk.BulkViewModel
 import com.spisokryadom.app.ui.productcard.ProductCardViewModel
 import com.spisokryadom.app.ui.productdb.ProductDatabaseViewModel
 import com.spisokryadom.app.ui.productdb.ProductViewMode
@@ -62,7 +61,6 @@ class AuditUi071Test {
  }
  @After fun close(){store.clear();locations.closeForTest();db.close()}
  private fun productCard()=ProductCardViewModel(-1,shop,products,shops,classifiers).also{store.put("product-card",it);await{it.uiState.value.pendingShopLinks.size==1}}
- private fun textEditor()=BulkViewModel(products,basket,locations,app.getSharedPreferences("audit071-text",0),true,shops).also{store.put("text",it);await{!it.uiState.value.busy}}
 
  @Test fun deletingPreselectedShopInNewCardIsRespectedOnSave()=runBlocking{
   val vm=productCard();vm.updateName("Без привязки");vm.removePendingShopLink(vm.uiState.value.pendingShopLinks.single().tempId)
@@ -126,20 +124,5 @@ class AuditUi071Test {
    prefs.edit().remove("favorites_only").remove("product_db_view_mode").commit();await{!vm.uiState.value.favoritesOnly&&vm.uiState.value.viewMode==ProductViewMode.ALPHABETICAL&&vm.uiState.value.products.size==2}
    assertEquals(2,vm.uiState.value.products.size)
   }finally{subscription.cancelAndJoin()}
- }
- @Test fun quantityOnlyTextEditKeepsExplicitNoAddressAndExplicitPriorityChoiceCanChangeIt()=runBlocking{
-  val product=products.saveWithLinks(ProductEntity(name="Чай"),listOf(ProductShopLinkEntity(productId=0,shopId=shop)))
-  val entry=basket.addProduct(product,2.0,choice=ShopChoice.EXPLICIT,shopId=shop,branchId=0)
-  val vm=textEditor();vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy}
-  val index=vm.uiState.value.rows.single().index;vm.update(index){it.copy(quantity="3")};vm.add();await{vm.uiState.value.saved||vm.uiState.value.error!=null};assertNull(vm.uiState.value.error)
-  assertNull(db.shoppingListEntryDao().getById(entry)!!.assignedBranchId);assertEquals(3.0,db.shoppingListEntryDao().getById(entry)!!.quantity,0.0)
-  vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy};vm.chooseBranch(vm.uiState.value.rows.single().index,-1L);vm.add();await{(!vm.uiState.value.busy&&vm.uiState.value.saved)||vm.uiState.value.error!=null};assertNull(vm.uiState.value.error)
-  assertEquals(point,db.shoppingListEntryDao().getById(entry)!!.assignedBranchId)
- }
- @Test fun explicitCommonAutomaticChoiceReplacesOldNoShopIntent()=runBlocking{
-  val product=db.productDao().insert(ProductEntity(name="Ненастроенный"));val entry=basket.addProduct(product,choice=ShopChoice.NONE)
-  val vm=textEditor();vm.text("Автоматически:\nНенастроенный — 1");vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy}
-  vm.shop(-1L);vm.add();await{vm.uiState.value.saved||vm.uiState.value.error!=null};assertNull(vm.uiState.value.error)
-  val actual=db.shoppingListEntryDao().getById(entry)!!;assertFalse(actual.explicitNoShop);assertEquals(1L,actual.awaitingShopCityId)
  }
 }

@@ -108,11 +108,13 @@ class PurchasePlacesUiTest {
   runBlocking {val link=db.productShopLinkDao().getLinksForProductSync(cheese).single();db.productShopLinkDao().update(link.copy(restrictBranches=true));db.shopBranchDao().insertAvailability(ProductBranchAvailabilityEntity(cheese,near))}
   ui.onNodeWithText("Товары").performClick();waitText("База товаров");waitText("Сыр адыгейский")
   ui.onNodeWithText("Сыр адыгейский").performTouchInput{longClick()};waitText("Название товара")
+  ui.onNodeWithText("1. Красный Яр").performScrollTo().performClick();waitText("Товар в магазине")
   ui.onNodeWithTag("branch-choice-$far-label",useUnmergedTree=true).performScrollTo()
   val control=ui.onNodeWithTag("branch-choice-$far-control",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
   val label=ui.onNodeWithTag("branch-choice-$far-label",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
   assertTrue("12dp gap must separate the control slot and text",label.left-control.right>=23f)
   ui.onNodeWithText("Молокова, 54").performClick();shot("07-checkbox-spacing")
+  ui.onNodeWithText("Применить").performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("База товаров")
   runBlocking{assertEquals(setOf(near,far),db.shopBranchDao().availability(cheese).map{it.branchId}.toSet())}
  }
@@ -121,13 +123,13 @@ class PurchasePlacesUiTest {
   ui.onAllNodesWithText("Магазины").onLast().performClick();waitText("Красный Яр")
   ui.onNodeWithText("Красный Яр").performTouchInput{longClick()};waitText("Название магазина")
   ui.onNodeWithText("Сеть").assertDoesNotExist()
-  ui.onNodeWithText("Добавить сеть магазинов").performScrollTo().performClick();waitText("Название сети")
+  ui.onNodeWithText("Править").performScrollTo().performClick();ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();waitText("Название сети")
   ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр")
   ui.onAllNodes(isPopup()).assertCountEquals(0);shot("08-optional-network-inline")
-  ui.onNodeWithText("Отмена").performScrollTo().performClick();ui.onNodeWithText("Название сети").assertDoesNotExist()
+  ui.onNodeWithText("Отмена нового названия").performScrollTo().performClick();ui.onNodeWithText("Название сети").assertDoesNotExist()
   runBlocking{assertTrue(db.retailStructureDao().networks().isEmpty());assertNull(db.shopDao().getById(yar)!!.networkId)}
-  ui.onNodeWithText("Добавить сеть магазинов").performScrollTo().performClick();ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр")
-  ui.onNodeWithContentDescription("Завершить: Сеть магазинов").performScrollTo().performClick();shot("09-optional-network-summary")
+  ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр")
+  ui.onNodeWithText("Готово").performScrollTo().performClick();shot("09-optional-network-summary")
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   runBlocking{assertEquals(1,db.retailStructureDao().networks().size);assertNotNull(db.shopDao().getById(yar)!!.networkId);assertEquals(2,db.shopBranchDao().forShop(yar).size)}
  }

@@ -8,6 +8,7 @@ import com.spisokryadom.app.data.db.AppDatabase
 import com.spisokryadom.app.data.entity.*
 import com.spisokryadom.app.data.repository.ShopChoice
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
@@ -75,17 +76,26 @@ class RefinementUiTest {
  }
  @Test fun settingsHideMutationsUntilEditAndConfirmAlphabeticReset(){
   ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");scrollTo(hasText("Товарные группы"));ui.onNodeWithText("Добавить группу товаров").assertDoesNotExist()
-  ui.onNodeWithTag("manager-edit-Товарные группы").performClick();scrollTo(hasText("Добавить группу товаров"));ui.onNodeWithText("Добавить группу товаров").assertIsDisplayed();ui.onNodeWithContentDescription("По алфавиту: Товарные группы").performScrollTo().performClick();waitText("Сортировать по алфавиту?")
-  ui.onNodeWithText("Отмена").performClick();runBlocking{assertEquals(food,db.productGroupDao().getAllSync().first().id)}
-  ui.onNodeWithContentDescription("По алфавиту: Товарные группы").performClick();ui.onNode(hasText("Да") and hasAnyAncestor(isDialog())).performClick()
-  ui.waitUntil(20_000){runBlocking{db.productGroupDao().getAllSync().first().id==med}}
+  ui.onNodeWithTag("manager-edit-Товарные группы").performClick();scrollTo(hasText("Добавить группу товаров"));ui.onNodeWithText("Добавить группу товаров").assertIsDisplayed()
+  ui.onNodeWithContentDescription("По алфавиту: Товарные группы").assertDoesNotExist();ui.onNodeWithContentDescription("Вверх: Продукты").assertDoesNotExist()
+  runBlocking{assertEquals(food,db.productGroupDao().getAllSync().first().id);assertEquals(listOf(med,food),app.container.classifierRepository.getAllGroups().first().map{it.id})}
+  scrollTo(hasContentDescription("В избранное: Продукты"));ui.onNodeWithContentDescription("В избранное: Продукты").performClick()
+  ui.waitUntil(20_000){runBlocking{db.productGroupDao().getById(food)!!.isFavorite}}
+  ui.onAllNodesWithContentDescription("Убрать из избранного: Продукты").onFirst().performScrollTo().performClick()
+  ui.waitUntil(20_000){runBlocking{!db.productGroupDao().getById(food)!!.isFavorite}}
+  runBlocking{assertEquals(listOf(med,food),app.container.classifierRepository.getAllGroups().first().map{it.id});assertEquals(food,db.productGroupDao().getAllSync().first().id)}
   scrollTo(hasContentDescription("Оформление: Продукты"));ui.onNodeWithContentDescription("Оформление: Продукты").performClick();waitText("Оформление группы");ui.onNodeWithContentDescription("Жёлтый").performClick();ui.onNodeWithTag("appearance-icon-milk").performClick();ui.onNodeWithText("Применить оформление").performClick();ui.waitForIdle();shot("05-settings-appearance")
   runBlocking{val group=db.productGroupDao().getById(food)!!;assertEquals("yellow",group.accent);assertEquals("milk",group.iconKey)}
  }
  @Test fun departmentSettingsCanReorderAndCreateWithoutAttachingToStores(){
   ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");scrollTo(hasText("Группы магазинов"));ui.onNodeWithText("Добавить группу магазина").assertDoesNotExist()
-  ui.onNodeWithTag("manager-edit-Группы магазинов").performClick();scrollTo(hasContentDescription("Вверх: Молочка"));ui.onNodeWithContentDescription("Вверх: Молочка").performClick()
-  ui.waitUntil(20_000){runBlocking{db.shopDepartmentDao().types().first().name=="Молочка"}}
+  ui.onNodeWithTag("manager-edit-Группы магазинов").performClick();scrollTo(hasContentDescription("В избранное: Молочка"));ui.onNodeWithContentDescription("Вверх: Молочка").assertDoesNotExist()
+  val before=runBlocking{db.shopDepartmentDao().getAllSync()}
+  scrollTo(hasContentDescription("В избранное: Овощи/фрукты"));ui.onNodeWithContentDescription("В избранное: Овощи/фрукты").performClick()
+  scrollTo(hasContentDescription("В избранное: Молочка"));ui.onNodeWithContentDescription("В избранное: Молочка").performClick()
+  scrollTo(hasContentDescription("Вверх: Молочка"));ui.onNodeWithContentDescription("Вверх: Молочка").performClick()
+  ui.waitUntil(20_000){runBlocking{db.shopDepartmentDao().types().filter{it.isFavorite}.minByOrNull{it.favoriteOrder}?.name=="Молочка"}}
+  runBlocking{assertEquals(before,db.shopDepartmentDao().getAllSync());assertEquals(listOf("Гастроном (готовая еда)","Молочка","Овощи/фрукты"),app.container.shopRepository.departmentTypes().first().map{it.name})}
   scrollTo(hasText("Добавить группу магазина"));ui.onNodeWithText("Добавить группу магазина").performClick();ui.onNode(hasSetTextAction() and hasText("Название")).performTextInput("Орехи");ui.onNode(hasText("Сохранить") and hasAnyAncestor(isDialog())).performClick()
   scrollTo(hasText("Орехи"));waitText("Орехи");shot("08-department-settings")
   runBlocking{assertTrue(db.shopDepartmentDao().getByShopIdSync(b).isEmpty());assertTrue(db.shopDepartmentDao().getAllSync().none{it.name=="Орехи"})}

@@ -82,14 +82,14 @@ fun appearanceIcon(key:String):ImageVector?=symbols.find{it.first==key}?.second?
 fun appearanceOptions():List<Pair<String,String>> = symbols.map{it.first to it.second.first}
 fun accentColor(key:String):Color?=com.spisokryadom.app.util.AppearanceColors.argb(key)?.let{Color(it)}
 fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toArgb() and 0xFFFFFF)
-@Composable fun MarkedLabel(name:String,accent:String="",iconKey:String="",modifier:Modifier=Modifier,small:Boolean=false){
+@Composable fun MarkedLabel(name:String,accent:String="",iconKey:String="",modifier:Modifier=Modifier,small:Boolean=false,fontWeight:androidx.compose.ui.text.font.FontWeight?=null){
  Row(modifier,verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
   appearanceIcon(iconKey)?.let{Icon(it,null,Modifier.size(if(small)18.dp else 22.dp),tint=accentColor(accent)?:MaterialTheme.colorScheme.primary)}
-  Column {Text(name,style=if(small)MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge);accentColor(accent)?.let{Spacer(Modifier.height(3.dp));Box(Modifier.width(36.dp).height(2.dp).background(it))}}
+  Column {Text(name,fontWeight=fontWeight,style=if(small)MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge);accentColor(accent)?.let{Spacer(Modifier.height(3.dp));Box(Modifier.width(36.dp).height(2.dp).background(it))}}
  }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun AppearanceSheet(title:String,accent:String,iconKey:String="",withIcons:Boolean=true,onSave:(String,String)->Unit,onDismiss:()->Unit){
+@Composable fun AppearanceSheet(title:String,accent:String,iconKey:String="",withIcons:Boolean=true,onSave:(String,String)->Unit,onDismiss:()->Unit,preview:(@Composable (String,String)->Unit)?=null,withColors:Boolean=true){
  var color by remember{mutableStateOf(accent)};var icon by remember{mutableStateOf(iconKey)}
  var custom by remember{mutableStateOf(false)};var hex by remember{mutableStateOf(colorHex(accentColor(accent)?:Color(0xFF4B81A5)))}
  var hue by remember{mutableStateOf(0f)};var saturation by remember{mutableStateOf(1f)};var brightness by remember{mutableStateOf(1f)}
@@ -102,8 +102,10 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
  ModalBottomSheet(onDismissRequest=onDismiss,sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)){
   Column(Modifier.testTag("appearance-sheet").fillMaxWidth().heightIn(max=(androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp-80).coerceAtLeast(160).dp).padding(horizontal=20.dp).padding(bottom=24.dp)){
    Text(title,style=MaterialTheme.typography.titleLarge)
+   preview?.invoke(color,icon)
    LazyColumn(Modifier.testTag("appearance-options").fillMaxWidth().weight(1f,false)){
-    item{Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
+    if(withColors){
+    if(!custom||preview==null)item{Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
      listOf("" to "Без цвета","green" to "Зелёный","yellow" to "Жёлтый","blue" to "Синий","rose" to "Розовый","violet" to "Фиолетовый").forEach{(key,name)->
       IconButton(onClick={select(key);if(key.isBlank())custom=false}){Icon(if(key==color)Icons.Filled.CheckCircle else Icons.Filled.Circle,name,tint=accentColor(key)?:MaterialTheme.colorScheme.outline)}
      }
@@ -111,13 +113,13 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
     item{Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
      Box(Modifier.testTag("appearance-color-preview").size(28.dp).background(accentColor(color)?:MaterialTheme.colorScheme.surfaceVariant,androidx.compose.foundation.shape.CircleShape).border(1.dp,MaterialTheme.colorScheme.outline,androidx.compose.foundation.shape.CircleShape))
      Text(if(color.startsWith("#"))color.uppercase()else "",Modifier.weight(1f).padding(start=10.dp),style=MaterialTheme.typography.labelLarge)
-     TextButton(modifier=Modifier.testTag("appearance-custom-toggle"),enabled=valid,onClick={custom=!custom;if(custom){val c=accentColor(color)?:Color(0xFF4B81A5);hex=colorHex(c);channels(c)}}){Text(if(custom)"Готово"else "Свой цвет")}
+     TextButton(modifier=Modifier.testTag("appearance-custom-toggle"),enabled=valid,onClick={custom=!custom;if(custom){val c=accentColor(color)?:Color(0xFF4B81A5);hex=colorHex(c);channels(c)}}){Text(if(custom)"Палитра"else "Свой цвет")}
     }}
     if(custom){
      item{OutlinedTextField(hex,{raw->hex=raw.trim();accentColor(hex)?.let{color=colorHex(it);channels(it)}},label={Text("HEX")},singleLine=true,isError=accentColor(hex)==null,modifier=Modifier.testTag("appearance-hex").fillMaxWidth())}
      item{ColorChannel("Тон",hue,0f..360f,"appearance-hue",listOf(Color.Red,Color.Yellow,Color.Green,Color.Cyan,Color.Blue,Color.Magenta,Color.Red)){slide(h=it)}}
-     item{ColorChannel("Насыщенность",saturation,0f..1f,"appearance-saturation",listOf(Color.hsv(hue.coerceAtMost(359.999f),0f,brightness),Color.hsv(hue.coerceAtMost(359.999f),1f,brightness))){slide(s=it)}}
-     item{ColorChannel("Яркость",brightness,0f..1f,"appearance-brightness",listOf(Color.Black,Color.hsv(hue.coerceAtMost(359.999f),saturation,1f))){slide(v=it)}}
+     item{ColorField(hue,saturation,brightness){s,v->slide(s=s,v=v)}}
+    }
     }
     if(withIcons){
      item{OutlinedTextField(query,{query=it},label={Text("Найти значок")},singleLine=true,modifier=Modifier.testTag("appearance-icon-search").fillMaxWidth())}

@@ -1,4 +1,5 @@
 package com.spisokryadom.app.data.repository
+import kotlinx.coroutines.flow.map
 
 import com.spisokryadom.app.data.dao.ShopDao
 import com.spisokryadom.app.data.dao.ShopDepartmentDao
@@ -69,14 +70,6 @@ class ShopRepository(
             if(row.assignedDepartmentId!=department)db.shoppingListEntryDao().update(row.copy(assignedDepartmentId=department,updatedAt=System.currentTimeMillis()))
         }
     }
-    suspend fun createPoint(shopId:Long,address:String,productId:Long?=null):Long=withCatalogueEdits(db,catalogueEdits){db.withTransaction {
-        require(shopDao.getById(shopId)?.cityId==locations.currentId()){"Магазин недоступен в этом городе"};require(address.isNotBlank()){"Укажите адрес"}
-        val points=db.shopBranchDao().forShop(shopId)
-        val id=points.find{com.spisokryadom.app.util.FuzzySearch.normalize(it.address)==com.spisokryadom.app.util.FuzzySearch.normalize(address)}?.id?:db.shopBranchDao().insert(com.spisokryadom.app.data.entity.ShopBranchEntity(shopId=shopId,address=address.trim(),displayOrder=(points.maxOfOrNull{it.displayOrder}?:-1)+1))
-        if(productId!=null&&db.productShopLinkDao().getLinksForProductSync(productId).any{it.shopId==shopId&&it.restrictBranches}&&db.shopBranchDao().availability(productId).none{it.branchId==id})db.shopBranchDao().insertAvailability(com.spisokryadom.app.data.entity.ProductBranchAvailabilityEntity(productId,id))
-        id
-    }
-    }
     suspend fun createInCurrentCity(name:String):Long=db.withTransaction {
         val value=name.trim();require(value.isNotBlank()){"Укажите название магазина"};val city=locations.currentId()
         val current=shopDao.getAllSync().filter{it.cityId==city}
@@ -84,9 +77,6 @@ class ShopRepository(
             ?:shopDao.insert(ShopEntity(name=value,cityId=city,displayOrder=(current.maxOfOrNull{it.displayOrder}?:-1)+1))
     }
     // Compatibility API: a dictionary addition never attaches a department to stores.
-    suspend fun addDepartmentInCity(name:String,city:Long)=db.withTransaction {
-        require(db.cityDao().getById(city)!=null){"Город удалён"};departmentDao.ensureType(name)
-    }
     suspend fun moveShop(id:Long,delta:Int)=db.withTransaction{
         val shop=shopDao.getById(id)?:return@withTransaction
         val list=shopDao.getAllSync().filter{it.cityId==shop.cityId}.sortedWith(compareBy<ShopEntity>{it.displayOrder}.thenBy{it.name}).toMutableList()
@@ -117,19 +107,14 @@ class ShopRepository(
     }
     suspend fun getAllShopsSync(): List<ShopEntity> = shopDao.getAllSync()
     suspend fun getShopById(id: Long): ShopEntity? = shopDao.getById(id)
-    suspend fun insertShop(shop:ShopEntity):Long=db.withTransaction{require(shop.name.isNotBlank());require(db.cityDao().getById(shop.cityId)!=null);shopDao.insert(shop)}
-    suspend fun updateShop(shop:ShopEntity)=db.withTransaction{require(shop.name.isNotBlank());require(db.cityDao().getById(shop.cityId)!=null);shopDao.update(shop)}
     suspend fun deleteShop(shop: ShopEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{shopDao.delete(shop)}}
 
-    fun getDepartments(shopId: Long): Flow<List<ShopDepartmentEntity>> =
-        departmentDao.getByShopId(shopId)
 
     fun getAllDepartments(): Flow<List<ShopDepartmentEntity>> = departmentDao.getAll()
 
     suspend fun getDepartmentById(id: Long): ShopDepartmentEntity? = departmentDao.getById(id)
     suspend fun getDepartmentsByShopIdSync(shopId: Long): List<ShopDepartmentEntity> =
         departmentDao.getByShopIdSync(shopId)
-    suspend fun insertDepartment(dept: ShopDepartmentEntity): Long = departmentDao.insert(dept)
     suspend fun updateDepartment(dept: ShopDepartmentEntity) = departmentDao.update(dept)
     suspend fun deleteDepartment(dept: ShopDepartmentEntity) = withCatalogueEdits(db,catalogueEdits) {  db.withTransaction {
         val current=departmentDao.getById(dept.id)?:return@withTransaction
@@ -139,19 +124,23 @@ class ShopRepository(
     } }
     fun getDistinctDepartmentNames(): Flow<List<String>> = departmentDao.getDistinctNames()
 
-    suspend fun updateDepartments(departments: List<ShopDepartmentEntity>) =
-        departmentDao.updateAll(departments)
 
-    suspend fun updateShops(shops: List<ShopEntity>) = shopDao.updateAll(shops)
 
-    fun departmentTypes()=departmentDao.observeTypes()
+    fun departmentTypes()=departmentDao.observeTypes().map{com.spisokryadom.app.util.alphabetical(it){v->v.name}}
     suspend fun createDepartmentType(name:String)=departmentDao.ensureType(name)
     suspend fun moveDepartmentType(id:Long,delta:Int)=db.withTransaction {
-        val list=departmentDao.types().toMutableList();val i=list.indexOfFirst{it.id==id};val j=i+delta
-        if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));list.forEachIndexed{n,v->departmentDao.updateType(v.copy(displayOrder=n))}}
+        require(delta in -1..1)
+        val list=departmentDao.types().filter{it.isFavorite}.sortedWith(compareBy<com.spisokryadom.app.data.entity.DepartmentTypeEntity>{it.favoriteOrder}.thenBy{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.thenBy{it.id}).toMutableList();val i=list.indexOfFirst{it.id==id};val j=i+delta
+        if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));list.forEachIndexed{n,v->departmentDao.updateType(v.copy(favoriteOrder=n))}}
     }
-    suspend fun alphabetizeDepartmentTypes()=db.withTransaction {
-        departmentDao.types().sortedBy{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.forEachIndexed{i,v->departmentDao.updateType(v.copy(displayOrder=i))}
+    suspend fun favoriteDepartmentType(id:Long,value:Boolean)=db.withTransaction {
+        val current=departmentDao.type(id)?:error("Группа магазина удалена")
+        if(current.isFavorite==value)return@withTransaction
+        val favorites=departmentDao.types().filter{it.isFavorite}
+            .sortedWith(compareBy<com.spisokryadom.app.data.entity.DepartmentTypeEntity>{it.favoriteOrder}.thenBy{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.thenBy{it.id})
+        val order=com.spisokryadom.app.util.nextFavoriteOrder(favorites.map{it.favoriteOrder})
+        if(value&&order.compact)favorites.forEachIndexed{i,v->departmentDao.updateType(v.copy(favoriteOrder=i))}
+        departmentDao.updateType(current.copy(isFavorite=value,favoriteOrder=if(value)order.next else 0))
     }
     suspend fun styleDepartmentType(id:Long,accent:String,icon:String)=db.withTransaction {departmentDao.type(id)?.let{departmentDao.updateType(it.copy(accent=accent,iconKey=icon))}}
     suspend fun renameDepartmentGlobally(typeId:Long,newName:String)=withCatalogueEdits(db,catalogueEdits){db.withTransaction{departmentDao.renameType(typeId,newName)}}
@@ -228,7 +217,7 @@ class ShopRepository(
         links.forEach{db.productShopLinkDao().delete(it)}
         val owners=mutableMapOf<Long,Long>();val deptMap=mutableMapOf<Pair<Long,Long>,Long>()
         points.forEachIndexed{index,point->
-            val owner=shopDao.insert(ShopEntity(name=point.address,cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground))
+            val owner=shopDao.insert(ShopEntity(name=point.address,cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground,iconKey=shop.iconKey,logoUri=shop.logoUri))
             purchaseMode?.let{db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(owner,it))}
             owners[point.id]=owner
             db.shopBranchDao().update(point.copy(shopId=owner,venueId=venueId,displayOrder=0))

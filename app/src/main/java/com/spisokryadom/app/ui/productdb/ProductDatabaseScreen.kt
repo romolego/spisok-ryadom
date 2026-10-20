@@ -51,6 +51,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.border
 import androidx.compose.ui.Alignment
+import com.spisokryadom.app.ui.components.favoriteStyle
+import com.spisokryadom.app.ui.components.favoriteWeight
+import com.spisokryadom.app.ui.components.favoriteBackground
+import com.spisokryadom.app.ui.components.favoriteSurface
+import com.spisokryadom.app.ui.components.FavoriteBlock
+import com.spisokryadom.app.ui.components.LocalFavoriteBlock
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -192,12 +198,13 @@ fun ProductDatabaseScreen(
                         val collapsed=state.searchQuery.isBlank()&&sectionKey in expansion.collapsed
                         // Section header — key includes index to prevent duplicates if two sections share the same name
                         stickyHeader(key = "header_${section.key}") {
-                            SectionHeader(
+                            val header:@Composable ()->Unit={SectionHeader(
                                 modifier=Modifier.animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
                                 title = section.shopId?.let{com.spisokryadom.app.ui.components.LocalPlaceLabels.current.shop(it,section.name)}?:section.name,accent=section.accent,iconKey=section.iconKey,
                                 count = section.products.size, collapsed=collapsed, onToggle={expansion.toggle(sectionKey)},
                                 selection=selection.takeIf{it.active},ids=section.products.map{it.id}.toSet()
-                            )
+                            )}
+                            if(section.key=="favorites")FavoriteBlock(Modifier.fillMaxWidth()){header()}else header()
                         }
 
                         // Key includes section name to prevent duplicate keys when the same product
@@ -212,13 +219,14 @@ fun ProductDatabaseScreen(
                           }
                           items(sub.products,key={"${section.key}_${it.id}"},contentType={"product"}){product->
                             val listInfo=if(section.shopId!=null&&state.viewMode==ProductViewMode.BY_SHOPS)state.shopShoppingListMap[section.shopId?:0L]?.get(product.id)else state.shoppingListMap[product.id]
-                            if(selection.active)BatchRow(product.id,product.name,product.id in selection.ids,{selection.toggle(product.id)},product.defaultUnit,Modifier.testTag("catalogue-${section.key}-${product.id}"),favorite=product.isFavorite)
+                            val row:@Composable ()->Unit={if(selection.active)BatchRow(product.id,product.name,product.id in selection.ids,{selection.toggle(product.id)},product.defaultUnit,Modifier.testTag("catalogue-${section.key}-${product.id}"),favorite=product.isFavorite)
                             else ProductListItem(
                               modifier=Modifier.testTag("catalogue-${section.key}-${product.id}").then(if(highlighted==product.id&&section.key!="favorites")Modifier.border(2.dp,MaterialTheme.colorScheme.primary,MaterialTheme.shapes.large)else Modifier).animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
                               product=product,shoppingListInfo=listInfo,onCartClick={viewModel.quickAddToList(product,section.shopId,state.viewMode==ProductViewMode.BY_SHOPS)},
                               onIncrement={listInfo?.let{viewModel.incrementEntry(it.entryId)}},onDecrement={listInfo?.let{viewModel.decrementEntry(it.entryId)}},
                               onSetQuantity={qty->listInfo?.let{viewModel.setEntryQuantity(it.entryId,qty)}},onLongPress={onNavigateToProductCard(product.id)},
-                              onEntryAdjust={id,direction->if(direction>0)viewModel.incrementEntry(id)else viewModel.decrementEntry(id)},onEntrySet=viewModel::setEntryQuantity)
+                              onEntryAdjust={id,direction->if(direction>0)viewModel.incrementEntry(id)else viewModel.decrementEntry(id)},onEntrySet=viewModel::setEntryQuantity)}
+                            if(section.key=="favorites")FavoriteBlock(Modifier.fillMaxWidth()){row()}else row()
                           }
                         }
                     }
@@ -235,7 +243,7 @@ private fun SectionHeader(title: String, count: Int, collapsed:Boolean, onToggle
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
+            .background(if(LocalFavoriteBlock.current)favoriteBackground(true,MaterialTheme.colorScheme.background)else MaterialTheme.colorScheme.background)
             .combinedClickable(onClick=onToggle,onLongClick=null)
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -322,7 +330,7 @@ private fun ProductListItem(
                 onClick = onLongPress,
                 onLongClick = onLongPress
             ),
-        colors = CardDefaults.cardColors(containerColor = bgColor),
+        colors = CardDefaults.cardColors(containerColor = favoriteBackground(product.isFavorite,bgColor)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, if (isInList) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outlineVariant)
     ) {
@@ -336,12 +344,13 @@ private fun ProductListItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = product.name,
+                        fontWeight=favoriteWeight(product.isFavorite),
                         modifier = Modifier.weight(1f, fill = false),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if(product.isFavorite){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary)}
+                    if(product.isFavorite&&favoriteStyle().star){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary)}
                     if (isInList) {
                         Spacer(modifier = Modifier.width(6.dp))
                         Icon(

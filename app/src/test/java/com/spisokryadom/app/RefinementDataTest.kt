@@ -7,6 +7,7 @@ import com.spisokryadom.app.data.entity.*
 import com.spisokryadom.app.data.repository.*
 import com.spisokryadom.app.data.backup.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
@@ -29,7 +30,7 @@ class RefinementDataTest {
  }
  @After fun close(){locations.closeForTest();db.close()}
  @Test fun creatingGlobalDepartmentNeverAttachesItToAnyShop()=runBlocking{
-  shops.createDepartmentType("Гастроном (готовая еда)");shops.addDepartmentInCity("Заморозка",1)
+  shops.createDepartmentType("Гастроном (готовая еда)");shops.createDepartmentType("Заморозка")
   assertEquals(2,db.shopDepartmentDao().types().size);assertTrue(db.shopDepartmentDao().getAllSync().isEmpty())
  }
  @Test fun selectingGlobalTypeOnlyCreatesOneLocalPlacementAndReusesIdentity()=runBlocking{
@@ -41,13 +42,13 @@ class RefinementDataTest {
  }
  @Test fun globalDepartmentOrderAndStylesDoNotOverwriteLocalRoutes()=runBlocking{
   val z=shops.createDepartmentType("Ягоды");val m=shops.createDepartmentType("Молочка");val d=db.shopDepartmentDao().insert(ShopDepartmentEntity(shopId=a,name="Молочка",displayOrder=8))
-  shops.styleDepartmentType(m,"green","milk");shops.moveDepartmentType(m,-1);assertEquals(m,db.shopDepartmentDao().types().first().id)
-  shops.alphabetizeDepartmentTypes();assertEquals(listOf("Молочка","Ягоды"),db.shopDepartmentDao().types().map{it.name});assertEquals(8,db.shopDepartmentDao().getById(d)!!.displayOrder)
-  val type=db.shopDepartmentDao().type(m)!!;assertEquals("green",type.accent);assertEquals("milk",type.iconKey);assertEquals(z,db.shopDepartmentDao().types().last().id)
+  shops.styleDepartmentType(m,"green","milk");shops.favoriteDepartmentType(z,true);shops.favoriteDepartmentType(m,true);shops.moveDepartmentType(m,-1);assertEquals(m,db.shopDepartmentDao().types().filter{it.isFavorite}.minBy{it.favoriteOrder}.id)
+  assertEquals(listOf("Молочка","Ягоды"),shops.departmentTypes().first().map{it.name});assertEquals(8,db.shopDepartmentDao().getById(d)!!.displayOrder)
+  val type=db.shopDepartmentDao().type(m)!!;assertEquals("green",type.accent);assertEquals("milk",type.iconKey);assertEquals(z,shops.departmentTypes().first().last().id)
  }
  @Test fun alphabeticalResetPreservesClassifierIdsRelationsAndAppearance()=runBlocking{
   val z=db.productGroupDao().insert(ProductGroupEntity(name="Ягоды",accent="yellow",iconKey="vegetables"));val a=db.productGroupDao().insert(ProductGroupEntity(name="Аптека",displayOrder=1));val p=db.productDao().insert(ProductEntity(name="Линзы",productGroupId=z))
-  classifiers.alphabetize("group");assertEquals(listOf(a,z),db.productGroupDao().getAllSync().map{it.id});assertEquals(z,db.productDao().getById(p)!!.productGroupId);assertEquals("yellow",db.productGroupDao().getById(z)!!.accent)
+  assertEquals(listOf(a,z),classifiers.getAllGroups().first().map{it.id});assertEquals(z,db.productDao().getById(p)!!.productGroupId);assertEquals("yellow",db.productGroupDao().getById(z)!!.accent)
   val rz=db.recipientDao().insert(RecipientEntity(name="Я"));val ra=db.recipientDao().insert(RecipientEntity(name="Анна",displayOrder=1));classifiers.alphabetize("recipient");assertEquals(listOf(ra,rz),db.recipientDao().getAllSync().map{it.id})
   val uz=db.unitDao().insert(UnitEntity(name="шт"));val ua=db.unitDao().insert(UnitEntity(name="кг",displayOrder=1));classifiers.alphabetize("unit");assertEquals(listOf(ua,uz),db.unitDao().getAllSync().map{it.id})
  }
@@ -76,7 +77,7 @@ class RefinementDataTest {
  }
  @Test fun favoriteAndColorCommandsPreservePurchaseAndProductIdentity()=runBlocking{
   val p=products.saveWithLinks(ProductEntity(name="Линзы"),emptyList());val row=basket.addProduct(p);val old=db.productDao().getById(p)!!;val purchase=db.shoppingListEntryDao().getById(row)!!
-  products.setFavorite(p,true);products.setAccent(p,"yellow");val actual=db.productDao().getById(p)!!
+  BatchRepository(db,products,basket).changeProducts(setOf(p),ProductBatchChange.Favorite(true));products.saveWithLinks(products.getProductById(p)!!.copy(accent="yellow"),products.getShopLinksForProductSync(p));val actual=db.productDao().getById(p)!!
   assertEquals(old.copy(isFavorite=true,accent="yellow"),actual);assertEquals(purchase,db.shoppingListEntryDao().getById(row))
   products.saveWithLinks(actual.copy(accent="blue"),emptyList());assertEquals(purchase,db.shoppingListEntryDao().getById(row))
  }
@@ -86,13 +87,14 @@ class RefinementDataTest {
  @Test fun completeBackupRoundTripPreservesAllMarksAndOrders()=runBlocking{
   val g=db.productGroupDao().insert(ProductGroupEntity(name="Продукты",displayOrder=3,accent="green",iconKey="groceries"));val rec=db.recipientDao().insert(RecipientEntity(name="Рома",accent="blue",iconKey="person"));val t=shops.createDepartmentType("Молочка");shops.styleDepartmentType(t,"yellow","milk")
   val p=products.saveWithLinks(ProductEntity(name="Йогурт",productGroupId=g,recipientId=rec,isFavorite=true,accent="violet"),emptyList());val before=db.productDao().getById(p)!!;val types=db.shopDepartmentDao().types()
-  val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(12,java.util.zip.ZipFile(file).use{zip->JSONObject(zip.getInputStream(zip.getEntry("manifest.json")).reader().readText()).getInt("version")})
-  products.setFavorite(p,false);shops.moveDepartmentType(t,1);manager.importFile(file)
+  val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(14,java.util.zip.ZipFile(file).use{zip->JSONObject(zip.getInputStream(zip.getEntry("manifest.json")).reader().readText()).getInt("version")})
+  BatchRepository(db,products,basket).changeProducts(setOf(p),ProductBatchChange.Favorite(false));shops.moveDepartmentType(t,1);manager.importFile(file)
   assertEquals(before,db.productDao().getById(p));assertEquals(types,db.shopDepartmentDao().types());assertEquals("groceries",db.productGroupDao().getById(g)!!.iconKey);assertEquals("blue",db.recipientDao().getById(rec)!!.accent);manager.discard(file)
  }
- @Test fun newAddressAndExplicitNoAddressCanBeSelectedDuringTextEntry()=runBlocking{
-  val p=products.saveWithLinks(ProductEntity(name="Сыр"),listOf(ProductShopLinkEntity(productId=0,shopId=a)),mapOf(a to setOf(point)))
-  val created=shops.createPoint(a,"Новый адрес",p);assertTrue(db.shopBranchDao().availability(p).any{it.branchId==created})
+ @Test fun newAddressIsAvailableByDefaultAndExplicitNoAddressRemainsSelectable()=runBlocking{
+  val p=products.saveWithLinks(ProductEntity(name="Сыр"),listOf(ProductShopLinkEntity(productId=0,shopId=a)))
+  shops.saveWithDepartments(shops.getShopById(a)!!,shops.getDepartmentsByShopIdSync(a),shops.branches(a)+ShopBranchEntity(shopId=a,address="Новый адрес"))
+  val created=shops.branches(a).single{it.address=="Новый адрес"}.id;assertFalse(products.getShopLinksForProductSync(p).single().restrictBranches);assertTrue(db.shopBranchDao().availability(p).isEmpty())
   val purchase=basket.addProduct(p,choice=ShopChoice.EXPLICIT,shopId=a,branchId=created);assertEquals(created,db.shoppingListEntryDao().getById(purchase)!!.assignedBranchId)
   val noAddress=basket.addProduct(p,choice=ShopChoice.EXPLICIT,shopId=a,branchId=0);assertNull(db.shoppingListEntryDao().getById(noAddress)!!.assignedBranchId);assertEquals(a,db.shoppingListEntryDao().getById(noAddress)!!.assignedShopId)
  }
@@ -106,7 +108,7 @@ class RefinementDataTest {
   assertNotEquals(unresolved,explicitNone);assertTrue(db.shoppingListEntryDao().getById(explicitNone)!!.explicitNoShop);assertFalse(db.shoppingListEntryDao().getById(unresolved)!!.explicitNoShop);assertEquals(1L,db.shoppingListEntryDao().getById(unresolved)!!.awaitingShopCityId);assertNull(db.shoppingListEntryDao().getById(explicitNone)!!.awaitingShopCityId)
   val beforeConfigure=db.shoppingListEntryDao().getById(unresolved)!!;assertEquals(beforeConfigure,BackupJson.entries(BackupJson.encode(beforeConfigure)))
   val p2=products.saveWithLinks(ProductEntity(name="Салат"),emptyList());val reviewNone=basket.addProduct(p2)
-  val snapshot=basket.textSnapshot();basket.replacePendingText(snapshot.entries,snapshot.entries.map{row->ShoppingListRepository.PurchaseRequest(row.productId,if(row.productId==p)"Банан"else "Салат",row.quantity,row.unit,choice=ShopChoice.NONE,entryId=row.id,assignmentExplicit=row.id==reviewNone)})
+  basket.changeShop(reviewNone,null,null)
   assertTrue(db.shoppingListEntryDao().getById(reviewNone)!!.explicitNoShop);assertNull(db.shoppingListEntryDao().getById(reviewNone)!!.awaitingShopCityId)
   assertEquals(1L,db.shoppingListEntryDao().getById(unresolved)!!.awaitingShopCityId)
   products.saveWithLinks(db.productDao().getById(p2)!!,listOf(ProductShopLinkEntity(productId=p2,shopId=a)));assertNull(db.shoppingListEntryDao().getById(reviewNone)!!.assignedShopId)
@@ -131,8 +133,8 @@ class RefinementDataTest {
    old.execSQL("INSERT INTO product_shop_links(id,productId,shopId,departmentId,priority,restrictBranches) VALUES(1,7,1,5,1,0)")
    old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,assignedShopId,isBought,isUrgent,createdAt,updatedAt) VALUES(8,7,8,'',1,0,0,10,20),(9,7,3,'',1,1,0,11,21)");old.version=11
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16).build()
-  try{assertEquals(16,migrated.openHelper.writableDatabase.version);assertEquals(listOf(9L,8L),migrated.shopDepartmentDao().types().take(2).map{it.id});assertEquals(31,migrated.shopDepartmentDao().types().size);assertEquals("Ягоды",migrated.shopDepartmentDao().type(8)!!.name);assertEquals(1,migrated.shopDepartmentDao().getAllSync().size);assertEquals("same-banana",migrated.productDao().getById(7)!!.stableId);assertFalse(migrated.productDao().getById(7)!!.isFavorite);assertEquals("шт",migrated.shoppingListEntryDao().getById(8)!!.unit);assertEquals(5L,migrated.shoppingListEntryDao().getById(8)!!.assignedDepartmentId);assertEquals("",migrated.shoppingListEntryDao().getById(9)!!.unit);assertNull(migrated.shoppingListEntryDao().getById(9)!!.assignedDepartmentId);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18).build()
+  try{assertEquals(18,migrated.openHelper.writableDatabase.version);assertEquals(listOf(9L,8L),migrated.shopDepartmentDao().types().take(2).map{it.id});assertEquals(31,migrated.shopDepartmentDao().types().size);assertEquals("Ягоды",migrated.shopDepartmentDao().type(8)!!.name);assertEquals(1,migrated.shopDepartmentDao().getAllSync().size);assertEquals("same-banana",migrated.productDao().getById(7)!!.stableId);assertFalse(migrated.productDao().getById(7)!!.isFavorite);assertEquals("шт",migrated.shoppingListEntryDao().getById(8)!!.unit);assertEquals(5L,migrated.shoppingListEntryDao().getById(8)!!.assignedDepartmentId);assertEquals("",migrated.shoppingListEntryDao().getById(9)!!.unit);assertNull(migrated.shoppingListEntryDao().getById(9)!!.assignedDepartmentId);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
   finally{migrated.close();app.deleteDatabase(name)}
  }
 }

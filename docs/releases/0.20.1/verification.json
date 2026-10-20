@@ -1,0 +1,55 @@
+{
+  "version": "0.20.1",
+  "checks": {
+    "tests": 988,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": 84,
+  "execution": "one complete final regression run; no post-run source/test/schema/build modifications",
+  "newChecksApi28And35": 26,
+  "retiredPreviousChecks": 30,
+  "baselineChecks": 992,
+  "sourceSealFiles": 275,
+  "sourceTestSchemaBuildUnchanged": true,
+  "protectedWidgetFiles": 17,
+  "protectedSchemaFiles": 11,
+  "lint": {
+    "Error": 0,
+    "Warning": 64,
+    "Information": 0,
+    "Hint": 3
+  },
+  "nativeScreenshots": [
+    "01-market-candidates-api28.png",
+    "01-market-candidates-api35.png",
+    "02-stale-add-error-api28.png",
+    "02-stale-add-error-api35.png"
+  ],
+  "physicalPhoneTested": false,
+  "apk": {
+    "version": "0.20.1",
+    "versionCode": 28,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2016154,
+    "sha256": "0e1806dc8c814a8e0dec487523ef8fabf5184dcfa0890d82f878d66ddccd4427",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 18,
+    "backupFormat": 14
+  },
+  "removedProductionFunctions": 68,
+  "removedStringResources": 62,
+  "roomMigrationNeeded": false,
+  "compatibility": "Room18 / ZIP14; previous migrations and legacy read/import paths retained",
+  "historicalApksUnchanged": true,
+  "originalUserExportUnchanged": true,
+  "gitHubPublication": "Publication receipt in docs/publications/0.20.1.json; release assets verified anonymously before completion",
+  "lintReview": {
+    "UnusedResources": 0,
+    "StaticFieldLeak": "Both ViewModel factories pass Application, not Activity; retained fields hold application context.",
+    "UnusedAttribute": "Widget Android31+ sizing/preview attributes intentionally retained for newer launchers.",
+    "ObsoleteSdkInt": "Existing launcher v26 directory remains valid for minSdk26; no dead implementation.",
+    "Other": "Style/KTX/dependency/launcher suggestions remain; no lint errors."
+  }
+}

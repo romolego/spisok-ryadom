@@ -14,9 +14,6 @@ interface ProductShopLinkDao {
     @Query("SELECT * FROM product_shop_links WHERE productId = :productId ORDER BY priority ASC")
     fun getLinksForProduct(productId: Long): Flow<List<ProductShopLinkEntity>>
 
-    @Query("SELECT * FROM product_shop_links WHERE productId = :productId ORDER BY priority ASC LIMIT 1")
-    suspend fun getPriorityLink(productId: Long): ProductShopLinkEntity?
-
     @Query("SELECT * FROM product_shop_links WHERE shopId = :shopId ORDER BY priority ASC")
     fun getLinksForShop(shopId: Long): Flow<List<ProductShopLinkEntity>>
 

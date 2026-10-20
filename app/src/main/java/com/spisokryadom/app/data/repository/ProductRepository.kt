@@ -7,8 +7,6 @@ import com.spisokryadom.app.data.entity.ProductShopLinkEntity
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.Dispatchers
 import com.spisokryadom.app.util.FuzzySearch
 
 object ProductEditorTransactions {
@@ -17,7 +15,7 @@ object ProductEditorTransactions {
     private object Key:kotlin.coroutines.CoroutineContext.Key<Owner>
     private class Owner:kotlin.coroutines.AbstractCoroutineContextElement(Key)
     suspend fun <T> inGeneration(expected: Long, block: suspend () -> T): T = locked {
-        require(generation.get() == expected) { "База восстановлена. Повторите действие в обновлённом списке" }
+        require(generation.get() == expected) { "База восстановлена. Откройте экран заново" }
         block()
     }
     suspend fun <T> locked(block:suspend()->T):T {
@@ -56,8 +54,6 @@ class ProductRepository(
     } }
     fun getAllProducts(): Flow<List<ProductEntity>> = productDao.getAll()
     fun getAllProductsIncludingTemporary(): Flow<List<ProductEntity>> = productDao.getAllIncludingTemporary()
-    fun searchProducts(query: String): Flow<List<ProductEntity>> = productDao.getAll().map { FuzzySearch.rank(it, query, { p -> p.name }) }.flowOn(Dispatchers.Default)
-    fun getDistinctUnits(): Flow<List<String>> = productDao.getDistinctUnits()
     fun getProductsByRecipientId(recipientId: Long): Flow<List<ProductEntity>> =
         productDao.getByRecipientId(recipientId)
     fun getProductsByGroupId(groupId: Long): Flow<List<ProductEntity>> =
@@ -66,11 +62,7 @@ class ProductRepository(
         val canonical=com.spisokryadom.app.util.Quantities.unit(unit)
         products.filter{com.spisokryadom.app.util.Quantities.unit(it.defaultUnit.orEmpty())==canonical}
     }
-    suspend fun renameUnit(oldUnit: String, newUnit: String) = productDao.renameUnit(oldUnit, newUnit)
-    suspend fun clearUnit(unit: String) = productDao.clearUnit(unit)
     suspend fun getProductById(id: Long): ProductEntity? = productDao.getById(id)
-    suspend fun insertProduct(product: ProductEntity): Long = productDao.insert(product)
-    suspend fun updateProduct(product: ProductEntity) = productDao.update(product)
     suspend fun deleteProduct(product: ProductEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{
         val actual=productDao.getById(product.id)?:return@withTransaction
         val goalRows=db.shoppingListEntryDao().getAllSync().filter{it.productId==actual.id&&it.listId!=null}
@@ -94,26 +86,6 @@ class ProductRepository(
     suspend fun getShopLinksForProductSync(productId: Long): List<ProductShopLinkEntity> =
         linkDao.getLinksForProductSync(productId)
 
-    suspend fun getPriorityLink(productId: Long): ProductShopLinkEntity? =
-        linkDao.getPriorityLink(productId)
-
-    private suspend fun validateLink(link:ProductShopLinkEntity) {
-        require(productDao.getById(link.productId)!=null&&db.shopDao().getById(link.shopId)!=null){"Товар или магазин удалён"}
-        link.departmentId?.let{require(db.shopDepartmentDao().getById(it)?.shopId==link.shopId){"Группа относится к другому магазину"}}
-    }
-    suspend fun deleteShopLink(link:ProductShopLinkEntity)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction{
-        val current=linkDao.getById(link.id)?:return@withTransaction
-        val product=productDao.getById(current.productId)?:return@withTransaction
-        val previousLinks=linkDao.getLinksForProductSync(product.id)
-        linkDao.delete(current)
-        refreshPending(product,product,previousLinks)
-    } }
-    suspend fun deleteAllShopLinks(productId:Long)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction{
-        val product=productDao.getById(productId)?:return@withTransaction
-        val previousLinks=linkDao.getLinksForProductSync(productId)
-        linkDao.deleteAllForProduct(productId)
-        refreshPending(product,product,previousLinks)
-    } }
     suspend fun toggleShopLink(productId:Long,shopId:Long)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         val links=linkDao.getLinksForProductSync(productId)
         val old=links.find{it.shopId==shopId}
@@ -203,8 +175,6 @@ class ProductRepository(
             }else if(changed!=row)db.shoppingListEntryDao().update(changed.copy(updatedAt=System.currentTimeMillis()))
         }
     }
-    suspend fun setFavorite(id:Long,value:Boolean)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {productDao.getById(id)?.let{productDao.update(it.copy(isFavorite=value))}} }
-    suspend fun setAccent(id:Long,value:String)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {productDao.getById(id)?.let{productDao.update(it.copy(accent=value))}} }
 
     suspend fun branchPriorities(productId:Long)=db.shopBranchDao().priorities().filter{it.productId==productId}
     fun observeBranchDepartments()=db.retailStructureDao().observeProductDepartments()

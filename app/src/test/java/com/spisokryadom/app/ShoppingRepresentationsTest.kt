@@ -1,7 +1,6 @@
 package com.spisokryadom.app
 
 import android.app.Application
-import android.os.Looper
 import androidx.lifecycle.ViewModelStore
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -9,14 +8,12 @@ import com.spisokryadom.app.data.db.AppDatabase
 import com.spisokryadom.app.data.entity.*
 import com.spisokryadom.app.data.repository.*
 import com.spisokryadom.app.data.backup.BackupManager
-import com.spisokryadom.app.ui.bulk.BulkViewModel
 import com.spisokryadom.app.ui.components.GroupExpansion
 import kotlinx.coroutines.runBlocking
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows
 import org.robolectric.annotation.*
 import java.util.UUID
 import java.util.zip.ZipFile
@@ -56,9 +53,7 @@ class ShoppingRepresentationsTest {
   db.shopBranchDao().insertAvailability(ProductBranchAvailabilityEntity(pasta,far))
   Unit
  }
- @After fun close(){store.clear();Shadows.shadowOf(Looper.getMainLooper()).idle();locations.closeForTest();db.close()}
- private fun model(key:String)=BulkViewModel(products,basket,locations,prefs,textView=true).also{store.put(key,it);await{!it.uiState.value.busy}}
- private fun await(condition:()->Boolean){val until=System.nanoTime()+10_000_000_000;while(!condition()&&System.nanoTime()<until){Shadows.shadowOf(Looper.getMainLooper()).idle();Thread.sleep(5)};assertTrue(condition())}
+
 
  @Test fun chainPriorityRespectsExclusiveProductAvailability()=runBlocking {
   val a=basket.addProduct(apple,2.0);val p=basket.addProduct(pasta,1.0)
@@ -104,67 +99,11 @@ class ShoppingRepresentationsTest {
   assertEquals(listOf(ProductBranchAvailabilityEntity(pasta,far,yar)),db.shopBranchDao().availability(pasta))
  }
 
- @Test fun textIsPersistentRepresentationWithoutDoublingAndBoughtRowsAreProtected() {
-  val ids=runBlocking {
-   val active=db.shoppingListEntryDao().insert(ShoppingListEntryEntity(productId=apple,quantity=2.0,unit="кг",assignedShopId=yar,assignedBranchId=near,isUrgent=true,note="Зелёные",comment="Без пакета"))
-   val bought=db.shoppingListEntryDao().insert(ShoppingListEntryEntity(productId=pasta,quantity=1.0,unit="уп",assignedShopId=yar,assignedBranchId=far,isBought=true))
-   active to bought
-  }
-  val boughtBefore=runBlocking{db.shoppingListEntryDao().getById(ids.second)}
-  val vm=model("first")
-  assertTrue(vm.uiState.value.text.contains("Яблоки Гала — 2 кг"));assertFalse(vm.uiState.value.text.contains("Спагетти"))
-  vm.text(vm.uiState.value.text.replace("— 2 кг","— 3,5 кг"));vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy}
-  assertEquals(ids.first,vm.uiState.value.rows.single().entryId)
-  vm.add();await{vm.uiState.value.saved&&!vm.uiState.value.busy}
-  assertFalse(vm.uiState.value.review);assertTrue(vm.uiState.value.text.contains("3,5 кг"))
-  runBlocking {val row=db.shoppingListEntryDao().getById(ids.first)!!;assertEquals(3.5,row.quantity,0.0);assertEquals("Зелёные",row.note);assertEquals("Без пакета",row.comment);assertTrue(row.isUrgent);assertEquals(boughtBefore,db.shoppingListEntryDao().getById(ids.second))}
-  vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy};vm.add();await{vm.uiState.value.saved&&!vm.uiState.value.busy&&!vm.uiState.value.review}
-  assertEquals(2,runBlocking{db.shoppingListEntryDao().getAllSync()}.size)
-  assertTrue(model("reopened").uiState.value.text.contains("3,5 кг"))
- }
-
- @Test fun unsavedDraftSurvivesAndStaleTextCannotOverwriteNewBasketQuantity() {
-  val id=runBlocking{basket.addProduct(apple,2.0)}
-  val vm=model("draft");vm.text(vm.uiState.value.text.replace("— 2 кг","— 5 кг"))
-  val restored=model("restored");assertTrue(restored.uiState.value.text.contains("5 кг"))
-  runBlocking{basket.updateQuantity(id,7.0)}
-  restored.review();await{restored.uiState.value.review&&!restored.uiState.value.busy};restored.add()
-  await{!restored.uiState.value.busy&&restored.uiState.value.error!=null}
-  assertEquals(7.0,runBlocking{db.shoppingListEntryDao().getById(id)}!!.quantity,0.0)
-  assertTrue(restored.uiState.value.text.contains("5 кг"))
- }
-
- @Test fun deletingTextRemovesOnlyPendingAndUndoRestoresTemporaryProductAndMetadata() {
-  val active=runBlocking{basket.addNewProduct("Разовый",.000001,"сложная единица 2",false)}
-  val bought=runBlocking{basket.addProduct(pasta,1.0).also{basket.markBought(it)}}
-  val before=runBlocking{db.shoppingListEntryDao().getAllSync()}.associateBy{it.id}
-  val vm=model("delete")
-  assertTrue(vm.uiState.value.text.contains("0,000001 сложная единица 2"))
-  vm.text("");vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy}
-  assertEquals(1,vm.uiState.value.removedNames.size)
-  vm.add();await{vm.uiState.value.saved&&!vm.uiState.value.busy}
-  assertEquals(listOf(bought),runBlocking{db.shoppingListEntryDao().getAllSync()}.map{it.id})
-  vm.undo();await{!vm.uiState.value.busy&&!vm.uiState.value.canUndo}
-  assertEquals(before,runBlocking{db.shoppingListEntryDao().getAllSync()}.associateBy{it.id})
-  assertNotNull(runBlocking{db.productDao().getById(before.getValue(active).productId)})
- }
-
- @Test fun ambiguousSameProductRowsRequireIdentityChoiceInsteadOfDiscardingNotes() {
-  runBlocking {
-   db.shoppingListEntryDao().insert(ShoppingListEntryEntity(productId=apple,quantity=1.0,unit="кг",note="Одни"))
-   db.shoppingListEntryDao().insert(ShoppingListEntryEntity(productId=apple,quantity=2.0,unit="кг",note="Другие"))
-  }
-  val vm=model("ambiguous");vm.text("Без магазина:\nЯблоки Гала 3 кг\nЯблоки Гала 4 кг");vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy}
-  assertTrue(vm.uiState.value.rows.all{!it.entryResolved})
-  vm.add();assertNotNull(vm.uiState.value.error)
-  assertEquals(listOf(1.0,2.0),runBlocking{db.shoppingListEntryDao().getAllSync()}.map{it.quantity})
- }
-
  @Test fun zipFiveRoundTripsAddressesRestrictionsPurchasesAndCollapsedPreferences()=runBlocking {
   val id=basket.addProduct(pasta,3.0)
   app.getSharedPreferences("product_db_prefs",0).edit().putStringSet("collapsed_sections",setOf("BY_GROUPS_group_1")).commit()
   val backup=BackupManager(app,db);val file=backup.exportFile()
-  assertEquals(12,ZipFile(file).use{JSONObject(it.getInputStream(it.getEntry("manifest.json")).reader().readText()).getInt("version")})
+  assertEquals(14,ZipFile(file).use{JSONObject(it.getInputStream(it.getEntry("manifest.json")).reader().readText()).getInt("version")})
   db.shoppingListEntryDao().deleteAll();db.shopDao().deleteAll()
   backup.importFile(file)
   assertEquals(2,db.shopBranchDao().getAll().size)
@@ -217,59 +156,6 @@ class ShoppingRepresentationsTest {
   try{backup.importFile(invalid);fail("Cross-shop point must be rejected")}catch(expected:IllegalArgumentException){}
   assertEquals(before,db.shoppingListEntryDao().getAllSync())
   assertEquals(far,basket.resolveBranch(pasta,yar))
- }
-
- @Test fun oldUnsavedBulkDraftIsKeptAlongsideExistingPendingPurchases() {
-  runBlocking{basket.addProduct(apple,2.0)}
-  prefs.edit().putString("bulk_text","Спагетти 3 уп").commit()
-  val vm=model("legacy-draft")
-  assertTrue(vm.uiState.value.text.contains("Яблоки Гала — 2 кг"))
-  assertTrue(vm.uiState.value.text.contains("Спагетти 3 уп"))
-  assertTrue(vm.uiState.value.dirty)
-  assertFalse(prefs.contains("bulk_text"))
-  assertTrue(prefs.contains("text_view_draft"))
-  vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy}
-  vm.add();await{vm.uiState.value.saved&&!vm.uiState.value.busy}
-  assertEquals(2,runBlocking{db.shoppingListEntryDao().getAllSync()}.size)
- }
-
- @Test fun editingTextShopAndUnitRetainsPurchaseIdentityNotesAndUrgency() {
-  val id=runBlocking{db.shoppingListEntryDao().insert(ShoppingListEntryEntity(productId=apple,quantity=2.0,unit="кг",assignedShopId=baton,note="Сохранить заметку",comment="Сохранить комментарий",isUrgent=true,createdAt=123))}
-  val vm=model("changed-target")
-  vm.text("Красный Яр · Ленина, 20:\nЯблоки Гала — 4 шт")
-  vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy}
-  assertEquals(id,vm.uiState.value.rows.single().entryId)
-  vm.add();await{vm.uiState.value.saved&&!vm.uiState.value.busy}
-  val row=runBlocking{db.shoppingListEntryDao().getById(id)}!!
-  assertEquals(yar,row.assignedShopId);assertEquals(far,row.assignedBranchId);assertEquals("шт",row.unit)
-  assertEquals("Сохранить заметку",row.note);assertEquals("Сохранить комментарий",row.comment);assertTrue(row.isUrgent)
-  assertEquals(123L,row.createdAt);assertEquals(1,runBlocking{db.shoppingListEntryDao().getAllSync()}.size)
- }
-
- @Test fun newPermanentTextProductKeepsTheStoreForFutureAutomaticPurchases() {
-  val vm=model("new-permanent");vm.text("Красный Яр:\nНовый товар — 2 шт")
-  vm.review();await{vm.uiState.value.review&&!vm.uiState.value.busy}
-  vm.update(0){it.copy(permanent=true)};vm.add();await{vm.uiState.value.saved&&!vm.uiState.value.busy}
-  runBlocking {
-   val product=db.productDao().getAllSync().single{it.name=="Новый товар"}
-   assertFalse(product.isTemporary)
-   assertEquals(yar,db.productShopLinkDao().getLinksForProductSync(product.id).single().shopId)
-   val row=db.shoppingListEntryDao().getById(basket.addProduct(product.id,1.0))!!
-   assertEquals(yar,row.assignedShopId);assertEquals(near,row.assignedBranchId)
-  }
- }
-
- @Test fun textTransactionRollsBackEarlierEditsAndNewProductsWhenALaterRowFails()=runBlocking {
-  val id=basket.addProduct(apple,2.0)
-  val base=basket.textSnapshot().entries
-  val beforeProducts=db.productDao().getAllSync()
-  val requests=listOf(
-   ShoppingListRepository.PurchaseRequest(apple,"Яблоки Гала",3.0,"кг",choice=ShopChoice.EXPLICIT,shopId=yar,entryId=id,branchId=far),
-   ShoppingListRepository.PurchaseRequest(null,"Не должен остаться",-1.0,"шт",true,ShopChoice.EXPLICIT,yar)
-  )
-  try{basket.replacePendingText(base,requests);fail("Bad second row must roll back all edits")}catch(expected:IllegalArgumentException){}
-  assertEquals(base,basket.textSnapshot().entries)
-  assertEquals(beforeProducts,db.productDao().getAllSync())
  }
 
  @Test fun placeChoicesIntersectCatalogueAvailabilityAndExcludeOtherCitiesAndUnlinkedShops()=runBlocking {

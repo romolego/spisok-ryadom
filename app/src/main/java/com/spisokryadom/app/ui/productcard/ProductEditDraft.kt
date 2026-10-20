@@ -7,7 +7,6 @@ import com.spisokryadom.app.data.repository.ProductRepository
 import com.spisokryadom.app.util.Quantities
 import org.json.JSONArray
 import org.json.JSONObject
-import kotlinx.coroutines.sync.withLock
 
 /** Raw editor values survive incomplete numbers and process death independently of valid catalogue rows. */
 data class ProductEditDraft(val stableId:String,val productId:Long,val newSession:Boolean,val allowDuplicate:Boolean,val state:ProductCardUiState,val autoPersist:Boolean=true) {
@@ -17,7 +16,7 @@ data class ProductEditDraft(val stableId:String,val productId:Long,val newSessio
   departmentTypes=base.departmentTypes,productContexts=base.productContexts,isLoading=false)
  suspend fun persist(repository:ProductRepository,defaults:com.spisokryadom.app.util.ProductCreationDefaults?=null):Long {
   val s=state
-  val quantity=if(s.defaultQuantity.isBlank())if(defaults==null)null else 1.0 else Quantities.parse(s.defaultQuantity)?:error("Проверьте количество")
+  val quantity=if(s.defaultQuantity.isBlank())defaults?.missingQuantity else Quantities.parse(s.defaultQuantity)?:error("Проверьте количество")
   val price=if(s.priceValue.isBlank())null else s.priceValue.replace(',','.').toDoubleOrNull()?.takeIf{it.isFinite()&&it>=0}?:error("Проверьте цену")
   val p=ProductEntity(id=productId.coerceAtLeast(0),stableId=stableId,name=s.name.trim(),productGroupId=s.productGroupId,recipientId=s.recipientId,
    defaultQuantity=quantity,defaultUnit=Quantities.unit(s.defaultUnit).ifBlank{defaults?.missingUnit?.ifBlank{null}},note=s.note.trim().ifBlank{null},purchaseType=s.purchaseType,
@@ -104,7 +103,7 @@ object ProductDraftStore {
      links.filter{it.shopId in changeShops}.forEach{l->
       val index=ui.indexOfFirst{it.link.shopId==l.shopId}
       val pendingIndex=pending.indexOfFirst{it.shopId==l.shopId}
-      val allPoints=change is com.spisokryadom.app.data.repository.ProductBatchChange.Department&&change.branchId==null
+      val allPoints=change is com.spisokryadom.app.data.repository.ProductBatchChange.Department
       if(index<0)ui.add(ShopLinkUi(l,shopNames[l.shopId]?.name.orEmpty(),departments[l.departmentId]?.name))
       else if(allPoints)ui[index]=ui[index].copy(link=ui[index].link.copy(departmentId=l.departmentId),departmentName=departments[l.departmentId]?.name)
       if(pendingIndex<0)pending.add(PendingShopLink(-l.shopId,l.shopId,shopNames[l.shopId]?.name.orEmpty(),l.departmentId,departments[l.departmentId]?.name,l.priority))
@@ -113,16 +112,9 @@ object ProductDraftStore {
      val branches=repository.editorBranches().associateBy{it.id}
      val revised=old.branchDepartments.toMutableMap()
      if(change is com.spisokryadom.app.data.repository.ProductBatchChange.Department){
-      if(change.branchId==null)revised.keys.filter{branches[it]?.shopId==change.shopId}.forEach{revised.remove(it)}
-      else {
-       val type=repository.branchDepartments(product.id).find{it.branchId==change.branchId}?.typeId
-       val placement=departments.values.find{it.shopId==change.shopId&&it.typeId==type}
-       if(placement==null)revised.remove(change.branchId)else revised[change.branchId]=placement.id
-      }
+      revised.keys.filter{branches[it]?.shopId==change.shopId}.forEach{revised.remove(it)}
      }
-     val points=old.branchSelections.toMutableMap()
-     if(change is com.spisokryadom.app.data.repository.ProductBatchChange.Department&&change.branchId!=null&&change.shopId in points)points[change.shopId]=points.getValue(change.shopId)+change.branchId
-     old.copy(shopLinks=ui,pendingShopLinks=pending,branchDepartments=revised,branchSelections=points)
+     old.copy(shopLinks=ui,pendingShopLinks=pending,branchDepartments=revised)
     }
    }
    write(prefs,key,draft.copy(productId=product.id,state=next))

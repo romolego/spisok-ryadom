@@ -57,7 +57,7 @@ class ShopListViewModel(
         }
     }
 
-    fun createVenue(name:String,done:()->Unit){viewModelScope.launch(errors){shopRepository.ensureVenue(shopRepository.locations.currentId(),name);done()}}
+
     fun saveVenue(venue:com.spisokryadom.app.data.entity.VenueEntity){viewModelScope.launch(errors){shopRepository.updateVenue(venue)}}
     fun removeVenue(id:Long){viewModelScope.launch(errors){shopRepository.deleteVenue(id)}}
     fun deleteShop(shop: ShopEntity) {

@@ -23,13 +23,13 @@ fun pendingPurchases(entries:List<ShoppingListEntryEntity>,shops:Map<Long,ShopEn
  var expanded by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
  OutlinedCard(
   modifier=modifier.fillMaxWidth().then(Modifier.combinedClickable(onClick=onOpen,onLongClick=onOpen)),
-  colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.primaryContainer),
+  colors=CardDefaults.outlinedCardColors(containerColor=favoriteBackground(favorite,MaterialTheme.colorScheme.primaryContainer)),
   border=androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.primary.copy(alpha=.2f))
  ){
   Column(Modifier.fillMaxWidth().padding(12.dp)){
    Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){
-    Text(name,Modifier.weight(1f),style=MaterialTheme.typography.bodyLarge)
-    if(favorite)Icon(androidx.compose.material.icons.Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary)
+    Text(name,Modifier.weight(1f),fontWeight=favoriteWeight(favorite),style=MaterialTheme.typography.bodyLarge)
+    if(favorite&&favoriteStyle().star)Icon(androidx.compose.material.icons.Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary)
     Icon(androidx.compose.material.icons.Icons.Filled.CheckCircle,"В списке",tint=MaterialTheme.colorScheme.primary,modifier=Modifier.size(18.dp))
     TextButton(onClick={expanded=!expanded}){Text("Покупок: ${rows.size}")}
    }

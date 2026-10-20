@@ -53,26 +53,27 @@ class ArchitectureUiTest {
  }
  @Test fun networkAndVenueAreCreatedInlineAndSavedOnTheSamePhysicalPoint(){
   ui.onAllNodesWithText("Магазины").onLast().performClick();waitText("Командор");ui.onNodeWithText("Командор").performTouchInput{longClick()};waitText("Название магазина")
-  ui.onNodeWithText("Добавить сеть магазинов").performScrollTo().performClick();ui.onNodeWithText("Название сети").performTextReplacement("Командор");ui.onNodeWithContentDescription("Завершить: Сеть магазинов").performScrollTo().performClick()
-  ui.onNodeWithContentDescription("Изменить адрес: В торговом центре").performScrollTo().performClick()
-  ui.onNodeWithText("Добавить рынок или ТЦ").performScrollTo().performClick();ui.onNodeWithText("Название рынка или ТЦ").performScrollTo().performTextReplacement("Планета");ui.onNodeWithContentDescription("Завершить: Рынок или ТЦ").performScrollTo().performClick()
-  ui.onNodeWithText("Заметка точки").performScrollTo().performTextReplacement("Вход с парковки");shot("02-inline-physical-point")
+  ui.onNodeWithText("Править").performScrollTo().performClick()
+  ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();ui.onNodeWithText("Название сети").performScrollTo().performTextReplacement("Командор")
+  ui.onAllNodesWithText("Рынок или ТЦ").onLast().performScrollTo().performClick();ui.onNodeWithText("Новый рынок или ТЦ…").performClick();ui.onNodeWithText("Название рынка или ТЦ").performScrollTo().performTextReplacement("Планета")
+  ui.onNodeWithTag("branch-note-$second").performScrollTo().performTextReplacement("Вход с парковки");shot("02-inline-physical-point")
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   ui.waitUntil(20_000){runBlocking{db.shopDao().getById(shop)!!.networkId!=null}}
   runBlocking{val point=db.shopBranchDao().get(second)!!;assertEquals(shop,point.shopId);assertNotNull(point.venueId);assertEquals("Планета",db.retailStructureDao().venue(point.venueId!!)!!.name);assertEquals("Вход с парковки",point.note);assertEquals(2,db.shopBranchDao().forShop(shop).size)}
   reveal(hasText("Планета"));reveal(hasText("Командор") and hasText("В торговом центре"));reveal(hasText("Батон"));reveal(hasText("Командор") and hasText("Около дома"));ui.onNodeWithText("Рынок или ТЦ").assertDoesNotExist();shot("03-venue-browse")
  }
- @Test fun exactPointDepartmentCanBeEditedWithoutASecondProduct(){
+ @Test fun commonShopDepartmentAppliesToBothPointsWithoutASecondProduct(){
   ui.onNodeWithText("Товары").performClick();waitText("База товаров");waitText("Сыр");ui.onNodeWithText("Сыр").performClick();waitText("Название товара")
-  ui.onNodeWithText("Группы в отдельных точках").performScrollTo()
-  ui.onNodeWithContentDescription("Изменить группы в отдельных точках").performScrollTo().performClick()
-  ui.onNodeWithText("В торговом центре").performScrollTo().performClick();ui.onNodeWithText("Сыры").performClick();shot("04-point-group")
+  ui.onNodeWithText("Группы в отдельных точках").assertDoesNotExist()
+  ui.onNodeWithText("1. Командор").performScrollTo().performClick();waitText("Товар в магазине")
+  ui.onNodeWithText("Группа магазина").performClick();ui.onNodeWithText("Сыры").performClick();shot("04-shop-group");ui.onNodeWithText("Применить").performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("База товаров")
-  runBlocking{val fresh=app.container.shoppingListRepository.addProduct(product,unit="кг",choice=ShopChoice.EXPLICIT,shopId=shop,branchId=second);assertEquals(cheese,db.shoppingListEntryDao().getById(fresh)!!.assignedDepartmentId);assertEquals(1,db.productDao().getAllSync().size)}
+  runBlocking{val fresh=app.container.shoppingListRepository.addProduct(product,unit="кг",choice=ShopChoice.EXPLICIT,shopId=shop,branchId=second);assertEquals(cheese,db.shoppingListEntryDao().getById(fresh)!!.assignedDepartmentId);assertEquals(cheese,db.shoppingListEntryDao().getById(entryA)!!.assignedDepartmentId);assertEquals(cheese,db.shoppingListEntryDao().getById(entryB)!!.assignedDepartmentId);assertEquals(1,db.productDao().getAllSync().size)}
  }
  @Test fun marketConversionAndUnifiedListKeepPavilionsAndPurchases(){
   runBlocking{db.shopDao().update(db.shopDao().getById(shop)!!.copy(name="Енисейский привоз"))}
   ui.onAllNodesWithText("Магазины").onLast().performClick();waitText("Енисейский привоз");ui.onNodeWithText("Енисейский привоз").performTouchInput{longClick()};waitText("Название магазина")
+  ui.onNodeWithText("Править").performScrollTo().performClick()
   ui.onNodeWithText("Преобразовать в рынок или ТЦ").performScrollTo().performClick();waitText("Преобразовать в рынок или ТЦ?")
   ui.onNode(hasText("Да") and hasAnyAncestor(isDialog())).performClick();waitText("Магазины");waitText("Около дома")
   reveal(hasText("Енисейский привоз"));reveal(hasText("Около дома") and hasAnyAncestor(shopRow));reveal(hasText("В торговом центре") and hasAnyAncestor(shopRow));reveal(hasText("Батон"));ui.onNodeWithText("Рынок или ТЦ").assertDoesNotExist();shot("05-market-pavilions")

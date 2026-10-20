@@ -55,7 +55,7 @@ class ProductDatabaseViewModel(private val products:ProductRepository,private va
      val ps=list.filter{it.id !in used};if(ps.isNotEmpty())add(ProductSection("Не привязаны в этом городе",ps,"unassigned"))
     }
    }
-   ProductViewMode.BY_GROUPS->{val grouped=list.groupBy{it.productGroupId};buildList{d.groups.sortedBy{it.displayOrder}.forEach{g->grouped[g.id]?.let{add(ProductSection(g.name,it,"group_${g.id}",accent=g.accent,iconKey=g.iconKey))}};grouped[null]?.let{add(ProductSection("Без группы",it,"no_group"))}}}
+   ProductViewMode.BY_GROUPS->{val grouped=list.groupBy{it.productGroupId};buildList{com.spisokryadom.app.util.alphabetical(d.groups){it.name}.forEach{g->grouped[g.id]?.let{add(ProductSection(g.name,it,"group_${g.id}",accent=g.accent,iconKey=g.iconKey))}};grouped[null]?.let{add(ProductSection("Без группы",it,"no_group"))}}}
    ProductViewMode.BY_RECIPIENTS->{val grouped=list.groupBy{it.recipientId};buildList{d.recipients.sortedBy{it.displayOrder}.forEach{g->grouped[g.id]?.let{add(ProductSection(g.name,it,"recipient_${g.id}",accent=g.accent,iconKey=g.iconKey))}};grouped[null]?.let{add(ProductSection("Без получателя",it,"no_recipient"))}}}
   }
   fun info(rows:List<ShoppingListEntryEntity>)=rows.groupBy{it.productId}.mapValues{(_,purchases)->val first=purchases.minBy{it.id};ShoppingListInfo(first.id,first.quantity,first.unit,shopMap[first.assignedShopId]?.name,com.spisokryadom.app.ui.components.pendingPurchases(purchases,shopMap,branchMap))}
@@ -75,9 +75,6 @@ class ProductDatabaseViewModel(private val products:ProductRepository,private va
  fun incrementEntry(entryId:Long)=command{basket.adjustByDefaultStep(entryId,1,regularOnly=true)}
  fun decrementEntry(entryId:Long)=command{basket.adjustByDefaultStep(entryId,-1,regularOnly=true)}
  fun setEntryQuantity(entryId:Long,quantity:Double)=command{if(quantity<=0)basket.removeEntry(entryId,regularOnly=true)else basket.updateQuantity(entryId,quantity,regularOnly=true)}
- // Capture the displayed identity before launching; never reselect a different row by product.
- fun incrementQuantity(productId:Long){uiState.value.shoppingListMap[productId]?.takeIf{it.purchases.size<=1}?.let{incrementEntry(it.entryId)}}
- fun decrementQuantity(productId:Long){uiState.value.shoppingListMap[productId]?.takeIf{it.purchases.size<=1}?.let{decrementEntry(it.entryId)}}
- fun setQuantity(productId:Long,quantity:Double){uiState.value.shoppingListMap[productId]?.takeIf{it.purchases.size<=1}?.let{setEntryQuantity(it.entryId,quantity)}}
+
  companion object{val Factory=viewModelFactory{initializer{val app=this[APPLICATION_KEY] as SpisokRyadomApp;ProductDatabaseViewModel(app.container.productRepository,app.container.shoppingListRepository,app.container.shopRepository,app.container.classifierRepository,app.getSharedPreferences("product_db_prefs",0))}}}
 }

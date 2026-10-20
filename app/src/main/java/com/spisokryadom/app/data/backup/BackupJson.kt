@@ -26,6 +26,9 @@ internal data class BackupSnapshot(
  val groupPresets:List<GroupCreationPreset> = emptyList()
 )
 internal object BackupJson {
+ private fun favorite(o:JSONObject):Boolean {if(!o.has("isFavorite"))return false;require(o.get("isFavorite") is Boolean){"Неверная отметка избранного"};return o.getBoolean("isFavorite")}
+ private fun favoriteOrder(o:JSONObject):Int {if(!o.has("favoriteOrder"))return 0;val n=o.get("favoriteOrder");require((n is Int||n is Long)&&(n as Number).toLong() in 0..Int.MAX_VALUE.toLong()){"Неверный порядок избранного"};return (n as Number).toInt()}
+
  fun encode(value:ProductEntity):JSONObject = JSONObject().apply {
   put("id",value.id)
   put("name",value.name)
@@ -79,12 +82,13 @@ internal object BackupJson {
   else->value.toString()
  }
  fun encode(value:ProductGroupEntity):JSONObject = JSONObject().apply {
+  put("isFavorite",value.isFavorite);put("favoriteOrder",value.favoriteOrder)
   put("accent",value.accent);put("iconKey",value.iconKey)
   put("id",value.id)
   put("name",value.name)
   put("displayOrder",value.displayOrder)
  }
- fun groups(o:JSONObject):ProductGroupEntity = ProductGroupEntity(
+ fun groups(o:JSONObject):ProductGroupEntity = ProductGroupEntity(isFavorite=favorite(o),favoriteOrder=favoriteOrder(o),
   accent=o.optString("accent",""),iconKey=o.optString("iconKey",""),
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
   name=if(o.has("name")&&!o.isNull("name"))o.getString("name") else "",
@@ -113,7 +117,7 @@ internal object BackupJson {
   put("manualOrderOverride",value.manualOrderOverride)
   put("cityId",value.cityId)
   put("networkId",value.networkId?:JSONObject.NULL)
-  put("shoppingBackground",value.shoppingBackground)
+  put("shoppingBackground",value.shoppingBackground);put("iconKey",value.iconKey)
  }
  fun shops(o:JSONObject):ShopEntity = ShopEntity(
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
@@ -126,7 +130,7 @@ internal object BackupJson {
   manualOrderOverride=if(o.has("manualOrderOverride")&&!o.isNull("manualOrderOverride"))o.getBoolean("manualOrderOverride") else false,
   cityId=if(o.has("cityId")&&!o.isNull("cityId"))o.getLong("cityId") else 1,
   networkId=if(o.has("networkId")&&!o.isNull("networkId"))o.getLong("networkId")else null,
-  shoppingBackground=o.optString("shoppingBackground","")
+  shoppingBackground=o.optString("shoppingBackground",""),iconKey=o.optString("iconKey","")
  )
  fun encode(value:ShopDepartmentEntity):JSONObject = JSONObject().apply {
   put("id",value.id)
@@ -219,7 +223,7 @@ internal object BackupJson {
  fun availability(o:JSONObject)=ProductBranchAvailabilityEntity(o.getLong("productId"),o.getLong("branchId"),o.optLong("shopId",0))
  fun encode(v:RetailNetworkEntity)=JSONObject().put("id",v.id).put("name",v.name)
  fun encode(v:VenueEntity)=JSONObject().put("id",v.id).put("cityId",v.cityId).put("name",v.name).put("address",v.address?:JSONObject.NULL).put("note",v.note?:JSONObject.NULL)
- fun encode(v:DepartmentTypeEntity)=JSONObject().put("id",v.id).put("name",v.name).put("normalizedName",v.normalizedName).put("displayOrder",v.displayOrder).put("accent",v.accent).put("iconKey",v.iconKey)
+ fun encode(v:DepartmentTypeEntity)=JSONObject().put("isFavorite",v.isFavorite).put("favoriteOrder",v.favoriteOrder).put("id",v.id).put("name",v.name).put("normalizedName",v.normalizedName).put("displayOrder",v.displayOrder).put("accent",v.accent).put("iconKey",v.iconKey)
  fun encode(v:BranchDepartmentOrderEntity)=JSONObject().put("branchId",v.branchId).put("typeId",v.typeId).put("displayOrder",v.displayOrder)
  fun encode(v:ProductBranchDepartmentEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("typeId",v.typeId)
  fun encode(v:ProductBranchPriorityEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("displayOrder",v.displayOrder)
@@ -290,7 +294,7 @@ internal object BackupJson {
   branchDepartments=d.optJSONArray("productBranchDepartments")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductBranchDepartmentEntity(o.getLong("productId"),o.getLong("branchId"),o.getLong("shopId"),o.getLong("typeId"))}}}?:emptyList(),
   networks=d.optJSONArray("retailNetworks")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->RetailNetworkEntity(o.getLong("id"),o.getString("name"))}}}?:emptyList(),
   venues=d.optJSONArray("venues")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->VenueEntity(o.getLong("id"),o.getLong("cityId"),o.getString("name"),if(o.isNull("address"))null else o.optString("address"),if(o.isNull("note"))null else o.optString("note"))}}}?:emptyList(),
-  departmentTypes=d.optJSONArray("departmentTypes")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->DepartmentTypeEntity(o.getLong("id"),o.getString("name"),o.getString("normalizedName"),o.optInt("displayOrder",0),o.optString("accent",""),o.optString("iconKey",""))}}}?:emptyList(),
+  departmentTypes=d.optJSONArray("departmentTypes")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->DepartmentTypeEntity(o.getLong("id"),o.getString("name"),o.getString("normalizedName"),o.optInt("displayOrder",0),o.optString("accent",""),o.optString("iconKey",""),favorite(o),favoriteOrder(o))}}}?:emptyList(),
   branchPriorities=d.optJSONArray("productBranchPriorities")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductBranchPriorityEntity(o.getLong("productId"),o.getLong("branchId"),o.getLong("shopId"),o.getInt("displayOrder"))}}}?:emptyList(),
   goalLists=d.optJSONArray("goalLists")?.let{a->(0 until a.length()).map{goalList(a.getJSONObject(it))}}?:emptyList(),
   shopPresets=d.optJSONArray("shopCreationPresets")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require((o.get("shopId") is Int||o.get("shopId") is Long)&&o.get("purchaseMode") is String);ShopCreationPreset(o.getLong("shopId"),o.getString("purchaseMode"))}}}?:emptyList(),
