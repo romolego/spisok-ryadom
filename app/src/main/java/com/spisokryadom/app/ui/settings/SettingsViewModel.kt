@@ -53,6 +53,7 @@ data class DepartmentGroup(
     val name: String,
     val shops: List<ShopEntity>,
     val accent:String="",val iconKey:String="",
+    val isFavorite:Boolean=false,val favoriteOrder:Int=0,
     val totalDepartments: Int
 )
 
@@ -70,7 +71,7 @@ data class AddToListDefaultsState(
     val rememberShopPriorityOnMove:Boolean=false,
     val browseProductsOnAdd:Boolean=true,
     val autoSaveProductCards:Boolean=true,
-    val defaultPurchaseType:String="offline",val missingUnit:String="шт"
+    val defaultPurchaseType:String="offline",val missingUnit:String="шт",val missingQuantity:Double=1.0
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -179,7 +180,8 @@ class SettingsViewModel(
             browseProductsOnAdd=prefs.getBoolean("browse_products_on_add",true),
             autoSaveProductCards=com.spisokryadom.app.util.ProductEditingPreferences.enabled(prefs),
             defaultPurchaseType=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).purchaseType,
-            missingUnit=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit
+            missingUnit=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit,
+            missingQuantity=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingQuantity
         )
     }
 
@@ -187,8 +189,11 @@ class SettingsViewModel(
     fun setGroupDefaultRecipient(groupId:Long,recipientId:Long?,done:(Boolean)->Unit={}){viewModelScope.launch{
         try{classifierRepository.defaultRecipient(groupId,recipientId);done(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(message=e.message?:"Преднастройка не сохранена");done(false)}
     }}
-    fun addStandardCategories(){viewModelScope.launch(errors){val added=classifierRepository.addStandardCategories();_uiState.value=_uiState.value.copy(message="Добавлено стандартных групп: $added")}}
+    fun addStandardCategories(){viewModelScope.launch(errors){val added=classifierRepository.addStandardCategories();_uiState.value=_uiState.value.copy(message=if(added==0)"Все готовые группы уже есть"else "Добавлено недостающих групп: $added")}}
     fun setDefaultPurchaseType(value:String){if(value in setOf("offline","online"))prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.TYPE,value).apply()}
+    fun setMissingQuantity(value:String){com.spisokryadom.app.util.Quantities.parse(value)?.let{prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.QUANTITY,value.trim()).apply()}}
+    fun favoriteGroup(id:Long,value:Boolean){viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.favoriteGroup(id,value)}}
+    fun favoriteDepartment(id:Long,value:Boolean){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.favoriteDepartmentType(id,value)}}
     fun setMissingUnit(value:String){prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.UNIT,com.spisokryadom.app.util.Quantities.unit(value)).apply()}
     fun setAutoSaveProductCards(value:Boolean){
         prefs.edit().putBoolean(com.spisokryadom.app.util.ProductEditingPreferences.KEY,value).commit()
@@ -310,7 +315,7 @@ class SettingsViewModel(
 
     fun renameProductGroup(group: ProductGroupEntity, newName: String) {
         viewModelScope.launch(Dispatchers.IO+errors) {
-            classifierRepository.updateGroup(group.copy(name = newName))
+            classifierRepository.renameGroup(group.id,newName)
         }
     }
 
@@ -392,7 +397,7 @@ class SettingsViewModel(
                     val deps=byType[type.id].orEmpty()
                     val shopIds = deps.map { it.shopId }.distinct()
                     DepartmentGroup(
-                        id=type.id,name = type.name,accent=type.accent,iconKey=type.iconKey,
+                        id=type.id,name = type.name,accent=type.accent,iconKey=type.iconKey,isFavorite=type.isFavorite,favoriteOrder=type.favoriteOrder,
                         shops = shopIds.mapNotNull { shopMap[it] },
                         totalDepartments = deps.size
                     )

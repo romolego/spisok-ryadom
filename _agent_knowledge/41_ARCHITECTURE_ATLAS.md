@@ -1,3 +1,7 @@
+## Избранные группы и настройки0.20 ·20 октября2026
+
+Общая политика FavoriteAppearanceProvider/FavoriteBlock и две проекции групп описаны46. Полная проекция алфавитна; favoriteOrder отделён от legacy displayOrder и местного маршрута. Room18/ZIP14. 992/992 проверок в83 классах, полный набор и повтор одного адаптированного UI-класса; итог failures/errors/skipped=0. Из них30 новых проверок наAPI28/35. Release/lint успешны: 0 ошибок/129 предупреждений/3 подсказки. 16 native PNG. APK0.20.0(27), прежний .next пакет и сертификат; Room18/ZIP14. SHA256 d1fbc3034de268ecd3960df52f0a04b35f1c9ffc66783ed43d37153b2c6571ba. На физическом телефоне не проверялось. Виджет и его настройки прежние. Артефакты: .local/artifacts/0.20.0; исходная проверка: .local/refine200. Версия локальная, GitHub остаётся0.17.0.
+
 ## Карточка товара0.19 ·20 октября2026
 
 ProductShopSettings.kt объединяет ProductShopDialog и ProductOutletOptions. ProductCardViewModel.configureShop атомарно меняет raw-настройки привязанного магазина и снимает его прежние branch department overrides; запись/синхронизация покупок идут прежним ProductEditDraft→ProductRepository. Product UI и массовая форма больше не создают отдельные группы по точкам; старые таблицы/backup остаются. BranchPhotoEditor.compact opt-in для товара. Room17/ZIP13 и виджет прежние. Подробнее45.

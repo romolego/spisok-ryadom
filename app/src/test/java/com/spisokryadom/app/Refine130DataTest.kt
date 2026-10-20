@@ -104,7 +104,7 @@ class Refine130DataTest {
  }
  @Test fun fullBackupRestoresShopBackgroundAndWidgetSettingsAndOlderCopiesDefault()=runBlocking{
   WidgetSettings(ViewMode.BY_RECIPIENTS,false,12).save(prefs)
-  val manager=BackupManager(app,db);val file=manager.exportFile();val root=manifest(file);assertEquals(13,root.getInt("version"))
+  val manager=BackupManager(app,db);val file=manager.exportFile();val root=manifest(file);assertEquals(14,root.getInt("version"))
   db.shopDao().update(db.shopDao().getById(a)!!.copy(shoppingBackground=""));WidgetSettings().save(prefs);manager.importFile(file)
   assertEquals("rose",db.shopDao().getById(a)!!.shoppingBackground);assertEquals(WidgetSettings(ViewMode.BY_RECIPIENTS,false,12),WidgetSettings.load(prefs))
   root.put("version",9);val shops=root.getJSONObject("data").getJSONArray("shops");for(i in 0 until shops.length())shops.getJSONObject(i).remove("shoppingBackground")
@@ -131,8 +131,8 @@ class Refine130DataTest {
    old.execSQL("INSERT INTO products(id,name,purchaseType,isTemporary,stableId)VALUES(8,'Товар','offline',0,'synthetic-stable')")
    old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt,assignedShopId,note)VALUES(9,8,3.5,'кг',0,1,10,20,7,'Сохранить')");old.version=13
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17).build()
-  try{assertEquals(17,migrated.openHelper.writableDatabase.version);assertEquals("",migrated.shopDao().getById(7)!!.shoppingBackground);assertTrue(migrated.shopDao().getById(7)!!.manualOrderOverride);val row=migrated.shoppingListEntryDao().getById(9)!!;assertEquals(7L,row.assignedShopId);assertEquals(3.5,row.quantity,0.0);assertEquals("Сохранить",row.note);assertEquals(20L,row.updatedAt);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18).build()
+  try{assertEquals(18,migrated.openHelper.writableDatabase.version);assertEquals("",migrated.shopDao().getById(7)!!.shoppingBackground);assertTrue(migrated.shopDao().getById(7)!!.manualOrderOverride);val row=migrated.shoppingListEntryDao().getById(9)!!;assertEquals(7L,row.assignedShopId);assertEquals(3.5,row.quantity,0.0);assertEquals("Сохранить",row.note);assertEquals(20L,row.updatedAt);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
   finally{migrated.close();app.deleteDatabase(name)}
  }
 }

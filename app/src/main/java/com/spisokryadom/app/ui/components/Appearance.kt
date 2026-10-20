@@ -82,10 +82,10 @@ fun appearanceIcon(key:String):ImageVector?=symbols.find{it.first==key}?.second?
 fun appearanceOptions():List<Pair<String,String>> = symbols.map{it.first to it.second.first}
 fun accentColor(key:String):Color?=com.spisokryadom.app.util.AppearanceColors.argb(key)?.let{Color(it)}
 fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toArgb() and 0xFFFFFF)
-@Composable fun MarkedLabel(name:String,accent:String="",iconKey:String="",modifier:Modifier=Modifier,small:Boolean=false){
+@Composable fun MarkedLabel(name:String,accent:String="",iconKey:String="",modifier:Modifier=Modifier,small:Boolean=false,fontWeight:androidx.compose.ui.text.font.FontWeight?=null){
  Row(modifier,verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
   appearanceIcon(iconKey)?.let{Icon(it,null,Modifier.size(if(small)18.dp else 22.dp),tint=accentColor(accent)?:MaterialTheme.colorScheme.primary)}
-  Column {Text(name,style=if(small)MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge);accentColor(accent)?.let{Spacer(Modifier.height(3.dp));Box(Modifier.width(36.dp).height(2.dp).background(it))}}
+  Column {Text(name,fontWeight=fontWeight,style=if(small)MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge);accentColor(accent)?.let{Spacer(Modifier.height(3.dp));Box(Modifier.width(36.dp).height(2.dp).background(it))}}
  }
 }
 @OptIn(ExperimentalMaterial3Api::class)

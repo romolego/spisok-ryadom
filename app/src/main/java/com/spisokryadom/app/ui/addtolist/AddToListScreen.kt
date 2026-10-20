@@ -35,8 +35,8 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
      OutlinedCard(Modifier.fillMaxWidth()) {
       LazyColumn(Modifier.fillMaxWidth().heightIn(max=listHeight).testTag("add-candidates")) {
        if(state.favoriteResults.isNotEmpty()) {
-        item(key="favorites-title"){Text("Избранные",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary)}
-        items(state.favoriteResults,key={"favorite_${it.id}"}){p->AddCandidate(p,state,"favorite",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)})}
+        item(key="favorites-title"){com.spisokryadom.app.ui.components.FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary)}}
+        items(state.favoriteResults,key={"favorite_${it.id}"}){p->com.spisokryadom.app.ui.components.FavoriteBlock(Modifier.fillMaxWidth()){AddCandidate(p,state,"favorite",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)})}}
        }
        if(state.searchQuery.isBlank()&&state.searchResults.isNotEmpty())item(key="all-title"){Text("Все товары",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall)}
        items(state.searchResults,key={"product_${it.id}"}){p->AddCandidate(p,state,"all",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)})}

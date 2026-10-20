@@ -20,7 +20,7 @@ data class AddToListUiState(
 )
 class AddToListViewModel(private val products:ProductRepository,private val shopRepository:ShopRepository,private val basket:ShoppingListRepository,
  private val prefs:SharedPreferences,preselectedShopId:Long?=null,private val preselectedBranchId:Long?=null):ViewModel(){
- private val _uiState=MutableStateFlow(AddToListUiState(selectedShopId=preselectedShopId ?: -1L,isShopLocked=preselectedShopId!=null,
+ private val _uiState=MutableStateFlow(AddToListUiState(quantity=java.math.BigDecimal.valueOf(ProductCreationDefaults.read(prefs).missingQuantity).stripTrailingZeros().toPlainString(),selectedShopId=preselectedShopId ?: -1L,isShopLocked=preselectedShopId!=null,
    browseProducts=prefs.getBoolean(PREF_BROWSE_PRODUCTS,true),saveToDatabase=prefs.getBoolean(ShoppingListViewModel.PREF_GLOBAL_SAVE_NEW_PRODUCT_TO_DB,true)))
  val uiState=_uiState.asStateFlow()
  private data class Query(val text:String,val shopId:Long?,val browse:Boolean)
@@ -75,7 +75,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
  }
  private fun addPurchase(state:AddToListUiState,keepBrowsing:Boolean){
   if(state.isLoading)return
-  val qty=Quantities.parse(state.quantity)
+  val qty=if(state.selectedProduct==null&&state.quantity.isBlank())ProductCreationDefaults.read(prefs).missingQuantity else Quantities.parse(state.quantity)
   if(qty==null){_uiState.value=state.copy(error="Введите положительное количество, например 0,5");return}
   if(state.selectedProduct==null&&!state.isNewProduct){_uiState.value=state.copy(error="Выберите товар из найденных");return}
   _uiState.update{it.copy(isLoading=true,error=null)}

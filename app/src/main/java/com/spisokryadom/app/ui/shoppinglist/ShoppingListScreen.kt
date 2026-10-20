@@ -81,6 +81,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
+import com.spisokryadom.app.ui.components.favoriteStyle
+import com.spisokryadom.app.ui.components.favoriteWeight
+import com.spisokryadom.app.ui.components.favoriteBackground
+import com.spisokryadom.app.ui.components.favoriteSurface
+import com.spisokryadom.app.ui.components.FavoriteBlock
+import com.spisokryadom.app.ui.components.LocalFavoriteBlock
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -732,7 +738,7 @@ private fun ShoppingListItem(
         targetValue = when {
             isBought -> MaterialTheme.colorScheme.surfaceVariant
             isUrgent -> MaterialTheme.colorScheme.errorContainer
-            else -> MaterialTheme.colorScheme.surface
+            else -> favoriteBackground(entryUi.isFavorite)
         },
         label = "itemBg"
     )
@@ -799,11 +805,11 @@ private fun ShoppingListItem(
                         )
                         Spacer(modifier = Modifier.width(2.dp))
                     }
-                    if(entryUi.isFavorite){Icon(Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary);Spacer(Modifier.width(4.dp))}
+                    if(entryUi.isFavorite&&favoriteStyle().star){Icon(Icons.Filled.Star,"Избранный товар",Modifier.size(16.dp),tint=MaterialTheme.colorScheme.primary);Spacer(Modifier.width(4.dp))}
                     Text(
                         text = entryUi.productName,
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = if (isUrgent && !isBought) FontWeight.SemiBold else FontWeight.Normal
+                            fontWeight = favoriteWeight(entryUi.isFavorite)?:if (isUrgent && !isBought) FontWeight.SemiBold else FontWeight.Normal
                         ),
                         textDecoration = if (isBought) TextDecoration.LineThrough else null,
                         color = if (isBought) MaterialTheme.colorScheme.onSurfaceVariant

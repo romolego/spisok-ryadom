@@ -13,6 +13,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.spisokryadom.app.ui.components.favoriteStyle
+import com.spisokryadom.app.ui.components.favoriteWeight
+import com.spisokryadom.app.ui.components.favoriteBackground
+import com.spisokryadom.app.ui.components.favoriteSurface
+import com.spisokryadom.app.ui.components.FavoriteBlock
+import com.spisokryadom.app.ui.components.LocalFavoriteBlock
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.testTag
@@ -75,10 +81,10 @@ private val BatchSelectionSaver=mapSaver(
  TriStateCheckbox(state,onClick={selection.toggleAll(ids)},modifier=Modifier.semantics{contentDescription="Выбрать раздел: $label"})
 }
 @Composable fun BatchRow(id:Long,title:String,selected:Boolean,onToggle:()->Unit,subtitle:String?=null,modifier:Modifier=Modifier,favorite:Boolean=false){
- OutlinedCard(modifier.fillMaxWidth().testTag("batch-row-$id").toggleable(value=selected,role=Role.Checkbox,onValueChange={onToggle()}),colors=CardDefaults.outlinedCardColors(containerColor=if(selected)MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface)){
+ OutlinedCard(modifier.fillMaxWidth().testTag("batch-row-$id").toggleable(value=selected,role=Role.Checkbox,onValueChange={onToggle()}),colors=CardDefaults.outlinedCardColors(containerColor=if(selected)MaterialTheme.colorScheme.secondaryContainer else favoriteBackground(favorite))){
   Row(Modifier.padding(8.dp),verticalAlignment=Alignment.CenterVertically){
    Checkbox(selected,onCheckedChange=null,modifier=Modifier.size(48.dp).semantics{contentDescription="Выбрать: $title"})
-   Column(Modifier.weight(1f).padding(start=12.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(title,style=MaterialTheme.typography.bodyLarge,modifier=Modifier.weight(1f,fill=false));if(favorite)Icon(Icons.Default.Star,"Избранный товар",modifier=Modifier.padding(start=6.dp).size(16.dp),tint=MaterialTheme.colorScheme.primary)};subtitle?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}}
+   Column(Modifier.weight(1f).padding(start=12.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(title,fontWeight=favoriteWeight(favorite),style=MaterialTheme.typography.bodyLarge,modifier=Modifier.weight(1f,fill=false));if(favorite&&favoriteStyle().star)Icon(Icons.Default.Star,"Избранный товар",modifier=Modifier.padding(start=6.dp).size(16.dp),tint=MaterialTheme.colorScheme.primary)};subtitle?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}}
   }
  }
 }
@@ -154,7 +160,15 @@ private val BatchSelectionSaver=mapSaver(
       else->options.types.map{it.id to it.name}
      }
      val multiple=action=="shop"||stores
-     values.forEach{(id,label)->OptionRow(label,id in chosen,!busy&&(action!="department"||stores||targetShop!=null),multiple){none=false;chosen=if(multiple){if(id in chosen)chosen-id else chosen+id}else setOf(id)}}
+     val favoriteIds=when(action){"group"->options.groups.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};"department"->options.types.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};else->emptyList()}
+     val dictionary=action=="group"||action=="department"
+     val base=if(dictionary)com.spisokryadom.app.util.alphabetical(values){it.second}else values
+     val pinned=favoriteIds.mapNotNull{id->base.find{it.first==id}}
+     (pinned.map{it to true}+base.map{it to false}).forEachIndexed{index,(pair,pin)->val(id,label)=pair
+      if(pinned.isNotEmpty()&&(index==0||index==pinned.size))Text(if(index==0)"Избранные"else "Все значения",style=MaterialTheme.typography.labelMedium)
+      val row:@Composable ()->Unit={OptionRow(label,id in chosen,!busy&&(action!="department"||stores||targetShop!=null),multiple,favorite=id in favoriteIds){none=false;chosen=if(multiple){if(id in chosen)chosen-id else chosen+id}else setOf(id)}}
+      if(pin)FavoriteBlock(Modifier.fillMaxWidth()){row()}else row()
+     }
      if(action=="basket"){
       OptionRow("По приоритету для каждого товара",none,!busy){none=true;chosen=emptySet()}
       OptionRow("Без конкретного адреса",chosen==setOf(0L),!busy){none=false;chosen=setOf(0L)}
@@ -184,9 +198,9 @@ private val BatchSelectionSaver=mapSaver(
   }
  }
 }
-@Composable private fun OptionRow(label:String,selected:Boolean,enabled:Boolean,multiple:Boolean=false,onClick:()->Unit){
+@Composable private fun OptionRow(label:String,selected:Boolean,enabled:Boolean,multiple:Boolean=false,favorite:Boolean=false,onClick:()->Unit){
  Row(Modifier.fillMaxWidth().heightIn(min=48.dp).then(if(multiple)Modifier.toggleable(selected,enabled=enabled,role=Role.Checkbox,onValueChange={onClick()})else Modifier.selectable(selected,enabled=enabled,role=Role.RadioButton,onClick=onClick)).padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically){
   if(multiple)Checkbox(selected,null,enabled=enabled,modifier=Modifier.size(48.dp))else RadioButton(selected,null,enabled=enabled,modifier=Modifier.size(48.dp))
-  Text(label,modifier=Modifier.weight(1f).padding(start=12.dp))
+  com.spisokryadom.app.ui.components.FavoriteMarkedLabel(label,favorite=favorite,modifier=Modifier.weight(1f).padding(start=12.dp))
  }
 }

@@ -1,3 +1,7 @@
+## Уточнение0.20 ·20 октября2026
+
+FavoriteAppearanceProvider в теме, FavoriteBlock/MarkedLabel и prefs задают общую политику избранного. ProductGroupEntity/DepartmentTypeEntity получили isFavorite/favoriteOrder. ProductCreationDefaults дополнен missingQuantity. Room18/ZIP14. Подробнее46_FAVORITES_SETTINGS_200.md.
+
 ## Карточка товара0.19 ·20 октября2026
 
 ProductShopSettings.kt: ProductShopDialog (ограниченный диалог с прокруткой тела), ProductOutletOptions (null/all, subset, независимый priority). ProductCardViewModel.configureShop — единое raw-изменение настроек магазина. BranchPhotoEditor.compact включается только карточкой товара. Entity/Room17/ZIP13 прежние; старые таблицы групп по точкам оставлены для совместимости. См.45.

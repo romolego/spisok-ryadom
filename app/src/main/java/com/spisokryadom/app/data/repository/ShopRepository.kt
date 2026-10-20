@@ -1,4 +1,5 @@
 package com.spisokryadom.app.data.repository
+import kotlinx.coroutines.flow.map
 
 import com.spisokryadom.app.data.dao.ShopDao
 import com.spisokryadom.app.data.dao.ShopDepartmentDao
@@ -144,11 +145,17 @@ class ShopRepository(
 
     suspend fun updateShops(shops: List<ShopEntity>) = shopDao.updateAll(shops)
 
-    fun departmentTypes()=departmentDao.observeTypes()
+    fun departmentTypes()=departmentDao.observeTypes().map{com.spisokryadom.app.util.alphabetical(it){v->v.name}}
     suspend fun createDepartmentType(name:String)=departmentDao.ensureType(name)
     suspend fun moveDepartmentType(id:Long,delta:Int)=db.withTransaction {
-        val list=departmentDao.types().toMutableList();val i=list.indexOfFirst{it.id==id};val j=i+delta
-        if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));list.forEachIndexed{n,v->departmentDao.updateType(v.copy(displayOrder=n))}}
+        require(delta in -1..1)
+        val list=departmentDao.types().filter{it.isFavorite}.sortedWith(compareBy<com.spisokryadom.app.data.entity.DepartmentTypeEntity>{it.favoriteOrder}.thenBy{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.thenBy{it.id}).toMutableList();val i=list.indexOfFirst{it.id==id};val j=i+delta
+        if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));list.forEachIndexed{n,v->departmentDao.updateType(v.copy(favoriteOrder=n))}}
+    }
+    suspend fun favoriteDepartmentType(id:Long,value:Boolean)=db.withTransaction {
+        val current=departmentDao.type(id)?:error("Группа магазина удалена")
+        val order=if(value)(departmentDao.types().filter{it.isFavorite}.maxOfOrNull{it.favoriteOrder}?:-1).let{require(it<Int.MAX_VALUE){"Слишком большой порядок избранного"};it+1} else 0
+        departmentDao.updateType(current.copy(isFavorite=value,favoriteOrder=if(current.isFavorite==value)current.favoriteOrder else order))
     }
     suspend fun alphabetizeDepartmentTypes()=db.withTransaction {
         departmentDao.types().sortedBy{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.forEachIndexed{i,v->departmentDao.updateType(v.copy(displayOrder=i))}

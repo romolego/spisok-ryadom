@@ -278,7 +278,7 @@ fun ProductCardScreen(
             DropdownSelector(
                 label="Товарная группа",onOpen=leaveName,items=state.groups,selectedItem=state.groups.find{it.id==state.productGroupId},
                 itemLabel={it.name},onSelect={viewModel.updateProductGroup(it?.id)},modifier=Modifier.fillMaxWidth(),
-                allowCreate=true,onCreateNew={showNewGroupDialog=true},createLabel="Новая группа…",itemIcon={it.iconKey},itemAccent={it.accent})
+                allowCreate=true,onCreateNew={showNewGroupDialog=true},createLabel="Новая группа…",itemIcon={it.iconKey},itemAccent={it.accent},itemFavorite={it.isFavorite},favoriteOrder={it.favoriteOrder},alphabetical=true)
 
             DropdownSelector(
                 label = "Получатель",onOpen=leaveName,

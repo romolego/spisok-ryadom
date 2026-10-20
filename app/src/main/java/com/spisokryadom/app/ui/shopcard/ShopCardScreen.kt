@@ -94,7 +94,7 @@ fun ShopCardScreen(
         }
         MultiSelectDialog(
             title = "Добавить группы магазина",
-            availableItems = state.allDepartmentNames,
+            availableItems = state.allDepartmentNames,alphabetical=true,favorites=state.departmentTypes.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.name},
             alreadyAddedItems = existingDepartmentNames,
             newItemLabel = "Новая группа",
             onConfirm = { names ->

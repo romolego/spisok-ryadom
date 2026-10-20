@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import com.spisokryadom.app.data.entity.ProductEntity
 
 @Composable fun ProductCandidateTitle(product:ProductEntity,modifier:Modifier=Modifier,style:TextStyle=MaterialTheme.typography.bodyLarge){
- Row(modifier,verticalAlignment=Alignment.CenterVertically){
-  Text(product.name,Modifier.weight(1f,fill=false),style=style,maxLines=2,overflow=TextOverflow.Ellipsis)
-  if(product.isFavorite){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар: ${product.name}",Modifier.size(18.dp),tint=MaterialTheme.colorScheme.primary)}
+ Row(modifier.favoriteSurface(product.isFavorite),verticalAlignment=Alignment.CenterVertically){
+  Text(product.name,Modifier.weight(1f,fill=false),fontWeight=favoriteWeight(product.isFavorite),style=style,maxLines=2,overflow=TextOverflow.Ellipsis)
+  if(product.isFavorite&&favoriteStyle().star){Spacer(Modifier.width(6.dp));Icon(Icons.Filled.Star,"Избранный товар: ${product.name}",Modifier.size(18.dp),tint=MaterialTheme.colorScheme.primary)}
  }
 }

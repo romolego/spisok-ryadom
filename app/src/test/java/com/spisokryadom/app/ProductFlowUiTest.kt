@@ -70,13 +70,15 @@ class ProductFlowUiTest {
  @Test fun groupOrderIsChangedInSettingsAndUsedByTheProductDropdown(){
   ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки")
   ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Товарные группы"));ui.onNodeWithTag("manager-edit-Товарные группы").performClick()
+  ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("В избранное: Аптека"));ui.onNodeWithContentDescription("В избранное: Аптека").performClick()
+  ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("В избранное: Продукты"));ui.onNodeWithContentDescription("В избранное: Продукты").performClick()
   ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Вверх: Продукты"));ui.onNodeWithContentDescription("Вверх: Продукты").performClick()
-  ui.waitUntil(20_000){runBlocking{db.productGroupDao().getAllSync().first().id==food}}
+  ui.waitUntil(20_000){runBlocking{db.productGroupDao().getAllSync().filter{it.isFavorite}.minByOrNull{it.favoriteOrder}?.id==food}}
   shot("05-group-priority");ui.onNodeWithContentDescription("Назад").performClick();newProduct()
   ui.onNodeWithContentDescription("Порядок товарных групп").assertDoesNotExist();ui.onNodeWithText("Товарная группа").performClick()
-  assertTrue(ui.onNode(hasText("Продукты") and hasAnyAncestor(isPopup())).getUnclippedBoundsInRoot().top<ui.onNode(hasText("Аптека") and hasAnyAncestor(isPopup())).getUnclippedBoundsInRoot().top)
-  ui.onNode(hasText("Продукты") and hasAnyAncestor(isPopup())).performClick();ui.onNodeWithContentDescription("Назад").performClick();ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Новый товар").fetchSemanticsNodes().isNotEmpty()};ui.onNodeWithContentDescription("Новый товар").performClick();waitText("Название товара")
-  ui.onNodeWithText("Товарная группа").performClick();assertTrue(ui.onNode(hasText("Продукты") and hasAnyAncestor(isPopup())).getUnclippedBoundsInRoot().top<ui.onNode(hasText("Аптека") and hasAnyAncestor(isPopup())).getUnclippedBoundsInRoot().top)
+  assertTrue(ui.onAllNodes(hasText("Продукты") and hasAnyAncestor(isPopup()))[0].getUnclippedBoundsInRoot().top<ui.onAllNodes(hasText("Аптека") and hasAnyAncestor(isPopup()))[0].getUnclippedBoundsInRoot().top)
+  ui.onAllNodes(hasText("Продукты") and hasAnyAncestor(isPopup()))[0].performClick();ui.onNodeWithContentDescription("Назад").performClick();ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Новый товар").fetchSemanticsNodes().isNotEmpty()};ui.onNodeWithContentDescription("Новый товар").performClick();waitText("Название товара")
+  ui.onNodeWithText("Товарная группа").performClick();assertTrue(ui.onAllNodes(hasText("Продукты") and hasAnyAncestor(isPopup()))[0].getUnclippedBoundsInRoot().top<ui.onAllNodes(hasText("Аптека") and hasAnyAncestor(isPopup()))[0].getUnclippedBoundsInRoot().top)
  }
  @Test @Config(sdk=[35]) fun duplicateSearchResultsRemainAboveImeAndChooseCorrectIdentity(){
   val ids=runBlocking{listOf(shop,other).map{sid->val p=db.productDao().insert(ProductEntity(name="Цукаты",note=if(sid==shop)"Имбирные"else "Ананасовые"));db.productShopLinkDao().insert(ProductShopLinkEntity(productId=p,shopId=sid));p}}

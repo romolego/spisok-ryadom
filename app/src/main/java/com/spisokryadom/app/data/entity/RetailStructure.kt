@@ -14,7 +14,9 @@ data class VenueEntity(@PrimaryKey(autoGenerate=true) val id:Long=0,val cityId:L
 data class DepartmentTypeEntity(@PrimaryKey(autoGenerate=true) val id:Long=0,val name:String,val normalizedName:String,
  @ColumnInfo(defaultValue="0") val displayOrder:Int=0,
  @ColumnInfo(defaultValue="''") val accent:String="",
- @ColumnInfo(defaultValue="''") val iconKey:String="")
+ @ColumnInfo(defaultValue="''") val iconKey:String="",
+ @ColumnInfo(defaultValue="0") val isFavorite:Boolean=false,
+ @ColumnInfo(defaultValue="0") val favoriteOrder:Int=0)
 
 /** Local route position of a shared group. Its ID remains stable on rename/reorder. */
 @Entity(tableName="shop_departments",foreignKeys=[

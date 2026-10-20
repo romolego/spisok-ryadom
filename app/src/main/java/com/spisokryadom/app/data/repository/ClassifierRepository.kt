@@ -33,7 +33,17 @@ class ClassifierRepository(
         }
     }
     suspend fun moveRecipient(id:Long,delta:Int)=db.withTransaction{val list=recipientDao.getAllSync().toMutableList();val i=list.indexOfFirst{it.id==id};val j=i+delta;if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));recipientDao.updateAll(list.mapIndexed{n,v->v.copy(displayOrder=n)})}}
-    suspend fun moveGroup(id:Long,delta:Int)=db.withTransaction{val list=productGroupDao.getAllSync().toMutableList();val i=list.indexOfFirst{it.id==id};val j=i+delta;if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));productGroupDao.updateAll(list.mapIndexed{n,v->v.copy(displayOrder=n)})}}
+    suspend fun favoriteGroup(id:Long,value:Boolean)=db.withTransaction {
+        val current=productGroupDao.getById(id)?:error("Группа удалена")
+        val order=if(value)(productGroupDao.getAllSync().filter{it.isFavorite}.maxOfOrNull{it.favoriteOrder}?:-1).let{require(it<Int.MAX_VALUE){"Слишком большой порядок избранного"};it+1} else 0
+        productGroupDao.update(current.copy(isFavorite=value,favoriteOrder=if(current.isFavorite==value)current.favoriteOrder else order))
+    }
+    suspend fun moveGroup(id:Long,delta:Int)=db.withTransaction {
+        require(delta in -1..1)
+        val list=productGroupDao.getAllSync().filter{it.isFavorite}.sortedWith(compareBy<ProductGroupEntity>{it.favoriteOrder}.thenBy{FuzzySearch.normalize(it.name)}.thenBy{it.id}).toMutableList()
+        val i=list.indexOfFirst{it.id==id};val j=i+delta
+        if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));productGroupDao.updateAll(list.mapIndexed{n,v->v.copy(favoriteOrder=n)})}
+    }
     suspend fun moveUnit(id:Long,delta:Int)=db.withTransaction{val list=unitDao.getAllSync().toMutableList();val i=list.indexOfFirst{it.id==id};val j=i+delta;if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));unitDao.updateAll(list.mapIndexed{n,v->v.copy(displayOrder=n)})}}
     suspend fun renameUnitAndProducts(unit:UnitEntity,name:String)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction{
         val value=Quantities.unit(name);require(value.isNotBlank())
@@ -67,10 +77,11 @@ class ClassifierRepository(
         db.creationPresetDao().setGroup(com.spisokryadom.app.data.entity.GroupCreationPreset(groupId,recipientId))
     }
     suspend fun addStandardCategories()=db.withTransaction{com.spisokryadom.app.data.db.StandardCategories.install(db.openHelper.writableDatabase)}
-    fun getAllGroups(): Flow<List<ProductGroupEntity>> = productGroupDao.getAll()
+    fun getAllGroups(): Flow<List<ProductGroupEntity>> = productGroupDao.getAll().map{com.spisokryadom.app.util.alphabetical(it){v->v.name}}
     suspend fun getGroupById(id: Long): ProductGroupEntity? = productGroupDao.getById(id)
     suspend fun insertGroup(group: ProductGroupEntity): Long = productGroupDao.insert(group)
     suspend fun updateGroup(group: ProductGroupEntity) = productGroupDao.update(group)
+    suspend fun renameGroup(id:Long,name:String)=db.withTransaction{productGroupDao.getById(id)?.let{productGroupDao.update(it.copy(name=name))}}
     suspend fun deleteGroup(group: ProductGroupEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{productGroupDao.delete(group)}}
     suspend fun getMaxGroupDisplayOrder(): Int = productGroupDao.getMaxDisplayOrder()
 

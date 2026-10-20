@@ -17,6 +17,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import com.spisokryadom.app.ui.components.favoriteStyle
+import com.spisokryadom.app.ui.components.favoriteWeight
+import com.spisokryadom.app.ui.components.favoriteBackground
+import com.spisokryadom.app.ui.components.favoriteSurface
+import com.spisokryadom.app.ui.components.FavoriteBlock
+import com.spisokryadom.app.ui.components.LocalFavoriteBlock
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -136,14 +142,14 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
 private fun GoalPurchaseCard(row: GoalPurchaseRow, busy: Boolean, bought: (Boolean) -> Unit, edit: () -> Unit, delete: () -> Unit, quantity: (Double) -> Unit, urgent: () -> Unit, selected: Boolean?, select: () -> Unit) {
     var menu by remember { mutableStateOf(false) }
     val step = Quantities.step(row.entry.unit, row.product.defaultUnit, row.product.defaultQuantity)
-    OutlinedCard(Modifier.fillMaxWidth().clickable(onClick = if (selected != null) select else edit).testTag("goal-entry-${row.entry.id}"), colors = CardDefaults.outlinedCardColors(containerColor = if (selected == true) MaterialTheme.colorScheme.secondaryContainer else if (row.entry.isBought) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface)) {
+    OutlinedCard(Modifier.fillMaxWidth().clickable(onClick = if (selected != null) select else edit).testTag("goal-entry-${row.entry.id}"), colors = CardDefaults.outlinedCardColors(containerColor = if (selected == true) MaterialTheme.colorScheme.secondaryContainer else if (row.entry.isBought) MaterialTheme.colorScheme.surfaceContainerLow else favoriteBackground(row.product.isFavorite))) {
         Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Checkbox(selected ?: row.entry.isBought, { if (selected != null) select() else bought(it) }, enabled = !busy, modifier = Modifier.semantics { contentDescription = if (selected != null) "Выбрать: ${row.product.name}" else "Куплено: ${row.product.name}" })
             Column(Modifier.weight(1f).padding(start = 6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     if (row.entry.isUrgent && !row.entry.isBought) Icon(Icons.Filled.PriorityHigh, "Срочная покупка", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(17.dp))
-                    if (row.product.isFavorite) Icon(Icons.Filled.Star, "Избранный товар: ${row.product.name}", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
-                    Text(row.product.name, style = MaterialTheme.typography.bodyLarge, maxLines = 3, overflow = TextOverflow.Ellipsis, textDecoration = if (row.entry.isBought) TextDecoration.LineThrough else TextDecoration.None)
+                    if (row.product.isFavorite&&favoriteStyle().star) Icon(Icons.Filled.Star, "Избранный товар: ${row.product.name}", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
+                    Text(row.product.name,fontWeight=favoriteWeight(row.product.isFavorite), style = MaterialTheme.typography.bodyLarge, maxLines = 3, overflow = TextOverflow.Ellipsis, textDecoration = if (row.entry.isBought) TextDecoration.LineThrough else TextDecoration.None)
                 }
                 listOfNotNull(row.entry.note, row.entry.comment).filter { it.isNotBlank() }.distinct().forEach {
                     Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -238,8 +244,8 @@ private fun GoalCatalogueSheet(state: GoalListUiState, query: (String) -> Unit, 
             state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
             LazyColumn(Modifier.fillMaxWidth().weight(1f).testTag("goal-catalogue"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (state.catalogueQuery.isBlank() && state.catalogue.any { it.isFavorite }) {
-                    item { Text("Избранные", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(vertical = 4.dp)) }
-                    items(state.catalogue.filter { it.isFavorite }, key = { "favorite-${it.id}" }) { product -> GoalCatalogueRow(product, state.busy, { add(product) }, "goal-catalogue-favorite-${product.id}") }
+                    item { FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(vertical = 4.dp))} }
+                    items(state.catalogue.filter { it.isFavorite }, key = { "favorite-${it.id}" }) { product -> FavoriteBlock(Modifier.fillMaxWidth()){GoalCatalogueRow(product, state.busy, { add(product) }, "goal-catalogue-favorite-${product.id}")} }
                     item { Text("Все товары", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 10.dp, bottom = 4.dp)) }
                 }
                 items(state.catalogue, key = { "all-${it.id}" }) { product -> GoalCatalogueRow(product, state.busy, { add(product) }, "goal-catalogue-all-${product.id}") }
@@ -253,11 +259,11 @@ private fun GoalCatalogueSheet(state: GoalListUiState, query: (String) -> Unit, 
 
 @Composable
 private fun GoalCatalogueRow(product: ProductEntity, busy: Boolean, add: () -> Unit, tag: String) {
-    OutlinedCard(Modifier.fillMaxWidth().clickable(enabled = !busy, onClick = add).testTag(tag)) {
+    OutlinedCard(Modifier.fillMaxWidth().clickable(enabled = !busy, onClick = add).testTag(tag),colors=CardDefaults.outlinedCardColors(containerColor=favoriteBackground(product.isFavorite))) {
         Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (product.isFavorite) Icon(Icons.Filled.Star, "Избранный товар: ${product.name}", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
+            if (product.isFavorite&&favoriteStyle().star) Icon(Icons.Filled.Star, "Избранный товар: ${product.name}", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
             Column(Modifier.weight(1f)) {
-                Text(product.name, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(product.name,fontWeight=favoriteWeight(product.isFavorite), style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text("${goalNumber(product.defaultQuantity?.takeIf { it > 0 } ?: 1.0)} ${product.defaultUnit.orEmpty()}".trim(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = add, enabled = !busy) { Icon(Icons.Filled.AddShoppingCart, "Добавить в целевой список: ${product.name}") }

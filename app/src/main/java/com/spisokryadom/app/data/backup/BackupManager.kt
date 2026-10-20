@@ -111,7 +111,9 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   try{
    val root=if(isZip(file))readArchive(file,stage)else readJson(file.inputStream().use{bounded(it,MAX_JSON)})
    if(summary.full)require(!root.has("preferences")||root.get("preferences") is JSONObject){"Некорректный раздел настроек в копии"}
+   if(root.getInt("version")>=14)listOf("productGroups","departmentTypes").forEach{key->val a=root.getJSONObject("data").getJSONArray(key);for(i in 0 until a.length()){val row=a.getJSONObject(i);require(row.has("isFavorite")&&row.has("favoriteOrder")){"Отсутствует оформление избранных групп"}}}
    val raw=BackupJson.read(root)
+   if(root.getInt("version")<14)require(raw.groups.none{it.isFavorite||it.favoriteOrder!=0}&&raw.departmentTypes.none{it.isFavorite||it.favoriteOrder!=0}){"Избранные группы требуют копию новой версии"}
    if(root.getInt("version")<12)require(raw.shopPresets.isEmpty()&&raw.groupPresets.isEmpty()){"Преднастройки требуют копию новой версии"}
    if(root.getInt("version")<11)require(raw.goalLists.isEmpty()&&raw.entries.none{it.listId!=null||it.plannedUnitPrice!=null||it.customShopName!=null||it.customShopAddress!=null}){"Целевые списки требуют полную копию новой версии"}
    val sourceProducts=root.getJSONObject("data").getJSONArray("products")
@@ -299,6 +301,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   require((s.products.map{it.name}+s.shops.map{it.name}+s.cities.map{it.name}+s.groups.map{it.name}+s.recipients.map{it.name}).all{it.isNotBlank()}){"Пустые названия в копии"}
   s.products.forEach{p->require(p.productGroupId==null||p.productGroupId in groups);require(p.recipientId==null||p.recipientId in recipients);p.defaultQuantity?.let{Quantities.valid(it)}}
   val networks=ids(s.networks.map{it.id},"сети");val venues=s.venues.associateBy{it.id};ids(s.venues.map{it.id},"рынки и ТЦ")
+  require(s.groups.all{it.favoriteOrder>=0}&&s.departmentTypes.all{it.favoriteOrder>=0})
   val types=s.departmentTypes.associateBy{it.id};ids(s.departmentTypes.map{it.id},"типы отделов")
   require(s.departmentTypes.map{it.normalizedName}.distinct().size==types.size)
   require(s.departmentTypes.all{it.name.isNotBlank()&&it.normalizedName==FuzzySearch.normalize(it.name)}){"Неверная общая группа"}
@@ -330,11 +333,13 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   * nested objects/null or mixed sets that SharedPreferences cannot represent. */
  private fun validatePreferences(root:JSONObject,cities:Set<Long>){
   root.optJSONObject("shopping_list_prefs")?.let{p->
+   com.spisokryadom.app.util.FavoriteAppearance.colorKeys.forEach{key->if(p.has(key))require(p.get(key) is String&&com.spisokryadom.app.util.AppearanceColors.argb(p.getString(key))!=null){"Неверный цвет избранного"}}
+   if(p.has("new_product_missing_quantity"))require(p.get("new_product_missing_quantity") is String&&Quantities.parse(p.getString("new_product_missing_quantity"))!=null){"Неверное количество по умолчанию"}
    if(p.has("new_product_purchase_type"))require(p.get("new_product_purchase_type") is String&&p.getString("new_product_purchase_type") in setOf("offline","online")){"Неверный тип покупки по умолчанию"}
    if(p.has("new_product_missing_unit"))require(p.get("new_product_missing_unit") is String&&p.getString("new_product_missing_unit").length<=80&&'\u0000' !in p.getString("new_product_missing_unit")){"Неверная единица по умолчанию"}
   }
   val booleans=mapOf(
-   "shopping_list_prefs" to setOf("global_default_show_urgent_in_collapsed","global_default_boost_urgent_shop","global_default_save_new_product_to_db","remember_shop_priority_on_move","browse_products_on_add","autosave_product_cards","widget_show_departments"),
+   "shopping_list_prefs" to setOf("global_default_show_urgent_in_collapsed","global_default_boost_urgent_shop","global_default_save_new_product_to_db","remember_shop_priority_on_move","browse_products_on_add","autosave_product_cards","widget_show_departments")+com.spisokryadom.app.util.FavoriteAppearance.booleanKeys,
    "product_db_prefs" to setOf("favorites_only")
   )
   val strings=mapOf("shopping_list_prefs" to setOf("shopping_list_view_mode","new_product_purchase_type","new_product_missing_unit"),"product_db_prefs" to setOf("product_db_view_mode"))
@@ -385,7 +390,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=13;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=14;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}

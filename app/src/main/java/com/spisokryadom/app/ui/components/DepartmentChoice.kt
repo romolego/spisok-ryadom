@@ -27,7 +27,7 @@ import com.spisokryadom.app.data.entity.*
  fun add(value:String){onCreate(value){id->onSelect(id);adding=false;name="";focus.clearFocus()}}
  DropdownSelector(label=label,noneLabel=noneLabel,items=departments,selectedItem=departments.find{it.id==selectedId},
   itemLabel={it.name},onSelect={onSelect(it?.id)},itemIcon={d->types.find{it.id==d.typeId}?.iconKey.orEmpty()},itemAccent={d->types.find{it.id==d.typeId}?.accent.orEmpty()},
-  allowCreate=true,onCreateNew={adding=true},createLabel="Добавить группу…")
+  allowCreate=true,onCreateNew={adding=true},createLabel="Добавить группу…",alphabetical=true,itemFavorite={d->types.find{it.id==d.typeId}?.isFavorite==true},favoriteOrder={d->types.find{it.id==d.typeId}?.favoriteOrder?:0})
  if(adding){
   LaunchedEffect(Unit){requester.requestFocus();bring.bringIntoView()}
   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
@@ -36,6 +36,6 @@ import com.spisokryadom.app.data.entity.*
    IconButton(onClick={adding=false;name="";focus.clearFocus()},enabled=!busy){Icon(Icons.Filled.Close,"Отменить новую группу")}
   }
   if(missing.isNotEmpty())DropdownSelector(label="Общая группа",items=missing,selectedItem=null,itemLabel={it.name},itemIcon={it.iconKey},itemAccent={it.accent},
-   onSelect={if(it!=null)add(it.name)},noneLabel="Не выбрана")
+   onSelect={if(it!=null)add(it.name)},noneLabel="Не выбрана",alphabetical=true,itemFavorite={it.isFavorite},favoriteOrder={it.favoriteOrder})
  }
 }
