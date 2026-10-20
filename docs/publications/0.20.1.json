@@ -1,0 +1,80 @@
+{
+  "repository": "https://github.com/romolego/spisok-ryadom",
+  "version": "0.20.1",
+  "sourceCommit": "7c190bdd2ff49b6fc49c59c2b3ffccb0a7673568",
+  "mergeCommit": "e6d37dc2b42fc73a09a02bc2ab54651c66288018",
+  "tag": "v0.20.1",
+  "release": "https://github.com/romolego/spisok-ryadom/releases/tag/v0.20.1",
+  "releaseId": 418152918,
+  "pullRequest": "https://github.com/romolego/spisok-ryadom/pull/3",
+  "pullRequestMerged": true,
+  "publicUnauthenticatedDownloadsVerified": true,
+  "sourceArchiveMatchesSealedFiles": 275,
+  "historicalApksUnchanged": true,
+  "assets": [
+    {
+      "name": "Audit-evidence-0.20.1.zip",
+      "bytes": 349471,
+      "sha256": "0cfe3bf6e4b929b2ea8cf05ac98512cc3e0d6f92485c7030c9b3f930e2dc00c5",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.20.1/Audit-evidence-0.20.1.zip",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "Changes-0.20.1.html",
+      "bytes": 164018,
+      "sha256": "4d082d06a5f37a275f79ed3773809d49d9302301c48763c31f4692c296d5ff66",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.20.1/Changes-0.20.1.html",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "SpisokRyadom-0.20.1.apk",
+      "bytes": 2016154,
+      "sha256": "0e1806dc8c814a8e0dec487523ef8fabf5184dcfa0890d82f878d66ddccd4427",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.20.1/SpisokRyadom-0.20.1.apk",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "SpisokRyadom-0.20.1.sha256.txt",
+      "bytes": 91,
+      "sha256": "9cc98f46d383c318ba4db10f46507a2b32915c3ef8215feafdfee9e31d2173d8",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.20.1/SpisokRyadom-0.20.1.sha256.txt",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "SpisokRyadom-history-0.18-to-0.20.zip",
+      "bytes": 5485211,
+      "sha256": "6b497c1d691818f08312462ee41cccc81cb2fe1c7c750663da7ec83bb6b4215d",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.20.1/SpisokRyadom-history-0.18-to-0.20.zip",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "SpisokRyadom-source-0.20.1.zip",
+      "bytes": 8890825,
+      "sha256": "b2e90b1278a87c018302a874871831a8026f558408b6c4a81638bcf36bfabd30",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.20.1/SpisokRyadom-source-0.20.1.zip",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "Verification-0.20.1.json",
+      "bytes": 2149,
+      "sha256": "f7f73104a7c56685fa18912e8441ba704d0b8096b392de8db3828b356178f04a",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.20.1/Verification-0.20.1.json",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "SHA256SUMS-v0.20.1.txt",
+      "bytes": 664,
+      "sha256": "fe503429bb0ec1f09adc4a9844d57d23bebc4f2b33a922322bc4033bb4a9b3da",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.20.1/SHA256SUMS-v0.20.1.txt",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    }
+  ]
+}
