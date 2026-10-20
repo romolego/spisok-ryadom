@@ -644,7 +644,8 @@ private fun EntryGroupHeader(
             Spacer(modifier = Modifier.width(4.dp))
         }
 
-        Icon(
+        if(viewMode==ViewMode.BY_SHOPS)com.spisokryadom.app.ui.components.ShopSymbol(group.shopIconKey,group.shopLogoUri,20.dp)
+        else Icon(
             viewModeIcon(viewMode),
             contentDescription = null,
             modifier = Modifier.size(20.dp),

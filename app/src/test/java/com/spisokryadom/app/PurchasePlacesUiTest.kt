@@ -121,13 +121,13 @@ class PurchasePlacesUiTest {
   ui.onAllNodesWithText("Магазины").onLast().performClick();waitText("Красный Яр")
   ui.onNodeWithText("Красный Яр").performTouchInput{longClick()};waitText("Название магазина")
   ui.onNodeWithText("Сеть").assertDoesNotExist()
-  ui.onNodeWithText("Добавить сеть магазинов").performScrollTo().performClick();waitText("Название сети")
+  ui.onNodeWithText("Править").performScrollTo().performClick();ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();waitText("Название сети")
   ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр")
   ui.onAllNodes(isPopup()).assertCountEquals(0);shot("08-optional-network-inline")
-  ui.onNodeWithText("Отмена").performScrollTo().performClick();ui.onNodeWithText("Название сети").assertDoesNotExist()
+  ui.onNodeWithText("Отмена нового названия").performScrollTo().performClick();ui.onNodeWithText("Название сети").assertDoesNotExist()
   runBlocking{assertTrue(db.retailStructureDao().networks().isEmpty());assertNull(db.shopDao().getById(yar)!!.networkId)}
-  ui.onNodeWithText("Добавить сеть магазинов").performScrollTo().performClick();ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр")
-  ui.onNodeWithContentDescription("Завершить: Сеть магазинов").performScrollTo().performClick();shot("09-optional-network-summary")
+  ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр")
+  ui.onNodeWithText("Готово").performScrollTo().performClick();shot("09-optional-network-summary")
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   runBlocking{assertEquals(1,db.retailStructureDao().networks().size);assertNotNull(db.shopDao().getById(yar)!!.networkId);assertEquals(2,db.shopBranchDao().forShop(yar).size)}
  }

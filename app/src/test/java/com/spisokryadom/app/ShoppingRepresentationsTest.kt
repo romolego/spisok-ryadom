@@ -164,7 +164,7 @@ class ShoppingRepresentationsTest {
   val id=basket.addProduct(pasta,3.0)
   app.getSharedPreferences("product_db_prefs",0).edit().putStringSet("collapsed_sections",setOf("BY_GROUPS_group_1")).commit()
   val backup=BackupManager(app,db);val file=backup.exportFile()
-  assertEquals(12,ZipFile(file).use{JSONObject(it.getInputStream(it.getEntry("manifest.json")).reader().readText()).getInt("version")})
+  assertEquals(13,ZipFile(file).use{JSONObject(it.getInputStream(it.getEntry("manifest.json")).reader().readText()).getInt("version")})
   db.shoppingListEntryDao().deleteAll();db.shopDao().deleteAll()
   backup.importFile(file)
   assertEquals(2,db.shopBranchDao().getAll().size)

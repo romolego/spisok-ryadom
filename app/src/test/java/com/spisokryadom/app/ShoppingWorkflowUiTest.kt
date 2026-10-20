@@ -120,10 +120,10 @@ class ShoppingWorkflowUiTest {
  @Test fun storeEditorOffersMultipleRankedAddressesAndProductEditorCanRestrictPoints() {
   ui.onNodeWithText("Магазины").performClick();waitText("Красный Яр")
   ui.onNodeWithText("Красный Яр").performTouchInput{longClick()}
-  waitText("Адреса и точки магазина")
-  ui.onNodeWithText("Адреса и точки магазина").performScrollTo()
+  waitText("Место магазина")
+  ui.onNodeWithText("Место магазина").performScrollTo()
   waitText("Мира, 10");ui.onNodeWithText("Мира, 10").assertExists();shot("06-chain-addresses")
-  ui.onNodeWithContentDescription("Изменить адрес: Ленина, 20").performScrollTo().performClick()
+  ui.onNodeWithText("Править").performScrollTo().performClick()
   ui.onNodeWithContentDescription("Точка выше: Ленина, 20").performScrollTo().performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   assertEquals(far,runBlocking{db.shopBranchDao().forShop(yar)}.first().id)

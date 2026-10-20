@@ -241,7 +241,7 @@ fun <T> DropdownSelector(
     allowCreate: Boolean = false,
     onCreateNew: (() -> Unit)? = null,
     createLabel: String = "Создать...",
-    itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано",allowNone:Boolean=true,onOpen:()->Unit={}
+    itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано",allowNone:Boolean=true,onOpen:()->Unit={},itemVector:(T)->androidx.compose.ui.graphics.vector.ImageVector?={null}
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -252,7 +252,7 @@ fun <T> DropdownSelector(
     ) {
         OutlinedTextField(
             value = selectedItem?.let { itemLabel(it) } ?: noneLabel,
-            leadingIcon=selectedItem?.let { item -> appearanceIcon(itemIcon(item))?.let{vector->{Icon(vector,null,tint=accentColor(itemAccent(item))?:MaterialTheme.colorScheme.primary)}}},
+            leadingIcon=selectedItem?.let { item -> (itemVector(item)?:appearanceIcon(itemIcon(item)))?.let{vector->{Icon(vector,null,tint=accentColor(itemAccent(item))?:MaterialTheme.colorScheme.primary)}}},
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -267,7 +267,8 @@ fun <T> DropdownSelector(
         ) {
             items.forEach { item ->
                 DropdownMenuItem(
-                    text = { MarkedLabel(itemLabel(item),itemAccent(item),itemIcon(item),small=true) },
+                    text = { MarkedLabel(itemLabel(item),itemAccent(item),if(itemVector(item)==null)itemIcon(item)else "",small=true) },
+                    leadingIcon=itemVector(item)?.let{v->{Icon(v,null,tint=MaterialTheme.colorScheme.primary)}},
                     onClick = {
                         onSelect(item)
                         expanded = false

@@ -80,11 +80,11 @@ class MarketUiTest {
  }
  @Test fun pointNoteIsADraftAndCameraUsesPrivateCaptureUri(){
   ui.onNodeWithText("Магазины").performClick();waitText("Енисейский привоз");ui.onNodeWithText("Енисейский привоз").performTouchInput{longClick()};waitText("Название магазина")
-  ui.onNodeWithContentDescription("Изменить адрес: 29 павильон — сыры").performScrollTo().performClick()
+  ui.onNodeWithText("Править").performScrollTo().performClick()
   ui.onNodeWithTag("branch-note-$cheesePoint").performScrollTo().performTextReplacement("Беру адыгейский и масло")
   assertEquals("Беру сыр и масло",runBlocking{db.shopBranchDao().get(cheesePoint)!!}.note)
   org.robolectric.Shadows.shadowOf(app.packageManager).addResolveInfoForIntent(android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE),android.content.pm.ResolveInfo().apply{activityInfo=android.content.pm.ActivityInfo().apply{name="CameraActivity";packageName="test.camera"}})
-  ui.onNodeWithText("Камера").performScrollTo().performClick()
+  ui.onAllNodesWithText("Камера").onFirst().performScrollTo().performClick()
   val started=org.robolectric.Shadows.shadowOf(ui.activity).nextStartedActivityForResult
   assertNotNull("Camera: "+org.robolectric.shadows.ShadowLog.getLogsForTag("BranchPhoto").map{it.throwable?.stackTraceToString()},started)
   assertEquals(android.provider.MediaStore.ACTION_IMAGE_CAPTURE,started.intent.action)

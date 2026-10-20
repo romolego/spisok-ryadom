@@ -22,7 +22,7 @@ import java.util.UUID
  val bitmap by produceState<android.graphics.Bitmap?>(null,path){value=withContext(Dispatchers.IO){PhotoStore.load(path)}}
  bitmap?.let{Image(it.asImageBitmap(),title,Modifier.fillMaxWidth().heightIn(max=220.dp),contentScale=ContentScale.Fit)}
 }
-@Composable fun BranchPhotoEditor(path:String,onChange:(String?)->Unit,onBusyChange:(Boolean)->Unit={},title:String="Фото точки",directory:String="branch_photos") {
+@Composable fun BranchPhotoEditor(path:String,onChange:(String?)->Unit,onBusyChange:(Boolean)->Unit={},title:String="Фото точки",directory:String="branch_photos",enabled:Boolean=true) {
  val context=LocalContext.current;val scope=rememberCoroutineScope();val latest by rememberUpdatedState(onChange);val latestBusy by rememberUpdatedState(onBusyChange)
  var busy by remember{mutableStateOf(false)};var error by remember{mutableStateOf<String?>(null)}
  var capturePath by rememberSaveable{mutableStateOf<String?>(null)}
@@ -42,12 +42,12 @@ import java.util.UUID
   error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
   if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
   Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
-   OutlinedButton(onClick={gallery.launch("image/*")},enabled=!busy,modifier=Modifier.weight(1f)){Text(if(path.isBlank())"Выбрать фото"else "Заменить фото")}
+   OutlinedButton(onClick={gallery.launch("image/*")},enabled=enabled&&!busy,modifier=Modifier.weight(1f)){Text(if(path.isBlank())"Выбрать фото"else "Заменить фото")}
    OutlinedButton(onClick={
     try{val dir=File(context.cacheDir,"camera_captures").also{it.mkdirs()};val f=File(dir,"${UUID.randomUUID()}.jpg");capturePath=f.absolutePath;camera.launch(FileProvider.getUriForFile(context,context.packageName+".files",f))}
     catch(e:Exception){android.util.Log.e("BranchPhoto","Camera launch failed",e);capturePath?.let{File(it).delete()};capturePath=null;error="Камера недоступна"}
-   },enabled=!busy){Text("Камера")}
+   },enabled=enabled&&!busy){Text("Камера")}
   }
-  if(path.isNotBlank())TextButton(onClick={latest(null)},enabled=!busy){Text("Удалить фото")}
+  if(path.isNotBlank())TextButton(onClick={latest(null)},enabled=enabled&&!busy){Text("Удалить фото")}
  }
 }

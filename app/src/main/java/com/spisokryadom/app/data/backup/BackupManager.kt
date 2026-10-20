@@ -48,7 +48,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   try{
     val s=MediaLifecycle.mutex.withLock {
      db.withTransaction{snapshot()}.also{snapshot->
-      pinned=(snapshot.products.mapNotNull{it.photoUri}+snapshot.branches.mapNotNull{it.photoUri}).toSet()
+      pinned=(snapshot.products.mapNotNull{it.photoUri}+snapshot.branches.mapNotNull{it.photoUri}+snapshot.shops.mapNotNull{it.logoUri}).toSet()
       PhotoStore.pin(pinned)
      }
     }
@@ -74,6 +74,15 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
        val name="branch_photos/${b.id}.jpg";zip.putNextEntry(ZipEntry(name));f.inputStream().use{it.copyTo(zip)};zip.closeEntry();branchRows.getJSONObject(i).put("photo",name)
       }else branchRows.getJSONObject(i).put("photoUnavailable",true)
      }}
+     val shopRows=root.getJSONObject("data").getJSONArray("shops")
+     s.shops.forEachIndexed{i,shop->shop.logoUri?.let{path->
+      val f=File(path)
+      if(f.isFile){
+       photoBytes+=f.length();require(++photoCount<MAX_ARCHIVE_ENTRIES&&photoBytes<=MAX_PHOTO_TOTAL){"Для одной копии слишком много изображений"}
+       require(f.length()<=MAX_PHOTO){"Логотип слишком большой"}
+       val name="shop_logos/${shop.id}.png";zip.putNextEntry(ZipEntry(name));f.inputStream().use{it.copyTo(zip)};zip.closeEntry();shopRows.getJSONObject(i).put("logo",name)
+      }else shopRows.getJSONObject(i).put("photoUnavailable",true)
+     }}
      val manifest=root.toString().toByteArray(Charsets.UTF_8);require(manifest.size<=MAX_JSON){"Для одной копии слишком много данных"}
      zip.putNextEntry(ZipEntry("manifest.json"));zip.write(manifest);zip.closeEntry()
     }
@@ -89,7 +98,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   if(version>=12)listOf("shopCreationPresets","groupCreationPresets").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствуют преднастройки $it"}}
   if(version>=11)require(d.optJSONArray("goalLists")!=null){"В копии отсутствуют целевые списки"}
   if(version>=5)listOf("shopBranches","productBranchAvailability").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствует раздел $it"}}
-  return Summary(root.optString("kind")=="full"&&version>=4,d.getJSONArray("products").length(),d.optJSONArray("shoppingListEntries")?.length()?:0,d.optJSONArray("cities")?.length()?:0,(0 until d.getJSONArray("products").length()).count{d.getJSONArray("products").getJSONObject(it).optBoolean("photoUnavailable")}+(d.optJSONArray("shopBranches")?.let{a->(0 until a.length()).count{a.getJSONObject(it).optBoolean("photoUnavailable")}}?:0),goalLists=d.optJSONArray("goalLists")?.length()?:0)
+  return Summary(root.optString("kind")=="full"&&version>=4,d.getJSONArray("products").length(),d.optJSONArray("shoppingListEntries")?.length()?:0,d.optJSONArray("cities")?.length()?:0,(0 until d.getJSONArray("products").length()).count{d.getJSONArray("products").getJSONObject(it).optBoolean("photoUnavailable")}+(d.optJSONArray("shopBranches")?.let{a->(0 until a.length()).count{a.getJSONObject(it).optBoolean("photoUnavailable")}}?:0)+(d.optJSONArray("shops")?.let{a->(0 until a.length()).count{a.getJSONObject(it).optBoolean("photoUnavailable")}}?:0),goalLists=d.optJSONArray("goalLists")?.length()?:0)
  }
  suspend fun importFile(file:File):Summary=mutex.withLock {
   val summary=inspect(file)
@@ -128,7 +137,16 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
     }
     b.copy(photoUri=photo?.absolutePath)
    }
-   val adapted=raw.copy(products=withPhotos,branches=branchesWithPhotos,entries=if(summary.full&&root.getInt("version")<5)raw.entries.map{it.copy(assignedBranchId=oldBranches.firstOrNull{b->b.shopId==it.assignedShopId}?.id)}else raw.entries)
+   val shopRows=root.getJSONObject("data").optJSONArray("shops")
+   val shopsWithLogos=raw.shops.mapIndexed{i,shop->
+    val name=shopRows?.optJSONObject(i)?.optString("logo").orEmpty()
+    val logo=if(name.isBlank())null else {
+     require(root.getInt("version")>=13&&name=="shop_logos/${shop.id}.png"){"Некорректный логотип магазина"}
+     File(stage,name).also{require(it.isFile){"В копии отсутствует логотип ${shop.name}"}}
+    }
+    shop.copy(logoUri=logo?.absolutePath)
+   }
+   val adapted=raw.copy(products=withPhotos,branches=branchesWithPhotos,shops=shopsWithLogos,entries=if(summary.full&&root.getInt("version")<5)raw.entries.map{it.copy(assignedBranchId=oldBranches.firstOrNull{b->b.shopId==it.assignedShopId}?.id)}else raw.entries)
    val incoming=if(root.getInt("version")<7)BackupJson.upgradeLegacy(adapted)else adapted
    if(summary.full){
     validate(incoming)
@@ -359,7 +377,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
    require(++count<=MAX_ARCHIVE_ENTRIES&&names.add(entry.name)){"Некорректный архив"}
    if(entry.name=="manifest.json")root=readJson(bounded(zip,MAX_JSON))
    else{
-    require(entry.name.matches(Regex("(photos/[a-zA-Z0-9_-]+|branch_photos/[0-9]+)[.]jpg"))){"Посторонний файл в архиве"}
+    require(entry.name.matches(Regex("((photos/[a-zA-Z0-9_-]+|branch_photos/[0-9]+)[.]jpg|shop_logos/[0-9]+[.]png)"))){"Посторонний файл в архиве"}
     val target=File(stage,entry.name.removePrefix("photos/"));target.parentFile!!.mkdirs();val bytes=bounded(zip,MAX_PHOTO);total+=bytes.size;require(total<=MAX_PHOTO_TOTAL){"Слишком большой архив"};target.writeBytes(bytes)
    };zip.closeEntry()
   }}
@@ -367,7 +385,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=12;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=13;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}

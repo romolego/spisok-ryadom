@@ -45,7 +45,7 @@ class Refine080UiTest {
   val bitmap=Bitmap.createBitmap(v.width,v.height,Bitmap.Config.ARGB_8888);v.draw(Canvas(bitmap));val f=File("../.local/refinement-0.8.0/$name-api${android.os.Build.VERSION.SDK_INT}.png");f.parentFile!!.mkdirs();f.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()
  }}
  @After fun close(){ui.activityRule.scenario.close();app.container.locations.closeForTest();app.container.database.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
- @Test fun applicationLabelIsRealRussianResource(){assertEquals("Список рядом",app.packageManager.getApplicationLabel(app.applicationInfo).toString())}
+ @Test fun applicationLabelIsRealRussianResource(){assertEquals(if(app.packageName.endsWith(".next"))"Список рядом · новая"else "Список рядом",app.packageManager.getApplicationLabel(app.applicationInfo).toString())}
  @Test fun realDropdownValuesPrecedeNoneAndCreateWithoutChangingTheirMeaning(){
   var selected:String?="Рома";var create=false
   content{Column(Modifier.padding(16.dp)){DropdownSelector("Получатель",listOf("Рома","Злата"),selected,{it},{selected=it},allowCreate=true,onCreateNew={create=true},createLabel="Новый получатель…")}}

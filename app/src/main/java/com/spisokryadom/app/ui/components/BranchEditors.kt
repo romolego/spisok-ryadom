@@ -12,14 +12,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.spisokryadom.app.data.entity.ShopBranchEntity
 
-@Composable fun BranchesEditor(branches:List<ShopBranchEntity>,onChange:(List<ShopBranchEntity>)->Unit,onBusyChange:(Boolean)->Unit={},venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),venueNames:Map<Long,String> = emptyMap(),onVenueName:(Long,String)->Unit={_,_->},pointGroups:@Composable (ShopBranchEntity)->Unit={}) {
+@Composable fun BranchesEditor(branches:List<ShopBranchEntity>,onChange:(List<ShopBranchEntity>)->Unit,onBusyChange:(Boolean)->Unit={},venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),venueNames:Map<Long,String> = emptyMap(),onVenueName:(Long,String)->Unit={_,_->},pointGroups:@Composable (ShopBranchEntity)->Unit={},unified:Boolean=false,externalPhotoBusy:Boolean=false) {
  var photoBusy by remember{mutableStateOf(false)}
  var editingId by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<Long?>(null) }
  val focus=androidx.compose.ui.platform.LocalFocusManager.current
  Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
   Text("Адреса и точки магазина",style=MaterialTheme.typography.titleMedium)
   AnimatedOrderColumn(branches,{it.id}) { index,branch ->
-   val editing=editingId==branch.id
+   val editing=unified||editingId==branch.id
    val duplicate=branches.any{it.id!=branch.id&&it.address.trim().equals(branch.address.trim(),ignoreCase=true)}
    OutlinedCard(Modifier.fillMaxWidth()) {
     Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -31,7 +31,7 @@ import com.spisokryadom.app.data.entity.ShopBranchEntity
         venues.find{it.id==branch.venueId}?.let{Text(it.name,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
        }
       }
-      IconButton(onClick={if(editing){focus.clearFocus();editingId=null}else editingId=branch.id},enabled=!photoBusy&&(!editing||branch.address.isNotBlank()&&!duplicate)) {
+      if(!unified)IconButton(onClick={if(editing){focus.clearFocus();editingId=null}else editingId=branch.id},enabled=!photoBusy&&(!editing||branch.address.isNotBlank()&&!duplicate)) {
        Icon(if(editing)Icons.Filled.Check else Icons.Filled.Edit,if(editing)"Завершить редактирование адреса"else "Изменить адрес: ${branch.address}")
       }
      }
@@ -44,10 +44,10 @@ import com.spisokryadom.app.data.entity.ShopBranchEntity
        label={Text("Адрес")},minLines=1,maxLines=4,isError=branch.address.isBlank()||duplicate,
        supportingText=if(duplicate)({Text("Адрес добавлен дважды")})else null,
        modifier=Modifier.fillMaxWidth().testTag("branch-address-${branch.id}"))
-      OutlinedTextField(branch.note.orEmpty(),{value->onChange(branches.map{if(it.id==branch.id)it.copy(note=value)else it})},label={Text("Заметка точки")},minLines=2,maxLines=5,modifier=Modifier.fillMaxWidth().testTag("branch-note-${branch.id}"))
-      OptionalRetailField("Рынок или ТЦ",venues.map{it.id to it.name},branch.venueId,venueNames[branch.id].orEmpty(),
+      OutlinedTextField(branch.note.orEmpty(),{value->onChange(branches.map{if(it.id==branch.id)it.copy(note=value)else it})},label={Text("Заметка точки")},minLines=1,maxLines=3,modifier=Modifier.fillMaxWidth().testTag("branch-note-${branch.id}"))
+      RetailRelationSelector("Рынок или ТЦ",venues.map{it.id to it.name},branch.venueId,venueNames[branch.id].orEmpty(),
        onSelect={id->onChange(branches.map{if(it.id==branch.id)it.copy(venueId=id)else it})},onNewName={onVenueName(branch.id,it)})
-      BranchPhotoEditor(branch.photoUri.orEmpty(),onChange={path->onChange(branches.map{if(it.id==branch.id)it.copy(photoUri=path)else it})},onBusyChange={value->photoBusy=value;onBusyChange(value)})
+      BranchPhotoEditor(branch.photoUri.orEmpty(),enabled=!photoBusy&&!externalPhotoBusy,onChange={path->onChange(branches.map{if(it.id==branch.id)it.copy(photoUri=path)else it})},onBusyChange={value->photoBusy=value;onBusyChange(value)})
       pointGroups(branch)
       Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End) {
        ReorderButtons(

@@ -113,7 +113,7 @@ internal object BackupJson {
   put("manualOrderOverride",value.manualOrderOverride)
   put("cityId",value.cityId)
   put("networkId",value.networkId?:JSONObject.NULL)
-  put("shoppingBackground",value.shoppingBackground)
+  put("shoppingBackground",value.shoppingBackground);put("iconKey",value.iconKey)
  }
  fun shops(o:JSONObject):ShopEntity = ShopEntity(
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
@@ -126,7 +126,7 @@ internal object BackupJson {
   manualOrderOverride=if(o.has("manualOrderOverride")&&!o.isNull("manualOrderOverride"))o.getBoolean("manualOrderOverride") else false,
   cityId=if(o.has("cityId")&&!o.isNull("cityId"))o.getLong("cityId") else 1,
   networkId=if(o.has("networkId")&&!o.isNull("networkId"))o.getLong("networkId")else null,
-  shoppingBackground=o.optString("shoppingBackground","")
+  shoppingBackground=o.optString("shoppingBackground",""),iconKey=o.optString("iconKey","")
  )
  fun encode(value:ShopDepartmentEntity):JSONObject = JSONObject().apply {
   put("id",value.id)

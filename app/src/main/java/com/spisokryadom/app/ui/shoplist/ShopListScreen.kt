@@ -178,11 +178,7 @@ private fun ShopListItem(
                 .padding(start = 16.dp, end = if (isEditing) 4.dp else 16.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                Icons.Filled.Store,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
+            com.spisokryadom.app.ui.components.ShopSymbol(shop.iconKey,shop.logoUri)
             Column(
                 modifier = Modifier
                     .weight(1f)

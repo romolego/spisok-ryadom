@@ -49,7 +49,7 @@ import com.spisokryadom.app.data.entity.UnitEntity
         ShopBranchEntity::class, ProductBranchAvailabilityEntity::class, com.spisokryadom.app.data.entity.ProductBranchPriorityEntity::class,
         CityEntity::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -219,6 +219,10 @@ abstract class AppDatabase : RoomDatabase() {
             db.execSQL("CREATE INDEX IF NOT EXISTS index_group_creation_presets_recipientId ON group_creation_presets(recipientId)")
             StandardCategories.install(db)
         }}
+        val MIGRATION_16_17=object:Migration(16,17){override fun migrate(db:SupportSQLiteDatabase){
+            db.execSQL("ALTER TABLE shops ADD COLUMN iconKey TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE shops ADD COLUMN logoUri TEXT DEFAULT NULL")
+        }}
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val appContext=context.applicationContext
@@ -227,8 +231,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "spisok_ryadom.db"
                 )
-                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,16)})
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16)
+                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,17)})
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17)
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) { RetailConstraints.install(db) }
                         override fun onCreate(db: SupportSQLiteDatabase) {

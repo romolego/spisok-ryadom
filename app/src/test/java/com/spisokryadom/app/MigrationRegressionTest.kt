@@ -44,11 +44,11 @@ class MigrationRegressionTest {
   }
   return name
  }
- private fun open(name:String)=Room.databaseBuilder(context,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_1_2,AppDatabase.MIGRATION_2_3,AppDatabase.MIGRATION_3_4,AppDatabase.MIGRATION_4_5,AppDatabase.MIGRATION_5_6,AppDatabase.MIGRATION_6_7,AppDatabase.MIGRATION_7_8,AppDatabase.MIGRATION_8_9,AppDatabase.MIGRATION_9_10,AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16).build()
+ private fun open(name:String)=Room.databaseBuilder(context,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_1_2,AppDatabase.MIGRATION_2_3,AppDatabase.MIGRATION_3_4,AppDatabase.MIGRATION_4_5,AppDatabase.MIGRATION_5_6,AppDatabase.MIGRATION_6_7,AppDatabase.MIGRATION_7_8,AppDatabase.MIGRATION_8_9,AppDatabase.MIGRATION_9_10,AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17).build()
  @Test fun schemaFromPhoneApkMigratesWithoutLosingBasket()=runBlocking {
   val name=create(7);val db=open(name)
   try{
-   assertEquals(16,db.openHelper.writableDatabase.version)
+   assertEquals(17,db.openHelper.writableDatabase.version)
    assertEquals("Яблоки Гала",db.productDao().getById(1)?.name);assertEquals(2,db.productDao().getAllSync().size)
    assertNull(db.productDao().getById(3));assertTrue(db.productDao().getById(2)!!.isTemporary)
    assertEquals(1L,db.shopDao().getById(2)!!.cityId);assertEquals("Мой город",db.cityDao().getById(1)?.name)
@@ -59,6 +59,6 @@ class MigrationRegressionTest {
  }
  @Test fun oldestDatabaseMigratesThroughEveryVersion()=runBlocking {
   val name=create(1);val db=open(name)
-  try{assertEquals("Яблоки Гала",db.productDao().getById(1)?.name);assertEquals("кг",db.unitDao().getAllSync().single().name);assertFalse(db.productDao().getById(1)!!.isTemporary);assertEquals(16,db.openHelper.writableDatabase.version)}finally{db.close();context.deleteDatabase(name)}
+  try{assertEquals("Яблоки Гала",db.productDao().getById(1)?.name);assertEquals("кг",db.unitDao().getAllSync().single().name);assertFalse(db.productDao().getById(1)!!.isTemporary);assertEquals(17,db.openHelper.writableDatabase.version)}finally{db.close();context.deleteDatabase(name)}
  }
 }
