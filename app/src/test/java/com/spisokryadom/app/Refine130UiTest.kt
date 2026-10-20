@@ -64,7 +64,7 @@ class Refine130UiTest {
    if(mode==ViewMode.BY_SHOPS)ui.onNodeWithTag("widget-departments").assertExists()else ui.onNodeWithTag("widget-departments").assertDoesNotExist()
   }
   ui.onNodeWithTag("widget-departments").performScrollTo().performClick();waitFor{!WidgetSettings.load(prefs).showDepartments};font(22);shot("02-widget-settings-large")
-  ui.onNodeWithText("Обычный размер").performScrollTo().performClick();waitText("Размер текста: 16")
+  ui.onNodeWithText("Обычный размер").assertDoesNotExist();ui.onNodeWithTag("widget-font-preview").assertDoesNotExist();font(16)
  }
  @Test fun compactDepartmentsKeepCollapseAndSelectionAndShopSeparation(){
   val deptTag="purchase-department-department_${a}_${branch}_${bakery}"

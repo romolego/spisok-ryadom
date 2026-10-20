@@ -128,6 +128,7 @@ fun InputDialog(
  */
 @Composable
 fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems:Set<String>,newItemLabel:String="Новое название",onConfirm:(List<String>)->Unit,onDismiss:()->Unit,favorites:List<String> = emptyList(),alphabetical:Boolean=false) {
+ androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.DROPDOWNS) {
  var selected by remember{mutableStateOf(setOf<String>())};var input by remember{mutableStateOf("")};var custom by remember{mutableStateOf(listOf<String>())}
  val normalize=com.spisokryadom.app.util.FuzzySearch::normalize
  val added=alreadyAddedItems.map(normalize).toSet()
@@ -160,6 +161,8 @@ fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems
    }
   }
  },confirmButton={TextButton(onClick={onConfirm(rows.filter{it in selected&&normalize(it) !in added})},enabled=selected.isNotEmpty()){Text("Добавить")}},dismissButton={TextButton(onClick=onDismiss){Text("Отмена")}})
+
+ }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,6 +180,7 @@ fun <T> DropdownSelector(
     itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано",allowNone:Boolean=true,onOpen:()->Unit={},itemVector:(T)->androidx.compose.ui.graphics.vector.ImageVector?={null},
     itemFavorite:(T)->Boolean={false},favoriteOrder:(T)->Int={0},alphabetical:Boolean=false
 ) {
+ androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.DROPDOWNS) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
@@ -246,6 +250,8 @@ fun <T> DropdownSelector(
 
         }
     }
+
+ }
 }
 
 /**

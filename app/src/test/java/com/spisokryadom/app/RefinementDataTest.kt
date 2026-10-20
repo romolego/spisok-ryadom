@@ -87,7 +87,7 @@ class RefinementDataTest {
  @Test fun completeBackupRoundTripPreservesAllMarksAndOrders()=runBlocking{
   val g=db.productGroupDao().insert(ProductGroupEntity(name="Продукты",displayOrder=3,accent="green",iconKey="groceries"));val rec=db.recipientDao().insert(RecipientEntity(name="Рома",accent="blue",iconKey="person"));val t=shops.createDepartmentType("Молочка");shops.styleDepartmentType(t,"yellow","milk")
   val p=products.saveWithLinks(ProductEntity(name="Йогурт",productGroupId=g,recipientId=rec,isFavorite=true,accent="violet"),emptyList());val before=db.productDao().getById(p)!!;val types=db.shopDepartmentDao().types()
-  val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(14,java.util.zip.ZipFile(file).use{zip->JSONObject(zip.getInputStream(zip.getEntry("manifest.json")).reader().readText()).getInt("version")})
+  val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(15,java.util.zip.ZipFile(file).use{zip->JSONObject(zip.getInputStream(zip.getEntry("manifest.json")).reader().readText()).getInt("version")})
   BatchRepository(db,products,basket).changeProducts(setOf(p),ProductBatchChange.Favorite(false));shops.moveDepartmentType(t,1);manager.importFile(file)
   assertEquals(before,db.productDao().getById(p));assertEquals(types,db.shopDepartmentDao().types());assertEquals("groceries",db.productGroupDao().getById(g)!!.iconKey);assertEquals("blue",db.recipientDao().getById(rec)!!.accent);manager.discard(file)
  }

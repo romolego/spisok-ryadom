@@ -115,6 +115,7 @@ fun ShoppingListScreen(
     batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory),
     onNavigateToGoalList:(Long)->Unit={}
 ) {
+ androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.PURCHASES) {
     // A full replacement can reuse numeric IDs for different records. No old
     // selection or open purchase action may survive that database revision.
     val revision=rememberDatabaseRevision()
@@ -122,6 +123,8 @@ fun ShoppingListScreen(
         ShoppingListContent(onNavigateToAddToList,onNavigateToAddToShop,onNavigateToProductCard,
             onNavigateToSettings,onNavigateToBulk,viewModel,batchVM,onNavigateToGoalList)
     }
+
+ }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

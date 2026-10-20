@@ -234,7 +234,10 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
 
             composable(Routes.Settings.route) {
                 SettingsScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onOpenProduct={id->navController.navigate(Routes.ProductCard.createRoute(id))},
+                    onOpenShop={id->navController.navigate(Routes.ShopContent.createRoute(id))},
+                    onReset={navController.navigate(Routes.ShoppingList.route){popUpTo(navController.graph.id){inclusive=true};launchSingleTop=true}}
                 )
             }
         }

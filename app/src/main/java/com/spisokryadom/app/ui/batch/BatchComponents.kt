@@ -162,12 +162,14 @@ private val BatchSelectionSaver=mapSaver(
      val multiple=action=="shop"||stores
      val favoriteIds=when(action){"group"->options.groups.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};"department"->options.types.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};else->emptyList()}
      val dictionary=action=="group"||action=="department"
+     androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.DROPDOWNS){
      val base=if(dictionary)com.spisokryadom.app.util.alphabetical(values){it.second}else values
      val pinned=favoriteIds.mapNotNull{id->base.find{it.first==id}}
      (pinned.map{it to true}+base.map{it to false}).forEachIndexed{index,(pair,pin)->val(id,label)=pair
       if(pinned.isNotEmpty()&&(index==0||index==pinned.size))Text(if(index==0)"Избранные"else "Все значения",style=MaterialTheme.typography.labelMedium)
       val row:@Composable ()->Unit={OptionRow(label,id in chosen,!busy&&(action!="department"||stores||targetShop!=null),multiple,favorite=id in favoriteIds){none=false;chosen=if(multiple){if(id in chosen)chosen-id else chosen+id}else setOf(id)}}
       if(pin)FavoriteBlock(Modifier.fillMaxWidth()){row()}else row()
+     }
      }
      if(action=="basket"){
       OptionRow("По приоритету для каждого товара",none,!busy){none=true;chosen=emptySet()}

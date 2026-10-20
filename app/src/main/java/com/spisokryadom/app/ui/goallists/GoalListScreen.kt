@@ -43,11 +43,14 @@ import com.spisokryadom.app.util.Quantities
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoalListScreen(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel? = null) {
+ androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.LISTS) {
     val revision = com.spisokryadom.app.ui.batch.rememberDatabaseRevision()
     key(revision) {
         val model = viewModel ?: androidx.lifecycle.viewmodel.compose.viewModel<GoalListViewModel>(key = "goal-list-$listId-$revision", factory = GoalListViewModel.factory(listId))
         GoalListContent(listId, onBack, model)
     }
+
+ }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -233,6 +236,7 @@ private fun GoalItemEditorSheet(editor: GoalItemEditor, shops: List<String>, upd
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoalCatalogueSheet(state: GoalListUiState, query: (String) -> Unit, priority: (Boolean) -> Unit, add: (ProductEntity) -> Unit, onDismiss: () -> Unit) {
+ androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.LISTS) {
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().fillMaxHeight(.95f).imePadding().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Из базы товаров", style = MaterialTheme.typography.headlineSmall)
@@ -255,6 +259,8 @@ private fun GoalCatalogueSheet(state: GoalListUiState, query: (String) -> Unit, 
             Spacer(Modifier.height(8.dp))
         }
     }
+
+ }
 }
 
 @Composable

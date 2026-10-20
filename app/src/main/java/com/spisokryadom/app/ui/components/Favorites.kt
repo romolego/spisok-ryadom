@@ -20,6 +20,7 @@ import com.spisokryadom.app.util.FavoriteAppearance
 
 val LocalFavoriteAppearance=staticCompositionLocalOf{FavoriteAppearance()}
 val LocalFavoriteBlock=staticCompositionLocalOf{false}
+val LocalFavoriteSurface=staticCompositionLocalOf{com.spisokryadom.app.util.FavoriteSurface.LISTS}
 @Composable fun FavoriteAppearanceProvider(content:@Composable ()->Unit){
  val context=LocalContext.current
  val prefs=remember(context){context.getSharedPreferences("shopping_list_prefs",Context.MODE_PRIVATE)}
@@ -31,14 +32,14 @@ val LocalFavoriteBlock=staticCompositionLocalOf{false}
  }
  CompositionLocalProvider(LocalFavoriteAppearance provides appearance,content=content)
 }
-@Composable fun favoriteStyle()=LocalFavoriteAppearance.current.let{if(LocalFavoriteBlock.current)it.block else it.row}
+@Composable fun favoriteStyle()=LocalFavoriteAppearance.current.style(LocalFavoriteSurface.current,LocalFavoriteBlock.current)
 @Composable fun favoriteWeight(favorite:Boolean)=if(favorite&&favoriteStyle().bold)FontWeight.Bold else null
 @Composable fun favoriteBackground(favorite:Boolean,base:Color=MaterialTheme.colorScheme.surface):Color=
  if(favorite&&favoriteStyle().background)shoppingBlockColor(favoriteStyle().color,base)?:base else base
 @Composable fun Modifier.favoriteSurface(favorite:Boolean):Modifier=if(favorite&&favoriteStyle().background)background(favoriteBackground(true),MaterialTheme.shapes.small)else this
 /** Extends into LazyColumn spacing, so the pinned section reads as one zone. */
 @Composable fun Modifier.favoriteBlock():Modifier{
- val style=LocalFavoriteAppearance.current.block
+ val style=LocalFavoriteAppearance.current.style(LocalFavoriteSurface.current,true)
  val color=shoppingBlockColor(style.color,MaterialTheme.colorScheme.surface)?:MaterialTheme.colorScheme.secondaryContainer
  return if(style.background)drawBehind{val gap=4.dp.toPx();drawRect(color,Offset(0f,-gap),Size(size.width,size.height+gap*2))}else this
 }

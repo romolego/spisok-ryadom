@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.spisokryadom.app.ui.components.DropdownSelector
 import com.spisokryadom.app.ui.shoppinglist.ViewMode
 import com.spisokryadom.app.widget.WidgetSettings
@@ -32,8 +31,6 @@ fun WidgetSettingsCard(value:WidgetSettings,onChange:(WidgetSettings)->Unit){
             Slider(value.textSize.toFloat(),{size->val rounded=size.roundToInt();if(rounded!=value.textSize)onChange(value.copy(textSize=rounded))},
                 valueRange=WidgetSettings.MIN_TEXT_SIZE.toFloat()..WidgetSettings.MAX_TEXT_SIZE.toFloat(),steps=9,
                 modifier=Modifier.testTag("widget-font-size"))
-            Text("Молоко · 1 л",fontSize=value.textSize.sp,modifier=Modifier.testTag("widget-font-preview"))
-            TextButton(onClick={onChange(value.copy(textSize=16))},enabled=value.textSize!=16){Text("Обычный размер")}
         }
     }
 }

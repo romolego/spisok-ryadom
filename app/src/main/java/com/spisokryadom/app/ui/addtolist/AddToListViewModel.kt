@@ -21,7 +21,7 @@ data class AddToListUiState(
 class AddToListViewModel(private val products:ProductRepository,private val shopRepository:ShopRepository,private val basket:ShoppingListRepository,
  private val prefs:SharedPreferences,preselectedShopId:Long?=null,private val preselectedBranchId:Long?=null):ViewModel(){
  private val sessionGeneration=ProductEditorTransactions.generation.get()
- private val _uiState=MutableStateFlow(AddToListUiState(quantity=java.math.BigDecimal.valueOf(ProductCreationDefaults.read(prefs).missingQuantity).stripTrailingZeros().toPlainString(),selectedShopId=preselectedShopId ?: -1L,isShopLocked=preselectedShopId!=null,
+ private val _uiState=MutableStateFlow(AddToListUiState(quantity=ProductCreationDefaults.read(prefs).let{if(it.fillMissing)java.math.BigDecimal.valueOf(it.missingQuantity).stripTrailingZeros().toPlainString()else ""},selectedShopId=preselectedShopId ?: -1L,isShopLocked=preselectedShopId!=null,
    browseProducts=prefs.getBoolean(PREF_BROWSE_PRODUCTS,true),saveToDatabase=prefs.getBoolean(ShoppingListViewModel.PREF_GLOBAL_SAVE_NEW_PRODUCT_TO_DB,true)))
  val uiState=_uiState.asStateFlow()
  private data class Query(val text:String,val shopId:Long?,val browse:Boolean)
@@ -76,7 +76,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
  }
  private fun addPurchase(state:AddToListUiState,keepBrowsing:Boolean){
   if(state.isLoading)return
-  val qty=if(state.selectedProduct==null&&state.quantity.isBlank())ProductCreationDefaults.read(prefs).missingQuantity else Quantities.parse(state.quantity)
+  val qty=if(state.selectedProduct==null&&state.quantity.isBlank())ProductCreationDefaults.read(prefs).let{if(it.fillMissing)it.missingQuantity else 1.0} else Quantities.parse(state.quantity)
   if(qty==null){_uiState.value=state.copy(error="Введите положительное количество, например 0,5");return}
   if(state.selectedProduct==null&&!state.isNewProduct){_uiState.value=state.copy(error="Выберите товар из найденных");return}
   _uiState.update{it.copy(isLoading=true,error=null)}
@@ -86,7 +86,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
    else {
     val defaults=ProductCreationDefaults.read(prefs)
     val mode=state.selectedShopId?.takeIf{it>0}?.let{shopRepository.purchaseMode(it)}?:"inherit"
-    basket.addNewProduct(state.searchQuery,qty,state.unit.ifBlank{defaults.missingUnit},state.saveToDatabase,choice,state.selectedShopId,preselectedBranchId,purchaseType=PurchaseModes.resolve(mode,defaults.purchaseType))
+    basket.addNewProduct(state.searchQuery,qty,state.unit.ifBlank{if(defaults.fillMissing)defaults.missingUnit else ""},state.saveToDatabase,choice,state.selectedShopId,preselectedBranchId,purchaseType=PurchaseModes.resolve(mode,defaults.purchaseType))
    }
    if(keepBrowsing)_uiState.update{it.copy(isLoading=false,browseMessage="${state.selectedProduct?.name}: добавлено")}
    else _uiState.update{it.copy(isLoading=false,addedMessage="Добавлено в список")}}

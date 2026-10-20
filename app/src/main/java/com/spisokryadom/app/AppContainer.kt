@@ -41,4 +41,5 @@ class AppContainer(context: Context) {
     val batchRepository = com.spisokryadom.app.data.repository.BatchRepository(database,productRepository,shoppingListRepository,catalogueEdits)
 
     val backupManager = BackupManager(context,database)
+    val resetRepository=com.spisokryadom.app.data.repository.ResetRepository(context.applicationContext,database,catalogueEdits)
 }

@@ -1,0 +1,42 @@
+{
+  "version": "0.21.0",
+  "checks": {
+    "tests": 325,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": 18,
+  "fullRegression": false,
+  "execution": "Extended affected-area set of 323 cases; 64 final checks replace five affected classes and add an end-to-end reset class. 325 unique cases total. Original failed run retained privately.",
+  "finalChecks": 64,
+  "newChecksApi28And35": 32,
+  "sourceSealFiles": 280,
+  "unchangedSinceFinalFreeze": true,
+  "extendedToFinalChanges": [
+    "app/src/main/java/com/spisokryadom/app/ui/settings/SettingsCards.kt",
+    "app/src/main/java/com/spisokryadom/app/ui/settings/SettingsScreen.kt",
+    "app/src/test/java/com/spisokryadom/app/Refine170UiTest.kt"
+  ],
+  "lint": {
+    "Error": 0,
+    "Warning": 79,
+    "Information": 0,
+    "Hint": 3
+  },
+  "roomSchema": 18,
+  "backupFormat": 15,
+  "apk": {
+    "version": "0.21.0",
+    "versionCode": 29,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2032542,
+    "sha256": "8833885f2beb1c9bc0023495107911f64eaec2470aa5276ffc60ec5d4188c34c",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 18,
+    "backupFormat": 15
+  },
+  "nativeScreenshots": 10,
+  "physicalPhoneTested": false,
+  "githubRelease": "Last published version is 0.20.1; this iteration is local."
+}

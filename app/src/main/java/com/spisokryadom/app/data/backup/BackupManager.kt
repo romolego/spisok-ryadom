@@ -339,7 +339,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
    if(p.has("new_product_missing_unit"))require(p.get("new_product_missing_unit") is String&&p.getString("new_product_missing_unit").length<=80&&'\u0000' !in p.getString("new_product_missing_unit")){"Неверная единица по умолчанию"}
   }
   val booleans=mapOf(
-   "shopping_list_prefs" to setOf("global_default_show_urgent_in_collapsed","global_default_boost_urgent_shop","global_default_save_new_product_to_db","remember_shop_priority_on_move","browse_products_on_add","autosave_product_cards","widget_show_departments")+com.spisokryadom.app.util.FavoriteAppearance.booleanKeys,
+   "shopping_list_prefs" to setOf("global_default_show_urgent_in_collapsed","global_default_boost_urgent_shop","global_default_save_new_product_to_db","remember_shop_priority_on_move","browse_products_on_add","autosave_product_cards","widget_show_departments","new_product_fill_missing")+com.spisokryadom.app.util.FavoriteAppearance.booleanKeys,
    "product_db_prefs" to setOf("favorites_only")
   )
   val strings=mapOf("shopping_list_prefs" to setOf("shopping_list_view_mode","new_product_purchase_type","new_product_missing_unit"),"product_db_prefs" to setOf("product_db_view_mode"))
@@ -390,7 +390,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=14;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=15;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}

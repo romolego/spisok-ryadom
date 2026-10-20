@@ -43,7 +43,9 @@ data class SettingsUiState(
     val pendingExportPath: String? = null,
     val exportLaunched:Boolean=false,
     val pendingImportPath:String?=null,
-    val importSummary:String?=null
+    val importSummary:String?=null,
+    val resetCompleted:Boolean=false,
+    val resetInProgress:Boolean=false
 )
 
 // ── Department group model (cross-shop) ──────────────────────────────────────
@@ -71,7 +73,7 @@ data class AddToListDefaultsState(
     val rememberShopPriorityOnMove:Boolean=false,
     val browseProductsOnAdd:Boolean=true,
     val autoSaveProductCards:Boolean=true,
-    val defaultPurchaseType:String="offline",val missingUnit:String="шт",val missingQuantity:Double=1.0
+    val defaultPurchaseType:String="offline",val missingUnit:String="шт",val missingQuantity:Double=1.0,val fillMissing:Boolean=false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -81,7 +83,8 @@ class SettingsViewModel(
     private val productRepository: ProductRepository,
     private val shopRepository: ShopRepository,
     private val prefs: SharedPreferences,
-    private val context:Context
+    private val context:Context,
+    private val resetRepository:com.spisokryadom.app.data.repository.ResetRepository?=null
 ) : ViewModel() {
 
     // ── Backup ───────────────────────────────────────────────────────────────
@@ -181,7 +184,8 @@ class SettingsViewModel(
             autoSaveProductCards=com.spisokryadom.app.util.ProductEditingPreferences.enabled(prefs),
             defaultPurchaseType=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).purchaseType,
             missingUnit=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit,
-            missingQuantity=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingQuantity
+            missingQuantity=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingQuantity,
+            fillMissing=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).fillMissing
         )
     }
 
@@ -189,9 +193,18 @@ class SettingsViewModel(
     fun setGroupDefaultRecipient(groupId:Long,recipientId:Long?,done:(Boolean)->Unit={}){viewModelScope.launch{
         try{classifierRepository.defaultRecipient(groupId,recipientId);done(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(message=e.message?:"Преднастройка не сохранена");done(false)}
     }}
-    fun addStandardCategories(){viewModelScope.launch(errors){val added=classifierRepository.addStandardCategories();_uiState.value=_uiState.value.copy(message=if(added==0)"Все готовые группы уже есть"else "Добавлено недостающих групп: $added")}}
     fun setDefaultPurchaseType(value:String){if(value in setOf("offline","online"))prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.TYPE,value).apply()}
     fun setMissingQuantity(value:String){com.spisokryadom.app.util.Quantities.parse(value)?.let{prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.QUANTITY,value.trim()).apply()}}
+    fun setFillMissing(value:Boolean){prefs.edit().putBoolean(com.spisokryadom.app.util.ProductCreationDefaults.ENABLED,value).apply()}
+    fun reset(mode:com.spisokryadom.app.data.repository.ResetMode){
+        if(_uiState.value.isLoading)return
+        _uiState.value=_uiState.value.copy(isLoading=true,resetInProgress=true)
+        viewModelScope.launch(Dispatchers.IO){try{
+            requireNotNull(resetRepository){"Сброс недоступен"}.reset(mode)
+            _selectedRecipientId.value=null;_selectedGroupId.value=null;_selectedUnitId.value=null;_selectedDepartmentGroup.value=null
+            _uiState.value=_uiState.value.copy(isLoading=false,resetInProgress=false,resetCompleted=mode==com.spisokryadom.app.data.repository.ResetMode.APPLICATION,message="Сброс выполнен")
+        }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,resetInProgress=false,message=e.message?:"Не удалось выполнить сброс")}}
+    }
     fun favoriteGroup(id:Long,value:Boolean){viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.favoriteGroup(id,value)}}
     fun favoriteDepartment(id:Long,value:Boolean){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.favoriteDepartmentType(id,value)}}
     fun setMissingUnit(value:String){prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.UNIT,com.spisokryadom.app.util.Quantities.unit(value)).apply()}
@@ -408,11 +421,15 @@ class SettingsViewModel(
     private val _selectedDepartmentGroup = MutableStateFlow<Long?>(null)
     val selectedDepartmentGroup: StateFlow<Long?> = _selectedDepartmentGroup.asStateFlow()
 
-    val selectedDepartmentGroupShops: StateFlow<List<ShopEntity>> =
-        combine(_selectedDepartmentGroup, departmentGroups) { name, groups ->
-            if (name != null) groups.find { it.id == name }?.shops ?: emptyList()
-            else emptyList()
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    data class DepartmentUsage(val shop:ShopEntity,val products:List<ProductEntity>)
+    val selectedDepartmentProducts=combine(_selectedDepartmentGroup,productRepository.getAllProducts(),combine(productRepository.getAllShopLinks(),productRepository.observeBranchDepartments()){links,overrides->links to overrides},allDepartments,shopRepository.getShopsForDisplay()){type,products,relations,departments,shops->
+        val (links,overrides)=relations
+        val ids=departments.filter{it.typeId==type}.map{it.id}.toSet()
+        shops.filter{s->departments.any{it.shopId==s.id&&it.typeId==type}}.map{s->
+            val productIds=(links.filter{it.shopId==s.id&&it.departmentId in ids}.map{it.productId}+overrides.filter{it.shopId==s.id&&it.typeId==type}.map{it.productId}).toSet()
+            DepartmentUsage(s,com.spisokryadom.app.util.alphabetical(products.filter{it.id in productIds}){it.name})
+        }.let{com.spisokryadom.app.util.alphabetical(it){v->v.shop.name}}
+    }.stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),emptyList())
 
     fun selectDepartmentGroup(name: Long?) {
         _selectedDepartmentGroup.value = name
@@ -444,7 +461,7 @@ class SettingsViewModel(
                     productRepository = app.container.productRepository,
                     shopRepository = app.container.shopRepository,
                     prefs = prefs,
-                    context=app
+                    context=app,resetRepository=app.container.resetRepository
                 )
             }
         }
