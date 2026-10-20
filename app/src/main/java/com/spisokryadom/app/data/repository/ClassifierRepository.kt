@@ -20,8 +20,8 @@ class ClassifierRepository(
     private val db:AppDatabase, private val catalogueEdits:CatalogueEdits?=null
 ) {
     suspend fun alphabetize(kind:String)=db.withTransaction {
+        require(kind in setOf("recipient","unit"))
         when(kind) {
-            "group"->productGroupDao.updateAll(productGroupDao.getAllSync().sortedBy{FuzzySearch.normalize(it.name)}.mapIndexed{i,v->v.copy(displayOrder=i)})
             "recipient"->recipientDao.updateAll(recipientDao.getAllSync().sortedBy{FuzzySearch.normalize(it.name)}.mapIndexed{i,v->v.copy(displayOrder=i)})
             "unit"->unitDao.updateAll(unitDao.getAllSync().sortedBy{FuzzySearch.normalize(it.name)}.mapIndexed{i,v->v.copy(displayOrder=i)})
         }
@@ -35,8 +35,12 @@ class ClassifierRepository(
     suspend fun moveRecipient(id:Long,delta:Int)=db.withTransaction{val list=recipientDao.getAllSync().toMutableList();val i=list.indexOfFirst{it.id==id};val j=i+delta;if(i>=0&&j in list.indices){list.add(j,list.removeAt(i));recipientDao.updateAll(list.mapIndexed{n,v->v.copy(displayOrder=n)})}}
     suspend fun favoriteGroup(id:Long,value:Boolean)=db.withTransaction {
         val current=productGroupDao.getById(id)?:error("Группа удалена")
-        val order=if(value)(productGroupDao.getAllSync().filter{it.isFavorite}.maxOfOrNull{it.favoriteOrder}?:-1).let{require(it<Int.MAX_VALUE){"Слишком большой порядок избранного"};it+1} else 0
-        productGroupDao.update(current.copy(isFavorite=value,favoriteOrder=if(current.isFavorite==value)current.favoriteOrder else order))
+        if(current.isFavorite==value)return@withTransaction
+        val favorites=productGroupDao.getAllSync().filter{it.isFavorite}
+            .sortedWith(compareBy<ProductGroupEntity>{it.favoriteOrder}.thenBy{FuzzySearch.normalize(it.name)}.thenBy{it.id})
+        val order=com.spisokryadom.app.util.nextFavoriteOrder(favorites.map{it.favoriteOrder})
+        if(value&&order.compact)productGroupDao.updateAll(favorites.mapIndexed{i,v->v.copy(favoriteOrder=i)})
+        productGroupDao.update(current.copy(isFavorite=value,favoriteOrder=if(value)order.next else 0))
     }
     suspend fun moveGroup(id:Long,delta:Int)=db.withTransaction {
         require(delta in -1..1)
@@ -80,17 +84,10 @@ class ClassifierRepository(
     fun getAllGroups(): Flow<List<ProductGroupEntity>> = productGroupDao.getAll().map{com.spisokryadom.app.util.alphabetical(it){v->v.name}}
     suspend fun getGroupById(id: Long): ProductGroupEntity? = productGroupDao.getById(id)
     suspend fun insertGroup(group: ProductGroupEntity): Long = productGroupDao.insert(group)
-    suspend fun updateGroup(group: ProductGroupEntity) = productGroupDao.update(group)
     suspend fun renameGroup(id:Long,name:String)=db.withTransaction{productGroupDao.getById(id)?.let{productGroupDao.update(it.copy(name=name))}}
     suspend fun deleteGroup(group: ProductGroupEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{productGroupDao.delete(group)}}
     suspend fun getMaxGroupDisplayOrder(): Int = productGroupDao.getMaxDisplayOrder()
 
-    suspend fun swapGroupOrder(a: ProductGroupEntity, b: ProductGroupEntity) = db.withTransaction {
-        val orderA = a.displayOrder
-        val orderB = b.displayOrder
-        productGroupDao.update(a.copy(displayOrder = orderB))
-        productGroupDao.update(b.copy(displayOrder = orderA))
-    }
 
     fun getAllRecipients(): Flow<List<RecipientEntity>> = recipientDao.getAll()
     suspend fun getRecipientById(id: Long): RecipientEntity? = recipientDao.getById(id)
@@ -99,23 +96,13 @@ class ClassifierRepository(
     suspend fun deleteRecipient(recipient: RecipientEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{recipientDao.delete(recipient)}}
     suspend fun getMaxRecipientDisplayOrder(): Int = recipientDao.getMaxDisplayOrder()
 
-    suspend fun swapRecipientOrder(a: RecipientEntity, b: RecipientEntity) = db.withTransaction {
-        val orderA = a.displayOrder
-        val orderB = b.displayOrder
-        recipientDao.update(a.copy(displayOrder = orderB))
-        recipientDao.update(b.copy(displayOrder = orderA))
-    }
 
     fun getAllUnits(): Flow<List<UnitEntity>> = unitDao.getAll()
     fun getOrderedUnitNames(): Flow<List<String>> = unitDao.getAll().map { list -> list.map { it.name } }
     suspend fun getUnitById(id: Long): UnitEntity? = unitDao.getById(id)
-    suspend fun getUnitByName(name: String): UnitEntity? = unitDao.getByName(name)
     suspend fun insertUnit(unit: UnitEntity): Long = db.withTransaction {
         val name=Quantities.unit(unit.name);require(name.isNotBlank()){"Укажите единицу измерения"}
         unitDao.getAllSync().find{Quantities.unit(it.name)==name}?.id?:unitDao.insert(unit.copy(name=name))
     }
-    suspend fun updateUnit(unit: UnitEntity) = unitDao.update(unit)
-    suspend fun deleteUnit(unit: UnitEntity) = unitDao.delete(unit)
     suspend fun getMaxUnitDisplayOrder(): Int = unitDao.getMaxDisplayOrder()
-    suspend fun getAllUnitsSync(): List<UnitEntity> = unitDao.getAllSync()
 }

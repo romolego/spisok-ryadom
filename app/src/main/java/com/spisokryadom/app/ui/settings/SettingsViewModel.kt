@@ -422,7 +422,7 @@ class SettingsViewModel(
     fun deleteDepartmentGroup(id:Long){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.deleteDepartmentGlobally(id);if(_selectedDepartmentGroup.value==id)_selectedDepartmentGroup.value=null}}
 
     fun moveDepartment(id:Long,delta:Int){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.moveDepartmentType(id,delta)}}
-    fun alphabetize(kind:String){viewModelScope.launch(Dispatchers.IO+errors){if(kind=="dept")shopRepository.alphabetizeDepartmentTypes()else classifierRepository.alphabetize(kind)}}
+    fun alphabetize(kind:String){viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.alphabetize(kind)}}
     fun style(kind:String,id:Long,accent:String,icon:String){viewModelScope.launch(Dispatchers.IO+errors){if(kind=="dept")shopRepository.styleDepartmentType(id,accent,icon)else classifierRepository.style(kind,id,accent,icon)}}
     fun createDepartmentGroup(name: String) {
         viewModelScope.launch(Dispatchers.IO+errors) {

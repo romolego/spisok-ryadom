@@ -106,7 +106,7 @@ class Refine100DataTest {
  }
  @Test fun editorDraftAndAutosaveRetainProductSpecificPointOrder()=runBlocking{
   products.ensureShopLink(p,b);val id=basket.addProduct(p,choice=ShopChoice.EXPLICIT,shopId=b,branchId=first)
-  val vm=ProductCardViewModel(p,productRepository=products,shopRepository=shops,classifierRepository=classifiers,draftPreferences=ProductDraftStore.preferences(app));store.put("card",vm);pump{!vm.uiState.value.isLoading};vm.updateBranchPriorities(mapOf(b to listOf(second,first,third)));vm.updateNote("На месте")
+  val vm=ProductCardViewModel(p,productRepository=products,shopRepository=shops,classifierRepository=classifiers,draftPreferences=ProductDraftStore.preferences(app));store.put("card",vm);pump{!vm.uiState.value.isLoading};vm.configureShop(b,vm.uiState.value.shopLinks.first{it.link.shopId==b}.link.departmentId,null,listOf(second,first,third));vm.updateNote("На месте")
   pump{runBlocking{row(id).assignedBranchId==second}};assertEquals("На месте",db.productDao().getById(p)!!.note)
   val raw=ProductDraftStore.preferences(app).getString("product_$p",null)!!;val draft=ProductEditDraft.decode(raw);assertEquals(listOf(second,first,third),draft.state.branchPriorities[b]);vm.finishEditing();pump{vm.uiState.value.isSaved};assertEquals(second,basket.resolveBranch(p,b))
  }

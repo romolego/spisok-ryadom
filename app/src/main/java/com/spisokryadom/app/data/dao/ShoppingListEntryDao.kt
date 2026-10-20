@@ -22,13 +22,6 @@ interface ShoppingListEntryDao {
     @Query("SELECT * FROM shopping_list_entries WHERE id = :id")
     suspend fun getById(id: Long): ShoppingListEntryEntity?
 
-    @Query("""
-        SELECT * FROM shopping_list_entries
-        WHERE assignedShopId = :shopId AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1))
-        ORDER BY isBought ASC, isUrgent DESC, createdAt DESC
-    """)
-    fun getByShopId(shopId: Long): Flow<List<ShoppingListEntryEntity>>
-
     @Query("UPDATE shopping_list_entries SET isBought = 1, updatedAt = :now WHERE id = :id")
     suspend fun markBought(id: Long, now: Long = System.currentTimeMillis())
 

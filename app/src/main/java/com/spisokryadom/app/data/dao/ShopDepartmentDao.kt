@@ -5,7 +5,6 @@ import com.spisokryadom.app.util.FuzzySearch
 import kotlinx.coroutines.flow.Flow
 
 @Dao abstract class ShopDepartmentDao {
- @Query("SELECT d.id,d.shopId,t.name,d.displayOrder,d.typeId FROM shop_departments d JOIN department_types t ON t.id=d.typeId WHERE d.shopId=:shopId ORDER BY d.displayOrder,t.name,d.id") abstract fun getByShopId(shopId:Long):Flow<List<ShopDepartmentEntity>>
  @Query("SELECT d.id,d.shopId,t.name,d.displayOrder,d.typeId FROM shop_departments d JOIN department_types t ON t.id=d.typeId WHERE d.id=:id") abstract suspend fun getById(id:Long):ShopDepartmentEntity?
  @Query("SELECT d.id,d.shopId,t.name,d.displayOrder,d.typeId FROM shop_departments d JOIN department_types t ON t.id=d.typeId ORDER BY d.shopId,d.displayOrder,d.id") abstract fun getAll():Flow<List<ShopDepartmentEntity>>
  @Query("SELECT d.id,d.shopId,t.name,d.displayOrder,d.typeId FROM shop_departments d JOIN department_types t ON t.id=d.typeId WHERE d.shopId=:shopId ORDER BY d.displayOrder,t.name,d.id") abstract suspend fun getByShopIdSync(shopId:Long):List<ShopDepartmentEntity>

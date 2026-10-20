@@ -123,80 +123,6 @@ fun InputDialog(
 }
 
 /**
- * Диалог ввода текста с подсказками из существующих значений.
- * Подсказки работают через единый механизм приблизительного поиска [FuzzySearch].
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun InputDialogWithSuggestions(
-    title: String,
-    initialValue: String = "",
-    label: String = "",
-    suggestions: List<String>,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var text by rememberSaveable(title,initialValue) { mutableStateOf(initialValue) }
-    var expanded by remember { mutableStateOf(false) }
-    val filteredSuggestions = remember(text, suggestions) {
-        if (text.isBlank()) suggestions
-        else FuzzySearch.filterAndSort(suggestions, text)
-    }
-
-    AlertDialog(
-        modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                ExposedDropdownMenuBox(
-                    expanded = expanded && filteredSuggestions.isNotEmpty(),
-                    onExpandedChange = { expanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = text,
-                        onValueChange = {
-                            text = it
-                            expanded = true
-                        },
-                        label = { Text(label) },
-                        singleLine = true,
-                        modifier = Modifier
-                            .menuAnchor(MenuAnchorType.PrimaryEditable)
-                            .fillMaxWidth()
-                    )
-                    if (filteredSuggestions.isNotEmpty()) {
-                        ExposedDropdownMenu(
-                            expanded = expanded && filteredSuggestions.isNotEmpty(),
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            filteredSuggestions.forEach { suggestion ->
-                                DropdownMenuItem(
-                                    text = { Text(suggestion) },
-                                    onClick = {
-                                        text = suggestion
-                                        expanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (text.isNotBlank()) onConfirm(text.trim()) },
-                enabled = text.isNotBlank()
-            ) { Text("Сохранить") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
-}
-
-/**
  * Диалог множественного выбора из существующих элементов с возможностью создания новых.
  * Уже добавленные элементы показываются как неактивные с пометкой «(добавлена)».
  */
@@ -319,44 +245,6 @@ fun <T> DropdownSelector(
 
 
         }
-    }
-}
-
-
-/**
- * Поле количества и единицы измерения.
- * Простая версия без подсказок — используется там, где подсказки не нужны.
- */
-@Composable
-fun QuantityUnitInput(
-    quantity: String,
-    unit: String,
-    onQuantityChange: (String) -> Unit,
-    onUnitChange: (String) -> Unit,
-    quantityLabel: String = "Количество",
-    unitLabel: String = "Ед. изм.",
-    modifier: Modifier = Modifier
-) {
-    Row(modifier = modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = quantity,
-            onValueChange = { value ->
-                if (value.isEmpty() || value.matches(Regex("^\\d*[.,]?\\d*$"))) {
-                    onQuantityChange(value)
-                }
-            },
-            label = { Text(quantityLabel) },
-            singleLine = true,
-            modifier = Modifier.weight(1f)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        OutlinedTextField(
-            value = unit,
-            onValueChange = onUnitChange,
-            label = { Text(unitLabel) },
-            singleLine = true,
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 

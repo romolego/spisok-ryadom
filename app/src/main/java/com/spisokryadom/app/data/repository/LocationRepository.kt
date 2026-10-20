@@ -22,7 +22,6 @@ class LocationRepository(private val citiesDao: CityDao, private val shopsDao: S
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == "active_city") selected.value = prefs.getLong("active_city",1) }
     init { prefs.registerOnSharedPreferenceChangeListener(listener) }
     fun select(id: Long) { selected.value=id; prefs.edit().putLong("active_city",id).apply() }
-    suspend fun shopsForCity(cityId:Long) = shopsDao.getAllSync().filter { it.cityId == cityId }
     suspend fun currentId(): Long {
         val list=citiesDao.getAllSync(); return list.find { it.id==selected.value }?.id ?: list.firstOrNull()?.id ?: 1
     }

@@ -1,3 +1,7 @@
+## Аудит0.20.1
+
+Структура0.20.1: DemoDataProvider, legacy text harness/parser и неиспользуемые UI/команды удалены. ShoppingBlockColor хранит действующий общий helper. Общая запись группы магазина и generation guard описаны41/47. Room18/ZIP14.
+
 ## Уточнение0.20 ·20 октября2026
 
 FavoriteAppearanceProvider в теме, FavoriteBlock/MarkedLabel и prefs задают общую политику избранного. ProductGroupEntity/DepartmentTypeEntity получили isFavorite/favoriteOrder. ProductCreationDefaults дополнен missingQuantity. Room18/ZIP14. Подробнее46_FAVORITES_SETTINGS_200.md.

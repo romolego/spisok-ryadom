@@ -16,7 +16,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.SQLiteMode
-import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[28],application=Application::class)
@@ -49,7 +48,7 @@ class IndependentUnitMigrationAuditTest {
   }finally{locations.closeForTest();db.close();context.deleteDatabase(name)}
  }
 
- @Test fun existingVersion8AliasesConsolidateSafelyAndBatchUndoRestoresEveryRow()=runBlocking {
+ @Test fun existingVersion8AliasesConsolidateSafelyWithoutChangingAnnotatedOrBoughtRows()=runBlocking {
   val context=ApplicationProvider.getApplicationContext<Application>()
   val db=Room.inMemoryDatabaseBuilder(context,AppDatabase::class.java).allowMainThreadQueries().build()
   db.cityDao().insert(CityEntity(1,"Мой город"))
@@ -65,17 +64,15 @@ class IndependentUnitMigrationAuditTest {
    val pieces=dao.insert(ShoppingListEntryEntity(productId=p,quantity=6.0,unit="шт"))
    val before=dao.getAllSync().associateBy{it.id}
    val basket=ShoppingListRepository(dao,db,locations)
-   val receipt=basket.addBatch(listOf(ShoppingListRepository.PurchaseRequest(p,"Картофель",1.0,"кг")),1)
+   basket.addProduct(p,1.0,"кг",ShopChoice.NONE)
    assertEquals(4,dao.getAllSync().size)
    assertEquals(6.0,dao.getById(first)!!.quantity,0.0)
    assertEquals("кг",dao.getById(first)!!.unit);assertTrue(dao.getById(first)!!.isUrgent)
    assertNull(dao.getById(second))
    listOf(note,bought,pieces).forEach{assertEquals(before[it],dao.getById(it))}
-   basket.undoBatch(receipt)
-   assertEquals("Undo must also restore rows consolidated while adding",before,dao.getAllSync().associateBy{it.id})
    assertEquals(first,basket.addProduct(p,1.0,"кг",ShopChoice.NONE))
    assertEquals(first,basket.addProduct(p,1.0,"КИЛОГРАММ",ShopChoice.NONE))
-   assertEquals(7.0,dao.getById(first)!!.quantity,0.0)
+   assertEquals(8.0,dao.getById(first)!!.quantity,0.0)
    assertEquals(4,dao.getAllSync().size)
   }finally{locations.closeForTest();db.close()}
  }

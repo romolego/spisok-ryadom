@@ -77,21 +77,6 @@ class RepositoryRegressionTest {
         val permanent=basket.addNewProduct("Нужный товар",1.0,"шт",true);val id=basket.getEntryById(permanent)!!.productId
         basket.removeEntry(permanent);assertNotNull(db.productDao().getById(id))
     }
-    @Test fun batchRollsBackAndUndoProtectsSubsequentChanges()=runBlocking {
-        val p=product();val id=basket.addProduct(p,2.0,"шт")
-        val request=ShoppingListRepository.PurchaseRequest(p,"",3.0,"шт")
-        rejected{basket.addBatch(listOf(request,ShoppingListRepository.PurchaseRequest(null,"Нельзя",0.0,"шт")),1)}
-        assertEquals(2.0,basket.getEntryById(id)!!.quantity,0.0);assertEquals(1,db.productDao().getAllSync().size)
-        val receipt=basket.addBatch(listOf(request,ShoppingListRepository.PurchaseRequest(null,"Новое",1.0,"шт")),1)
-        assertEquals(5.0,basket.getEntryById(id)!!.quantity,0.0);basket.undoBatch(receipt);assertEquals(2.0,basket.getEntryById(id)!!.quantity,0.0);assertEquals(1,db.productDao().getAllSync().size)
-        val second=basket.addBatch(listOf(request),1);basket.adjustQuantity(id,1.0);rejected{basket.undoBatch(second)};assertEquals(6.0,basket.getEntryById(id)!!.quantity,0.0)
-        locations.select(2);rejected{basket.addBatch(listOf(request),1)}
-    }
-    @Test fun repeatedNewLinesMergeWithinBatchAndUndoTogether()=runBlocking {
-        val receipt=basket.addBatch(listOf(ShoppingListRepository.PurchaseRequest(null,"Молоко",2.0,"л"),ShoppingListRepository.PurchaseRequest(null,"молоко",3.0,"л.")),1)
-        assertEquals(1,db.productDao().getAllSync().size);assertEquals(5.0,db.shoppingListEntryDao().getAllSync().single().quantity,0.0)
-        basket.undoBatch(receipt);assertTrue(db.productDao().getAllSync().isEmpty());assertTrue(db.shoppingListEntryDao().getAllSync().isEmpty())
-    }
     @Test fun productAndLinksSaveAtomically()=runBlocking {
         val(p,a,b)=seed();val dept=db.shopDepartmentDao().insert(ShopDepartmentEntity(shopId=a,name="Фрукты"))
         val repo=ProductRepository(db.productDao(),db.productShopLinkDao(),db)

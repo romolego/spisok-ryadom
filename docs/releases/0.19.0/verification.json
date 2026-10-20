@@ -1,0 +1,56 @@
+{
+  "version": "0.19.0",
+  "sourceCommit": "efd8b35",
+  "description": "Карточка товара: группа, доступность и приоритет в одном диалоге магазина; компактный редактор фото.",
+  "apk": {
+    "version": "0.19.0",
+    "versionCode": 26,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2021350,
+    "sha256": "0d2bab40210ed4b718f882bac653431866c827b0e037585d77f8bcda458ee1be",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 17,
+    "backupFormat": 13
+  },
+  "checks": {
+    "tests": 962,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": 80
+  },
+  "testExecution": {
+    "full": {
+      "tests": 962,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    "recheck": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "finalUnique": {
+      "tests": 962,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "classes": 80,
+    "productionSchemaBuildUnchanged": true,
+    "testCasesPreserved": true,
+    "adaptedTestFiles": [
+      "app/src/test/java/com/spisokryadom/app/PurchasePlacesUiTest.kt"
+    ],
+    "description": "Complete suite plus all 16 checks of one historical UI class adapted to the new shop dialog; production/schema/build bytes unchanged."
+  },
+  "lint": {
+    "Error": 0,
+    "Warning": 125,
+    "Hint": 3
+  },
+  "physicalPhoneTested": false,
+  "publicationNote": "Previously delivered local APK, published unchanged with 0.20.1 history. Tests are historical complete run plus documented class rechecks, not a new single run."
+}

@@ -1,0 +1,483 @@
+{
+  "baseline": "55a271cd206d2dd7ec5316a661192b3cf6fb1bc4",
+  "removedProductionFunctionCount": 68,
+  "removedProductionFunctions": [
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/DemoDataProvider.kt",
+      "function": "isDemoLoaded"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/DemoDataProvider.kt",
+      "function": "populateIfNeeded"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/DemoDataProvider.kt",
+      "function": "resetDemoFlag"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/DemoDataProvider.kt",
+      "function": "populate"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/dao/ProductDao.kt",
+      "function": "searchByName"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/dao/ProductDao.kt",
+      "function": "getDistinctUnits"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/dao/ProductDao.kt",
+      "function": "getByUnit"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/dao/ProductShopLinkDao.kt",
+      "function": "getPriorityLink"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/dao/ShopDepartmentDao.kt",
+      "function": "getByShopId"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/dao/ShoppingListEntryDao.kt",
+      "function": "getByShopId"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "function": "updateGroup"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "function": "swapGroupOrder"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "function": "swapRecipientOrder"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "function": "getUnitByName"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "function": "updateUnit"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "function": "deleteUnit"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "function": "getAllUnitsSync"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/GoalListRepository.kt",
+      "function": "moveEntries"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/LocationRepository.kt",
+      "function": "shopsForCity"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "searchProducts"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "getDistinctUnits"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "renameUnit"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "clearUnit"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "insertProduct"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "updateProduct"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "getPriorityLink"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "validateLink"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "deleteShopLink"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "deleteAllShopLinks"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "setFavorite"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+      "function": "setAccent"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "createPoint"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "addDepartmentInCity"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "insertShop"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "updateShop"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "getDepartments"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "insertDepartment"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "updateDepartments"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "updateShops"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "function": "alphabetizeDepartmentTypes"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "getEntriesByShop"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "resolveShop"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "assignmentPreview"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "addEntry"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "updateEntryDetails"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "addBatch"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "retainCreatedProduct"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "undoBatch"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "function": "replacePendingText"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/CommonComponents.kt",
+      "function": "InputDialogWithSuggestions"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/CommonComponents.kt",
+      "function": "QuantityUnitInput"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/ProductContext.kt",
+      "function": "productContext"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/RetailFields.kt",
+      "function": "OptionalRetailField"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/RetailFields.kt",
+      "function": "begin"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/ShoppingBlockAppearance.kt",
+      "function": "ShoppingBlockAppearance"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardViewModel.kt",
+      "function": "updateBranchPriorities"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardViewModel.kt",
+      "function": "updateBranchSelections"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardViewModel.kt",
+      "function": "updateBranchDepartment"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardViewModel.kt",
+      "function": "moveProductGroup"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardViewModel.kt",
+      "function": "updatePendingShopLinkDepartment"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardViewModel.kt",
+      "function": "updateShopLinkDepartment"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productdb/ProductDatabaseViewModel.kt",
+      "function": "incrementQuantity"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productdb/ProductDatabaseViewModel.kt",
+      "function": "decrementQuantity"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/productdb/ProductDatabaseViewModel.kt",
+      "function": "setQuantity"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shopcard/ShopCardViewModel.kt",
+      "function": "updateAddress"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shopcard/ShopCardViewModel.kt",
+      "function": "addDepartment"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shoplist/ShopListViewModel.kt",
+      "function": "createVenue"
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListViewModel.kt",
+      "function": "getLinkedShopsForProduct"
+    }
+  ],
+  "deletedProductionFiles": [
+    "app/src/main/java/com/spisokryadom/app/data/DemoDataProvider.kt"
+  ],
+  "relocatedFunctions": [
+    {
+      "from": "ShoppingBlockAppearance.kt",
+      "to": "ShoppingBlockColor.kt",
+      "function": "shoppingBlockColor"
+    }
+  ],
+  "removedStringResourceCount": 62,
+  "removedStringResources": [
+    "tab_shopping_list",
+    "tab_products",
+    "tab_shops",
+    "add",
+    "save",
+    "cancel",
+    "delete",
+    "edit",
+    "search",
+    "product_name",
+    "product_group",
+    "recipient",
+    "unit",
+    "quantity",
+    "note",
+    "purchase_type",
+    "offline",
+    "online",
+    "seller_url",
+    "product_url",
+    "photo",
+    "shop_name",
+    "address",
+    "display_order",
+    "departments",
+    "department_name",
+    "linked_shops",
+    "priority",
+    "department",
+    "bought",
+    "not_bought",
+    "urgent",
+    "clear_bought",
+    "add_to_list",
+    "new_product",
+    "new_shop",
+    "new_department",
+    "new_product_group",
+    "new_recipient",
+    "select_shop",
+    "select_department",
+    "select_product_group",
+    "select_recipient",
+    "no_items",
+    "no_products",
+    "no_shops",
+    "confirm_delete",
+    "confirm_delete_message",
+    "confirm_clear_bought",
+    "not_set",
+    "add_shop_link",
+    "default_quantity",
+    "default_unit",
+    "price_value",
+    "price_date",
+    "backup_title",
+    "backup_export",
+    "backup_import",
+    "backup_export_success",
+    "backup_import_success",
+    "backup_import_confirm_title",
+    "backup_import_confirm_message"
+  ],
+  "retiredExecutedTestCases": [
+    [
+      "TEST-com.spisokryadom.app.AuditDomain071Test",
+      "unchangedTextKeepsNoAddressWhileExplicitPreferredAndExactChoicesApply"
+    ],
+    [
+      "TEST-com.spisokryadom.app.AuditDomain071Test",
+      "repeatedNewTextProductHonorsPermanentChoiceInEitherRowOrder"
+    ],
+    [
+      "TEST-com.spisokryadom.app.AuditDomain071Test",
+      "repeatedPermanentBatchProductRetainsEverySelectedShopAndOneCard"
+    ],
+    [
+      "TEST-com.spisokryadom.app.AuditDomain071Test",
+      "mixedTemporaryAndPermanentBatchLinesRetainOneCard"
+    ],
+    [
+      "TEST-com.spisokryadom.app.AuditDomain071Test",
+      "repeatedNewTextProductAutomaticRowSeesTheLinkCreatedByThePreviousRow"
+    ],
+    [
+      "TEST-com.spisokryadom.app.AuditUi071Test",
+      "explicitCommonAutomaticChoiceReplacesOldNoShopIntent"
+    ],
+    [
+      "TEST-com.spisokryadom.app.AuditUi071Test",
+      "quantityOnlyTextEditKeepsExplicitNoAddressAndExplicitPriorityChoiceCanChangeIt"
+    ],
+    [
+      "TEST-com.spisokryadom.app.BulkCancellationTest",
+      "unknownOrAmbiguousHeaderNeverSilentlyCreatesOrChoosesAStore"
+    ],
+    [
+      "TEST-com.spisokryadom.app.BulkCancellationTest",
+      "cancellingReviewRetainsRawDraftAndRestoresItInFreshViewModel"
+    ],
+    [
+      "TEST-com.spisokryadom.app.BulkCancellationTest",
+      "reviewedChoiceAddsAtomicallyAndCanBeRetriedAfterAWriteFailure"
+    ],
+    [
+      "TEST-com.spisokryadom.app.BulkCancellationTest",
+      "storeTypoRequiresConfirmationAndShowsCandidate"
+    ],
+    [
+      "TEST-com.spisokryadom.app.BulkCancellationTest",
+      "storesFromHeadersOverrideDefaultsAndUndoRestoresTheBasket"
+    ],
+    [
+      "TEST-com.spisokryadom.app.BulkCancellationTest",
+      "cancelledOldReviewCannotOverwriteTheSubsequentReview"
+    ],
+    [
+      "TEST-com.spisokryadom.app.GoalListIntegrationTest",
+      "legacyTextTransactionUndoNeverCollectsHiddenPurchases[28]"
+    ],
+    [
+      "TEST-com.spisokryadom.app.GoalListIntegrationTest",
+      "legacyTextTransactionUndoNeverCollectsHiddenPurchases"
+    ],
+    [
+      "TEST-com.spisokryadom.app.RepositoryRegressionTest",
+      "batchRollsBackAndUndoProtectsSubsequentChanges"
+    ],
+    [
+      "TEST-com.spisokryadom.app.RepositoryRegressionTest",
+      "repeatedNewLinesMergeWithinBatchAndUndoTogether"
+    ],
+    [
+      "TEST-com.spisokryadom.app.SearchAndParserTest",
+      "negativeAmountRequiresCorrection"
+    ],
+    [
+      "TEST-com.spisokryadom.app.SearchAndParserTest",
+      "emptyLinesAndLimits"
+    ],
+    [
+      "TEST-com.spisokryadom.app.SearchAndParserTest",
+      "storeHeadersCarryToFollowingPurchasesAndAreNotProducts"
+    ],
+    [
+      "TEST-com.spisokryadom.app.SearchAndParserTest",
+      "shoppingNotationIsParsed"
+    ],
+    [
+      "TEST-com.spisokryadom.app.SearchAndParserTest",
+      "emptyOrDanglingStoreHeadersRequireCorrection"
+    ],
+    [
+      "TEST-com.spisokryadom.app.ShoppingRepresentationsTest",
+      "newPermanentTextProductKeepsTheStoreForFutureAutomaticPurchases"
+    ],
+    [
+      "TEST-com.spisokryadom.app.ShoppingRepresentationsTest",
+      "deletingTextRemovesOnlyPendingAndUndoRestoresTemporaryProductAndMetadata"
+    ],
+    [
+      "TEST-com.spisokryadom.app.ShoppingRepresentationsTest",
+      "oldUnsavedBulkDraftIsKeptAlongsideExistingPendingPurchases"
+    ],
+    [
+      "TEST-com.spisokryadom.app.ShoppingRepresentationsTest",
+      "editingTextShopAndUnitRetainsPurchaseIdentityNotesAndUrgency"
+    ],
+    [
+      "TEST-com.spisokryadom.app.ShoppingRepresentationsTest",
+      "textIsPersistentRepresentationWithoutDoublingAndBoughtRowsAreProtected"
+    ],
+    [
+      "TEST-com.spisokryadom.app.ShoppingRepresentationsTest",
+      "ambiguousSameProductRowsRequireIdentityChoiceInsteadOfDiscardingNotes"
+    ],
+    [
+      "TEST-com.spisokryadom.app.ShoppingRepresentationsTest",
+      "textTransactionRollsBackEarlierEditsAndNewProductsWhenALaterRowFails"
+    ],
+    [
+      "TEST-com.spisokryadom.app.ShoppingRepresentationsTest",
+      "unsavedDraftSurvivesAndStaleTextCannotOverwriteNewBasketQuantity"
+    ]
+  ],
+  "preservedCompatibility": [
+    "Room migrations1–18",
+    "ZIP1–14 readers",
+    "persisted per-point departments and import/export",
+    "legacy unit aliases",
+    "target-list transfer formats"
+  ],
+  "method": "Declaration and call-site inventory, source review, affected regression scenarios and complete final suite. Framework/Room/XML and legacy read paths excluded from naive text reachability decisions."
+}

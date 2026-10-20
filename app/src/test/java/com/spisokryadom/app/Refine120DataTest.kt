@@ -58,15 +58,15 @@ class Refine120DataTest {
   val dep=db.shopDepartmentDao().getByShopIdSync(a).first{it.typeId==type};assertEquals(dep.id,db.shoppingListEntryDao().getById(active)!!.assignedDepartmentId);assertEquals(history,db.shoppingListEntryDao().getById(bought));assertEquals(before.quantity,db.shoppingListEntryDao().getById(active)!!.quantity,0.0);assertTrue(products.branchDepartments(p).isEmpty())
   batch.changeProducts(ids,ProductBatchChange.Department(a,null));assertNull(db.shoppingListEntryDao().getById(active)!!.assignedDepartmentId)
  }
- @Test fun pointAssignmentLeavesOtherPointsAndOtherProductsAlone()=runBlocking{
+ @Test fun shopAssignmentUpdatesAllPointsAndLeavesOtherProductsAlone()=runBlocking{
   val p=ids.first();val q=ids.last();val default=db.shopDepartmentDao().insert(ShopDepartmentEntity(shopId=a,name="Бакалея"));products.saveWithLinks(db.productDao().getById(p)!!,products.getShopLinksForProductSync(p).map{it.copy(departmentId=default)})
   val x=basket.addProduct(p,choice=ShopChoice.EXPLICIT,shopId=a,branchId=first);val y=basket.addProduct(p,choice=ShopChoice.EXPLICIT,shopId=a,branchId=second)
-  batch.changeProducts(setOf(p),ProductBatchChange.Department(a,type,second));assertEquals(default,db.shoppingListEntryDao().getById(x)!!.assignedDepartmentId);assertNotEquals(default,db.shoppingListEntryDao().getById(y)!!.assignedDepartmentId);assertTrue(products.branchDepartments(q).isEmpty());assertEquals(default,products.getShopLinksForProductSync(p).single().departmentId)
+  batch.changeProducts(setOf(p),ProductBatchChange.Department(a,type));val selected=products.getShopLinksForProductSync(p).single().departmentId;assertNotEquals(default,selected);assertEquals(selected,db.shoppingListEntryDao().getById(x)!!.assignedDepartmentId);assertEquals(selected,db.shoppingListEntryDao().getById(y)!!.assignedDepartmentId);assertTrue(products.branchDepartments(q).isEmpty());assertNull(products.getShopLinksForProductSync(q).single().departmentId)
  }
- @Test fun unavailablePointOrUnlinkedShopRejectsEntireSelection()=runBlocking{
+ @Test fun unlinkedShopRejectsEntireSelectionAndRestrictedAvailabilityIsPreserved()=runBlocking{
   val p=ids.last();products.saveWithLinks(db.productDao().getById(p)!!,products.getShopLinksForProductSync(p),mapOf(a to setOf(first)))
-  assertTrue(runCatching{batch.changeProducts(ids,ProductBatchChange.Department(a,type,second))}.isFailure);assertTrue(db.retailStructureDao().productDepartments().isEmpty());assertTrue(db.shopDepartmentDao().getAllSync().isEmpty())
   assertTrue(runCatching{batch.changeProducts(ids,ProductBatchChange.Department(b,type))}.isFailure);assertTrue(db.shopDepartmentDao().getAllSync().isEmpty())
+  batch.changeProducts(ids,ProductBatchChange.Department(a,type));assertEquals(setOf(first),products.branchAvailability(p).map{it.branchId}.toSet());assertTrue(products.branchDepartments(p).isEmpty())
  }
  @Test fun mixedPurchaseStatusCanBuyReturnDeleteWithFactsPreserved()=runBlocking{
   val entries=ids.take(3).map{basket.addProduct(it,quantity=3.0)}.toSet();val old=db.shoppingListEntryDao().getAllSync();basket.markBought(entries.first())
@@ -81,10 +81,10 @@ class Refine120DataTest {
   val p=ids.first();val product=db.productDao().getById(p)!!
   val state=ProductCardUiState(isNew=false,isLoading=false,name=product.name,defaultQuantity="1,",note="Незавершённая заметка",shopLinks=products.getShopLinksForProductSync(p).map{ShopLinkUi(it,"Батон",null)})
   val prefs=ProductDraftStore.preferences(app);ProductDraftStore.write(prefs,"draft",ProductEditDraft(product.stableId,p,false,false,state))
-  val changes=listOf(ProductBatchChange.Recipient(recipient),ProductBatchChange.Group(group),ProductBatchChange.Shops(setOf(b)),ProductBatchChange.Department(a,type,second))
+  val changes=listOf(ProductBatchChange.Recipient(recipient),ProductBatchChange.Group(group),ProductBatchChange.Shops(setOf(b)),ProductBatchChange.Department(a,type))
   changes.forEach{batch.changeProducts(setOf(p),it);ProductDraftStore.reconcileBatch(app,products,setOf(p),it)}
   val draft=ProductDraftStore.find(prefs,product.stableId)!!;assertEquals("1,",draft.state.defaultQuantity);assertEquals("Незавершённая заметка",draft.state.note);assertEquals(recipient,draft.state.recipientId);assertEquals(group,draft.state.productGroupId);assertEquals(setOf(a,b),draft.state.shopLinks.map{it.link.shopId}.toSet());assertTrue(draft.state.shopLinks.all{it.shopName.isNotBlank()})
-  draft.copy(state=draft.state.copy(defaultQuantity="1")).persist(products);assertEquals(recipient,db.productDao().getById(p)!!.recipientId);assertEquals(type,products.branchDepartments(p).single().typeId);assertEquals(setOf(a,b),products.getShopLinksForProductSync(p).map{it.shopId}.toSet())
+  draft.copy(state=draft.state.copy(defaultQuantity="1")).persist(products);assertEquals(recipient,db.productDao().getById(p)!!.recipientId);assertTrue(products.branchDepartments(p).isEmpty());assertEquals(type,db.shopDepartmentDao().getById(products.getShopLinksForProductSync(p).single{it.shopId==a}.departmentId!!)!!.typeId);assertEquals(setOf(a,b),products.getShopLinksForProductSync(p).map{it.shopId}.toSet())
  }
  @Test fun addingStoreResolvesAutomaticUnassignedPurchaseButPreservesExplicitNoShop()=runBlocking{
   val x=db.productDao().insert(ProductEntity(name="Без магазина",defaultUnit="шт"));val auto=basket.addProduct(x);val explicit=basket.addProduct(x,choice=ShopChoice.NONE)
@@ -110,13 +110,13 @@ class Refine120DataTest {
   assertNull(db.productDao().getById(temporary));assertNotNull(db.productDao().getById(retained));assertNotNull(db.shoppingListEntryDao().getById(history));assertEquals(60,db.productDao().getAllSync().count{!it.isTemporary})
  }
 
- @Test fun linkAdditionAndPointAssignmentPreserveOtherUnfinishedDraftChoices()=runBlocking{
+ @Test fun linkAdditionAndShopGroupPreserveOtherUnfinishedDraftChoices()=runBlocking{
   val id=ids.first();val p=db.productDao().getById(id)!!;val local=db.shopDepartmentDao().insert(ShopDepartmentEntity(shopId=a,name="Мой отдел"));val base=products.getShopLinksForProductSync(id).single()
   val state=ProductCardUiState(isNew=false,isLoading=false,name=p.name,defaultQuantity="1,",shopLinks=listOf(ShopLinkUi(base.copy(departmentId=local),"Батон","Мой отдел")),branchSelections=mapOf(a to setOf(first,second)),branchDepartments=mapOf(first to local))
   val prefs=ProductDraftStore.preferences(app);ProductDraftStore.write(prefs,"draft",ProductEditDraft(p.stableId,id,false,false,state))
-  listOf(ProductBatchChange.Shops(setOf(a,b)),ProductBatchChange.Department(a,type,second)).forEach{change->ProductDraftStore.applyBatch(app,products,setOf(id),change){batch.changeProducts(setOf(id),change)}}
-  val draft=ProductDraftStore.find(prefs,p.stableId)!!;assertEquals(local,draft.state.shopLinks.single{it.link.shopId==a}.link.departmentId);assertEquals(setOf(first,second),draft.state.branchSelections[a]);assertEquals(local,draft.state.branchDepartments[first]);assertNotEquals(local,draft.state.branchDepartments[second]);assertEquals("1,",draft.state.defaultQuantity)
-  draft.copy(state=draft.state.copy(defaultQuantity="1")).persist(products);assertEquals(setOf(first,second),products.branchAvailability(id).map{it.branchId}.toSet());assertEquals(2,products.branchDepartments(id).size)
+  listOf(ProductBatchChange.Shops(setOf(a,b)),ProductBatchChange.Department(a,type)).forEach{change->ProductDraftStore.applyBatch(app,products,setOf(id),change){batch.changeProducts(setOf(id),change)}}
+  val draft=ProductDraftStore.find(prefs,p.stableId)!!;assertNotEquals(local,draft.state.shopLinks.single{it.link.shopId==a}.link.departmentId);assertEquals(setOf(first,second),draft.state.branchSelections[a]);assertTrue(draft.state.branchDepartments.isEmpty());assertEquals("1,",draft.state.defaultQuantity)
+  draft.copy(state=draft.state.copy(defaultQuantity="1")).persist(products);assertEquals(setOf(first,second),products.branchAvailability(id).map{it.branchId}.toSet());assertTrue(products.branchDepartments(id).isEmpty())
  }
 
 }

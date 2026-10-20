@@ -524,13 +524,6 @@ class ShoppingListViewModel(
         }
     }
 
-    suspend fun getLinkedShopsForProduct(productId: Long): List<ShopEntity> {
-        val links = productRepository.getShopLinksForProductSync(productId)
-        val shopMap = _shops.value
-        val city=shopRepository.locations.currentId()
-        return links.mapNotNull { link -> shopMap[link.shopId] }.filter{it.cityId==city}
-    }
-
     fun updatePurchaseDetails(entryId: Long, quantity: Double, note: String?, comment: String?) {
         purchaseCommand {
             shoppingListRepository.updatePurchaseDetails(entryId, quantity, note, comment, strictVisible = true)

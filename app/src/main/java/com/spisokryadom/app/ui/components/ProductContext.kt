@@ -11,7 +11,6 @@ class ProductContextIndex(links:List<ProductShopLinkEntity>,shops:List<ShopEntit
    names.takeIf{it.isNotEmpty()}?.joinToString(", "),product.note?.takeIf{it.isNotBlank()}).joinToString(" · ")
  }
 }
-fun productContext(product:ProductEntity,links:List<ProductShopLinkEntity>,shops:List<ShopEntity>)=ProductContextIndex(links,shops).context(product)
 fun productContexts(products:List<ProductEntity>,links:List<ProductShopLinkEntity>,shops:List<ShopEntity>):Map<Long,String>{
  val index=ProductContextIndex(links,shops);return products.associate{it.id to index.context(it)}
 }

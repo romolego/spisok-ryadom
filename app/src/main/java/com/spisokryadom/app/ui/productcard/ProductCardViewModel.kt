@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 data class ShopLinkUi(
     val link: ProductShopLinkEntity,
@@ -337,7 +336,7 @@ class ProductCardViewModel(
         startAutosave()
     }
 
-    fun updateBranchPriorities(value:Map<Long,List<Long>>){edit{it.copy(branchPriorities=value)}}
+
     /** Apply one shop dialog as one raw edit: no autosave of half-updated availability/group. */
     fun configureShop(shopId:Long,departmentId:Long?,points:Set<Long>?,priority:List<Long>) {
         edit { s ->
@@ -357,11 +356,7 @@ class ProductCardViewModel(
             )
         }
     }
-    fun updateBranchSelections(value:Map<Long,Set<Long>>){
-        refreshExternalDraft()
-        val s=_uiState.value
-        edit { latest->latest.copy(branchSelections=value,branchDepartments=s.branchDepartments.filterKeys{id->val shop=s.branches.find{it.id==id}?.shopId;shop !in value||id in value[shop].orEmpty()}) }
-    }
+
     fun useCityShopOrder(value:Boolean){
         refreshExternalDraft()
         val s=_uiState.value
@@ -369,7 +364,7 @@ class ProductCardViewModel(
         val links=if(s.preferCityShopOrder&&!value)s.shopLinks.sortedWith(compareBy<ShopLinkUi>{s.shopOrders[it.link.shopId]?:Int.MAX_VALUE}.thenBy{it.link.priority}).mapIndexed{i,v->v.copy(link=v.link.copy(priority=i+1))}else s.shopLinks
         edit { latest->latest.copy(preferCityShopOrder=value,pendingShopLinks=pending,shopLinks=links) }
     }
-    fun updateBranchDepartment(branchId:Long,departmentId:Long?){edit { latest->latest.copy(branchDepartments=if(departmentId==null)_uiState.value.branchDepartments-branchId else _uiState.value.branchDepartments+(branchId to departmentId)) }}
+
     fun favorite(value:Boolean){edit { latest->latest.copy(isFavorite=value) }}
     fun accent(value:String){edit { latest->latest.copy(accent=value) }}
     fun createShop(name:String,done:(Long)->Unit){viewModelScope.launch(errors){
@@ -382,7 +377,7 @@ class ProductCardViewModel(
         nameQuery.value=name
     }
 
-    fun moveProductGroup(id:Long,delta:Int){viewModelScope.launch(errors){classifierRepository.moveGroup(id,delta)}}
+
     fun updateProductGroup(groupId: Long?) {
         edit { latest->latest.copy(productGroupId = groupId) }
     }
@@ -542,17 +537,6 @@ class ProductCardViewModel(
         edit { latest->latest.copy(pendingShopLinks = renumbered) }
     }
 
-    fun updatePendingShopLinkDepartment(tempId: Long, departmentId: Long?) {
-        val deptName = departmentId?.let { dId ->
-            _uiState.value.departmentsForSelectedShop.find { it.id == dId }?.name
-        }
-        edit { latest->latest.copy(
-            pendingShopLinks = _uiState.value.pendingShopLinks.map {
-                if (it.tempId == tempId) it.copy(departmentId = departmentId, departmentName = deptName) else it
-            }
-        ) }
-    }
-
     fun movePendingShopLinkUp(tempId: Long) {
         useCityShopOrder(false)
         val sorted = _uiState.value.pendingShopLinks.sortedBy { it.displayOrder }
@@ -600,10 +584,7 @@ class ProductCardViewModel(
     fun removeShopLink(link: ProductShopLinkEntity) {
         edit { latest->latest.copy(shopLinks=_uiState.value.shopLinks.filter{it.link.id!=link.id}) }
     }
-    fun updateShopLinkDepartment(link: ProductShopLinkEntity, departmentId: Long?) {
-        val name=_uiState.value.departmentsForSelectedShop.find{it.id==departmentId}?.name
-        edit { latest->latest.copy(shopLinks=_uiState.value.shopLinks.map{if(it.link.id==link.id)it.copy(link=it.link.copy(departmentId=departmentId),departmentName=name)else it}) }
-    }
+
     fun moveShopLinkUp(link: ProductShopLinkEntity)=moveLink(link,-1)
     fun moveShopLinkDown(link: ProductShopLinkEntity)=moveLink(link,1)
     private fun moveLink(link: ProductShopLinkEntity, delta: Int) {

@@ -75,9 +75,6 @@ class ProductDatabaseViewModel(private val products:ProductRepository,private va
  fun incrementEntry(entryId:Long)=command{basket.adjustByDefaultStep(entryId,1,regularOnly=true)}
  fun decrementEntry(entryId:Long)=command{basket.adjustByDefaultStep(entryId,-1,regularOnly=true)}
  fun setEntryQuantity(entryId:Long,quantity:Double)=command{if(quantity<=0)basket.removeEntry(entryId,regularOnly=true)else basket.updateQuantity(entryId,quantity,regularOnly=true)}
- // Capture the displayed identity before launching; never reselect a different row by product.
- fun incrementQuantity(productId:Long){uiState.value.shoppingListMap[productId]?.takeIf{it.purchases.size<=1}?.let{incrementEntry(it.entryId)}}
- fun decrementQuantity(productId:Long){uiState.value.shoppingListMap[productId]?.takeIf{it.purchases.size<=1}?.let{decrementEntry(it.entryId)}}
- fun setQuantity(productId:Long,quantity:Double){uiState.value.shoppingListMap[productId]?.takeIf{it.purchases.size<=1}?.let{setEntryQuantity(it.entryId,quantity)}}
+
  companion object{val Factory=viewModelFactory{initializer{val app=this[APPLICATION_KEY] as SpisokRyadomApp;ProductDatabaseViewModel(app.container.productRepository,app.container.shoppingListRepository,app.container.shopRepository,app.container.classifierRepository,app.getSharedPreferences("product_db_prefs",0))}}}
 }

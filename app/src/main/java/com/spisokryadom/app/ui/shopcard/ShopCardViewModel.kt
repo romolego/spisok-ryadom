@@ -72,6 +72,7 @@ data class ShopCardUiState(
 )
 
 class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopRepository):ViewModel(){
+    private val sessionGeneration=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
     private val _uiState=MutableStateFlow(ShopCardUiState(isNew=shopId==-1L,cityId=shopRepository.locations.activeCity.value.id))
     val uiState:StateFlow<ShopCardUiState> = _uiState.asStateFlow()
     private var currentShopId=shopId
@@ -94,7 +95,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
         }
         viewModelScope.launch { shopRepository.getDistinctDepartmentNames().collect{names->_uiState.value=_uiState.value.copy(allDepartmentNames=names)} }
     }
-    private fun command(block:suspend()->Unit){viewModelScope.launch{try{block()}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message?:"Операция не выполнена",isSaving=false,isLoading=false)}}}
+    private fun command(block:suspend()->Unit){viewModelScope.launch{try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(sessionGeneration,block)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message?:"Операция не выполнена",isSaving=false,isLoading=false)}}}
     private fun booleanToOverride(value:Boolean?)=when(value){null->UrgencyOverride.USE_GLOBAL;true->UrgencyOverride.YES;false->UrgencyOverride.NO}
     private fun overrideToBoolean(value:UrgencyOverride):Boolean?=when(value){UrgencyOverride.USE_GLOBAL->null;UrgencyOverride.YES->true;UrgencyOverride.NO->false}
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
@@ -105,7 +106,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     fun updateNetworkName(name:String){_uiState.value=_uiState.value.copy(networkName=name)}
     fun updateVenueName(branchId:Long,name:String){_uiState.value=_uiState.value.copy(venueNames=_uiState.value.venueNames+(branchId to name))}
     fun convertToVenue(){if(!_uiState.value.isNew)saveDraft(convert=true)}
-    fun updateAddress(value:String){_uiState.value=_uiState.value.copy(address=value,branches=if(value.isBlank())emptyList()else listOf(com.spisokryadom.app.data.entity.ShopBranchEntity(shopId=shopId.coerceAtLeast(0),address=value)))}
+
     fun updateBranches(value:List<com.spisokryadom.app.data.entity.ShopBranchEntity>){_uiState.value=_uiState.value.copy(branches=value)}
     fun updateBranchOrder(branchId:Long,values:List<Long>){_uiState.value=_uiState.value.copy(branchOrders=_uiState.value.branchOrders+(branchId to values))}
     fun updatePhotoBusy(value:Boolean){_uiState.value=_uiState.value.copy(isPhotoBusy=value)}
@@ -130,7 +131,6 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
             _uiState.value=_uiState.value.copy(isSaving=false,isSaved=true)
         }
     }
-    fun addDepartment(name:String)=addDepartments(listOf(name))
     fun addDepartments(names:List<String>){
         val state=_uiState.value;val unique=names.map{it.trim()}.filter{it.isNotBlank()}.distinctBy{com.spisokryadom.app.util.FuzzySearch.normalize(it)}
         if(state.isNew){val old=state.pendingDepartments;val keys=old.map{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.toSet();_uiState.value=state.copy(pendingDepartments=old+unique.filter{com.spisokryadom.app.util.FuzzySearch.normalize(it) !in keys}.mapIndexed{i,name->PendingDepartment(nextTempId++,name,old.size+i+1)})}

@@ -9,8 +9,7 @@ sealed interface ProductBatchChange {
  data class Group(val id:Long?):ProductBatchChange
  data class Favorite(val value:Boolean):ProductBatchChange
  data class Shops(val ids:Set<Long>):ProductBatchChange
- // null branch applies to every available point; a point changes only that override.
- data class Department(val shopId:Long,val typeId:Long?,val branchId:Long?=null):ProductBatchChange
+ data class Department(val shopId:Long,val typeId:Long?):ProductBatchChange
 }
 enum class PurchaseBatchChange { BOUGHT, RETURN, URGENT, NOT_URGENT, DELETE }
 
@@ -29,11 +28,8 @@ class BatchRepository(private val db:AppDatabase,private val products:ProductRep
    is ProductBatchChange.Department->{
     require(db.shopDao().getById(change.shopId)!=null){"Магазин удалён"}
     change.typeId?.let{require(db.shopDepartmentDao().type(it)!=null){"Группа магазина удалена"}}
-    val branch=change.branchId?.let{db.shopBranchDao().get(it)?:error("Точка удалена")}
-    require(branch==null||branch.shopId==change.shopId){"Точка другого магазина"}
     rows.forEach{p->
-     val link=db.productShopLinkDao().getLinksForProductSync(p.id).find{it.shopId==change.shopId}?:error("Не все товары привязаны к этому магазину")
-     if(branch!=null&&link.restrictBranches)require(db.shopBranchDao().availability(p.id).any{it.branchId==branch.id}){"Не все товары доступны в этой точке"}
+     require(db.productShopLinkDao().getLinksForProductSync(p.id).any{it.shopId==change.shopId}){"Не все товары привязаны к этому магазину"}
     }
    }
    else->Unit
@@ -56,17 +52,8 @@ class BatchRepository(private val db:AppDatabase,private val products:ProductRep
      val byType=db.shopDepartmentDao().getAllSync().associateBy{it.shopId to it.typeId}
      val branches=db.shopBranchDao().getAll().associateBy{it.id}
      val choices=overrides.mapNotNull{(branch,type)->byType[branches[branch]?.shopId to type]?.let{branch to it.id}}.toMap().toMutableMap()
-     val nextLinks=if(change.branchId==null){
-      choices.keys.filter{branches[it]?.shopId==change.shopId}.forEach{choices.remove(it)}
-      links.map{if(it.shopId==change.shopId)it.copy(departmentId=placement)else it}
-     }else{
-      // Clearing a point override explicitly means no group at this point.
-      if(placement==null){
-       require(links.first{it.shopId==change.shopId}.departmentId==null){"Для отдельной точки выберите группу; убрать группу можно во всех точках"}
-       choices.remove(change.branchId)
-      }else choices[change.branchId]=placement
-      links
-     }
+     choices.keys.filter{branches[it]?.shopId==change.shopId}.forEach{choices.remove(it)}
+     val nextLinks=links.map{if(it.shopId==change.shopId)it.copy(departmentId=placement)else it}
      products.saveWithLinks(p,nextLinks,branchDepartments=choices)
     }
    }
