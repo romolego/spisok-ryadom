@@ -247,7 +247,7 @@ class ShoppingListViewModel(
                 recipientName = product?.recipientId?.let { data.recipients[it]?.name },
                 defaultQuantity = product?.defaultQuantity,
                 quantityStep = com.spisokryadom.app.util.Quantities.step(entry.unit, product?.defaultUnit, product?.defaultQuantity),
-                branchAddress=data.branches[entry.assignedBranchId]?.address,branchPriority=data.branches[entry.assignedBranchId]?.displayOrder?:0,
+                branchAddress=data.branches[entry.assignedBranchId]?.let{placeLabels.detail(it)},branchPriority=data.branches[entry.assignedBranchId]?.displayOrder?:0,
                 localDepartmentOrder=data.departments[entry.assignedDepartmentId]?.let{dept->data.branchOrders[entry.assignedBranchId to dept.typeId]?.displayOrder?:dept.displayOrder}?:Int.MAX_VALUE,
                 productGroupId = product?.productGroupId, recipientId=product?.recipientId
             )

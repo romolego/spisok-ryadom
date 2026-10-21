@@ -178,6 +178,7 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         val links=db.productShopLinkDao().getAllSync().filter{it.productId in products}.groupBy{it.shopId}
         val points=db.shopBranchDao().getAll().groupBy{it.shopId}
         val venues=db.retailStructureDao().venues().associateBy{it.id}
+        val labels=com.spisokryadom.app.domain.PlaceLabels(points.values.flatten(),venues.values.toList())
         val available=db.shopBranchDao().allAvailability().groupBy{it.productId}.mapValues{(_,v)->v.map{it.branchId}.toSet()}
         val city=locations.currentId()
         db.shopDao().getAllSync().filter{it.cityId==city}.sortedWith(compareBy<ShopEntity>{it.displayOrder}.thenBy{it.id}).flatMap{shop->
@@ -186,7 +187,7 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
                 val branches=points[shop.id].orEmpty().sortedWith(compareBy<ShopBranchEntity>{it.displayOrder}.thenBy{it.id})
                 if(branches.isEmpty())listOf(PurchasePlace(shop.id,null,shop.name,null))
                 else branches.filter{b->products.all{p->linked.getValue(p).restrictBranches.not() || b.id in available[p].orEmpty()}}
-                    .map{PurchasePlace(shop.id,it.id,shop.name,it.address,it.venueId?.let{v->venues[v]?.name})}
+                    .map{PurchasePlace(shop.id,it.id,shop.name,labels.details(shop.name,it),it.venueId?.let{v->venues[v]?.name})}
             }
         }
     }
@@ -196,8 +197,9 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         val existing=purchasePlaces(ids).map{it.shopId to it.branchId}.toSet()
         val points=db.shopBranchDao().getAll().groupBy{it.shopId}
         val venues=db.retailStructureDao().venues().associateBy{it.id}
+        val labels=com.spisokryadom.app.domain.PlaceLabels(points.values.flatten(),venues.values.toList())
         db.shopDao().getAllSync().filter{it.cityId==locations.currentId()}.sortedWith(compareBy<ShopEntity>{it.displayOrder}.thenBy{it.id}).flatMap{shop->
-            points[shop.id].orEmpty().ifEmpty{listOf(null)}.map{b->PurchasePlace(shop.id,b?.id,shop.name,b?.address,b?.venueId?.let{venues[it]?.name})}
+            points[shop.id].orEmpty().ifEmpty{listOf(null)}.map{b->PurchasePlace(shop.id,b?.id,shop.name,b?.let{labels.details(shop.name,it)},b?.venueId?.let{venues[it]?.name})}
         }.filter{(it.shopId to it.branchId) !in existing}
     }
     suspend fun clearBoughtInPlace(shopId:Long?,branchId:Long?,customShopName:String?=null,customShopAddress:String?=null)=db.withTransaction {

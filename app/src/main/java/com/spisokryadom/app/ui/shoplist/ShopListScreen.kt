@@ -207,13 +207,9 @@ private fun ShopListItem(
     }
 }
 
-@Composable private fun VenueHeading(venue:com.spisokryadom.app.data.entity.VenueEntity,onSave:(com.spisokryadom.app.data.entity.VenueEntity)->Unit,onDelete:(Long)->Unit){
+@Composable private fun VenueHeading(venue:com.spisokryadom.app.data.entity.VenueEntity,onSave:suspend(com.spisokryadom.app.data.entity.VenueEntity)->Unit,onDelete:(Long)->Unit){
  var editing by androidx.compose.runtime.saveable.rememberSaveable(venue.id){mutableStateOf(false)}
- var name by androidx.compose.runtime.saveable.rememberSaveable(venue.id,venue.name){mutableStateOf(venue.name)}
- var address by androidx.compose.runtime.saveable.rememberSaveable(venue.id,venue.address){mutableStateOf(venue.address.orEmpty())}
- var note by androidx.compose.runtime.saveable.rememberSaveable(venue.id,venue.note){mutableStateOf(venue.note.orEmpty())}
- var deleting by remember{mutableStateOf(false)}
- if(deleting)com.spisokryadom.app.ui.components.ConfirmDialog("Удалить рынок или ТЦ?","Магазины и покупки сохранятся.",onConfirm={onDelete(venue.id);deleting=false},onDismiss={deleting=false})
+ if(editing)com.spisokryadom.app.ui.components.VenueEditorDialog(venue,{editing=false},onSave,onDelete={onDelete(venue.id);editing=false})
  Column(Modifier.fillMaxWidth().testTag("venue-group-${venue.id}").padding(top=12.dp,bottom=4.dp)){
   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
    Icon(Icons.Filled.Store,null,tint=MaterialTheme.colorScheme.primary)
@@ -221,17 +217,7 @@ private fun ShopListItem(
     Text(venue.name,style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary)
     venue.address?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall)}
    }
-   IconButton(onClick={editing=!editing}){Icon(Icons.Filled.Edit,"Изменить рынок или ТЦ: ${venue.name}")}
-  }
-  if(editing){
-   androidx.compose.material3.OutlinedTextField(name,{name=it},label={Text("Название")},modifier=Modifier.fillMaxWidth())
-   androidx.compose.material3.OutlinedTextField(address,{address=it},label={Text("Адрес")},modifier=Modifier.fillMaxWidth())
-   androidx.compose.material3.OutlinedTextField(note,{note=it},label={Text("Заметка")},modifier=Modifier.fillMaxWidth())
-   Row{
-    androidx.compose.material3.TextButton(onClick={onSave(venue.copy(name=name,address=address,note=note));editing=false},enabled=name.isNotBlank()){Text("Сохранить")}
-    androidx.compose.material3.TextButton(onClick={deleting=true}){Text("Удалить рынок или ТЦ",color=MaterialTheme.colorScheme.error)}
-    androidx.compose.material3.TextButton(onClick={editing=false}){Text("Отмена")}
-   }
+   IconButton(onClick={editing=true}){Icon(Icons.Filled.Edit,"Изменить рынок или ТЦ: ${venue.name}")}
   }
  }
 }

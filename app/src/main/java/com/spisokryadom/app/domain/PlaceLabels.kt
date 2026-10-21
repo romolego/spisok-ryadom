@@ -12,10 +12,25 @@ class PlaceLabels(branches:List<ShopBranchEntity> = emptyList(),venues:List<Venu
     private val points=branches.groupBy{it.shopId}
     private val venues=venues.associateBy{it.id}
     private fun same(a:String,b:String)=FuzzySearch.normalize(a)==FuzzySearch.normalize(b)
-    fun place(shopName:String,branch:ShopBranchEntity?):PlaceLabel = physicalPlaceLabel(shopName,branch?.address,branch?.venueId?.let{venues[it]?.name})
-    fun branch(branch:ShopBranchEntity):String = branch.venueId?.let{venues[it]}?.let{
-        if(same(it.name,branch.address))it.name else "${it.name} — ${branch.address}"
-    }?:branch.address
+    fun address(branch:ShopBranchEntity):String = branch.venueId?.let{venues[it]?.address}.orEmpty().ifBlank{if(branch.venueId==null)branch.address else ""}
+    fun detail(branch:ShopBranchEntity):String {
+        if(branch.venueId==null)return listOf(branch.label,branch.address).filter{it.isNotBlank()}.distinctBy(FuzzySearch::normalize).joinToString(" · ")
+        val venue=venues[branch.venueId]
+        return branch.label.ifBlank{branch.address.takeUnless{same(it,venue?.address.orEmpty())||same(it,venue?.name.orEmpty())}.orEmpty()}
+    }
+    fun details(shopName:String,branch:ShopBranchEntity):String? {
+        val venue=branch.venueId?.let{venues[it]}
+        val values=if(branch.venueId==null)listOf(branch.label,branch.address)else listOf(detail(branch),address(branch))
+        return values.filter{it.isNotBlank()&&!same(it,shopName)&&!same(it,venue?.name.orEmpty())}
+            .distinctBy(FuzzySearch::normalize).joinToString(" · ").ifBlank{null}
+    }
+    fun place(shopName:String,branch:ShopBranchEntity?):PlaceLabel =
+        physicalPlaceLabel(shopName,branch?.let{details(shopName,it)},branch?.venueId?.let{venues[it]?.name})
+    fun branch(branch:ShopBranchEntity):String {
+        if(branch.venueId==null)return detail(branch).ifBlank{"Точка магазина"}
+        return listOfNotNull(branch.venueId.let{venues[it]?.name},detail(branch).takeIf{it.isNotBlank()},address(branch).takeIf{it.isNotBlank()})
+            .distinctBy(FuzzySearch::normalize).joinToString(" — ").ifBlank{"Точка магазина"}
+    }
     fun shop(shopId:Long,name:String):String {
         val branches=points[shopId].orEmpty()
         val venueIds=branches.map{it.venueId}.distinct()

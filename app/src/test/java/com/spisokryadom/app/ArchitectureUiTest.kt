@@ -51,12 +51,15 @@ class ArchitectureUiTest {
   ui.waitUntil(20_000){runBlocking{db.shoppingListEntryDao().getById(entryB)!!.quantity==3.0}}
   assertEquals(1.0,runBlocking{db.shoppingListEntryDao().getById(entryA)!!.quantity},0.0)
  }
- @Test fun networkAndVenueAreCreatedInlineAndSavedOnTheSamePhysicalPoint(){
+ @Test fun networkAndVenueUsePointEditorAndSaveOnTheSamePhysicalPoint(){
   ui.onAllNodesWithText("Магазины").onLast().performClick();waitText("Командор");ui.onNodeWithText("Командор").performTouchInput{longClick()};waitText("Название магазина")
   ui.onNodeWithText("Править").performScrollTo().performClick()
   ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();ui.onNodeWithText("Название сети").performScrollTo().performTextReplacement("Командор")
-  ui.onAllNodesWithText("Рынок или ТЦ").onLast().performScrollTo().performClick();ui.onNodeWithText("Новый рынок или ТЦ…").performClick();ui.onNodeWithText("Название рынка или ТЦ").performScrollTo().performTextReplacement("Планета")
-  ui.onNodeWithTag("branch-note-$second").performScrollTo().performTextReplacement("Вход с парковки");shot("02-inline-physical-point")
+  ui.onNodeWithContentDescription("Изменить точку: В торговом центре").performScrollTo().performClick()
+  ui.onNodeWithText("Рынок или ТЦ").performClick();ui.onNodeWithText("Новый рынок или ТЦ…").performClick();ui.onNodeWithTag("venue-name").performTextReplacement("Планета")
+  ui.onNodeWithTag("venue-address").performTextReplacement("Адрес ТЦ, 1");ui.onAllNodesWithText("Сохранить").onLast().performClick()
+  ui.onNodeWithTag("branch-label-$second").performTextReplacement("В торговом центре")
+  ui.onNodeWithTag("branch-note-$second").performScrollTo().performTextReplacement("Вход с парковки");shot("02-inline-physical-point");ui.onAllNodesWithText("Сохранить").onLast().performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   ui.waitUntil(20_000){runBlocking{db.shopDao().getById(shop)!!.networkId!=null}}
   runBlocking{val point=db.shopBranchDao().get(second)!!;assertEquals(shop,point.shopId);assertNotNull(point.venueId);assertEquals("Планета",db.retailStructureDao().venue(point.venueId!!)!!.name);assertEquals("Вход с парковки",point.note);assertEquals(2,db.shopBranchDao().forShop(shop).size)}

@@ -26,7 +26,7 @@ internal fun ShopCardBlock(title:String,action:(@Composable ()->Unit)?=null,cont
 @Composable
 internal fun ShopPlaceSummary(state:ShopCardUiState){
     Column(Modifier.testTag("shop-place-summary"),verticalArrangement=Arrangement.spacedBy(10.dp)){
-        val memberships=state.branches.filter{it.venueId!=null||!state.venueNames[it.id].isNullOrBlank()}
+        val memberships=state.branches.filter{it.venueId!=null}
         val isNetwork=state.networkId!=null||state.networkName.isNotBlank()
         Text(if(isNetwork)"Магазин сети"else if(memberships.isEmpty())"Самостоятельный магазин"else if(memberships.size==state.branches.size)"Магазин / павильон на рынке или в ТЦ"else "Магазин с точками на рынке / в ТЦ",
             style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary)
@@ -39,9 +39,11 @@ internal fun ShopPlaceSummary(state:ShopCardUiState){
             Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){
                 Icon(Icons.Filled.LocationOn,null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant)
                 Column{
-                    val venue=state.venueNames[branch.id]?.takeIf{it.isNotBlank()}?:state.venues.find{it.id==branch.venueId}?.name
+                    val venue=state.venues.find{it.id==branch.venueId}?.name
                     Text(venue?:"Отдельный адрес",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
-                    Text(branch.address.ifBlank{"Укажите адрес"},style=MaterialTheme.typography.bodyMedium)
+                    val labels=com.spisokryadom.app.domain.PlaceLabels(state.branches,state.venues)
+                    labels.detail(branch).takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodyMedium)}
+                    if(branch.venueId!=null)Text(labels.address(branch).ifBlank{"Общий адрес пока не указан"},style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                     branch.note?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
                 }
             }

@@ -217,8 +217,8 @@ internal object BackupJson {
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
   name=if(o.has("name")&&!o.isNull("name"))o.getString("name") else ""
  )
- fun encode(value:ShopBranchEntity)=JSONObject().put("id",value.id).put("shopId",value.shopId).put("address",value.address).put("displayOrder",value.displayOrder).put("note",value.note?:JSONObject.NULL).put("venueId",value.venueId?:JSONObject.NULL)
- fun branches(o:JSONObject)=ShopBranchEntity(o.getLong("id"),o.getLong("shopId"),o.getString("address"),o.optInt("displayOrder",0),if(o.isNull("note"))null else o.optString("note").ifBlank{null},venueId=if(o.has("venueId")&&!o.isNull("venueId"))o.getLong("venueId")else null)
+ fun encode(value:ShopBranchEntity)=JSONObject().put("id",value.id).put("shopId",value.shopId).put("address",value.address).put("displayOrder",value.displayOrder).put("note",value.note?:JSONObject.NULL).put("venueId",value.venueId?:JSONObject.NULL).put("label",value.label)
+ fun branches(o:JSONObject)=ShopBranchEntity(o.getLong("id"),o.getLong("shopId"),o.getString("address"),o.optInt("displayOrder",0),if(o.isNull("note"))null else o.optString("note").ifBlank{null},venueId=if(o.has("venueId")&&!o.isNull("venueId"))o.getLong("venueId")else null,label=if(o.has("label"))strictString(o,"label")else "")
  fun encode(value:ProductBranchAvailabilityEntity)=JSONObject().put("productId",value.productId).put("branchId",value.branchId).put("shopId",value.shopId)
  fun availability(o:JSONObject)=ProductBranchAvailabilityEntity(o.getLong("productId"),o.getLong("branchId"),o.optLong("shopId",0))
  fun encode(v:RetailNetworkEntity)=JSONObject().put("id",v.id).put("name",v.name)
@@ -278,7 +278,7 @@ internal object BackupJson {
    listOf("listId","plannedUnitPrice","customShopName","customShopAddress").forEach{key->require(row.has(key)){"В копии отсутствует поле покупки $key"}}
   }
  }
- return BackupSnapshot(
+ val snapshot=BackupSnapshot(
   products=d.optJSONArray("products")?.let{a->(0 until a.length()).map{products(a.getJSONObject(it))}} ?: emptyList(),
   groups=d.optJSONArray("productGroups")?.let{a->(0 until a.length()).map{groups(a.getJSONObject(it))}} ?: emptyList(),
   recipients=d.optJSONArray("recipients")?.let{a->(0 until a.length()).map{recipients(a.getJSONObject(it))}} ?: emptyList(),
@@ -301,5 +301,15 @@ internal object BackupJson {
   groupPresets=d.optJSONArray("groupCreationPresets")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require((o.get("groupId") is Int||o.get("groupId") is Long)&&o.has("recipientId")&&(o.isNull("recipientId")||(o.get("recipientId") is Int||o.get("recipientId") is Long)));GroupCreationPreset(o.getLong("groupId"),if(o.isNull("recipientId"))null else o.getLong("recipientId"))}}}?:emptyList(),
   preferences=root.optJSONObject("preferences") ?: JSONObject()
  )
+ if(root.getInt("version")>=17){
+  d.optJSONArray("shopBranches")?.let{rows->for(i in 0 until rows.length())require(rows.getJSONObject(i).has("label")){"Отсутствует обозначение точки"}}
+  return snapshot
+ }
+ val shops=snapshot.shops.associateBy{it.id}
+ val branches=com.spisokryadom.app.domain.OutletLocations.migrate(snapshot.branches,snapshot.venues,shops.mapValues{it.value.name})
+ return snapshot.copy(branches=branches,shops=snapshot.shops.map{shop->
+  val first=branches.filter{it.shopId==shop.id}.minWithOrNull(compareBy<ShopBranchEntity>{it.displayOrder}.thenBy{it.id})
+  if(first==null)shop else shop.copy(address=com.spisokryadom.app.domain.PlaceLabels(venues=snapshot.venues).address(first).ifBlank{null})
+ })
  }
 }

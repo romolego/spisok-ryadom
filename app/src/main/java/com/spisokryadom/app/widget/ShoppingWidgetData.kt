@@ -91,7 +91,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
                         val shopId=place.key.shopId;val branchId=place.key.branchId
                         val shop=shops[shopId]
                         val name=shop?.let{if(it.cityId==cityId)it.name else "${it.name} · ${cities[it.cityId]?.name?:"Другой город"}"}?:"Без магазина"
-                        val label=hintLabel(place.key)?:com.spisokryadom.app.domain.physicalPlaceLabel(name,branches[branchId]?.address,null)
+                        val label=hintLabel(place.key)?:com.spisokryadom.app.domain.physicalPlaceLabel(name,branches[branchId]?.let{if(it.venueId!=null)it.label else it.address},null)
                         result.add(WidgetItem.Header(place.key.stableKey,label.title,label.subtitle,if(venue==null)0 else 1))
                         if(shop!=null){
                             val depts=place.value.groupBy{entry(it).assignedDepartmentId}

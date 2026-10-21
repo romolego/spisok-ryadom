@@ -44,7 +44,7 @@ class StoreCard180UiTest {
  @After fun close(){ui.activityRule.scenario.close();val end=System.nanoTime()+20_000_000_000;while(ProductEditorTransactions.mutex.isLocked&&System.nanoTime()<end){Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();Thread.sleep(5)};app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
  @Test fun placeIsReadOnlyUntilEditingAndKeepsIdentityAfterSave(){
   ui.onNodeWithTag("shop-place-summary").assertExists();ui.onNodeWithText("Город магазина").assertDoesNotExist();ui.onNodeWithText("Весны, 1").assertExists();shot("01-card-summary")
-  ui.onNodeWithText("Править").performClick();ui.onNodeWithText("Город магазина").assertExists();ui.onNodeWithTag("branch-address-$branch").performScrollTo().performTextReplacement("Весны, 2");shot("02-place-editor")
+  ui.onNodeWithText("Править").performClick();ui.onNodeWithText("Город магазина").assertExists();ui.onNodeWithContentDescription("Изменить точку: Весны, 1").performScrollTo().performClick();ui.onNodeWithTag("branch-address-$branch").performScrollTo().performTextReplacement("Весны, 2");shot("02-place-editor");ui.onAllNodesWithText("Сохранить").onLast().performClick()
   ui.onNodeWithText("Готово").performScrollTo().performClick();ui.onNodeWithTag("branch-address-$branch").assertDoesNotExist();ui.onNodeWithText("Весны, 2").assertExists();ui.onNodeWithText("Сохранить").performClick();waitText("Магазины");assertEquals("Весны, 2",runBlocking{db.shopBranchDao().get(branch)!!.address})
  }
  @Test fun purchaseAndUrgencyUseDropdownsAndPersistAllStates(){
@@ -55,11 +55,12 @@ class StoreCard180UiTest {
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины");runBlocking{val s=db.shopDao().getById(shop)!!;assertEquals(false,s.showUrgentInCollapsed);assertEquals(true,s.boostUrgentShop);assertEquals("Доставка по будням",s.note);assertEquals("online",db.creationPresetDao().shopMode(shop))}
  }
  @Test fun duplicateAddressCannotBeHiddenOrSaved(){
-  ui.onNodeWithText("Править").performClick();ui.onNodeWithText("Добавить адрес").performScrollTo().performClick()
+  ui.onNodeWithText("Править").performClick();ui.onNodeWithText("Добавить точку").performScrollTo().performClick()
   ui.onNodeWithTag("branch-address--1").performScrollTo().performTextReplacement("весны, 1 ")
-  ui.onNodeWithText("Сохранить").assertIsNotEnabled();ui.onNodeWithText("Готово").performScrollTo().assertIsNotEnabled()
-  ui.onNodeWithTag("branch-address--1").performScrollTo().performTextReplacement("Весны, 2")
-  ui.onNodeWithText("Сохранить").assertIsEnabled();ui.onNodeWithText("Готово").performScrollTo().assertIsEnabled().performClick()
+  ui.onAllNodesWithText("Сохранить").onLast().assertIsNotEnabled()
+  ui.onNodeWithTag("branch-address--1").performTextReplacement("Весны, 2")
+  ui.onAllNodesWithText("Сохранить").onLast().assertIsEnabled().performClick()
+  ui.onNodeWithText("Готово").performScrollTo().assertIsEnabled().performClick()
   ui.onNodeWithTag("branch-address--1").assertDoesNotExist();assertEquals(1,runBlocking{db.shopBranchDao().forShop(shop).size})
  }
  @Test fun twoDimensionalPickerIsLiveAndCancelDoesNotCommit(){

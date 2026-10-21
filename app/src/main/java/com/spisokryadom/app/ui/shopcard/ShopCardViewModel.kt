@@ -52,7 +52,7 @@ data class ShopCardUiState(
     val networkName:String="",
     val networks:List<com.spisokryadom.app.data.entity.RetailNetworkEntity> = emptyList(),
     val venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),
-    val venueNames:Map<Long,String> = emptyMap(),
+    val venueEdits:Map<Long,com.spisokryadom.app.data.entity.VenueEntity> = emptyMap(),
     val branchOrders:Map<Long,List<Long>> = emptyMap(),
     val branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity> = emptyList(),
     val departments: List<ShopDepartmentEntity> = emptyList(),
@@ -101,13 +101,13 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
     fun updatePurchaseMode(value:String){if(value in com.spisokryadom.app.util.PurchaseModes.labels)_uiState.value=_uiState.value.copy(purchaseMode=value)}
     fun updateName(value:String){_uiState.value=_uiState.value.copy(name=value)}
-    fun updateCity(id:Long){if(id==_uiState.value.cityId)return;_uiState.value=_uiState.value.copy(cityId=id,branches=_uiState.value.branches.map{it.copy(venueId=null)},venueNames=emptyMap())}
+    fun updateCity(id:Long){if(id==_uiState.value.cityId)return;_uiState.value=_uiState.value.copy(cityId=id,branches=_uiState.value.branches.map{it.copy(venueId=null)},venueEdits=emptyMap())}
     fun updateNetwork(id:Long?){_uiState.value=_uiState.value.copy(networkId=id)}
     fun updateNetworkName(name:String){_uiState.value=_uiState.value.copy(networkName=name)}
-    fun updateVenueName(branchId:Long,name:String){_uiState.value=_uiState.value.copy(venueNames=_uiState.value.venueNames+(branchId to name))}
+    fun updateVenue(value:com.spisokryadom.app.data.entity.VenueEntity){_uiState.value=_uiState.value.copy(venueEdits=_uiState.value.venueEdits+(value.id to value.copy(cityId=_uiState.value.cityId)))}
     fun convertToVenue(){if(!_uiState.value.isNew)saveDraft(convert=true)}
 
-    fun updateBranches(value:List<com.spisokryadom.app.data.entity.ShopBranchEntity>){_uiState.value=_uiState.value.copy(branches=value)}
+    fun updateBranches(value:List<com.spisokryadom.app.data.entity.ShopBranchEntity>){_uiState.value=_uiState.value.copy(branches=value.mapIndexed{i,point->point.copy(displayOrder=i)})}
     fun updateBranchOrder(branchId:Long,values:List<Long>){_uiState.value=_uiState.value.copy(branchOrders=_uiState.value.branchOrders+(branchId to values))}
     fun updatePhotoBusy(value:Boolean){_uiState.value=_uiState.value.copy(isPhotoBusy=value)}
     fun updateNote(value:String){_uiState.value=_uiState.value.copy(note=value)}
@@ -128,7 +128,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
                 showUrgentInCollapsed=overrideToBoolean(state.showUrgentInCollapsed),boostUrgentShop=overrideToBoolean(state.boostUrgentShop),
                 manualOrderOverride=if(old?.boostUrgentShop==overrideToBoolean(state.boostUrgentShop))old?.manualOrderOverride?:false else false)
             val departments=if(state.isNew)state.pendingDepartments.sortedBy{it.displayOrder}.map{ShopDepartmentEntity(shopId=0,name=it.name,displayOrder=it.displayOrder)}else state.departments.sortedBy{it.displayOrder}
-            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,state.venueNames,state.branchOrders.filterKeys{id->state.branches.any{it.id==id}}.mapValues{(_,types)->types.filter{type->state.departments.any{it.typeId==type}}},convertToVenue=convert,purchaseMode=state.purchaseMode)
+            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,state.branchOrders.filterKeys{id->state.branches.any{it.id==id}}.mapValues{(_,types)->types.filter{type->state.departments.any{it.typeId==type}}},convertToVenue=convert,purchaseMode=state.purchaseMode,venueEdits=state.venueEdits.filterKeys{id->id>0||state.branches.any{it.venueId==id}})
             _uiState.value=_uiState.value.copy(isSaving=false,isSaved=true)
         }
     }

@@ -8,7 +8,7 @@ data class RetailNetworkEntity(@PrimaryKey(autoGenerate=true) val id:Long=0,val 
 
 /** A market or mall contains physical outlets, independently of their retail brand. */
 @Entity(tableName="venues",foreignKeys=[ForeignKey(entity=CityEntity::class,parentColumns=["id"],childColumns=["cityId"],onDelete=ForeignKey.RESTRICT)],indices=[Index("cityId")])
-data class VenueEntity(@PrimaryKey(autoGenerate=true) val id:Long=0,val cityId:Long,val name:String,val address:String?=null,val note:String?=null)
+data class VenueEntity(@PrimaryKey(autoGenerate=true) val id:Long=0,val cityId:Long,val name:String,val address:String?=null,val note:String?=null,val photoUri:String?=null)
 
 @Entity(tableName="department_types",indices=[Index(value=["normalizedName"],unique=true)])
 data class DepartmentTypeEntity(@PrimaryKey(autoGenerate=true) val id:Long=0,val name:String,val normalizedName:String,

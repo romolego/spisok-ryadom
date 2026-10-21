@@ -4,6 +4,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 /** Cross-row ownership is enforced even for DAO/import paths, not only UI commands. */
 object RetailConstraints {
  fun install(db:SupportSQLiteDatabase) {
+  val modernPoints=db.query("PRAGMA table_info(shop_branches)").use{c->var found=false;while(c.moveToNext())if(c.getString(c.getColumnIndexOrThrow("name"))=="label")found=true;found}
+  if(modernPoints)listOf("INSERT","UPDATE").forEach{op->
+   db.execSQL("CREATE TRIGGER IF NOT EXISTS unique_outlet_$op BEFORE $op ON shop_branches WHEN EXISTS(SELECT 1 FROM shop_branches b WHERE b.id!=NEW.id AND b.shopId=NEW.shopId AND b.venueId IS NEW.venueId AND lower(trim(b.address))=lower(trim(NEW.address)) AND lower(trim(b.label))=lower(trim(NEW.label))) BEGIN SELECT RAISE(ABORT,'Duplicate outlet'); END")
+  }
   val conditions=mapOf(
    "product_shop_links" to "NEW.departmentId IS NOT NULL AND NOT EXISTS(SELECT 1 FROM shop_departments d WHERE d.id=NEW.departmentId AND d.shopId=NEW.shopId)",
    "shopping_list_entries" to "(NEW.assignedBranchId IS NOT NULL AND NOT EXISTS(SELECT 1 FROM shop_branches b WHERE b.id=NEW.assignedBranchId AND b.shopId=NEW.assignedShopId)) OR (NEW.assignedDepartmentId IS NOT NULL AND NOT EXISTS(SELECT 1 FROM shop_departments d WHERE d.id=NEW.assignedDepartmentId AND d.shopId=NEW.assignedShopId))",

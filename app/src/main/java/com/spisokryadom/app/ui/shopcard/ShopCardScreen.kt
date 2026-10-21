@@ -63,8 +63,8 @@ fun ShopCardScreen(
     viewModel: ShopCardViewModel = viewModel(factory = ShopCardViewModel.factory(shopId))
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val validBranches=state.branches.all{it.address.isNotBlank()}&&
-        state.branches.map{it.address.trim().lowercase(java.util.Locale.ROOT)}.distinct().size==state.branches.size
+    val validBranches=com.spisokryadom.app.domain.OutletLocations.valid(state.branches)
+    val placeVenues=state.venues.filter{it.id !in state.venueEdits}+state.venueEdits.values
     state.error?.let { message -> androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={TextButton(onClick=viewModel::clearError){Text("Понятно")}}) }
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
@@ -177,7 +177,7 @@ fun ShopCardScreen(
             }) {
                 if(isPlaceEditing){
                     CityField(state.cityId,viewModel::updateCity)
-            com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,state.venues.filter{it.cityId==state.cityId},state.venueNames,viewModel::updateVenueName,pointGroups={point->
+            com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,placeVenues.filter{it.cityId==state.cityId},pointGroups={point->
                 val types=state.departments.distinctBy{it.typeId}.filter{it.typeId>0}
                 if(point.id>0&&types.size>1){
                     Text("Порядок групп в точке",style=MaterialTheme.typography.titleSmall)
@@ -191,15 +191,15 @@ fun ShopCardScreen(
                         }
                     }
                 }
-            },unified=true,externalPhotoBusy=state.isPhotoBusy)
+            },externalPhotoBusy=state.isPhotoBusy,onVenueChange=viewModel::updateVenue,cityId=state.cityId)
 
                     RetailRelationSelector("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName)
-                    if(!state.isNew&&state.branches.isNotEmpty()){
+                    if(!state.isNew&&state.branches.isNotEmpty()&&state.branches.all{it.venueId==null}){
                         HorizontalDivider()
                         Text("Рынок или ТЦ объединяет самостоятельные магазины и павильоны. При преобразовании каждая точка станет отдельным магазином внутри него.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                         TextButton(onClick={showConvertConfirm=true},enabled=validBranches&&!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в рынок или ТЦ")}
                     }
-                }else ShopPlaceSummary(state)
+                }else ShopPlaceSummary(state.copy(venues=placeVenues))
             }
 
             ShopCardBlock("Покупки в магазине") {

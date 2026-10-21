@@ -92,7 +92,7 @@ internal fun ProductOutletOptions(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(labels.branch(point), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                     ReorderButtons({ move(-1) }, { move(1) }, enabled && index > 0, enabled && index < ranked.lastIndex,
-                        "Выше приоритет точки: ${point.address}", "Ниже приоритет точки: ${point.address}")
+                        "Выше приоритет точки: ${labels.branch(point)}", "Ниже приоритет точки: ${labels.branch(point)}")
                 }
             }
         }

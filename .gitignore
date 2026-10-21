@@ -17,3 +17,5 @@ local.properties
 ~$*
 # Real user exports stay outside source control; use generated synthetic fixtures.
 app/src/test/resources/personal-backup-*.zip
+
+.codex-remote-attachments/

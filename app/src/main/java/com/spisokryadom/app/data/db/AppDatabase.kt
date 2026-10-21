@@ -49,7 +49,7 @@ import com.spisokryadom.app.data.entity.UnitEntity
         ShopBranchEntity::class, ProductBranchAvailabilityEntity::class, com.spisokryadom.app.data.entity.ProductBranchPriorityEntity::class,
         CityEntity::class
     ],
-    version = 19,
+    version = 20,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -232,6 +232,21 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_18_19=object:Migration(18,19){override fun migrate(db:SupportSQLiteDatabase){
             db.execSQL("ALTER TABLE shops ADD COLUMN purchaseBackground TEXT NOT NULL DEFAULT ''")
         }}
+        val MIGRATION_19_20=object:Migration(19,20){override fun migrate(db:SupportSQLiteDatabase){
+            db.execSQL("ALTER TABLE venues ADD COLUMN photoUri TEXT")
+            db.execSQL("ALTER TABLE shop_branches ADD COLUMN label TEXT NOT NULL DEFAULT ''")
+            db.execSQL("DROP INDEX IF EXISTS index_shop_branches_shopId_address")
+            // Legacy venue-point addresses were either a copy of the common address
+            // or an outlet description. Keep the latter as a label; never invent an address.
+            val points=mutableListOf<com.spisokryadom.app.data.entity.ShopBranchEntity>()
+            val venues=mutableListOf<com.spisokryadom.app.data.entity.VenueEntity>()
+            val names=mutableMapOf<Long,String>()
+            db.query("SELECT id,shopId,address,displayOrder,venueId FROM shop_branches").use{c->while(c.moveToNext())points.add(com.spisokryadom.app.data.entity.ShopBranchEntity(c.getLong(0),c.getLong(1),c.getString(2),c.getInt(3),venueId=if(c.isNull(4))null else c.getLong(4)))}
+            db.query("SELECT id,cityId,name,address FROM venues").use{c->while(c.moveToNext())venues.add(com.spisokryadom.app.data.entity.VenueEntity(c.getLong(0),c.getLong(1),c.getString(2),if(c.isNull(3))null else c.getString(3)))}
+            db.query("SELECT id,name FROM shops").use{c->while(c.moveToNext())names[c.getLong(0)]=c.getString(1)}
+            com.spisokryadom.app.domain.OutletLocations.migrate(points,venues,names).forEach{point->db.execSQL("UPDATE shop_branches SET address=?,label=? WHERE id=?",arrayOf(point.address,point.label,point.id))}
+            db.execSQL("UPDATE shops SET address=(SELECT CASE WHEN b.venueId IS NULL THEN b.address ELSE (SELECT v.address FROM venues v WHERE v.id=b.venueId) END FROM shop_branches b WHERE b.shopId=shops.id ORDER BY b.displayOrder,b.id LIMIT 1) WHERE EXISTS(SELECT 1 FROM shop_branches b WHERE b.shopId=shops.id)")
+        }}
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val appContext=context.applicationContext
@@ -240,8 +255,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "spisok_ryadom.db"
                 )
-                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,19)})
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19)
+                    .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,20)})
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20)
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) { RetailConstraints.install(db) }
                         override fun onCreate(db: SupportSQLiteDatabase) {

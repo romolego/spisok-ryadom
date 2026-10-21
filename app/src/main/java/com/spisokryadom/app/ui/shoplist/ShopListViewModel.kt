@@ -29,6 +29,7 @@ class ShopListViewModel(
     private val shopRepository: ShopRepository
 ) : ViewModel() {
 
+    private val generation=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
     private val _uiState = MutableStateFlow(ShopListUiState())
     val uiState: StateFlow<ShopListUiState> = _uiState.asStateFlow()
 
@@ -38,7 +39,7 @@ class ShopListViewModel(
         viewModelScope.launch(errors) {
             kotlinx.coroutines.flow.combine(shopRepository.getCityShops(),shopRepository.observeBranches(),shopRepository.venues()){shops,branches,venues->
                 val currentVenues=venues.filter{it.cityId==shopRepository.locations.currentId()}
-                fun address(shop:ShopEntity,points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>)=shop.copy(address=points.minWithOrNull(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})?.address)
+                fun address(shop:ShopEntity,points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>)=shop.copy(address=points.minWithOrNull(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})?.let{point->com.spisokryadom.app.domain.PlaceLabels(branches,venues).detail(point).takeIf{it.isNotBlank()}})
                 val physical=shops.map{shop->address(shop,branches.filter{it.shopId==shop.id})}
                 val knownVenues=currentVenues.map{it.id}.toSet()
                 val groups=buildList{
@@ -58,8 +59,8 @@ class ShopListViewModel(
     }
 
 
-    fun saveVenue(venue:com.spisokryadom.app.data.entity.VenueEntity){viewModelScope.launch(errors){shopRepository.updateVenue(venue)}}
-    fun removeVenue(id:Long){viewModelScope.launch(errors){shopRepository.deleteVenue(id)}}
+    suspend fun saveVenue(venue:com.spisokryadom.app.data.entity.VenueEntity){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){shopRepository.updateVenue(venue)}}
+    fun removeVenue(id:Long){viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){shopRepository.deleteVenue(id)}}}
     fun deleteShop(shop: ShopEntity) {
         viewModelScope.launch(errors) { shopRepository.deleteShop(shop) }
     }
