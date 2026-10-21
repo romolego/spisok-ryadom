@@ -16,10 +16,12 @@ data class AddToListUiState(
  val productContexts:Map<Long,String> = emptyMap(),val productContextsWithoutQuantity:Map<Long,String> = emptyMap(),val selectedShopId:Long? = -1L,val isShopLocked:Boolean=false,val saveToDatabase:Boolean=true,
  val isNewProduct:Boolean=false,val addedMessage:String?=null,val isLoading:Boolean=false,val isSearching:Boolean=false,
  val browseProducts:Boolean=true,val browseMessage:String?=null,val pendingProductLabels:Map<Long,String> = emptyMap(),
- val favoriteResults:List<ProductEntity> = emptyList(),val selectedProduct:ProductEntity?=null,val quantity:String="1",val unit:String="",val error:String?=null
+ val favoriteResults:List<ProductEntity> = emptyList(),val selectedProduct:ProductEntity?=null,val quantity:String="1",val unit:String="",val unitSuggestions:List<String> = emptyList(),val error:String?=null
 )
+@OptIn(ExperimentalCoroutinesApi::class)
 class AddToListViewModel(private val products:ProductRepository,private val shopRepository:ShopRepository,private val basket:ShoppingListRepository,
- private val prefs:SharedPreferences,preselectedShopId:Long?=null,private val preselectedBranchId:Long?=null):ViewModel(){
+ private val prefs:SharedPreferences,preselectedShopId:Long?=null,private val preselectedBranchId:Long?=null,
+ private val units:Flow<List<UnitEntity>> = flowOf(emptyList())):ViewModel(){
  private val sessionGeneration=ProductEditorTransactions.generation.get()
  private val _uiState=MutableStateFlow(AddToListUiState(quantity=ProductCreationDefaults.read(prefs).let{if(it.fillMissing)java.math.BigDecimal.valueOf(it.missingQuantity).stripTrailingZeros().toPlainString()else ""},selectedShopId=preselectedShopId ?: -1L,isShopLocked=preselectedShopId!=null,
    browseProducts=prefs.getBoolean(PREF_BROWSE_PRODUCTS,true),saveToDatabase=prefs.getBoolean(ShoppingListViewModel.PREF_GLOBAL_SAVE_NEW_PRODUCT_TO_DB,true)))
@@ -30,6 +32,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
  }
  init {
   prefs.registerOnSharedPreferenceChangeListener(preferenceListener)
+  viewModelScope.launch { units.collect{values->_uiState.update{it.copy(unitSuggestions=values.map{v->v.name})}} }
   viewModelScope.launch {
    basket.getAllEntries().collect { entries ->
     val labels=entries.filter{!it.isBought}.groupBy{it.productId}.mapValues{(_,rows)->
@@ -50,7 +53,8 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
   viewModelScope.launch { shopRepository.getCityShops().collect{shops->_uiState.update{it.copy(shops=shops)}} }
   viewModelScope.launch {
    combine(products.getAllProducts(),products.getAllShopLinks(),products.observeAvailability(),
-    _uiState.map{Query(it.searchQuery,it.selectedShopId,it.browseProducts)}.distinctUntilChanged()) { ps,links,availability,q ->
+    _uiState.map{Query(it.searchQuery,it.selectedShopId,it.browseProducts)}.distinctUntilChanged()
+     .mapLatest { q -> if(q.text.isNotBlank())delay(300);q }) { ps,links,availability,q ->
      val result=addProductCandidates(ps,links,availability,q.shopId,preselectedBranchId,q.text,q.browse)
      q to result
     }.flowOn(Dispatchers.Default).collect{(q,result)->
@@ -63,7 +67,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
   }
  }
  fun onSearchQueryChanged(query:String){
-  _uiState.update{it.copy(searchQuery=query,selectedProduct=null,error=null,isSearching=query!=it.searchQuery&&query.isNotBlank(),isNewProduct=if(query==it.searchQuery)it.isNewProduct else false)}
+  _uiState.update{it.copy(searchQuery=query,selectedProduct=null,error=null,isSearching=it.isSearching||query!=it.searchQuery)}
  }
  override fun onCleared(){prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener);super.onCleared()}
  fun selectProduct(p:ProductEntity){_uiState.value=_uiState.value.copy(selectedProduct=p,quantity=(p.defaultQuantity?.takeIf{it>0}?:1.0).let{if(it%1.0==0.0)it.toLong().toString()else it.toString()},unit=p.defaultUnit.orEmpty(),error=null)}
@@ -79,16 +83,16 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
   }catch(e:Exception){if(e is CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message)}
    finally{_uiState.value=_uiState.value.copy(isLoading=false)}}
  }
- fun onShopSelected(id:Long?){_uiState.value=_uiState.value.copy(selectedShopId=id,selectedProduct=null,error=null,isSearching=id!=_uiState.value.selectedShopId)}
+ fun onShopSelected(id:Long?){_uiState.update{it.copy(selectedShopId=id,selectedProduct=null,error=null,isSearching=it.isSearching||id!=it.selectedShopId)}}
  fun onSaveToDatabaseChanged(value:Boolean){_uiState.value=_uiState.value.copy(saveToDatabase=value)}
  fun add()=addPurchase(_uiState.value,false)
  fun quickAdd(product:ProductEntity){
   val current=_uiState.value
-  if(current.isLoading||current.searchResults.none{it.id==product.id})return
+  if(current.isLoading||current.isSearching||current.searchResults.none{it.id==product.id})return
   addPurchase(current.copy(selectedProduct=product,quantity=(product.defaultQuantity?.takeIf{it>0}?:1.0).toString(),unit=product.defaultUnit.orEmpty()),true)
  }
  private fun addPurchase(state:AddToListUiState,keepBrowsing:Boolean){
-  if(state.isLoading)return
+  if(state.isLoading||state.isSearching)return
   val qty=if(state.selectedProduct==null&&state.quantity.isBlank())ProductCreationDefaults.read(prefs).let{if(it.fillMissing)it.missingQuantity else 1.0} else Quantities.parse(state.quantity)
   if(qty==null){_uiState.value=state.copy(error="Введите положительное количество, например 0,5");return}
   if(state.selectedProduct==null&&!state.isNewProduct){_uiState.value=state.copy(error="Выберите товар из найденных");return}
@@ -111,6 +115,6 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
  fun factory(preselectedShopId:Long?=null,preselectedBranchId:Long?=null)=viewModelFactory{initializer{
   val app=this[APPLICATION_KEY] as SpisokRyadomApp
   AddToListViewModel(app.container.productRepository,app.container.shopRepository,app.container.shoppingListRepository,
-   app.getSharedPreferences(ShoppingListViewModel.PREFS_NAME_PUBLIC,0),preselectedShopId,preselectedBranchId)
+   app.getSharedPreferences(ShoppingListViewModel.PREFS_NAME_PUBLIC,0),preselectedShopId,preselectedBranchId,app.container.classifierRepository.getAllUnits())
  }}}
 }

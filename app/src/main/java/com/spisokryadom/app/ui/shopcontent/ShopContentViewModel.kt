@@ -152,12 +152,10 @@ class ShopContentViewModel(
                 .combine(_departments){data,departments->data.copy(departments=departments)}
                 .combine(_shops){data,shops->data.copy(shops=shops)}
                 .combine(productRepository.observeBranchDepartments()){data,overrides->data to overrides}
-                .combine(shopRepository.venues()){(data,overrides),venues->Triple(data,overrides,venues)}
-                .combine(shopRepository.observeBranchOrders()){(data,overrides,venues),orders->
+                .combine(shopRepository.venues()){(data,overrides),venues->
                 val products=data.products;val allPoints=data.points;val availability=data.availability;val entries=data.entries
                 val overrideMap=overrides.associateBy{it.branchId to it.productId}
-                val pointRoutes=overrides.any{it.shopId==shopId}||orders.any{order->allPoints.any{it.id==order.branchId&&it.shopId==shopId}}
-                val orderMap=orders.associateBy{it.branchId to it.typeId}
+                val pointRoutes=overrides.any{it.shopId==shopId}
                 val branchMap=allPoints.associateBy{it.id}
                 val departmentByType=data.departments.values.filter{it.shopId==shopId}.associateBy{it.typeId}
                 val pendingByProduct=entries.filter{!it.isBought&&it.assignedShopId==shopId}.groupBy{it.productId}
@@ -173,7 +171,7 @@ class ShopContentViewModel(
                         }
                         val sorted=rows.sortedWith(compareBy<ShopProductUi>{row->
                             val type=overrideMap[point.id to row.product.id]?.typeId?:data.departments[row.link.departmentId]?.typeId
-                            orderMap[point.id to type]?.displayOrder?:departmentByType[type]?.displayOrder?:Int.MAX_VALUE
+                            departmentByType[type]?.displayOrder?:Int.MAX_VALUE
                         }.thenByDescending{it.product.isFavorite}.thenBy{FuzzySearch.normalize(it.product.name)})
                         ShopPointSection(point.id,com.spisokryadom.app.domain.PlaceLabels(allPoints,venues).branch(point),point.note,point.photoUri,sorted)
                     }.filter{it.products.isNotEmpty()}.toMutableList()

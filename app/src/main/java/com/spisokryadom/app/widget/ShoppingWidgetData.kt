@@ -47,7 +47,6 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
         val shops=db.shopDao().getAllSync().associateBy{it.id}
         val branches=db.shopBranchDao().getAll().associateBy{it.id}
         val departments=db.shopDepartmentDao().getAllSync().associateBy{it.id}
-        val orders=db.retailStructureDao().departmentOrder().associateBy{it.branchId to it.typeId}
         val venues=db.retailStructureDao().venues().associateBy{it.id}
         val cities=db.cityDao().getAllSync().associateBy{it.id}
         val cityId=locations?.currentId()?:cities.keys.firstOrNull()
@@ -95,7 +94,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
                         result.add(WidgetItem.Header(place.key.stableKey,label.title,label.subtitle,if(venue==null)0 else 1))
                         if(shop!=null){
                             val depts=place.value.groupBy{entry(it).assignedDepartmentId}
-                            depts.keys.sortedWith(compareBy<Long?>{id->val dept=departments[id];orders[branchId to dept?.typeId]?.displayOrder?:dept?.displayOrder?:Int.MAX_VALUE}.thenBy{it}).forEach{id->
+                            depts.keys.sortedWith(compareBy<Long?>{id->val dept=departments[id];dept?.displayOrder?:Int.MAX_VALUE}.thenBy{it}).forEach{id->
                                 if(settings.showDepartments&&(id!=null||depts.size>1))result.add(WidgetItem.Header("department:$shopId:$branchId:$id",departments[id]?.name?:"Без группы магазина",depth=2))
                                 result.addAll(sorted(depts.getValue(id)))
                             }

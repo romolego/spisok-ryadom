@@ -221,6 +221,7 @@ class ProductRepository(
             val all=db.shopDepartmentDao().getByShopIdSync(dept.shopId)
             val found=all.find{(dept.typeId>0&&it.typeId==dept.typeId)||FuzzySearch.normalize(it.name)==FuzzySearch.normalize(dept.name)}
             deptIds[dept.id]=found?.id ?: db.shopDepartmentDao().insert(dept.copy(id=0,name=dept.name.trim(),displayOrder=(all.maxOfOrNull{it.displayOrder}?:0)+1))
+            synchronizeNetworkDepartments(db,dept.shopId)
         }
         return deptIds
     }

@@ -41,12 +41,14 @@ class ShopRepository(
         purchaseMode?.let{require(it in com.spisokryadom.app.util.PurchaseModes.labels);db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(id,it))}
         val pendingBefore=db.shoppingListEntryDao().getAllSync().filter{!it.isBought&&it.assignedShopId==id}
         val retained=departments.filter{it.id>0}.map{it.id}.toSet()
+        val removedTypes=departmentDao.getByShopIdSync(id).filter{it.id !in retained}.map{it.typeId}.toSet()
         departmentDao.getByShopIdSync(id).filter{it.id !in retained}.forEach{departmentDao.delete(it)}
         departments.forEachIndexed{index,dept->
             require(dept.name.isNotBlank())
             val value=dept.copy(id=dept.id.coerceAtLeast(0),shopId=id,displayOrder=index+1,name=dept.name.trim())
             if(value.id==0L)departmentDao.insert(value) else { require(departmentDao.getById(value.id)?.shopId==id);departmentDao.update(value) }
         }
+        synchronizeNetworkDepartments(db,id,removedTypes-departmentDao.getByShopIdSync(id).map{it.typeId}.toSet())
         val venueIds=venueEdits.mapValues{(key,value)->
             require(key!=0L&&key==value.id){"Проверьте ссылку на рынок или ТЦ"}
             require(value.cityId==shop.cityId){"Торговый комплекс относится к другому городу"}
@@ -131,11 +133,15 @@ class ShopRepository(
     suspend fun getDepartmentById(id: Long): ShopDepartmentEntity? = departmentDao.getById(id)
     suspend fun getDepartmentsByShopIdSync(shopId: Long): List<ShopDepartmentEntity> =
         departmentDao.getByShopIdSync(shopId)
-    suspend fun updateDepartment(dept: ShopDepartmentEntity) = departmentDao.update(dept)
+    suspend fun updateDepartment(dept: ShopDepartmentEntity) = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+        departmentDao.update(dept)
+        synchronizeNetworkDepartments(db,dept.shopId)
+    } }
     suspend fun deleteDepartment(dept: ShopDepartmentEntity) = withCatalogueEdits(db,catalogueEdits) {  db.withTransaction {
         val current=departmentDao.getById(dept.id)?:return@withTransaction
         val before=db.shoppingListEntryDao().getAllSync().filter{!it.isBought&&it.assignedShopId==current.shopId}
         departmentDao.delete(current)
+        synchronizeNetworkDepartments(db,current.shopId,setOf(current.typeId))
         refreshPendingDepartments(current.shopId,before)
     } }
     fun getDistinctDepartmentNames(): Flow<List<String>> = departmentDao.getDistinctNames()

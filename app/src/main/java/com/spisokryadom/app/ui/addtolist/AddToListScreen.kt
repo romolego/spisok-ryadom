@@ -36,7 +36,6 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
    LazyColumn(Modifier.testTag("add-screen-list").fillMaxSize().padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
     item(key="shop"){ShopChoiceField(state.shops,state.selectedShopId,viewModel::onShopSelected,enabled=!state.isLoading&&!state.isShopLocked,onCreate=viewModel::createShop)}
     item(key="query"){OutlinedTextField(state.searchQuery,viewModel::onSearchQueryChanged,label={Text("Название товара")},singleLine=true,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth())}
-    if(state.isSearching)item(key="searching"){LinearProgressIndicator(Modifier.fillMaxWidth())}
     if(state.selectedProduct==null&&(state.searchResults.isNotEmpty()||state.searchQuery.isBlank()&&state.browseProducts))item(key="candidates"){
      OutlinedCard(Modifier.fillMaxWidth()) {
       LazyColumn(Modifier.fillMaxWidth().heightIn(max=listHeight).testTag("add-candidates")) {
@@ -59,10 +58,7 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
     }}
     if(state.selectedProduct!=null||state.searchQuery.isNotBlank()) {
      item(key="quantity"){
-      Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
-       OutlinedTextField(state.quantity,viewModel::quantity,label={Text("Количество")},singleLine=true,modifier=Modifier.weight(1f),enabled=!state.isLoading,keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal))
-       OutlinedTextField(state.unit,viewModel::unit,label={Text("Единица")},singleLine=true,modifier=Modifier.weight(1f),enabled=!state.isLoading)
-      }
+      com.spisokryadom.app.ui.components.QuantityUnitInputWithSuggestions(state.quantity,state.unit,viewModel::quantity,viewModel::unit,state.unitSuggestions,unitLabel="Единица",enabled=!state.isLoading)
      }
      if(state.selectedProduct==null&&state.isNewProduct)item(key="new"){
       Column{Text("Новый товар: ${state.searchQuery.trim()}");com.spisokryadom.app.ui.components.SelectionRow("Сохранить в базе товаров",state.saveToDatabase,viewModel::onSaveToDatabaseChanged,enabled=!state.isLoading)}

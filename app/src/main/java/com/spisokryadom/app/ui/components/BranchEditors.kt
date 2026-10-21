@@ -15,7 +15,7 @@ private val OutletDraftSaver=androidx.compose.runtime.saveable.listSaver<ShopBra
  save={listOf(it.id,it.shopId,it.address,it.displayOrder,it.note.orEmpty(),it.photoUri.orEmpty(),it.venueId?:0L,it.label)},
  restore={ShopBranchEntity(it[0] as Long,it[1] as Long,it[2] as String,it[3] as Int,(it[4] as String).ifBlank{null},(it[5] as String).ifBlank{null},(it[6] as Long).takeIf{v->v!=0L},it[7] as String)})
 
-@Composable fun BranchesEditor(branches:List<ShopBranchEntity>,onChange:(List<ShopBranchEntity>)->Unit,onBusyChange:(Boolean)->Unit={},venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),pointGroups:@Composable (ShopBranchEntity)->Unit={},externalPhotoBusy:Boolean=false,onVenueChange:(com.spisokryadom.app.data.entity.VenueEntity)->Unit={},cityId:Long=1) {
+@Composable fun BranchesEditor(branches:List<ShopBranchEntity>,onChange:(List<ShopBranchEntity>)->Unit,onBusyChange:(Boolean)->Unit={},venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),externalPhotoBusy:Boolean=false,onVenueChange:(com.spisokryadom.app.data.entity.VenueEntity)->Unit={},cityId:Long=1) {
  var editingId by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf<Long?>(null)}
  var adding by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
  val labels=com.spisokryadom.app.domain.PlaceLabels(branches,venues)
@@ -72,7 +72,6 @@ private val OutletDraftSaver=androidx.compose.runtime.saveable.listSaver<ShopBra
    if(duplicate)Text("Эта точка уже добавлена",color=MaterialTheme.colorScheme.error)
    OutlinedTextField(draft.note.orEmpty(),{draft=draft.copy(note=it)},label={Text("Заметка точки")},maxLines=3,modifier=Modifier.fillMaxWidth().testTag("branch-note-${point.id}"))
    BranchPhotoEditor(draft.photoUri.orEmpty(),{draft=draft.copy(photoUri=it)},{photoBusy=it;onBusyChange(it)},compact=true,showTitle=false,enabled=!externalPhotoBusy||photoBusy)
-   pointGroups(point)
    if(!adding)IconButton(onClick={deleting=true}){Icon(Icons.Filled.Delete,"Удалить точку")}
   }
   venueEditing?.let{value->VenueEditorDialog(value,onDismiss={venueEditingId=null},onSave={saved->onVenueChange(saved);draft=draft.copy(venueId=saved.id)})}

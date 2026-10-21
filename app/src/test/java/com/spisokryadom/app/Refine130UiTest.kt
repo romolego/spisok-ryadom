@@ -78,11 +78,11 @@ class Refine130UiTest {
  }
  @Test fun shopBackgroundSupportsCustomColorPersistsAndCanBeDisabled(){
   click("Магазины");waitText("Батон");ui.onNodeWithText("Батон").performTouchInput{longClick()};waitText("Название магазина")
-  ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-background-color").performScrollTo().performClick()
-  ui.onNodeWithTag("appearance-custom-toggle").performClick();ui.onNodeWithTag("appearance-hex").performTextReplacement("#12ABEF");click("Применить оформление");shot("05-shop-color")
+  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-background-color").performScrollTo().performClick()
+  ui.onNodeWithTag("appearance-custom-toggle").performClick();ui.onNodeWithTag("appearance-hex").performTextReplacement("#12ABEF");click("Применить оформление");ui.onNodeWithTag("shop-appearance-apply").performClick();shot("05-shop-color")
   click("Сохранить");waitText("Магазины");assertEquals("#12ABEF",runBlocking{db.shopDao().getById(b)!!.shoppingBackground})
   click("Главная");waitText("Хлеб с изюмом");shot("06-shopping-colored-blocks")
-  click("Магазины");waitText("Батон");ui.onNodeWithText("Батон").performTouchInput{longClick()};waitText("Название магазина");ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();click("Сохранить");waitText("Магазины")
+  click("Магазины");waitText("Батон");ui.onNodeWithText("Батон").performTouchInput{longClick()};waitText("Название магазина");ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-appearance-apply").performClick();click("Сохранить");waitText("Магазины")
   assertEquals("",runBlocking{db.shopDao().getById(b)!!.shoppingBackground})
  }
  @Test fun nativeWidgetRendersSectionsAndBothFontExtremes(){

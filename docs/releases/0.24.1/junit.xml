@@ -1,0 +1,271 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites tests="236" failures="0" errors="0" skipped="0">
+  <testsuite name="com.spisokryadom.app.ArchitectureDataTest" tests="12" failures="0" errors="0" skipped="0">
+    <testcase name="cityCorrectionDetachesFormerVenueAtomicallyAndRetainsPointIdentity" classname="com.spisokryadom.app.ArchitectureDataTest" time="6.376" />
+    <testcase name="restoredAgedPointPhotoSurvivesStartupCleanupAndOrphansAreCollected" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.43" />
+    <testcase name="archiveCompressionDoesNotHoldDbTransactionAndLeasesProtectItsPhotos" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.156" />
+    <testcase name="unlinkCascadesOnlyOwnedAvailabilityAndBackupStillWorks" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.208" />
+    <testcase name="removingLocalGroupCollectsPointSettingsButKeepsTheGlobalIdentity" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.144" />
+    <testcase name="savingProductPreservesLinkIdentityAndPointOverrides" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.168" />
+    <testcase name="globalGroupRenameKeepsLocalIdsAndIndependentOrder" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.081" />
+    <testcase name="deletingRetailerDetachesHistoricalPurchaseAsOneConsistentAssignment" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.102" />
+    <testcase name="manualMarketConversionPreservesProductsPurchasesPhotosAndGlobalGroups" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.156" />
+    <testcase name="invalidRawOwnersAreRejectedByDatabase" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.084" />
+    <testcase name="onePhysicalPointBelongsToNetworkAndVenueAcrossCities" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.094" />
+    <testcase name="fullBackupRoundTripsNetworkVenueLocalOrderAndProductOverrides" classname="com.spisokryadom.app.ArchitectureDataTest" time="0.256" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit151BackupTest" tests="16" failures="0" errors="0" skipped="0">
+    <testcase name="plannedPriceCannotBeCoercedFromNumericString[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="7.453" />
+    <testcase name="goalStringsCannotBeCoercedFromNonStrings[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="1.231" />
+    <testcase name="missingOwnerAndPlanningFieldsCannotSilentlyEraseMetadata[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="1.016" />
+    <testcase name="malformedUtf8InsideManifestCannotSilentlyReplaceSavedName[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.244" />
+    <testcase name="fractionalListIdsCannotBeTruncatedIntoAnotherOwner[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.142" />
+    <testcase name="stringListIdCannotBeCoercedIntoAnOwner[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.489" />
+    <testcase name="goalVisibilityCannotBeCoercedFromString[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.468" />
+    <testcase name="numericVersionMustBeAnIntegerRatherThanRounded[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.141" />
+    <testcase name="plannedPriceCannotBeCoercedFromNumericString" classname="com.spisokryadom.app.Audit151BackupTest" time="10.972" />
+    <testcase name="goalStringsCannotBeCoercedFromNonStrings" classname="com.spisokryadom.app.Audit151BackupTest" time="0.219" />
+    <testcase name="missingOwnerAndPlanningFieldsCannotSilentlyEraseMetadata" classname="com.spisokryadom.app.Audit151BackupTest" time="0.405" />
+    <testcase name="malformedUtf8InsideManifestCannotSilentlyReplaceSavedName" classname="com.spisokryadom.app.Audit151BackupTest" time="0.601" />
+    <testcase name="fractionalListIdsCannotBeTruncatedIntoAnotherOwner" classname="com.spisokryadom.app.Audit151BackupTest" time="0.151" />
+    <testcase name="stringListIdCannotBeCoercedIntoAnOwner" classname="com.spisokryadom.app.Audit151BackupTest" time="0.16" />
+    <testcase name="goalVisibilityCannotBeCoercedFromString" classname="com.spisokryadom.app.Audit151BackupTest" time="0.156" />
+    <testcase name="numericVersionMustBeAnIntegerRatherThanRounded" classname="com.spisokryadom.app.Audit151BackupTest" time="0.771" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.ProductCard190DataTest" tests="16" failures="0" errors="0" skipped="0">
+    <testcase name="commonShopGroupClearsLegacyOverridesOnlyForConfirmedShop[28]" classname="com.spisokryadom.app.ProductCard190DataTest" time="6.593" />
+    <testcase name="newCardCommitsDepartmentRestrictionAndPriorityTogether[28]" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.277" />
+    <testcase name="allOutletsStayUnrestrictedAfterPriorityAndNewAddress[28]" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.33" />
+    <testcase name="oneConfirmationUpdatesPendingButPreservesBoughtAndGoalPriceUnit[28]" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.282" />
+    <testcase name="rawRoundTripRetainsAllModeAndPriorityIndependently[28]" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.196" />
+    <testcase name="invalidEmptyOrStaleSelectionLeavesWholeShopConfigurationUntouched[28]" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.315" />
+    <testcase name="autosaveCommitsSettingsWithoutExplicitSave[28]" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.321" />
+    <testcase name="manualModeBackDiscardsConfirmedDialogWithRestOfCard[28]" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.232" />
+    <testcase name="commonShopGroupClearsLegacyOverridesOnlyForConfirmedShop" classname="com.spisokryadom.app.ProductCard190DataTest" time="6.578" />
+    <testcase name="newCardCommitsDepartmentRestrictionAndPriorityTogether" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.257" />
+    <testcase name="allOutletsStayUnrestrictedAfterPriorityAndNewAddress" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.304" />
+    <testcase name="oneConfirmationUpdatesPendingButPreservesBoughtAndGoalPriceUnit" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.355" />
+    <testcase name="rawRoundTripRetainsAllModeAndPriorityIndependently" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.206" />
+    <testcase name="invalidEmptyOrStaleSelectionLeavesWholeShopConfigurationUntouched" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.201" />
+    <testcase name="autosaveCommitsSettingsWithoutExplicitSave" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.334" />
+    <testcase name="manualModeBackDiscardsConfirmedDialogWithRestOfCard" classname="com.spisokryadom.app.ProductCard190DataTest" time="0.205" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.ProductCard190UiTest" tests="16" failures="0" errors="0" skipped="0">
+    <testcase name="cameraCancellationKeepsExistingPhoto[28]" classname="com.spisokryadom.app.ProductCard190UiTest" time="12.621" />
+    <testcase name="cancelledShopDialogDoesNotChangeCardOrPurchases[28]" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.421" />
+    <testcase name="personalStoreOrderOnlyAppearsForMultipleLinksAndDisappearsAfterRemoval[28]" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.226" />
+    <testcase name="cardHidesRareBlocksAndShopDialogCombinesGroupWithAvailability[28]" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.351" />
+    <testcase name="priorityIsOptionalAndWorksInAllOutletsMode[28]" classname="com.spisokryadom.app.ProductCard190UiTest" time="0.901" />
+    <testcase name="galleryPhotoHasPencilAndDeleteConfirmationProtectsIt[28]" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.532" />
+    <testcase name="productUsesSharedColorFieldAndPersistsCustomHex[28]" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.184" />
+    <testcase name="restrictedPointsRequireSelectionAndUpdateSamePurchase[28]" classname="com.spisokryadom.app.ProductCard190UiTest" time="0.926" />
+    <testcase name="cameraCancellationKeepsExistingPhoto" classname="com.spisokryadom.app.ProductCard190UiTest" time="13.023" />
+    <testcase name="cancelledShopDialogDoesNotChangeCardOrPurchases" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.326" />
+    <testcase name="personalStoreOrderOnlyAppearsForMultipleLinksAndDisappearsAfterRemoval" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.108" />
+    <testcase name="cardHidesRareBlocksAndShopDialogCombinesGroupWithAvailability" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.283" />
+    <testcase name="priorityIsOptionalAndWorksInAllOutletsMode" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.283" />
+    <testcase name="galleryPhotoHasPencilAndDeleteConfirmationProtectsIt" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.537" />
+    <testcase name="productUsesSharedColorFieldAndPersistsCustomHex" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.224" />
+    <testcase name="restrictedPointsRequireSelectionAndUpdateSamePurchase" classname="com.spisokryadom.app.ProductCard190UiTest" time="1.123" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.QuickAdd241DataTest" tests="10" failures="0" errors="0" skipped="0">
+    <testcase name="quickFormObservesUserUnitsAndSavesChosenUnit[28]" classname="com.spisokryadom.app.QuickAdd241DataTest" time="7.368" />
+    <testcase name="legacyPointOrderCannotOverrideTheSharedOrderInMainShopOrWidget[28]" classname="com.spisokryadom.app.QuickAdd241DataTest" time="0.436" />
+    <testcase name="networkGroupsShareOrderKeepIdsAndDoNotAffectUnrelatedShops[28]" classname="com.spisokryadom.app.QuickAdd241DataTest" time="0.401" />
+    <testcase name="typingKeepsResolvedFormAndRejectsStaleQuickAddUntilLatestResult[28]" classname="com.spisokryadom.app.QuickAdd241DataTest" time="0.747" />
+    <testcase name="joiningNetworkAndCreatingProductGroupPreserveExistingGroupsAndRollbackOnInvalidPoint[28]" classname="com.spisokryadom.app.QuickAdd241DataTest" time="0.102" />
+    <testcase name="quickFormObservesUserUnitsAndSavesChosenUnit" classname="com.spisokryadom.app.QuickAdd241DataTest" time="7.017" />
+    <testcase name="legacyPointOrderCannotOverrideTheSharedOrderInMainShopOrWidget" classname="com.spisokryadom.app.QuickAdd241DataTest" time="0.27" />
+    <testcase name="networkGroupsShareOrderKeepIdsAndDoNotAffectUnrelatedShops" classname="com.spisokryadom.app.QuickAdd241DataTest" time="0.297" />
+    <testcase name="typingKeepsResolvedFormAndRejectsStaleQuickAddUntilLatestResult" classname="com.spisokryadom.app.QuickAdd241DataTest" time="0.744" />
+    <testcase name="joiningNetworkAndCreatingProductGroupPreserveExistingGroupsAndRollbackOnInvalidPoint" classname="com.spisokryadom.app.QuickAdd241DataTest" time="0.098" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.QuickAdd241UiTest" tests="6" failures="0" errors="0" skipped="0">
+    <testcase name="appearanceLivesBehindOneIconAndCancelDoesNotChangeTheStore[28]" classname="com.spisokryadom.app.QuickAdd241UiTest" time="13.137" />
+    <testcase name="newPurchaseOffersUnitsWithoutErasingTheTypedValue[28]" classname="com.spisokryadom.app.QuickAdd241UiTest" time="1.546" />
+    <testcase name="typingDoesNotRemoveNewProductControlsOrInsertLoadingRows[28]" classname="com.spisokryadom.app.QuickAdd241UiTest" time="1.112" />
+    <testcase name="appearanceLivesBehindOneIconAndCancelDoesNotChangeTheStore" classname="com.spisokryadom.app.QuickAdd241UiTest" time="12.981" />
+    <testcase name="newPurchaseOffersUnitsWithoutErasingTheTypedValue" classname="com.spisokryadom.app.QuickAdd241UiTest" time="1.44" />
+    <testcase name="typingDoesNotRemoveNewProductControlsOrInsertLoadingRows" classname="com.spisokryadom.app.QuickAdd241UiTest" time="1.123" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Refine130UiTest" tests="12" failures="0" errors="0" skipped="0">
+    <testcase name="nativeWidgetRendersSectionsAndBothFontExtremes[28]" classname="com.spisokryadom.app.Refine130UiTest" time="12.312" />
+    <testcase name="widgetSettingsAreIndependentAndSurviveActivityRecreation[28]" classname="com.spisokryadom.app.Refine130UiTest" time="2.358" />
+    <testcase name="allWidgetGroupingsAreReachableWithoutAnUnassignedMode[28]" classname="com.spisokryadom.app.Refine130UiTest" time="1.179" />
+    <testcase name="restoredWidgetPreferencesRefreshAlreadyOpenSettings[28]" classname="com.spisokryadom.app.Refine130UiTest" time="0.751" />
+    <testcase name="shopBackgroundSupportsCustomColorPersistsAndCanBeDisabled[28]" classname="com.spisokryadom.app.Refine130UiTest" time="2.09" />
+    <testcase name="compactDepartmentsKeepCollapseAndSelectionAndShopSeparation[28]" classname="com.spisokryadom.app.Refine130UiTest" time="0.712" />
+    <testcase name="nativeWidgetRendersSectionsAndBothFontExtremes" classname="com.spisokryadom.app.Refine130UiTest" time="12.223" />
+    <testcase name="widgetSettingsAreIndependentAndSurviveActivityRecreation" classname="com.spisokryadom.app.Refine130UiTest" time="1.797" />
+    <testcase name="allWidgetGroupingsAreReachableWithoutAnUnassignedMode" classname="com.spisokryadom.app.Refine130UiTest" time="1.291" />
+    <testcase name="restoredWidgetPreferencesRefreshAlreadyOpenSettings" classname="com.spisokryadom.app.Refine130UiTest" time="0.694" />
+    <testcase name="shopBackgroundSupportsCustomColorPersistsAndCanBeDisabled" classname="com.spisokryadom.app.Refine130UiTest" time="2.346" />
+    <testcase name="compactDepartmentsKeepCollapseAndSelectionAndShopSeparation" classname="com.spisokryadom.app.Refine130UiTest" time="0.711" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Refine140DataTest" tests="16" failures="0" errors="0" skipped="0">
+    <testcase name="browsePreferenceRoundTripsWithFullBackup[28]" classname="com.spisokryadom.app.Refine140DataTest" time="6.856" />
+    <testcase name="autoBrowseHasAlphabeticalWholeCatalogueAndRepeatedFavorites[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.213" />
+    <testcase name="disablingBrowseKeepsTypedSearchAndReactsToPreferenceChanges[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.507" />
+    <testcase name="typingNewProductStillCreatesAndAssignsIt[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.485" />
+    <testcase name="selectingWithoutTypingCanSetQuantityAndAdd[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.148" />
+    <testcase name="explicitOutletHonorsRestrictedAvailabilityAndShopChanges[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.106" />
+    <testcase name="shareMessageIgnoresOldDraftsAndNeverMutatesBasket[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.155" />
+    <testcase name="quickAddingSeveralProductsKeepsBrowserAndUsesDefaults[28]" classname="com.spisokryadom.app.Refine140DataTest" time="0.129" />
+    <testcase name="browsePreferenceRoundTripsWithFullBackup" classname="com.spisokryadom.app.Refine140DataTest" time="6.391" />
+    <testcase name="autoBrowseHasAlphabeticalWholeCatalogueAndRepeatedFavorites" classname="com.spisokryadom.app.Refine140DataTest" time="0.168" />
+    <testcase name="disablingBrowseKeepsTypedSearchAndReactsToPreferenceChanges" classname="com.spisokryadom.app.Refine140DataTest" time="0.492" />
+    <testcase name="typingNewProductStillCreatesAndAssignsIt" classname="com.spisokryadom.app.Refine140DataTest" time="0.486" />
+    <testcase name="selectingWithoutTypingCanSetQuantityAndAdd" classname="com.spisokryadom.app.Refine140DataTest" time="0.138" />
+    <testcase name="explicitOutletHonorsRestrictedAvailabilityAndShopChanges" classname="com.spisokryadom.app.Refine140DataTest" time="0.115" />
+    <testcase name="shareMessageIgnoresOldDraftsAndNeverMutatesBasket" classname="com.spisokryadom.app.Refine140DataTest" time="0.15" />
+    <testcase name="quickAddingSeveralProductsKeepsBrowserAndUsesDefaults" classname="com.spisokryadom.app.Refine140DataTest" time="0.174" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Refine140UiTest" tests="10" failures="0" errors="0" skipped="0">
+    <testcase name="settingsSpacingAndBrowseToggleSurviveRecreation[28]" classname="com.spisokryadom.app.Refine140UiTest" time="14.008" />
+    <testcase name="shareUsesEditedTextAndReopeningRegeneratesFromUnchangedBasket[28]" classname="com.spisokryadom.app.Refine140UiTest" time="1.112" />
+    <testcase name="longPlusDoesNothingAndWidgetAddUsesSameBrowser[28]" classname="com.spisokryadom.app.Refine140UiTest" time="0.577" />
+    <testcase name="explicitShopPickerFiltersBeforeAnyTyping[28]" classname="com.spisokryadom.app.Refine140UiTest" time="0.955" />
+    <testcase name="blankPickerRepeatsFavoritesAndQuickAddKeepsItOpen[28]" classname="com.spisokryadom.app.Refine140UiTest" time="0.842" />
+    <testcase name="settingsSpacingAndBrowseToggleSurviveRecreation" classname="com.spisokryadom.app.Refine140UiTest" time="12.794" />
+    <testcase name="shareUsesEditedTextAndReopeningRegeneratesFromUnchangedBasket" classname="com.spisokryadom.app.Refine140UiTest" time="1.126" />
+    <testcase name="longPlusDoesNothingAndWidgetAddUsesSameBrowser" classname="com.spisokryadom.app.Refine140UiTest" time="0.483" />
+    <testcase name="explicitShopPickerFiltersBeforeAnyTyping" classname="com.spisokryadom.app.Refine140UiTest" time="0.861" />
+    <testcase name="blankPickerRepeatsFavoritesAndQuickAddKeepsItOpen" classname="com.spisokryadom.app.Refine140UiTest" time="0.919" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.ShoppingRepresentationsTest" tests="16" failures="0" errors="0" skipped="0">
+    <testcase name="clearingBoughtInOnePlacePreservesTheOtherAddressAndPendingEntries" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="6.724" />
+    <testcase name="collapsedGroupIdentityPersistsIndependentlyByViewAndStableId" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.169" />
+    <testcase name="copyingTheCatalogueLinkIsIdempotentAndNeverTouchesPurchasesOrProductMetadata" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.13" />
+    <testcase name="removingOnlyExclusivePointIsRejectedWithoutChangingTheChain" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.145" />
+    <testcase name="editingPurchaseFactsCannotChangeItsPlaceOrIdentity" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.11" />
+    <testcase name="quantitiesAtDifferentPointsNeverCollapseIntoOnePurchase" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.079" />
+    <testcase name="chainPriorityRespectsExclusiveProductAvailability" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.099" />
+    <testcase name="equalPriorityRetailersKeepTheirAlphabeticNeighboursDuringExplicitMove" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.132" />
+    <testcase name="fifteenPurchasesMoveOnlyFourPendingAndPreserveAllTheirFields" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.109" />
+    <testcase name="malformedBranchInFullBackupCannotReplaceTheCurrentBasket" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.179" />
+    <testcase name="placeChoicesIntersectCatalogueAvailabilityAndExcludeOtherCitiesAndUnlinkedShops" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.123" />
+    <testcase name="explicitPointReorderingPreservesPurchaseAssignmentsAndOverridesUrgencyBoost" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.094" />
+    <testcase name="zipFiveRoundTripsAddressesRestrictionsPurchasesAndCollapsedPreferences" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.273" />
+    <testcase name="olderFullZipFourGetsOnePointFromEachOldShopAddress" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.25" />
+    <testcase name="invalidPointRollsBackTheWholeSelectionAndAutomaticMoveUsesIndividualPoints" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.113" />
+    <testcase name="stalePlaceSelectionIsRecheckedAndRollsBackTheWholeMove" classname="com.spisokryadom.app.ShoppingRepresentationsTest" time="0.095" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.StoreCard180DataTest" tests="18" failures="0" errors="0" skipped="0">
+    <testcase name="logoSurvivesBackupRestoreAndCleanup[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="6.891" />
+    <testcase name="oldCatalogueWithoutStoresStillImports[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.129" />
+    <testcase name="appearanceAndUrgencySaveWithoutChangingBranchIdentity[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.206" />
+    <testcase name="invalidLogoPathIsRejectedBeforeReplacingDatabase[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.111" />
+    <testcase name="choosingLogoAndIconIsMutuallyExclusiveAndCanBeRemoved[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.102" />
+    <testcase name="oldVersion12RestoresWithDefaultStoreSymbol[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.166" />
+    <testcase name="marketConversionPreservesAppearanceOnAllSellers[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.072" />
+    <testcase name="migration16PreservesStoreAndPurchaseFields[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.173" />
+    <testcase name="logoImportIsSmallAndPreservesTransparency[28]" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.099" />
+    <testcase name="logoSurvivesBackupRestoreAndCleanup" classname="com.spisokryadom.app.StoreCard180DataTest" time="8.373" />
+    <testcase name="oldCatalogueWithoutStoresStillImports" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.11" />
+    <testcase name="appearanceAndUrgencySaveWithoutChangingBranchIdentity" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.176" />
+    <testcase name="invalidLogoPathIsRejectedBeforeReplacingDatabase" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.113" />
+    <testcase name="choosingLogoAndIconIsMutuallyExclusiveAndCanBeRemoved" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.103" />
+    <testcase name="oldVersion12RestoresWithDefaultStoreSymbol" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.173" />
+    <testcase name="marketConversionPreservesAppearanceOnAllSellers" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.084" />
+    <testcase name="migration16PreservesStoreAndPurchaseFields" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.178" />
+    <testcase name="logoImportIsSmallAndPreservesTransparency" classname="com.spisokryadom.app.StoreCard180DataTest" time="0.09" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.StoreCard180UiTest" tests="15" failures="0" errors="0" skipped="0">
+    <testcase name="placeIsReadOnlyUntilEditingAndKeepsIdentityAfterSave[28]" classname="com.spisokryadom.app.StoreCard180UiTest" time="12.827" />
+    <testcase name="iconOnlyPickerAndVenueSummaryAreCoherent[28]" classname="com.spisokryadom.app.StoreCard180UiTest" time="1.286" />
+    <testcase name="galleryLogoCanBeImportedSavedAndDisplayedInPurchases[28]" classname="com.spisokryadom.app.StoreCard180UiTest" time="1.209" />
+    <testcase name="twoDimensionalPickerIsLiveAndCancelDoesNotCommit[28]" classname="com.spisokryadom.app.StoreCard180UiTest" time="1.123" />
+    <testcase name="duplicateAddressCannotBeHiddenOrSaved[28]" classname="com.spisokryadom.app.StoreCard180UiTest" time="0.545" />
+    <testcase name="busyPhotoEditorsCannotStartAnotherImport[28]" classname="com.spisokryadom.app.StoreCard180UiTest" time="0.358" />
+    <testcase name="purchaseAndUrgencyUseDropdownsAndPersistAllStates[28]" classname="com.spisokryadom.app.StoreCard180UiTest" time="1.238" />
+    <testcase name="placeIsReadOnlyUntilEditingAndKeepsIdentityAfterSave" classname="com.spisokryadom.app.StoreCard180UiTest" time="12.557" />
+    <testcase name="iconOnlyPickerAndVenueSummaryAreCoherent" classname="com.spisokryadom.app.StoreCard180UiTest" time="1.387" />
+    <testcase name="galleryLogoCanBeImportedSavedAndDisplayedInPurchases" classname="com.spisokryadom.app.StoreCard180UiTest" time="1.238" />
+    <testcase name="twoDimensionalPickerIsLiveAndCancelDoesNotCommit" classname="com.spisokryadom.app.StoreCard180UiTest" time="1.136" />
+    <testcase name="duplicateAddressCannotBeHiddenOrSaved" classname="com.spisokryadom.app.StoreCard180UiTest" time="0.581" />
+    <testcase name="storeColorPreviewKeepsConfirmationVisibleInLandscape" classname="com.spisokryadom.app.StoreCard180UiTest" time="0.638" />
+    <testcase name="busyPhotoEditorsCannotStartAnotherImport" classname="com.spisokryadom.app.StoreCard180UiTest" time="0.389" />
+    <testcase name="purchaseAndUrgencyUseDropdownsAndPersistAllStates" classname="com.spisokryadom.app.StoreCard180UiTest" time="1.1" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Stores220DataTest" tests="14" failures="0" errors="0" skipped="0">
+    <testcase name="mixedNetworkAppearsUnderEachMallAndAsStreetStoreWithoutDuplicatingIdentity[28]" classname="com.spisokryadom.app.Stores220DataTest" time="6.493" />
+    <testcase name="migration18AddsOrdinaryBackgroundWithoutChangingIdentityOrRelations[28]" classname="com.spisokryadom.app.Stores220DataTest" time="0.257" />
+    <testcase name="removingOneMallDetachesOnlyItsPointAndPreservesNetworkAndPurchases[28]" classname="com.spisokryadom.app.Stores220DataTest" time="0.181" />
+    <testcase name="shopContentLabelsEveryPointAndPurchaseGroupsKeepAllThreeAssignments[28]" classname="com.spisokryadom.app.Stores220DataTest" time="0.318" />
+    <testcase name="backgroundAndUnitRankingPreserveDefaultsAndAllOptions[28]" classname="com.spisokryadom.app.Stores220DataTest" time="0.208" />
+    <testcase name="backup16PreservesMixedMembershipAndAllBackgroundModesAndReadsOld15[28]" classname="com.spisokryadom.app.Stores220DataTest" time="0.462" />
+    <testcase name="malformedBackgroundAndCrossCityMallFailWithoutPartialWrites[28]" classname="com.spisokryadom.app.Stores220DataTest" time="0.225" />
+    <testcase name="mixedNetworkAppearsUnderEachMallAndAsStreetStoreWithoutDuplicatingIdentity" classname="com.spisokryadom.app.Stores220DataTest" time="6.258" />
+    <testcase name="migration18AddsOrdinaryBackgroundWithoutChangingIdentityOrRelations" classname="com.spisokryadom.app.Stores220DataTest" time="0.896" />
+    <testcase name="removingOneMallDetachesOnlyItsPointAndPreservesNetworkAndPurchases" classname="com.spisokryadom.app.Stores220DataTest" time="0.301" />
+    <testcase name="shopContentLabelsEveryPointAndPurchaseGroupsKeepAllThreeAssignments" classname="com.spisokryadom.app.Stores220DataTest" time="0.331" />
+    <testcase name="backgroundAndUnitRankingPreserveDefaultsAndAllOptions" classname="com.spisokryadom.app.Stores220DataTest" time="0.361" />
+    <testcase name="backup16PreservesMixedMembershipAndAllBackgroundModesAndReadsOld15" classname="com.spisokryadom.app.Stores220DataTest" time="6.22" />
+    <testcase name="malformedBackgroundAndCrossCityMallFailWithoutPartialWrites" classname="com.spisokryadom.app.Stores220DataTest" time="0.246" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Stores220UiTest" tests="9" failures="0" errors="0" skipped="0">
+    <testcase name="longDepartmentPickerKeepsBothActionsVisibleAndAppliesSelection[28]" classname="com.spisokryadom.app.Stores220UiTest" time="13.485" />
+    <testcase name="typedUnitRanksMatchesButAllowsChoosingAnUnrelatedUnit[28]" classname="com.spisokryadom.app.Stores220UiTest" time="0.538" />
+    <testcase name="defaultStoreIconIsCalledDefaultAndPurchaseBackgroundCanFollowTheShop[28]" classname="com.spisokryadom.app.Stores220UiTest" time="1.047" />
+    <testcase name="shopSummaryKeepsNetworkAndSeparateMallMembershipForEachPoint[28]" classname="com.spisokryadom.app.Stores220UiTest" time="0.149" />
+    <testcase name="longDepartmentPickerKeepsBothActionsVisibleAndAppliesSelection" classname="com.spisokryadom.app.Stores220UiTest" time="11.093" />
+    <testcase name="typedUnitRanksMatchesButAllowsChoosingAnUnrelatedUnit" classname="com.spisokryadom.app.Stores220UiTest" time="0.483" />
+    <testcase name="shortScreenStillKeepsPickerActionsVisible" classname="com.spisokryadom.app.Stores220UiTest" time="0.419" />
+    <testcase name="defaultStoreIconIsCalledDefaultAndPurchaseBackgroundCanFollowTheShop" classname="com.spisokryadom.app.Stores220UiTest" time="1.108" />
+    <testcase name="shopSummaryKeepsNetworkAndSeparateMallMembershipForEachPoint" classname="com.spisokryadom.app.Stores220UiTest" time="0.176" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Templates240UiTest" tests="18" failures="0" errors="0" skipped="0">
+    <testcase name="currentPurchasesCanBeCapturedAsReusableTemplate[28]" classname="com.spisokryadom.app.Templates240UiTest" time="11.905" />
+    <testcase name="applicationRequiresConfirmationThenOpensMainAndWidgetSeesCopies[28]" classname="com.spisokryadom.app.Templates240UiTest" time="1.15" />
+    <testcase name="quickFavoritesShowAddedQuantityInBothCopiesAndCanAddMore[28]" classname="com.spisokryadom.app.Templates240UiTest" time="0.838" />
+    <testcase name="createsTemplateThroughTheSameListDialog[28]" classname="com.spisokryadom.app.Templates240UiTest" time="1.15" />
+    <testcase name="templateUrgencyEditsAffectFutureCopiesAndKeepExistingPurchases[28]" classname="com.spisokryadom.app.Templates240UiTest" time="0.501" />
+    <testcase name="favoritesFilterHasExplicitBannerAndOneTapToShowAll[28]" classname="com.spisokryadom.app.Templates240UiTest" time="0.648" />
+    <testcase name="cancellingDoesNotAddAnythingAndExistingDestinationKeepsItsOwner[28]" classname="com.spisokryadom.app.Templates240UiTest" time="0.636" />
+    <testcase name="templateCanCreateAnOrdinaryListAndOpenIt[28]" classname="com.spisokryadom.app.Templates240UiTest" time="0.463" />
+    <testcase name="addedMarkerComesFromRealPendingPurchasesAndClearsAfterBuying[28]" classname="com.spisokryadom.app.Templates240UiTest" time="0.44" />
+    <testcase name="currentPurchasesCanBeCapturedAsReusableTemplate" classname="com.spisokryadom.app.Templates240UiTest" time="11.931" />
+    <testcase name="applicationRequiresConfirmationThenOpensMainAndWidgetSeesCopies" classname="com.spisokryadom.app.Templates240UiTest" time="0.844" />
+    <testcase name="quickFavoritesShowAddedQuantityInBothCopiesAndCanAddMore" classname="com.spisokryadom.app.Templates240UiTest" time="0.865" />
+    <testcase name="createsTemplateThroughTheSameListDialog" classname="com.spisokryadom.app.Templates240UiTest" time="1.095" />
+    <testcase name="templateUrgencyEditsAffectFutureCopiesAndKeepExistingPurchases" classname="com.spisokryadom.app.Templates240UiTest" time="0.512" />
+    <testcase name="favoritesFilterHasExplicitBannerAndOneTapToShowAll" classname="com.spisokryadom.app.Templates240UiTest" time="0.699" />
+    <testcase name="cancellingDoesNotAddAnythingAndExistingDestinationKeepsItsOwner" classname="com.spisokryadom.app.Templates240UiTest" time="0.701" />
+    <testcase name="templateCanCreateAnOrdinaryListAndOpenIt" classname="com.spisokryadom.app.Templates240UiTest" time="0.527" />
+    <testcase name="addedMarkerComesFromRealPendingPurchasesAndClearsAfterBuying" classname="com.spisokryadom.app.Templates240UiTest" time="0.378" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Venues230DataTest" tests="32" failures="0" errors="0" skipped="0">
+    <testcase name="newUnsavedPointCanBeFirstWithoutChangingExistingIdentity[28]" classname="com.spisokryadom.app.Venues230DataTest" time="6.746" />
+    <testcase name="sharedAddressUpdatesAllRetailersAndTransferGoalAndWidgetPresentations[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.297" />
+    <testcase name="migration19PreservesIdsOrderMembershipAndSeparatesCommonAddress[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.228" />
+    <testcase name="noPostalAddressIsRequiredForPavilionAndNewVenueIsCreatedAtomically[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.093" />
+    <testcase name="ambiguousLegacyOutletsKeepBothIdsAndDistinctDescriptions[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.072" />
+    <testcase name="old16BackupSeparatesRepeatedPostalAddressFromPavilionDescription[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.33" />
+    <testcase name="severalPointsInOneMallHaveOptionalOwnLabelsAndOneAddress[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.164" />
+    <testcase name="secondPointCanBecomeFirstAndNewPurchasesUseItAfterReload[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.107" />
+    <testcase name="movingMixedNetworkToAnotherCityKeepsDistinctOutletsAndRollsBackInvalidVenue[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.127" />
+    <testcase name="malformedPointLabelOrPhotoCannotPartiallyReplaceCatalogue[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.165" />
+    <testcase name="namedStreetOutletAndRepeatedRetailerLabelDoNotRepeatAddressOrName[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.079" />
+    <testcase name="deletingVenueKeepsItsPostalAddressWithOutletAndDoesNotDeleteNetwork[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.086" />
+    <testcase name="sharedVenueChangesRollbackWhenOutletValidationFails[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.082" />
+    <testcase name="venueAndOutletPhotosRoundTripIndependentlyAndCleanupKeepsBoth[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.226" />
+    <testcase name="deletingVenueWithoutPostalAddressKeepsNamedPointAndBackupRemainsValid[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.188" />
+    <testcase name="globalPointReorderPreservesExplicitProductPriorityAvailabilityAndExistingPurchase[28]" classname="com.spisokryadom.app.Venues230DataTest" time="0.105" />
+    <testcase name="newUnsavedPointCanBeFirstWithoutChangingExistingIdentity" classname="com.spisokryadom.app.Venues230DataTest" time="6.341" />
+    <testcase name="sharedAddressUpdatesAllRetailersAndTransferGoalAndWidgetPresentations" classname="com.spisokryadom.app.Venues230DataTest" time="0.178" />
+    <testcase name="migration19PreservesIdsOrderMembershipAndSeparatesCommonAddress" classname="com.spisokryadom.app.Venues230DataTest" time="0.211" />
+    <testcase name="noPostalAddressIsRequiredForPavilionAndNewVenueIsCreatedAtomically" classname="com.spisokryadom.app.Venues230DataTest" time="0.088" />
+    <testcase name="ambiguousLegacyOutletsKeepBothIdsAndDistinctDescriptions" classname="com.spisokryadom.app.Venues230DataTest" time="0.08" />
+    <testcase name="old16BackupSeparatesRepeatedPostalAddressFromPavilionDescription" classname="com.spisokryadom.app.Venues230DataTest" time="0.315" />
+    <testcase name="severalPointsInOneMallHaveOptionalOwnLabelsAndOneAddress" classname="com.spisokryadom.app.Venues230DataTest" time="0.097" />
+    <testcase name="secondPointCanBecomeFirstAndNewPurchasesUseItAfterReload" classname="com.spisokryadom.app.Venues230DataTest" time="0.134" />
+    <testcase name="movingMixedNetworkToAnotherCityKeepsDistinctOutletsAndRollsBackInvalidVenue" classname="com.spisokryadom.app.Venues230DataTest" time="0.103" />
+    <testcase name="malformedPointLabelOrPhotoCannotPartiallyReplaceCatalogue" classname="com.spisokryadom.app.Venues230DataTest" time="0.13" />
+    <testcase name="namedStreetOutletAndRepeatedRetailerLabelDoNotRepeatAddressOrName" classname="com.spisokryadom.app.Venues230DataTest" time="0.066" />
+    <testcase name="deletingVenueKeepsItsPostalAddressWithOutletAndDoesNotDeleteNetwork" classname="com.spisokryadom.app.Venues230DataTest" time="0.075" />
+    <testcase name="sharedVenueChangesRollbackWhenOutletValidationFails" classname="com.spisokryadom.app.Venues230DataTest" time="0.089" />
+    <testcase name="venueAndOutletPhotosRoundTripIndependentlyAndCleanupKeepsBoth" classname="com.spisokryadom.app.Venues230DataTest" time="0.196" />
+    <testcase name="deletingVenueWithoutPostalAddressKeepsNamedPointAndBackupRemainsValid" classname="com.spisokryadom.app.Venues230DataTest" time="0.244" />
+    <testcase name="globalPointReorderPreservesExplicitProductPriorityAvailabilityAndExistingPurchase" classname="com.spisokryadom.app.Venues230DataTest" time="0.087" />
+  </testsuite>
+</testsuites>

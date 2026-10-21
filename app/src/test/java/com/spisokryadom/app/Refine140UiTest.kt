@@ -77,7 +77,7 @@ class Refine140UiTest {
   ui.activityRule.scenario.recreate();waitText("Настройки");ui.onNodeWithContentDescription("Назад").performClick()
   ui.onNodeWithContentDescription("Добавить в список").performClick();waitText("Название товара")
   ui.onNodeWithTag("add-candidates").assertDoesNotExist()
-  ui.onNodeWithText("Название товара").performTextInput("Банан");waitText("Банан")
+  ui.onNodeWithText("Название товара").performTextInput("Банан");waitFor{runCatching{ui.onNodeWithContentDescription("Избранный товар: Банан").assertIsDisplayed()}.isSuccess}
   ui.onNodeWithContentDescription("Избранный товар: Банан").assertIsDisplayed();shot("04-search-with-browse-off")
  }
  @Test fun shareUsesEditedTextAndReopeningRegeneratesFromUnchangedBasket(){

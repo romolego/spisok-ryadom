@@ -191,7 +191,6 @@ class ShoppingListViewModel(
             }.combine(shopRepository.locations.activeCity) { data,city -> data.copy(cityId=city.id) }
                 .combine(shopRepository.locations.cities){data,cities->data.copy(cityNames=cities.associate{it.id to it.name})}
                 .combine(branches){data,points->data.copy(branches=points.associateBy{it.id})}
-                .combine(shopRepository.observeBranchOrders()){data,orders->data.copy(branchOrders=orders.associateBy{it.branchId to it.typeId})}
                 .combine(shopRepository.venues()){data,venues->data.copy(venues=venues.associateBy{it.id})}
                 .combine(shopRepository.departmentTypes()){data,types->data.copy(types=types.associateBy{it.id})}
                 .combine(shoppingListRepository.observeGoalLists()){data,lists->data.copy(goalListNames=lists.associate{it.id to it.name})}
@@ -215,7 +214,6 @@ class ShoppingListViewModel(
         val globalShowUrgent: Boolean = true,
         val globalBoostUrgent: Boolean = true,
         val cityId: Long = 1,
-        val branchOrders:Map<Pair<Long,Long>,com.spisokryadom.app.data.entity.BranchDepartmentOrderEntity> = emptyMap(),
         val cityNames: Map<Long,String> = emptyMap(), val branches:Map<Long,com.spisokryadom.app.data.entity.ShopBranchEntity> = emptyMap()
     )
 
@@ -248,7 +246,7 @@ class ShoppingListViewModel(
                 defaultQuantity = product?.defaultQuantity,
                 quantityStep = com.spisokryadom.app.util.Quantities.step(entry.unit, product?.defaultUnit, product?.defaultQuantity),
                 branchAddress=data.branches[entry.assignedBranchId]?.let{placeLabels.detail(it)},branchPriority=data.branches[entry.assignedBranchId]?.displayOrder?:0,
-                localDepartmentOrder=data.departments[entry.assignedDepartmentId]?.let{dept->data.branchOrders[entry.assignedBranchId to dept.typeId]?.displayOrder?:dept.displayOrder}?:Int.MAX_VALUE,
+                localDepartmentOrder=data.departments[entry.assignedDepartmentId]?.let{dept->dept.displayOrder}?:Int.MAX_VALUE,
                 productGroupId = product?.productGroupId, recipientId=product?.recipientId
             )
         }

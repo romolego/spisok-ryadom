@@ -2,12 +2,11 @@ package com.spisokryadom.app.ui.components
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.ui.semantics.Role
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -56,53 +55,82 @@ fun ShopBlockPreview(background:String,name:String,iconKey:String,logoUri:String
     }
 }
 
+/** Compact entry point; changes in the sheet remain a draft until Apply. */
 @Composable
 fun ShopAppearance(background:String,name:String,iconKey:String,logoUri:String?,onBackground:(String)->Unit,onIcon:(String)->Unit,onLogo:(String?)->Unit,onBusy:(Boolean)->Unit,externalPhotoBusy:Boolean=false,purchaseBackground:String="",onPurchaseBackground:(String)->Unit={}){
-    var itemColors by remember{mutableStateOf(false)}
-    var colors by remember{mutableStateOf(false)};var icons by remember{mutableStateOf(false)}
-    var lastColor by rememberSaveable{mutableStateOf(background.ifEmpty{"rose"})}
-    var busy by remember{mutableStateOf(false)};var error by remember{mutableStateOf<String?>(null)}
-    val context=LocalContext.current;val scope=rememberCoroutineScope()
-    val latestLogo by rememberUpdatedState(onLogo);val latestBusy by rememberUpdatedState(onBusy)
-    val gallery=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->if(uri!=null){
-        busy=true;latestBusy(true);error=null
-        scope.launch{
-            try{latestLogo(withContext(Dispatchers.IO){PhotoStore.importPhoto(context,uri,"shop_logos")})}
-            catch(e:Exception){if(e is CancellationException)throw e;error=e.message?:"Не удалось загрузить логотип"}
-            finally{busy=false;latestBusy(false)}
-        }
-    }}
-    if(colors)AppearanceSheet("Фон блока магазина",background,withIcons=false,onSave={c,_->if(c.isNotEmpty())lastColor=c;onBackground(c);colors=false},onDismiss={colors=false},
-        preview={c,_->ShopBlockPreview(c,name,iconKey,logoUri,compact=true,purchaseBackground=purchaseBackground)})
-    if(icons)AppearanceSheet("Значок магазина","",iconKey,withColors=false,noneIconLabel="Обычный значок магазина",onSave={_,i->onIcon(i);icons=false},onDismiss={icons=false})
-    if(itemColors)AppearanceSheet("Фон товаров магазина",purchaseBackground.takeUnless{it=="auto"}.orEmpty(),withIcons=false,onSave={c,_->onPurchaseBackground(c);itemColors=false},onDismiss={itemColors=false},preview={c,_->ShopBlockPreview(background,name,iconKey,logoUri,compact=true,purchaseBackground=c)})
-    OutlinedCard(Modifier.fillMaxWidth().testTag("shop-background-settings"),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){
-        Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
-            Text("Оформление в списке покупок",style=MaterialTheme.typography.titleMedium)
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                ShopSymbol(iconKey,logoUri,32.dp)
-                Text(if(logoUri!=null)"Логотип магазина"else if(iconKey.isNotEmpty())"Значок магазина"else "Обычный значок",Modifier.weight(1f).padding(start=10.dp),style=MaterialTheme.typography.bodyMedium)
-            }
-            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                OutlinedButton(onClick={icons=true},enabled=!busy&&!externalPhotoBusy,modifier=Modifier.weight(1f)){Text("Значок")}
-                OutlinedButton(onClick={gallery.launch("image/*")},enabled=!busy&&!externalPhotoBusy,modifier=Modifier.weight(1f)){Text("Логотип")}
-            }
-            if(logoUri!=null||iconKey.isNotEmpty())TextButton(onClick={onLogo(null);onIcon("")},enabled=!busy&&!externalPhotoBusy){Text("Вернуть обычный значок")}
-            if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
-            error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
-            androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().testTag("shop-background-switch")
-                .toggleable(background.isNotEmpty(),role=Role.Switch){if(it)onBackground(lastColor)else{lastColor=background;onBackground("")}},verticalAlignment=Alignment.CenterVertically){
-                Text("Выделять блок магазина фоном",Modifier.weight(1f).padding(end=12.dp),style=MaterialTheme.typography.bodyMedium)
-                Switch(background.isNotEmpty(),null)
-            }
-            if(background.isNotEmpty())OutlinedButton(onClick={colors=true},modifier=Modifier.testTag("shop-background-color")){Text("Цвет фона")}
-            DropdownSelector("Фон товаров",listOf("","auto","custom"),if(purchaseBackground.isBlank()||purchaseBackground=="auto")purchaseBackground else "custom",
-                {when(it){"auto"->"В тон подложки";"custom"->"Свой цвет";else->"Обычный фон"}},
-                {mode->when(mode){"auto"->onPurchaseBackground("auto");"custom"->{onPurchaseBackground(purchaseBackground.takeUnless{it.isBlank()||it=="auto"}?:background.ifBlank{"rose"});itemColors=true};""->onPurchaseBackground("")}},allowNone=false)
-            if(purchaseBackground.isNotBlank()&&purchaseBackground!="auto")OutlinedButton(onClick={itemColors=true}){Text("Цвет фона товаров")}
-            Text("Предпросмотр",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-            ShopBlockPreview(background,name,iconKey,logoUri,purchaseBackground=purchaseBackground)
-        }
+    var open by rememberSaveable{mutableStateOf(false)}
+    IconButton(onClick={open=true},enabled=!externalPhotoBusy,modifier=Modifier.testTag("shop-appearance-open")){
+        Icon(Icons.Filled.Palette,"Оформление магазина")
+    }
+    if(open)ShopAppearanceEditor(background,name,iconKey,logoUri,purchaseBackground,onDismiss={open=false},onBusy=onBusy,externalPhotoBusy=externalPhotoBusy){color,items,icon,logo->
+        onBackground(color);onPurchaseBackground(items);onIcon(icon);if(logo!=null)onLogo(logo);open=false
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShopAppearanceEditor(initialBackground:String,name:String,initialIcon:String,initialLogo:String?,initialItems:String,onDismiss:()->Unit,onBusy:(Boolean)->Unit,externalPhotoBusy:Boolean,onApply:(String,String,String,String?)->Unit){
+    var background by rememberSaveable{mutableStateOf(initialBackground)}
+    var items by rememberSaveable{mutableStateOf(initialItems)}
+    var icon by rememberSaveable{mutableStateOf(initialIcon)}
+    var logo by rememberSaveable{mutableStateOf(initialLogo)}
+    var lastColor by rememberSaveable{mutableStateOf(initialBackground.ifBlank{"rose"})}
+    var picker by rememberSaveable{mutableStateOf("")}
+    var busy by remember{mutableStateOf(false)}
+    var error by remember{mutableStateOf<String?>(null)}
+    val context=LocalContext.current;val scope=rememberCoroutineScope()
+    val busyCallback by rememberUpdatedState(onBusy)
+    val gallery=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->if(uri!=null){
+        busy=true;busyCallback(true);error=null
+        scope.launch{
+            try{logo=withContext(Dispatchers.IO){PhotoStore.importPhoto(context,uri,"shop_logos")};icon=""}
+            catch(e:Exception){if(e is CancellationException)throw e;error=e.message?:"Не удалось загрузить логотип"}
+            finally{busy=false;busyCallback(false)}
+        }
+    }}
+    val locked=busy||externalPhotoBusy
+    val latestLocked by rememberUpdatedState(locked)
+    ModalBottomSheet(onDismissRequest={if(!locked)onDismiss()},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true,confirmValueChange={it!=SheetValue.Hidden||!latestLocked})){
+        Column(Modifier.fillMaxWidth().heightIn(max=(androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp-64).coerceAtLeast(190).dp).imePadding().padding(horizontal=20.dp).testTag("shop-appearance-editor"),verticalArrangement=Arrangement.spacedBy(12.dp)){
+            Text("Оформление магазина",style=MaterialTheme.typography.titleLarge)
+            ShopBlockPreview(background,name,icon,logo,compact=true,purchaseBackground=items)
+            Column(Modifier.weight(1f,fill=false).verticalScroll(androidx.compose.foundation.rememberScrollState()).testTag("shop-appearance-controls"),verticalArrangement=Arrangement.spacedBy(12.dp)){
+                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                    Icon(Icons.Filled.Layers,null,tint=MaterialTheme.colorScheme.primary)
+                    Text("Подложка",Modifier.weight(1f).padding(horizontal=10.dp),style=MaterialTheme.typography.titleSmall)
+                    if(background.isNotBlank())IconButton(onClick={picker="block"},enabled=!locked,modifier=Modifier.testTag("shop-background-color")){
+                        Icon(Icons.Filled.Circle,"Цвет подложки",tint=accentColor(background)?:MaterialTheme.colorScheme.primary)
+                    }
+                    Switch(background.isNotBlank(),{if(it)background=lastColor else{lastColor=background;background=""}},enabled=!locked,modifier=Modifier.testTag("shop-background-switch"))
+                }
+                DropdownSelector("Фон товаров",listOf("","auto","custom"),if(items.isBlank()||items=="auto")items else "custom",
+                    {when(it){"auto"->"В тон подложки";"custom"->"Свой цвет";else->"Обычный фон"}},
+                    {mode->if(!locked)when(mode){"auto"->items="auto";"custom"->picker="items";""->items=""}},allowNone=false)
+                if(items.isNotBlank()&&items!="auto")Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                    Text("Цвет товаров",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
+                    IconButton(onClick={picker="items"},enabled=!locked){Icon(Icons.Filled.Circle,"Цвет фона товаров",tint=accentColor(items)?:MaterialTheme.colorScheme.primary)}
+                }
+                HorizontalDivider()
+                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                    ShopSymbol(icon,logo,32.dp)
+                    Spacer(Modifier.weight(1f))
+                    IconButton(onClick={picker="icon"},enabled=!locked){Icon(Icons.Filled.GridView,"Выбрать значок магазина")}
+                    IconButton(onClick={gallery.launch("image/*")},enabled=!locked){Icon(Icons.Filled.AddPhotoAlternate,"Загрузить логотип магазина")}
+                    IconButton(onClick={icon="";logo=null},enabled=!locked&&(icon.isNotBlank()||logo!=null)){Icon(Icons.Filled.RestartAlt,"Вернуть обычный значок")}
+                }
+                if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
+                error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
+            }
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                TextButton(onClick=onDismiss,enabled=!locked,modifier=Modifier.weight(1f)){Text("Отмена")}
+                Button(onClick={onApply(background,items,icon,logo)},enabled=!locked,modifier=Modifier.weight(1f).testTag("shop-appearance-apply")){Text("Применить")}
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+    when(picker){
+        "block"->AppearanceSheet("Цвет подложки",background,withIcons=false,onSave={c,_->background=c;if(c.isNotBlank())lastColor=c;picker=""},onDismiss={picker=""},preview={c,_->ShopBlockPreview(c,name,icon,logo,compact=true,purchaseBackground=items)})
+        "items"->AppearanceSheet("Цвет товаров",items.takeUnless{it=="auto"}.orEmpty(),withIcons=false,onSave={c,_->items=c;picker=""},onDismiss={picker=""},preview={c,_->ShopBlockPreview(background,name,icon,logo,compact=true,purchaseBackground=c)})
+        "icon"->AppearanceSheet("Значок магазина","",icon,withColors=false,noneIconLabel="Обычный значок магазина",onSave={_,i->icon=i;logo=null;picker=""},onDismiss={picker=""})
+    }
+}

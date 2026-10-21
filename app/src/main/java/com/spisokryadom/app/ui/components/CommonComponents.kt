@@ -265,7 +265,8 @@ fun QuantityUnitInputWithSuggestions(
     unitSuggestions: List<String>,
     quantityLabel: String = "Количество",
     unitLabel: String = "Ед. изм.",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     var unitExpanded by remember { mutableStateOf(false) }
     val filteredSuggestions = remember(unit, unitSuggestions) {
@@ -282,6 +283,8 @@ fun QuantityUnitInputWithSuggestions(
                 }
             },
             label = { Text(quantityLabel) },
+            enabled = enabled,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),
             singleLine = true,
             modifier = Modifier.weight(1f)
         )
@@ -289,7 +292,7 @@ fun QuantityUnitInputWithSuggestions(
 
         ExposedDropdownMenuBox(
             expanded = unitExpanded && filteredSuggestions.isNotEmpty(),
-            onExpandedChange = { unitExpanded = it },
+            onExpandedChange = { if(enabled)unitExpanded = it },
             modifier = Modifier.weight(1f)
         ) {
             OutlinedTextField(
@@ -299,7 +302,9 @@ fun QuantityUnitInputWithSuggestions(
                     unitExpanded = true
                 },
                 label = { Text(unitLabel) },
+                enabled = enabled,
                 singleLine = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(unitExpanded) },
                 modifier = Modifier
                     .menuAnchor(MenuAnchorType.PrimaryEditable)
                     .fillMaxWidth()

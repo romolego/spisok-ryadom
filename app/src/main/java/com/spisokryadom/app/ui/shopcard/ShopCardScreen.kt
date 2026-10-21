@@ -162,13 +162,17 @@ fun ShopCardScreen(
                 .verticalScroll(scrollState).testTag("shop-card-scroll"),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
             OutlinedTextField(
                 value = state.name,
                 onValueChange = { viewModel.updateName(it) },
                 label = { Text("Название магазина") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.weight(1f)
             )
+            ShopAppearance(state.shoppingBackground,state.name,state.iconKey,state.logoUri,
+                viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy,purchaseBackground=state.purchaseBackground,onPurchaseBackground=viewModel::updatePurchaseBackground)
+            }
 
             ShopCardBlock("Место магазина",action={
                 TextButton(onClick={isPlaceEditing=!isPlaceEditing},enabled=!state.isPhotoBusy&&(!isPlaceEditing||validBranches)){
@@ -177,21 +181,7 @@ fun ShopCardScreen(
             }) {
                 if(isPlaceEditing){
                     CityField(state.cityId,viewModel::updateCity)
-            com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,placeVenues.filter{it.cityId==state.cityId},pointGroups={point->
-                val types=state.departments.distinctBy{it.typeId}.filter{it.typeId>0}
-                if(point.id>0&&types.size>1){
-                    Text("Порядок групп в точке",style=MaterialTheme.typography.titleSmall)
-                    val order=state.branchOrders[point.id].orEmpty()
-                    val sorted=types.sortedWith(compareBy<ShopDepartmentEntity>{order.indexOf(it.typeId).takeIf{idx->idx>=0}?:Int.MAX_VALUE}.thenBy{it.displayOrder})
-                    com.spisokryadom.app.ui.components.AnimatedOrderColumn(sorted,{it.typeId}){index,group->
-                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                            Text(group.name,Modifier.weight(1f))
-                            fun move(delta:Int){val ids=sorted.map{it.typeId}.toMutableList();ids.add(index+delta,ids.removeAt(index));viewModel.updateBranchOrder(point.id,ids)}
-                            com.spisokryadom.app.ui.components.ReorderButtons({move(-1)},{move(1)},index>0,index<sorted.lastIndex)
-                        }
-                    }
-                }
-            },externalPhotoBusy=state.isPhotoBusy,onVenueChange=viewModel::updateVenue,cityId=state.cityId)
+            com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,placeVenues.filter{it.cityId==state.cityId},externalPhotoBusy=state.isPhotoBusy,onVenueChange=viewModel::updateVenue,cityId=state.cityId)
 
                     RetailRelationSelector("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName)
                     if(!state.isNew&&state.branches.isNotEmpty()&&state.branches.all{it.venueId==null}){
@@ -211,8 +201,6 @@ fun ShopCardScreen(
                     modifier=Modifier.fillMaxWidth(),minLines=1,maxLines=3)
             }
 
-            ShopAppearance(state.shoppingBackground,state.name,state.iconKey,state.logoUri,
-                viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy,purchaseBackground=state.purchaseBackground,onPurchaseBackground=viewModel::updatePurchaseBackground)
 
             ShopCardBlock("Настройки срочности") {
                 DropdownSelector("Срочные в свёрнутом магазине",UrgencyOverride.entries,state.showUrgentInCollapsed,{it.label},

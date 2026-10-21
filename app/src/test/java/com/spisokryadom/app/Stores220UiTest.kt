@@ -52,9 +52,9 @@ class Stores220UiTest {
  @Test fun defaultStoreIconIsCalledDefaultAndPurchaseBackgroundCanFollowTheShop(){
   var background by mutableStateOf("")
   show{Column(Modifier.verticalScroll(rememberScrollState())){ShopAppearance("rose","Лента","",null,{},{},{},{},purchaseBackground=background,onPurchaseBackground={background=it})}}
-  ui.onNodeWithText("Значок").performClick();ui.onNodeWithText("Обычный значок магазина").assertExists();ui.onNodeWithText("Без значка").assertDoesNotExist();ui.onNodeWithText("Применить оформление").performClick()
-  ui.onNodeWithText("Фон товаров").performScrollTo().performClick();ui.onNodeWithText("В тон подложки").performClick();assertEquals("auto",background);ui.onNodeWithTag("shop-appearance-preview").performScrollTo();shot("purchase-background-auto")
-  ui.onNodeWithText("Фон товаров").performScrollTo().performClick();ui.onNodeWithText("Обычный фон").performClick();assertEquals("",background)
+  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithContentDescription("Выбрать значок магазина").performClick();ui.onNodeWithText("Обычный значок магазина").assertExists();ui.onNodeWithText("Без значка").assertDoesNotExist();ui.onNodeWithText("Применить оформление").performClick()
+  ui.onNodeWithText("Фон товаров").performScrollTo().performClick();ui.onNodeWithText("В тон подложки").performClick();ui.onNodeWithTag("shop-appearance-apply").performClick();assertEquals("auto",background);ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-appearance-preview");shot("purchase-background-auto")
+  ui.onNodeWithText("Фон товаров").performScrollTo().performClick();ui.onNodeWithText("Обычный фон").performClick();ui.onNodeWithTag("shop-appearance-apply").performClick();assertEquals("",background)
  }
  @Test fun shopSummaryKeepsNetworkAndSeparateMallMembershipForEachPoint(){
   val state=ShopCardUiState(name="Лента",isLoading=false,networkId=8,networks=listOf(RetailNetworkEntity(8,"Лента")),cities=listOf(CityEntity(1,"Город")),venues=listOf(VenueEntity(1,1,"ТЦ Зелёный"),VenueEntity(2,1,"ТЦ Северный")),branches=listOf(ShopBranchEntity(1,9,"Парковая, 1",venueId=1),ShopBranchEntity(2,9,"Северная, 2",venueId=2),ShopBranchEntity(3,9,"Мира, 3")))

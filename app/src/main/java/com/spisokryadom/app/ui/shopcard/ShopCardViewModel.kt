@@ -53,7 +53,6 @@ data class ShopCardUiState(
     val networks:List<com.spisokryadom.app.data.entity.RetailNetworkEntity> = emptyList(),
     val venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),
     val venueEdits:Map<Long,com.spisokryadom.app.data.entity.VenueEntity> = emptyMap(),
-    val branchOrders:Map<Long,List<Long>> = emptyMap(),
     val branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity> = emptyList(),
     val departments: List<ShopDepartmentEntity> = emptyList(),
     val pendingDepartments: List<PendingDepartment> = emptyList(),
@@ -87,8 +86,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
                 val shop=shopRepository.getShopById(shopId)?:error("Магазин удалён")
                 val branches=shopRepository.branches(shopId)
                 val departments=shopRepository.getDepartmentsByShopIdSync(shopId)
-                val orders=shopRepository.branchOrders().groupBy{it.branchId}.mapValues{it.value.sortedBy{it.displayOrder}.map{it.typeId}}
-                _uiState.value=_uiState.value.copy(isNew=false,name=shop.name,iconKey=shop.iconKey,logoUri=shop.logoUri,purchaseMode=shopRepository.purchaseMode(shop.id),networkId=shop.networkId,shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,branchOrders=orders,address=shop.address.orEmpty(),note=shop.note.orEmpty(),cityId=shop.cityId,
+                _uiState.value=_uiState.value.copy(isNew=false,name=shop.name,iconKey=shop.iconKey,logoUri=shop.logoUri,purchaseMode=shopRepository.purchaseMode(shop.id),networkId=shop.networkId,shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,address=shop.address.orEmpty(),note=shop.note.orEmpty(),cityId=shop.cityId,
                     displayOrder=shop.displayOrder.toString(),showUrgentInCollapsed=booleanToOverride(shop.showUrgentInCollapsed),boostUrgentShop=booleanToOverride(shop.boostUrgentShop),
                     branches=branches,departments=departments,isLoading=false)
             }else {val city=shopRepository.locations.currentId();_uiState.value=_uiState.value.copy(cityId=city,isLoading=false)}
@@ -108,7 +106,6 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     fun convertToVenue(){if(!_uiState.value.isNew)saveDraft(convert=true)}
 
     fun updateBranches(value:List<com.spisokryadom.app.data.entity.ShopBranchEntity>){_uiState.value=_uiState.value.copy(branches=value.mapIndexed{i,point->point.copy(displayOrder=i)})}
-    fun updateBranchOrder(branchId:Long,values:List<Long>){_uiState.value=_uiState.value.copy(branchOrders=_uiState.value.branchOrders+(branchId to values))}
     fun updatePhotoBusy(value:Boolean){_uiState.value=_uiState.value.copy(isPhotoBusy=value)}
     fun updateNote(value:String){_uiState.value=_uiState.value.copy(note=value)}
     fun updateIcon(value:String){_uiState.value=_uiState.value.copy(iconKey=value,logoUri=null)}
@@ -128,7 +125,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
                 showUrgentInCollapsed=overrideToBoolean(state.showUrgentInCollapsed),boostUrgentShop=overrideToBoolean(state.boostUrgentShop),
                 manualOrderOverride=if(old?.boostUrgentShop==overrideToBoolean(state.boostUrgentShop))old?.manualOrderOverride?:false else false)
             val departments=if(state.isNew)state.pendingDepartments.sortedBy{it.displayOrder}.map{ShopDepartmentEntity(shopId=0,name=it.name,displayOrder=it.displayOrder)}else state.departments.sortedBy{it.displayOrder}
-            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,state.branchOrders.filterKeys{id->state.branches.any{it.id==id}}.mapValues{(_,types)->types.filter{type->state.departments.any{it.typeId==type}}},convertToVenue=convert,purchaseMode=state.purchaseMode,venueEdits=state.venueEdits.filterKeys{id->id>0||state.branches.any{it.venueId==id}})
+            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,convertToVenue=convert,purchaseMode=state.purchaseMode,venueEdits=state.venueEdits.filterKeys{id->id>0||state.branches.any{it.venueId==id}})
             _uiState.value=_uiState.value.copy(isSaving=false,isSaved=true)
         }
     }
