@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 interface ShoppingListEntryDao {
     @Query("""
         SELECT * FROM shopping_list_entries
-        WHERE listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1)
+        WHERE listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1 AND isTemplate=0)
         ORDER BY isBought ASC, isUrgent DESC, createdAt DESC
     """)
     fun getAll(): Flow<List<ShoppingListEntryEntity>>
@@ -28,19 +28,19 @@ interface ShoppingListEntryDao {
     @Query("UPDATE shopping_list_entries SET isBought = 0, updatedAt = :now WHERE id = :id")
     suspend fun markNotBought(id: Long, now: Long = System.currentTimeMillis())
 
-    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1))")
+    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1 AND isTemplate=0))")
     suspend fun clearBought()
 
-    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId = :shopId AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1))")
+    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId = :shopId AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1 AND isTemplate=0))")
     suspend fun clearBoughtByShop(shopId: Long)
 
-    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId IS NULL AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1))")
+    @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND assignedShopId IS NULL AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1 AND isTemplate=0))")
     suspend fun clearBoughtWithoutShop()
 
     @Query("SELECT * FROM shopping_list_entries ORDER BY createdAt ASC")
     suspend fun getAllSync(): List<ShoppingListEntryEntity>
 
-    @Query("SELECT * FROM shopping_list_entries WHERE listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1) ORDER BY createdAt ASC,id ASC")
+    @Query("SELECT * FROM shopping_list_entries WHERE listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1 AND isTemplate=0) ORDER BY createdAt ASC,id ASC")
     suspend fun getVisibleSync(): List<ShoppingListEntryEntity>
 
     @Query("SELECT * FROM shopping_list_entries WHERE listId IS :listId ORDER BY isBought ASC,isUrgent DESC,createdAt ASC,id ASC")

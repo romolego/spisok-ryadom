@@ -1,11 +1,17 @@
 package com.spisokryadom.app.ui.addtolist
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -75,12 +81,20 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
 }
 @Composable
 private fun AddCandidate(p:ProductEntity,state:AddToListUiState,section:String,onSelect:()->Unit,onAdd:()->Unit) {
- Row(Modifier.fillMaxWidth().testTag("candidate-$section-${p.id}").clickable(enabled=!state.isLoading&&!state.isSearching,onClick=onSelect).padding(start=12.dp,top=6.dp,bottom=6.dp),verticalAlignment=Alignment.CenterVertically) {
+ val pending=state.pendingProductLabels[p.id]
+ val background by animateColorAsState(if(pending!=null)MaterialTheme.colorScheme.primary.copy(alpha=.08f)else androidx.compose.ui.graphics.Color.Transparent,label="purchase-added")
+ Row(Modifier.fillMaxWidth().background(background).animateContentSize().testTag("candidate-$section-${p.id}").clickable(enabled=!state.isLoading&&!state.isSearching,onClick=onSelect).padding(start=12.dp,top=6.dp,bottom=6.dp),verticalAlignment=Alignment.CenterVertically) {
   Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)){
    com.spisokryadom.app.ui.components.ProductCandidateTitle(p,style=MaterialTheme.typography.bodyLarge)
-   state.productContexts[p.id]?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)}
+   AnimatedVisibility(pending!=null){
+    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp),modifier=Modifier.testTag("candidate-added-$section-${p.id}")){
+     Icon(Icons.Filled.CheckCircle,null,tint=MaterialTheme.colorScheme.primary,modifier=Modifier.size(16.dp))
+     Text("В списке · ${pending.orEmpty()}",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
+    }
+   }
+   (if(pending==null)state.productContexts else state.productContextsWithoutQuantity)[p.id]?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)}
   }
-  IconButton(onClick=onAdd,enabled=!state.isLoading&&!state.isSearching){Icon(Icons.Filled.AddShoppingCart,"Добавить: ${p.name}")}
+  IconButton(onClick=onAdd,enabled=!state.isLoading&&!state.isSearching){Icon(if(pending!=null)Icons.Filled.Add else Icons.Filled.AddShoppingCart,if(pending!=null)"Добавить ещё: ${p.name}"else "Добавить: ${p.name}")}
  }
 }
 

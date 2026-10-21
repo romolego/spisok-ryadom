@@ -41,16 +41,22 @@ class GoalListsViewModel(private val repository: GoalListRepository, private val
     private val _state = MutableStateFlow(GoalListsUiState())
     val uiState = _state.asStateFlow()
     init { viewModelScope.launch { repository.observeLists().collect { lists -> _state.update { it.copy(lists = lists, loading = false) } } } }
-    fun create(name: String) {
+    fun create(name: String, isTemplate: Boolean = false) {
         if (_state.value.busy || name.isBlank()) return
         _state.update { it.copy(busy = true, error = null) }
         viewModelScope.launch {
-            try { repository.withSession(sessionGeneration) { val id = repository.create(name); _state.update { it.copy(createdId = id) } } }
+            try { repository.withSession(sessionGeneration) { val id = repository.create(name, isTemplate); _state.update { it.copy(createdId = id) } } }
             catch (e: Exception) { if (e is CancellationException) throw e; _state.update { it.copy(error = e.message ?: "Не удалось создать список") } }
             finally { _state.update { it.copy(busy = false) } }
         }
     }
     fun clearNavigation() { _state.update { it.copy(createdId = null) } }
+    fun templateFromHome(name:String){
+        if(_state.value.busy)return
+        _state.update{it.copy(busy=true,error=null)}
+        viewModelScope.launch{try{repository.withSession(sessionGeneration){val id=repository.saveAsTemplate(null,name);_state.update{it.copy(createdId=id)}}}
+        catch(e:Exception){if(e is CancellationException)throw e;_state.update{it.copy(error=e.message)}}finally{_state.update{it.copy(busy=false)}}}
+    }
     fun clearError() { _state.update { it.copy(error = null) } }
     companion object { val Factory = viewModelFactory { initializer { GoalListsViewModel((this[APPLICATION_KEY] as SpisokRyadomApp).container.goalListRepository) } } }
 }
@@ -72,7 +78,7 @@ data class GoalListUiState(
     val catalogue: List<ProductEntity> = emptyList(), val catalogueQuery: String = "", val catalogueVisible: Boolean = false, val catalogueUsePriority: Boolean = false,
     val shops: List<String> = emptyList(), val loading: Boolean = true, val busy: Boolean = false,
     val editor: GoalItemEditor? = null, val error: String? = null, val message: String? = null, val deleted: Boolean = false,
-    val shareText: String? = null, val selectionMode: Boolean = false, val selectedIds: Set<Long> = emptySet(), val allLists: List<GoalListEntity> = emptyList()
+    val shareText: String? = null, val selectionMode: Boolean = false, val selectedIds: Set<Long> = emptySet(), val allLists: List<GoalListEntity> = emptyList(), val openListId:Long?=null
 ) {
     private fun total(values: List<GoalPurchaseRow>): Double = values.fold(java.math.BigDecimal.ZERO) { sum, row ->
         sum + (row.entry.plannedUnitPrice?.let { PurchaseMoney.amount(it, row.entry.quantity) } ?: java.math.BigDecimal.ZERO)
@@ -148,6 +154,8 @@ class GoalListViewModel(
         }
     }
     fun metadata(name: String, visible: Boolean) = command { repository.updateList(listId, name, visible) }
+    fun saveAsTemplate(name:String)=command{val id=repository.saveAsTemplate(listId,name);_state.update{it.copy(openListId=id)}}
+    fun clearNavigation(){_state.update{it.copy(openListId=null)}}
     fun deleteList() = command { repository.deleteList(listId); _state.update { it.copy(deleted = true) } }
     fun bought(row: GoalPurchaseRow, value: Boolean) = command { repository.setBought(row.entry.id, value, expectedListId = listId) }
     fun urgent(row: GoalPurchaseRow) = command { repository.toggleUrgent(row.entry.id, expectedListId = listId) }

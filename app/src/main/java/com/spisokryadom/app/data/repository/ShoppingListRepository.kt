@@ -139,7 +139,7 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         val row = entryDao.getById(id) ?: error("Покупка удалена. Обновите список")
         require(!regularOnly || row.listId == null) { "Покупка перенесена в целевой список. Обновите каталог" }
         require(!regularOnly || !row.isBought) { "Покупка уже отмечена купленной. Обновите каталог" }
-        require(!strict || row.listId == null || db.goalListDao().getById(row.listId)?.showInPurchases == true) {
+        require(!strict || row.listId == null || db.goalListDao().getById(row.listId)?.let { it.showInPurchases && !it.isTemplate } == true) {
             "Покупка больше не отображается в общей корзине. Откройте её целевой список"
         }
     }

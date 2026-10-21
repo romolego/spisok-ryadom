@@ -49,12 +49,13 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
         block()
     }
 
-    suspend fun create(name: String): Long = db.withTransaction {
-        lists.insert(GoalListEntity(name = validListName(name)))
+    suspend fun create(name: String, isTemplate: Boolean = false): Long = db.withTransaction {
+        lists.insert(GoalListEntity(name = validListName(name), isTemplate = isTemplate))
     }
 
     suspend fun updateList(id: Long, name: String, showInPurchases: Boolean) = db.withTransaction {
         val list = requireList(id)
+        require(!list.isTemplate || !showInPurchases) { "Шаблон нужно применить к списку" }
         lists.update(list.copy(name = validListName(name), showInPurchases = showInPurchases, updatedAt = System.currentTimeMillis()))
     }
 
@@ -173,7 +174,8 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
     }
 
     suspend fun setBought(entryId: Long, bought: Boolean, expectedListId: Long? = null) = db.withTransaction {
-        requireGoalEntry(entryId, expectedListId)
+        val row=requireGoalEntry(entryId, expectedListId)
+        require(!requireList(row.listId!!).isTemplate) { "Шаблон хранит заготовку, примените его к списку" }
         if (bought) entries.markBought(entryId) else entries.markNotBought(entryId)
     }
 
@@ -189,7 +191,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
     }
 
     suspend fun clearBought(listId: Long) = db.withTransaction {
-        requireList(listId)
+        require(!requireList(listId).isTemplate) { "У шаблона нет купленных позиций" }
         entries.clearBoughtInList(listId)
         db.productDao().deleteUnusedTemporary()
     }
@@ -197,8 +199,9 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
 
     /** A selection is valid only while every row still belongs to its original owner. */
     suspend fun moveEntriesExpected(expectedOwners: Map<Long, Long?>, targetListId: Long?) = db.withTransaction {
-        if (targetListId != null) requireList(targetListId)
+        if (targetListId != null) require(!requireList(targetListId).isTemplate) { "В шаблон позиции копируются, а не перемещаются" }
         val rows = requireOwners(expectedOwners)
+        require(rows.mapNotNull { it.listId }.toSet().none { requireList(it).isTemplate }) { "Примените шаблон, чтобы сохранить его заготовку" }
         rows.forEach { entries.update(it.copy(listId = targetListId, updatedAt = System.currentTimeMillis())) }
     }
 
@@ -207,7 +210,8 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
 
     /** Validate the complete selection before changing even its first member. */
     suspend fun batch(listId: Long, ids: Set<Long>, bought: Boolean? = null, delete: Boolean = false) = db.withTransaction {
-        requireList(listId)
+        val list=requireList(listId)
+        require(!list.isTemplate || bought==null) { "Шаблон хранит заготовку, примените его к списку" }
         require(delete != (bought != null)) { "Выберите одно действие" }
         val rows = requireOwners(ids.associateWith { listId })
         rows.forEach {
@@ -239,7 +243,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
                 shopName = if (assigned) place?.title.orEmpty() else entry.customShopName.orEmpty(),
                 shopAddress = if (assigned) place?.subtitle.orEmpty() else entry.customShopAddress.orEmpty(),
                 isBought = entry.isBought, isUrgent = entry.isUrgent)
-        })
+        }, isTemplate = snapshot.list.isTemplate)
     }
 
     /** Portable import creates an isolated hidden list, never matches local catalogue IDs/names. */
@@ -257,13 +261,42 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
             validItemName(it.name); Quantities.valid(it.quantity); validUnit(it.unit); validPrice(it.unitPrice)
             longText(it.note); longText(it.comment); shortText(it.shopName, 500); shortText(it.shopAddress, 1000)
         }
-        val id = lists.insert(GoalListEntity(name = name, stableId = stableId))
+        val id = lists.insert(GoalListEntity(name = name, stableId = stableId, isTemplate = document.isTemplate))
         document.items.forEach {
             val entryId = addQuick(id, it.name, it.quantity, it.unit, it.unitPrice, it.shopName, it.shopAddress, it.note,
                 comment = it.comment)
             if (it.isUrgent) entries.toggleUrgency(entryId)
         }
         id
+    }
+
+    /** A template is a reusable plan: copies have fresh row IDs and never share quick-product edits. */
+    suspend fun saveAsTemplate(sourceListId: Long?, name: String): Long = db.withTransaction {
+        if (sourceListId != null) requireList(sourceListId)
+        val source = if (sourceListId == null) entries.getVisibleSync() else entries.getForListSync(sourceListId)
+        val id = create(name, isTemplate = true)
+        source.forEach { row -> entries.insert(copyPlannedRow(row, id)) }
+        id
+    }
+
+    /** The complete application, including an optional new destination, either commits or rolls back. */
+    suspend fun applyTemplate(templateId: Long, targetListId: Long? = null, newListName: String? = null, expectedRows: Map<Long, Long>? = null): Long? = db.withTransaction {
+        require(requireList(templateId).isTemplate) { "Это обычный список, а не шаблон" }
+        require(newListName == null || targetListId == null) { "Выберите одно назначение" }
+        val source = entries.getForListSync(templateId)
+        require(expectedRows == null || source.associate { it.id to it.updatedAt } == expectedRows) { "Шаблон изменился. Проверьте позиции и повторите добавление" }
+        require(source.isNotEmpty()) { "Сначала добавьте позиции в шаблон" }
+        val destination = if (newListName != null) create(newListName) else targetListId
+        if (destination != null) require(!requireList(destination).isTemplate) { "Выберите обычный список" }
+        source.forEach { row -> shopping.addOrMergeEntry(copyPlannedRow(row, destination)) }
+        destination
+    }
+
+    private suspend fun copyPlannedRow(row: ShoppingListEntryEntity, owner: Long?): ShoppingListEntryEntity {
+        val product = db.productDao().getById(row.productId) ?: error("Товар удалён")
+        val productId = if (product.isTemporary) db.productDao().insert(product.copy(id = 0, stableId = java.util.UUID.randomUUID().toString())) else product.id
+        val now = System.currentTimeMillis()
+        return row.copy(id = 0, productId = productId, listId = owner, isBought = false, createdAt = now, updatedAt = now)
     }
 
     private suspend fun requireList(id: Long) = lists.getById(id) ?: error("Список удалён")

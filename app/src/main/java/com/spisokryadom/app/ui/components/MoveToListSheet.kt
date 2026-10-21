@@ -38,7 +38,7 @@ fun MoveToListSheet(expectedOwners:Map<Long,Long?>,onDone:()->Unit,onDismiss:()-
    Text("Количество, цены и отметки сохранятся.",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
    LazyColumn(Modifier.fillMaxWidth().heightIn(max=320.dp)) {
     if(!allSame||oneOwner!=null)item(key="regular"){ListMoveOption("Текущие покупки",chosen&&selected==null,!busy){selected=null;chosen=true}}
-    items(lists.filter{!allSame||it.id!=oneOwner},key={it.id}){list->ListMoveOption(list.name,chosen&&selected==list.id,!busy){selected=list.id;chosen=true}}
+    items(lists.filter{!it.isTemplate&&(!allSame||it.id!=oneOwner)},key={it.id}){list->ListMoveOption(list.name,chosen&&selected==list.id,!busy){selected=list.id;chosen=true}}
    }
    if(creating)InlineCreateValue("Название списка",{name,done->
     scope.launch{try{selected=repo.withSession(generation){repo.create(name)};chosen=true;creating=false;done()}catch(e:Exception){if(e is CancellationException)throw e;error=e.message;done()}}

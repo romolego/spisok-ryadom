@@ -109,7 +109,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
     /** Idempotent compare-and-set: repeated taps and stale widgets never undo newer changes. */
     suspend fun check(row:WidgetPurchase):Boolean = db.withTransaction {
         val entry=db.shoppingListEntryDao().getById(row.id)?:return@withTransaction false
-        if(entry.listId!=null&&db.goalListDao().getById(entry.listId)?.showInPurchases!=true)return@withTransaction false
+        if(entry.listId!=null&&db.goalListDao().getById(entry.listId)?.let{it.showInPurchases&&!it.isTemplate}!=true)return@withTransaction false
         val product=db.productDao().getById(entry.productId)?:return@withTransaction false
         if(product.stableId!=row.productStableId||entry.createdAt!=row.createdAt||entry.updatedAt!=row.updatedAt||entry.isBought!=row.bought||revision(entry)!=row.revision)return@withTransaction false
         if(row.bought)basket.markNotBought(row.id)else basket.markBought(row.id)

@@ -13,9 +13,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 data class AddToListUiState(
  val searchQuery:String="",val searchResults:List<ProductEntity> = emptyList(),val shops:List<ShopEntity> = emptyList(),
- val productContexts:Map<Long,String> = emptyMap(),val selectedShopId:Long? = -1L,val isShopLocked:Boolean=false,val saveToDatabase:Boolean=true,
+ val productContexts:Map<Long,String> = emptyMap(),val productContextsWithoutQuantity:Map<Long,String> = emptyMap(),val selectedShopId:Long? = -1L,val isShopLocked:Boolean=false,val saveToDatabase:Boolean=true,
  val isNewProduct:Boolean=false,val addedMessage:String?=null,val isLoading:Boolean=false,val isSearching:Boolean=false,
- val browseProducts:Boolean=true,val browseMessage:String?=null,
+ val browseProducts:Boolean=true,val browseMessage:String?=null,val pendingProductLabels:Map<Long,String> = emptyMap(),
  val favoriteResults:List<ProductEntity> = emptyList(),val selectedProduct:ProductEntity?=null,val quantity:String="1",val unit:String="",val error:String?=null
 )
 class AddToListViewModel(private val products:ProductRepository,private val shopRepository:ShopRepository,private val basket:ShoppingListRepository,
@@ -31,8 +31,21 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
  init {
   prefs.registerOnSharedPreferenceChangeListener(preferenceListener)
   viewModelScope.launch {
-   combine(products.getAllProducts(),products.getAllShopLinks(),shopRepository.getShopsForDisplay()){ps,ls,ss->com.spisokryadom.app.ui.components.productContexts(ps,ls,ss)}
-    .flowOn(Dispatchers.Default).collect{contexts->_uiState.update{it.copy(productContexts=contexts)}}
+   basket.getAllEntries().collect { entries ->
+    val labels=entries.filter{!it.isBought}.groupBy{it.productId}.mapValues{(_,rows)->
+     rows.groupBy{Quantities.unit(it.unit)}.map{(unit,values)->
+      val total=values.fold(java.math.BigDecimal.ZERO){sum,row->sum+java.math.BigDecimal.valueOf(row.quantity)}
+      "${total.stripTrailingZeros().toPlainString().replace('.',',')} $unit".trim()
+     }.joinToString(" + ")
+    }
+    _uiState.update{it.copy(pendingProductLabels=labels)}
+   }
+  }
+  viewModelScope.launch {
+   combine(products.getAllProducts(),products.getAllShopLinks(),shopRepository.getShopsForDisplay()){ps,ls,ss->
+    val index=com.spisokryadom.app.ui.components.ProductContextIndex(ls,ss)
+    ps.associate{it.id to index.context(it)} to ps.associate{it.id to index.context(it,includeQuantity=false)}
+   }.flowOn(Dispatchers.Default).collect{(contexts,withoutQuantity)->_uiState.update{it.copy(productContexts=contexts,productContextsWithoutQuantity=withoutQuantity)}}
   }
   viewModelScope.launch { shopRepository.getCityShops().collect{shops->_uiState.update{it.copy(shops=shops)}} }
   viewModelScope.launch {

@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.FolderCopy
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -43,7 +43,7 @@ private data class BottomNavItem(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Routes.ShoppingList.route, "Покупки", Icons.AutoMirrored.Filled.FormatListBulleted),
+    BottomNavItem(Routes.ShoppingList.route, "Главная", Icons.Filled.Home),
     BottomNavItem("goal_lists", "Списки", Icons.Filled.FolderCopy),
     BottomNavItem(Routes.ProductDatabase.route, "Товары", Icons.Filled.Inventory2),
     BottomNavItem(Routes.ShopList.route, "Магазины", Icons.Filled.Store)
@@ -129,7 +129,7 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                     onOpenList={id->navController.navigate("goal_list/$id")})
             }
             composable("goal_list/{listId}",arguments=listOf(navArgument("listId"){type=NavType.LongType})) { entry ->
-                com.spisokryadom.app.ui.goallists.GoalListScreen(entry.arguments!!.getLong("listId"),onBack={navController.popBackStack()})
+                com.spisokryadom.app.ui.goallists.GoalListScreen(entry.arguments!!.getLong("listId"),onBack={navController.popBackStack()},onOpenRegular={navController.navigate(Routes.ShoppingList.route){popUpTo(Routes.ShoppingList.route);launchSingleTop=true}},onOpenList={id->navController.navigate("goal_list/$id")})
             }
 
             composable(Routes.ProductDatabase.route) { entry ->

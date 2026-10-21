@@ -87,7 +87,7 @@ class Stores220DataTest {
  @Test fun backup16PreservesMixedMembershipAndAllBackgroundModesAndReadsOld15():Unit=runBlocking{
   val manager=BackupManager(app,db)
   for(background in listOf("","auto","#B2D8E1")){
-   db.shopDao().update(db.shopDao().getById(shop)!!.copy(purchaseBackground=background));val file=manager.exportFile();assertEquals(17,manifest(file).getInt("version"));db.shopDao().update(db.shopDao().getById(shop)!!.copy(purchaseBackground=""));manager.importFile(file)
+   db.shopDao().update(db.shopDao().getById(shop)!!.copy(purchaseBackground=background));val file=manager.exportFile();assertEquals(18,manifest(file).getInt("version"));db.shopDao().update(db.shopDao().getById(shop)!!.copy(purchaseBackground=""));manager.importFile(file)
    assertEquals(background,db.shopDao().getById(shop)!!.purchaseBackground);assertEquals(network,db.shopDao().getById(shop)!!.networkId);assertEquals(setOf(first,second,null),db.shopBranchDao().forShop(shop).map{it.venueId}.toSet());manager.discard(file)
   }
   val file=manager.exportFile();val old=manifest(file).put("version",15);old.getJSONObject("data").getJSONArray("shops").getJSONObject(0).remove("purchaseBackground");manager.importFile(archive(old));assertEquals("",db.shopDao().getById(shop)!!.purchaseBackground);manager.discard(file)
@@ -115,7 +115,7 @@ class Stores220DataTest {
   app.openOrCreateDatabase(name,0,null).use{old->val entities=JSONObject(schema.readText()).getJSONObject("database").getJSONArray("entities");for(i in 0 until entities.length()){val e=entities.getJSONObject(i);old.execSQL(e.getString("createSql").replace("\${TABLE_NAME}",e.getString("tableName")));val indices=e.getJSONArray("indices");for(j in 0 until indices.length())old.execSQL(indices.getJSONObject(j).getString("createSql").replace("\${TABLE_NAME}",e.getString("tableName")))}
    old.execSQL("INSERT INTO cities(id,name) VALUES(1,'Город')");old.execSQL("INSERT INTO retail_networks(id,name) VALUES(4,'Сеть')");old.execSQL("INSERT INTO shops(id,name,cityId,networkId,displayOrder,manualOrderOverride,shoppingBackground,iconKey) VALUES(7,'Магазин',1,4,9,1,'rose','store')");old.version=18
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_18_19,AppDatabase.MIGRATION_19_20).build()
-  try{val s=migrated.shopDao().getById(7)!!;assertEquals("",s.purchaseBackground);assertEquals(4L,s.networkId);assertEquals("rose",s.shoppingBackground);assertEquals(9,s.displayOrder);assertEquals("store",s.iconKey);assertTrue(s.manualOrderOverride);assertEquals(20,migrated.openHelper.writableDatabase.version)}finally{migrated.close();app.deleteDatabase(name)}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_18_19,AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21).build()
+  try{val s=migrated.shopDao().getById(7)!!;assertEquals("",s.purchaseBackground);assertEquals(4L,s.networkId);assertEquals("rose",s.shoppingBackground);assertEquals(9,s.displayOrder);assertEquals("store",s.iconKey);assertTrue(s.manualOrderOverride);assertEquals(21,migrated.openHelper.writableDatabase.version)}finally{migrated.close();app.deleteDatabase(name)}
  }
 }

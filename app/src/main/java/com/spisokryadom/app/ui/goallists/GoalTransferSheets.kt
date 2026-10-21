@@ -75,7 +75,7 @@ internal fun GoalImportSheet(session: String, onDismiss: () -> Unit, onImported:
                         item(key = "summary") { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(document.name, style = MaterialTheme.typography.titleLarge)
                             Text("Позиций: ${document.items.size}", style = MaterialTheme.typography.bodyMedium)
-                            Text("Будет создан отдельный список, скрытый из текущих покупок. Отметки купленного сбросятся, срочность сохранится; магазины — подписи без привязок.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(if(document.isTemplate)"Будет создан шаблон. Покупки появятся после его применения; магазины — подписи без привязок."else "Будет создан отдельный список, скрытый из текущих покупок. Отметки купленного сбросятся, срочность сохранится; магазины — подписи без привязок.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         } }
                         itemsIndexed(document.items, key = { index, _ -> "item-$index" }) { index, item ->
                             OutlinedCard(Modifier.fillMaxWidth()) {
@@ -94,7 +94,7 @@ internal fun GoalImportSheet(session: String, onDismiss: () -> Unit, onImported:
                 }
             }
             if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            if (state.preview?.canImport == true) Button(onClick = viewModel::confirm, enabled = !state.busy, modifier = Modifier.fillMaxWidth().testTag("goal-import-confirm")) { Text("Импортировать новый список") }
+            if (state.preview?.canImport == true) Button(onClick = viewModel::confirm, enabled = !state.busy, modifier = Modifier.fillMaxWidth().testTag("goal-import-confirm")) { Text(if(state.preview?.document?.isTemplate==true)"Импортировать шаблон"else "Импортировать новый список") }
             else Button(onClick = viewModel::preview, enabled = !state.busy && state.text.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("Проверить список") }
             TextButton(onClick = ::dismiss, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Отмена") }
             Spacer(Modifier.height(8.dp))

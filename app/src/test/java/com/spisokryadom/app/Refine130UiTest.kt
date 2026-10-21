@@ -37,7 +37,7 @@ class Refine130UiTest {
  private var a=0L;private var b=0L;private var branch=0L;private var bakery=0L
  private fun waitFor(predicate:()->Boolean){ui.waitUntil(25_000){Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(20));ui.waitForIdle();predicate()}}
  private fun waitText(text:String)=waitFor{ui.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()}
- private fun click(text:String){waitText(text);if(text=="Магазины"||text=="Покупки")ui.onNode(hasText(text) and SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.Role,androidx.compose.ui.semantics.Role.Tab)).performClick()else ui.onNodeWithText(text).performClick()}
+ private fun click(text:String){waitText(text);if(text=="Магазины"||text=="Главная")ui.onNode(hasText(text) and SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.Role,androidx.compose.ui.semantics.Role.Tab)).performClick()else ui.onNodeWithText(text).performClick()}
  private fun shot(name:String,view:View=ui.activity.window.decorView){ui.waitForIdle();ui.runOnIdle{val bitmap=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888);view.draw(Canvas(bitmap));val file=File("../.local/refinement-0.13.0/$name-api${android.os.Build.VERSION.SDK_INT}.png");file.parentFile!!.mkdirs();file.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()}}
  @Before fun setup(){runBlocking{
   listOf("drafts","product_card_drafts",WidgetSettings.PREFS,"product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
@@ -81,7 +81,7 @@ class Refine130UiTest {
   ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-background-color").performScrollTo().performClick()
   ui.onNodeWithTag("appearance-custom-toggle").performClick();ui.onNodeWithTag("appearance-hex").performTextReplacement("#12ABEF");click("Применить оформление");shot("05-shop-color")
   click("Сохранить");waitText("Магазины");assertEquals("#12ABEF",runBlocking{db.shopDao().getById(b)!!.shoppingBackground})
-  click("Покупки");waitText("Хлеб с изюмом");shot("06-shopping-colored-blocks")
+  click("Главная");waitText("Хлеб с изюмом");shot("06-shopping-colored-blocks")
   click("Магазины");waitText("Батон");ui.onNodeWithText("Батон").performTouchInput{longClick()};waitText("Название магазина");ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();click("Сохранить");waitText("Магазины")
   assertEquals("",runBlocking{db.shopDao().getById(b)!!.shoppingBackground})
  }

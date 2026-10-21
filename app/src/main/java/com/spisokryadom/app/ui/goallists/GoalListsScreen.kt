@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,9 +44,14 @@ private fun GoalListsContent(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var create by rememberSaveable { mutableStateOf(false) }
+    var capture by rememberSaveable { mutableStateOf(false) }
+    var applyId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var applySession by rememberSaveable { mutableStateOf("") }
     var importSession by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(state.createdId) { state.createdId?.let { viewModel.clearNavigation(); onOpenList(it) } }
-    if (create) InputDialog("Новый список", label = "Название списка", onConfirm = { create = false; viewModel.create(it) }, onDismiss = { create = false })
+    if (create) GoalCreateDialog({name,template->create=false;viewModel.create(name,template)},{create=false})
+    if(capture)InputDialog("Шаблон из текущих покупок",label="Название шаблона",onConfirm={capture=false;viewModel.templateFromHome(it)},onDismiss={capture=false})
+    applyId?.let{id->TemplateApplySheet(id,applySession,{applyId=null}){destination->applyId=null;if(destination==null)onOpenRegular()else onOpenList(destination)}}
     importSession?.let { session -> GoalImportSheet(session, onDismiss = { importSession = null }, onImported = { importSession = null; onOpenList(it) }) }
     state.error?.let { GoalErrorDialog(it, viewModel::clearError) }
     Scaffold(
@@ -62,29 +69,42 @@ private fun GoalListsContent(
                             Text("Текущие покупки", style = MaterialTheme.typography.titleMedium)
                             Text("Основной список", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                        IconButton(onClick={capture=true},enabled=!state.busy){Icon(Icons.Filled.ContentCopy,"Сохранить текущие покупки как шаблон")}
                     }
                 }
             }
             if (state.loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-            if (!state.loading && state.lists.isEmpty()) item {
-                Text("Отдельные списки", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp))
-                Text("Пока нет списков", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
-            }
-            items(state.lists, key = { it.id }) { list ->
+            listOf(false,true).forEach { templates ->
+            item(key="section-$templates"){Text(if(templates)"Шаблоны"else "Отдельные списки",style=MaterialTheme.typography.titleMedium,modifier=Modifier.padding(top=12.dp))}
+            val section=state.lists.filter{it.isTemplate==templates}
+            if(!state.loading&&section.isEmpty())item(key="empty-$templates"){Text(if(templates)"Пока нет шаблонов"else "Пока нет списков",color=MaterialTheme.colorScheme.onSurfaceVariant)}
+            items(section, key = { it.id }) { list ->
                 OutlinedCard(Modifier.fillMaxWidth().clickable { onOpenList(list.id) }.testTag("goal-list-${list.id}")) {
                     Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Icon(Icons.Filled.ListAlt, null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(if(list.isTemplate)Icons.Filled.ContentCopy else Icons.Filled.ListAlt, null, tint = MaterialTheme.colorScheme.primary)
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(list.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text(if (list.showInPurchases) "Отображается в покупках" else "Отдельный список", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(if(list.isTemplate)"Шаблон"else if (list.showInPurchases) "Отображается на Главной" else "Отдельный список", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if(list.isTemplate)IconButton(onClick={applySession=java.util.UUID.randomUUID().toString();applyId=list.id},enabled=!state.busy){Icon(Icons.Filled.PlayArrow,"Применить шаблон: ${list.name}")}
+                        else Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
+            }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GoalCreateDialog(onCreate:(String,Boolean)->Unit,onDismiss:()->Unit){
+ var name by rememberSaveable{mutableStateOf("")};var template by rememberSaveable{mutableStateOf(false)}
+ val width=minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)
+ AlertDialog(modifier=Modifier.width(width),onDismissRequest=onDismiss,title={Text(if(template)"Новый шаблон"else "Новый список")},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
+  OutlinedTextField(name,{name=it},label={Text(if(template)"Название шаблона"else "Название списка")},singleLine=true,modifier=Modifier.fillMaxWidth())
+  com.spisokryadom.app.ui.components.DropdownSelector("Тип",listOf(false,true),template,{if(it)"Шаблон"else "Обычный список"},{template=it?:false},allowNone=false)
+ }},confirmButton={TextButton(onClick={onCreate(name,template)},enabled=name.isNotBlank()){Text("Сохранить")}},dismissButton={TextButton(onClick=onDismiss){Text("Отмена")}})
 }
 
 @Composable

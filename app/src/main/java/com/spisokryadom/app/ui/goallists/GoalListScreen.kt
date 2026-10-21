@@ -42,12 +42,12 @@ import com.spisokryadom.app.util.Quantities
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoalListScreen(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel? = null) {
+fun GoalListScreen(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel? = null, onOpenRegular:()->Unit=onBack, onOpenList:(Long)->Unit={}) {
  androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.LISTS) {
     val revision = com.spisokryadom.app.ui.batch.rememberDatabaseRevision()
     key(revision) {
         val model = viewModel ?: androidx.lifecycle.viewmodel.compose.viewModel<GoalListViewModel>(key = "goal-list-$listId-$revision", factory = GoalListViewModel.factory(listId))
-        GoalListContent(listId, onBack, model)
+        GoalListContent(listId, onBack, model, onOpenRegular, onOpenList)
     }
 
  }
@@ -55,7 +55,7 @@ fun GoalListScreen(listId: Long, onBack: () -> Unit, viewModel: GoalListViewMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel) {
+private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel, onOpenRegular:()->Unit, onOpenList:(Long)->Unit) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_STOP) { viewModel.flushEditor() }
     val context = LocalContext.current
@@ -66,9 +66,15 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
     var selectionActions by rememberSaveable { mutableStateOf(false) }
     var moveSelection by rememberSaveable { mutableStateOf(false) }
     var deleteSelection by rememberSaveable { mutableStateOf(false) }
+    val template=state.list?.isTemplate==true
+    var applySession by rememberSaveable{mutableStateOf<String?>(null)}
+    var saveTemplate by rememberSaveable{mutableStateOf(false)}
     val snackbar = remember { SnackbarHostState() }
     val file = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> if (uri != null) viewModel.writeFile(context.contentResolver, uri) else viewModel.cancelFileExport() }
     BackHandler(enabled = state.selectionMode) { viewModel.selection(false) }
+    LaunchedEffect(state.openListId){state.openListId?.let{viewModel.clearNavigation();onOpenList(it)}}
+    applySession?.let{session->TemplateApplySheet(listId,session,{applySession=null}){destination->applySession=null;if(destination==null)onOpenRegular()else onOpenList(destination)}}
+    if(saveTemplate)com.spisokryadom.app.ui.components.InputDialog("Сохранить как шаблон",label="Название шаблона",onConfirm={saveTemplate=false;viewModel.saveAsTemplate(it)},onDismiss={saveTemplate=false})
     LaunchedEffect(state.deleted) { if (state.deleted) onBack() }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
     state.error?.let { GoalErrorDialog(it, viewModel::clearError) }
@@ -76,8 +82,8 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
     if (state.catalogueVisible) GoalCatalogueSheet(state, viewModel::catalogueQuery, viewModel::cataloguePriority, viewModel::addCatalogue, { viewModel.showCatalogue(false) })
     state.shareText?.let { GoalTextSheet(state.list?.name.orEmpty(), it, viewModel::shareText) { viewModel.shareText(null) } }
     if (metadata) state.list?.let { list -> GoalMetadataDialog(list, onSave = { name, visible -> metadata = false; viewModel.metadata(name, visible) }, onDismiss = { metadata = false }) }
-    if (delete) ConfirmDialog("Удалить список?", "«${state.list?.name.orEmpty()}» и его покупки будут удалены. Каталог товаров сохранится.", { delete = false; viewModel.deleteList() }, { delete = false })
-    if (selectionActions) GoalSelectionActions(state.selectedIds.size, state.rows.any { it.entry.id in state.selectedIds && !it.entry.isBought }, state.rows.any { it.entry.id in state.selectedIds && it.entry.isBought }, { selectionActions = false; viewModel.batchBought(it) }, { selectionActions = false; moveSelection = true }, { selectionActions = false; deleteSelection = true }, { selectionActions = false })
+    if (delete) ConfirmDialog(if(template)"Удалить шаблон?"else "Удалить список?", "«${state.list?.name.orEmpty()}» и его позиции будут удалены. Каталог товаров сохранится.", { delete = false; viewModel.deleteList() }, { delete = false })
+    if (selectionActions) GoalSelectionActions(state.selectedIds.size, !template&&state.rows.any { it.entry.id in state.selectedIds && !it.entry.isBought }, !template&&state.rows.any { it.entry.id in state.selectedIds && it.entry.isBought }, { selectionActions = false; viewModel.batchBought(it) }, { selectionActions = false; moveSelection = true }, { selectionActions = false; deleteSelection = true }, { selectionActions = false }, allowMove=!template)
     if (moveSelection) GoalMoveSelectionDialog(listId, state.allLists, { moveSelection = false; viewModel.moveSelected(it) }, { moveSelection = false })
     if (deleteSelection) ConfirmDialog("Удалить выбранное?", "Позиций: ${state.selectedIds.size}", { deleteSelection = false; viewModel.batchDelete() }, { deleteSelection = false })
     deleteRowId?.let { id -> state.rows.find { it.entry.id == id }?.let { row ->
@@ -91,14 +97,15 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
                 IconButton(onClick = viewModel::selectAll, enabled = !state.busy) { Icon(Icons.Filled.DoneAll, "Выбрать всё") }
             } else {
             IconButton(onClick = { viewModel.selection(true) }, enabled = state.rows.isNotEmpty()) { Icon(Icons.Filled.Checklist, "Выбрать позиции") }
-            IconButton(onClick = viewModel::openShare, enabled = !state.loading && !state.busy && state.list != null) { Icon(Icons.Filled.Share, "Поделиться целевым списком") }
+            IconButton(onClick = viewModel::openShare, enabled = !state.loading && !state.busy && state.list != null) { Icon(Icons.Filled.Share, if(template)"Поделиться шаблоном"else "Поделиться целевым списком") }
             Box {
                 IconButton(onClick = { menu = true }, enabled = state.list != null) { Icon(Icons.Filled.MoreVert, "Действия со списком") }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Настройки списка") }, onClick = { menu = false; metadata = true }, leadingIcon = { Icon(Icons.Filled.Settings, null) })
+                    DropdownMenuItem(text = { Text(if(template)"Настройки шаблона"else "Настройки списка") }, onClick = { menu = false; metadata = true }, leadingIcon = { Icon(Icons.Filled.Settings, null) })
                     DropdownMenuItem(text = { Text("Экспортировать файл") }, enabled = !state.busy, onClick = { menu = false; viewModel.prepareFile { file.launch(it) } }, leadingIcon = { Icon(Icons.Filled.Upload, null) })
+                    if(!template)DropdownMenuItem(text={Text("Сохранить как шаблон")},enabled=!state.busy,onClick={menu=false;saveTemplate=true},leadingIcon={Icon(Icons.Filled.ContentCopy,null)})
                     HorizontalDivider()
-                    DropdownMenuItem(text = { Text("Удалить список", color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; delete = true }, leadingIcon = { Icon(Icons.Filled.Delete, null, tint = MaterialTheme.colorScheme.error) })
+                    DropdownMenuItem(text = { Text(if(template)"Удалить шаблон"else "Удалить список", color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; delete = true }, leadingIcon = { Icon(Icons.Filled.Delete, null, tint = MaterialTheme.colorScheme.error) })
                 }
             }
             }
@@ -116,12 +123,13 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
             if (state.list != null) {
                 item(key = "summary") {
                     Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("${state.rows.count { !it.entry.isBought }} к покупке · ${state.rows.count { it.entry.isBought }} куплено", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(if(template)"Шаблон · позиций: ${state.rows.size}"else "${state.rows.count { !it.entry.isBought }} к покупке · ${state.rows.count { it.entry.isBought }} куплено", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (state.rows.any { it.entry.plannedUnitPrice != null }) {
                             Text("Ориентировочно: ${goalMoney(state.plannedTotal)}", style = MaterialTheme.typography.titleMedium)
-                            Text("Осталось: ${goalMoney(state.remainingTotal)} · Куплено: ${goalMoney(state.boughtTotal)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if(!template)Text("Осталось: ${goalMoney(state.remainingTotal)} · Куплено: ${goalMoney(state.boughtTotal)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         if (state.unpricedCount > 0) Text("Без цены: ${state.unpricedCount}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if(template&&!state.selectionMode)Button(onClick={applySession=java.util.UUID.randomUUID().toString()},enabled=!state.busy&&state.rows.isNotEmpty(),modifier=Modifier.fillMaxWidth().testTag("template-open-apply")){Icon(Icons.Filled.PlayArrow,null);Spacer(Modifier.width(8.dp));Text("Применить шаблон")}
                         if (!state.selectionMode) OutlinedButton(onClick = { viewModel.showCatalogue(true) }, modifier = Modifier.fillMaxWidth().testTag("goal-open-catalogue")) { Icon(Icons.Filled.Inventory2, null); Spacer(Modifier.width(8.dp)); Text("Добавить из базы товаров") }
                     }
                 }
@@ -134,7 +142,7 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
                             place?.subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }
                     }
-                    items(rows, key = { "entry-${it.entry.id}" }) { row -> GoalPurchaseCard(row, state.busy, { viewModel.bought(row, it) }, { viewModel.edit(row) }, { deleteRowId = row.entry.id }, { viewModel.quantity(row, it) }, { viewModel.urgent(row) }, if (state.selectionMode) row.entry.id in state.selectedIds else null, { viewModel.select(row) }) }
+                    items(rows, key = { "entry-${it.entry.id}" }) { row -> GoalPurchaseCard(row, state.busy, { viewModel.bought(row, it) }, { viewModel.edit(row) }, { deleteRowId = row.entry.id }, { viewModel.quantity(row, it) }, { viewModel.urgent(row) }, if (state.selectionMode) row.entry.id in state.selectedIds else null, { viewModel.select(row) }, template) }
                 }
             }
         }
@@ -142,12 +150,12 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
 }
 
 @Composable
-private fun GoalPurchaseCard(row: GoalPurchaseRow, busy: Boolean, bought: (Boolean) -> Unit, edit: () -> Unit, delete: () -> Unit, quantity: (Double) -> Unit, urgent: () -> Unit, selected: Boolean?, select: () -> Unit) {
+private fun GoalPurchaseCard(row: GoalPurchaseRow, busy: Boolean, bought: (Boolean) -> Unit, edit: () -> Unit, delete: () -> Unit, quantity: (Double) -> Unit, urgent: () -> Unit, selected: Boolean?, select: () -> Unit, template:Boolean=false) {
     var menu by remember { mutableStateOf(false) }
     val step = Quantities.step(row.entry.unit, row.product.defaultUnit, row.product.defaultQuantity)
     OutlinedCard(Modifier.fillMaxWidth().clickable(onClick = if (selected != null) select else edit).testTag("goal-entry-${row.entry.id}"), colors = CardDefaults.outlinedCardColors(containerColor = if (selected == true) MaterialTheme.colorScheme.secondaryContainer else if (row.entry.isBought) MaterialTheme.colorScheme.surfaceContainerLow else favoriteBackground(row.product.isFavorite))) {
         Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(selected ?: row.entry.isBought, { if (selected != null) select() else bought(it) }, enabled = !busy, modifier = Modifier.semantics { contentDescription = if (selected != null) "Выбрать: ${row.product.name}" else "Куплено: ${row.product.name}" })
+            if(selected!=null||!template)Checkbox(selected ?: row.entry.isBought, { if (selected != null) select() else bought(it) }, enabled = !busy, modifier = Modifier.semantics { contentDescription = if (selected != null) "Выбрать: ${row.product.name}" else "Куплено: ${row.product.name}" })
             Column(Modifier.weight(1f).padding(start = 6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     if (row.entry.isUrgent && !row.entry.isBought) Icon(Icons.Filled.PriorityHigh, "Срочная покупка", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(17.dp))
@@ -184,11 +192,11 @@ private fun GoalMetadataDialog(list: GoalListEntity, onSave: (String, Boolean) -
     var name by rememberSaveable(list.id) { mutableStateOf(list.name) }
     var visible by rememberSaveable(list.id) { mutableStateOf(list.showInPurchases) }
     val width = (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp - 48).coerceIn(240, 560).dp
-    AlertDialog(modifier = Modifier.width(width), properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false), onDismissRequest = { if (name.isNotBlank()) onSave(name, visible) else onDismiss() }, title = { Text("Настройки списка") }, text = {
+    AlertDialog(modifier = Modifier.width(width), properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false), onDismissRequest = { if (name.isNotBlank()) onSave(name, visible) else onDismiss() }, title = { Text(if(list.isTemplate)"Настройки шаблона"else "Настройки списка") }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             OutlinedTextField(name, { name = it }, label = { Text("Название списка") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            Row(Modifier.fillMaxWidth().clickable { visible = !visible }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Отображать в текущих покупках", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+            if(!list.isTemplate)Row(Modifier.fillMaxWidth().clickable { visible = !visible }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Отображать на Главной", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
                 Switch(visible, { visible = it })
             }
         }

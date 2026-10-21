@@ -227,8 +227,8 @@ internal object BackupJson {
  fun encode(v:BranchDepartmentOrderEntity)=JSONObject().put("branchId",v.branchId).put("typeId",v.typeId).put("displayOrder",v.displayOrder)
  fun encode(v:ProductBranchDepartmentEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("typeId",v.typeId)
  fun encode(v:ProductBranchPriorityEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("displayOrder",v.displayOrder)
- fun encode(v:GoalListEntity)=JSONObject().put("id",v.id).put("stableId",v.stableId).put("name",v.name).put("showInPurchases",v.showInPurchases).put("createdAt",v.createdAt).put("updatedAt",v.updatedAt)
- fun goalList(o:JSONObject)=GoalListEntity(strictLong(o,"id"),strictString(o,"stableId"),strictString(o,"name"),strictBoolean(o,"showInPurchases"),strictLong(o,"createdAt"),strictLong(o,"updatedAt"))
+ fun encode(v:GoalListEntity)=JSONObject().put("id",v.id).put("stableId",v.stableId).put("name",v.name).put("showInPurchases",v.showInPurchases).put("createdAt",v.createdAt).put("updatedAt",v.updatedAt).put("isTemplate",v.isTemplate)
+ fun goalList(o:JSONObject)=GoalListEntity(strictLong(o,"id"),strictString(o,"stableId"),strictString(o,"name"),strictBoolean(o,"showInPurchases"),strictLong(o,"createdAt"),strictLong(o,"updatedAt"),if(o.has("isTemplate"))strictBoolean(o,"isTemplate")else false)
  // JSONObject getters coerce strings and truncate decimals. A full snapshot must never
  // silently redirect a purchase to another owner or alter planning metadata that way.
  private fun strictLong(o:JSONObject,key:String):Long {

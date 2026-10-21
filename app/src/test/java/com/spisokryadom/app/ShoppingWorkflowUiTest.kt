@@ -60,7 +60,7 @@ class ShoppingWorkflowUiTest {
   ui.onNodeWithText("Лекарство").assertDoesNotExist();ui.onNodeWithText("Продукты").assertIsDisplayed()
   ui.activityRule.scenario.recreate();waitText("Аптека")
   ui.onNodeWithText("Лекарство").assertDoesNotExist();shot("01-catalog-collapsed")
-  ui.onNodeWithText("Покупки").performClick();waitText("Яблоки Гала")
+  ui.onNodeWithText("Главная").performClick();waitText("Яблоки Гала")
   ui.onNodeWithText("Группы").performClick();waitText("Аптека")
   ui.onNodeWithContentDescription("Свернуть: Аптека").performClick()
   ui.onNodeWithText("Лекарство").assertDoesNotExist()

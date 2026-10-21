@@ -122,6 +122,8 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
    if(summary.full)require(!root.has("preferences")||root.get("preferences") is JSONObject){"Некорректный раздел настроек в копии"}
    if(root.getInt("version")>=14)listOf("productGroups","departmentTypes").forEach{key->val a=root.getJSONObject("data").getJSONArray(key);for(i in 0 until a.length()){val row=a.getJSONObject(i);require(row.has("isFavorite")&&row.has("favoriteOrder")){"Отсутствует оформление избранных групп"}}}
    val raw=BackupJson.read(root)
+  if(root.getInt("version")<18)require(raw.goalLists.none{it.isTemplate}){"Шаблоны требуют копию новой версии"}
+  if(root.getInt("version")>=18){val goals=root.getJSONObject("data").getJSONArray("goalLists");for(i in 0 until goals.length())require(goals.getJSONObject(i).has("isTemplate")){"Отсутствует тип списка"}}
    if(root.getInt("version")<14)require(raw.groups.none{it.isFavorite||it.favoriteOrder!=0}&&raw.departmentTypes.none{it.isFavorite||it.favoriteOrder!=0}){"Избранные группы требуют копию новой версии"}
    if(root.getInt("version")<12)require(raw.shopPresets.isEmpty()&&raw.groupPresets.isEmpty()){"Преднастройки требуют копию новой версии"}
    if(root.getInt("version")<11)require(raw.goalLists.isEmpty()&&raw.entries.none{it.listId!=null||it.plannedUnitPrice!=null||it.customShopName!=null||it.customShopAddress!=null}){"Целевые списки требуют полную копию новой версии"}
@@ -304,8 +306,11 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   require(s.shopPresets.map{it.shopId}.distinct().size==s.shopPresets.size&&s.shopPresets.all{it.shopId in shops&&it.purchaseMode in com.spisokryadom.app.util.PurchaseModes.labels}){"Неверные преднастройки магазинов"}
   require(s.groupPresets.map{it.groupId}.distinct().size==s.groupPresets.size&&s.groupPresets.all{it.groupId in groups&&(it.recipientId==null||it.recipientId in recipients)}){"Неверные преднастройки товарных групп"}
   val goalLists=ids(s.goalLists.map{it.id},"целевые списки")
+  val templateIds=s.goalLists.filter{it.isTemplate}.map{it.id}.toSet()
+  require(s.goalLists.none{it.isTemplate&&it.showInPurchases}){"Шаблон не может отображаться как покупки"}
   require(s.goalLists.map{it.stableId}.distinct().size==s.goalLists.size&&s.goalLists.all{it.stableId.matches(Regex("[a-zA-Z0-9_-]{1,80}"))&&it.name.isNotBlank()&&it.name.length<=200&&'\u0000' !in it.name}){"Неверные целевые списки"}
   s.entries.forEach{e->
+   require(!e.isBought||e.listId !in templateIds){"В шаблоне не может быть купленных позиций"}
    require(e.listId==null||e.listId in goalLists){"Покупка ссылается на отсутствующий список"}
    if(e.listId!=null)require(java.math.BigDecimal.valueOf(e.quantity).stripTrailingZeros().scale()<=6){"В целевом списке количество должно содержать не более 6 знаков после запятой"}
    com.spisokryadom.app.data.repository.GoalListRepository.validPrice(e.plannedUnitPrice)
@@ -408,7 +413,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=17;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=18;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}

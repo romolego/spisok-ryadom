@@ -81,7 +81,7 @@ class StoreCard180UiTest {
   waitText("Логотип магазина");ui.onNodeWithTag("shop-appearance-preview").performScrollTo();shot("10-logo-preview");ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   assertNotNull(runBlocking{db.shopDao().getById(shop)!!.logoUri});shot("11-logo-store-list")
   runBlocking{val id=app.container.productRepository.saveWithLinks(ProductEntity(name="Пример покупки"),listOf(ProductShopLinkEntity(productId=0,shopId=shop)));app.container.shoppingListRepository.addProduct(id,choice=com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT,shopId=shop)}
-  ui.onNodeWithText("Покупки").performClick();waitText("Пример покупки");shot("12-logo-purchases")
+  ui.onNodeWithText("Главная").performClick();waitText("Пример покупки");shot("12-logo-purchases")
  }
  @Test fun busyPhotoEditorsCannotStartAnotherImport(){
   ui.runOnIdle{ui.activity.setContent{com.spisokryadom.app.ui.theme.SpisokRyadomTheme{

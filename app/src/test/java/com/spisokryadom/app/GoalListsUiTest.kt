@@ -73,7 +73,7 @@ class GoalListsUiTest {
 
     @Test fun fourTabsRegularEntryAndLooseAutosaveWithUnitPrice() {
         tab("Списки"); waitText("Текущие покупки")
-        listOf("Покупки", "Списки", "Товары", "Магазины").forEach { ui.onNode(hasText(it) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)).assertExists() }
+        listOf("Главная", "Списки", "Товары", "Магазины").forEach { ui.onNode(hasText(it) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)).assertExists() }
         ui.onNodeWithTag("goal-regular").performClick(); waitText("Список покупок")
         tab("Списки"); ui.onNodeWithContentDescription("Создать список").performClick()
         ui.onNodeWithText("Название списка").performTextInput("Новый компьютер"); ui.onNodeWithText("Сохранить").performClick()
@@ -93,7 +93,7 @@ class GoalListsUiTest {
             assertEquals(2, db.productDao().getAllSync().count { !it.isTemporary })
         }
         waitText("Видеокарта"); shot("02-target-loose")
-        back(); tab("Покупки"); waitText("Список пуст"); ui.onNodeWithText("Видеокарта").assertDoesNotExist()
+        back(); tab("Главная"); waitText("Список пуст"); ui.onNodeWithText("Видеокарта").assertDoesNotExist()
     }
 
     @Test fun catalogueFavoritesRepeatAndQuickAddsStayOpen() {
@@ -119,11 +119,11 @@ class GoalListsUiTest {
         val rowId = runBlocking { repository.addQuick(id, "Торт", 1.0, "шт", 1300.0, "Кондитерская", "Мира, 8") }
         openList(id)
         ui.onNodeWithContentDescription("Действия со списком").performClick(); ui.onNodeWithText("Настройки списка").performClick()
-        ui.onNodeWithText("Отображать в текущих покупках").performClick()
+        ui.onNodeWithText("Отображать на Главной").performClick()
         shot("12-target-settings")
         ui.onNodeWithText("Готово").performClick()
         waitFor { runBlocking { db.goalListDao().getById(id)!!.showInPurchases } }
-        back(); tab("Покупки"); waitText("Торт"); waitFor { ui.onAllNodesWithText("Список: На праздник", substring = true).fetchSemanticsNodes().isNotEmpty() }; shot("04-target-in-main")
+        back(); tab("Главная"); waitText("Торт"); waitFor { ui.onAllNodesWithText("Список: На праздник", substring = true).fetchSemanticsNodes().isNotEmpty() }; shot("04-target-in-main")
         runBlocking { assertEquals(rowId, db.shoppingListEntryDao().getAllSync().single().id) }
         openList(id); ui.onNodeWithContentDescription("Куплено: Торт").performClick()
         waitFor { runBlocking { db.shoppingListEntryDao().getById(rowId)!!.isBought } }
@@ -239,7 +239,7 @@ class GoalListsUiTest {
         runBlocking { val rows = db.shoppingListEntryDao().getAllSync(); assertEquals(1, rows.size); assertEquals(rowId, rows.single().id); assertEquals(target, rows.single().listId) }
         openList(target); ui.onNodeWithTag("goal-entry-$rowId").assertExists()
         runBlocking { repository.updateList(target, "Для рецепта", true) }
-        back(); tab("Покупки"); waitText("Банан"); ui.onNodeWithTag("purchase-row-$rowId").performTouchInput { longClick() }
+        back(); tab("Главная"); waitText("Банан"); ui.onNodeWithTag("purchase-row-$rowId").performTouchInput { longClick() }
         ui.onNodeWithText("Открыть список «Для рецепта»").performClick(); waitFor { ui.onAllNodesWithTag("goal-entry-$rowId").fetchSemanticsNodes().isNotEmpty() }
         runBlocking { assertEquals(1, db.shoppingListEntryDao().getAllSync().size) }
         shot("11-main-open-origin")
