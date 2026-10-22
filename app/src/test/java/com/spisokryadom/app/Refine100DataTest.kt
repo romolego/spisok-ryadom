@@ -97,7 +97,7 @@ class Refine100DataTest {
   products.ensureShopLink(p,b);products.saveWithLinks(db.productDao().getById(p)!!,links(),branchPriorities=mapOf(b to listOf(second,third,first)))
   app.getSharedPreferences("shopping_list_prefs",0).edit().putBoolean("remember_shop_priority_on_move",true).commit();val manager=BackupManager(app,db);val file=manager.exportFile();manager.importFile(file)
   assertEquals(second,basket.resolveBranch(p,b));assertTrue(app.getSharedPreferences("shopping_list_prefs",0).getBoolean("remember_shop_priority_on_move",false))
-  val root=ZipFile(file).use{z->JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText())};assertEquals(20,root.getInt("version"));root.getJSONObject("data").getJSONArray("productBranchPriorities").getJSONObject(0).put("shopId",a)
+  val root=ZipFile(file).use{z->JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText())};assertEquals(21,root.getInt("version"));root.getJSONObject("data").getJSONArray("productBranchPriorities").getJSONObject(0).put("shopId",a)
   val bad=File(app.cacheDir,"bad-priority.zip");ZipOutputStream(bad.outputStream()).use{z->z.putNextEntry(ZipEntry("manifest.json"));z.write(root.toString().toByteArray());z.closeEntry()};assertTrue(runCatching{manager.importFile(bad)}.isFailure);assertEquals(second,basket.resolveBranch(p,b));manager.discard(file);bad.delete();Unit
  }
  @Test fun priorityOwnershipAndDeletionHaveForeignKeyProtection()=runBlocking{

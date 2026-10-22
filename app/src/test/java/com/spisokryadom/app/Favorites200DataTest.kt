@@ -59,7 +59,7 @@ class Favorites200DataTest {
  @Test fun fullBackupRestoresPinOrdersAppearanceAndQuantity():Unit=runBlocking{
   val g=groups.insertGroup(ProductGroupEntity(name="Продукты"));val t=shops.createDepartmentType("Молочка");groups.favoriteGroup(g,true);shops.favoriteDepartmentType(t,true)
   FavoriteAppearance(FavoriteStyle(false,"#EEDD44",false,false),FavoriteStyle(true,"#AACCEE",true,true)).save(prefs);prefs.edit().putString(ProductCreationDefaults.QUANTITY,"2,5").commit()
-  val before=FavoriteAppearance.read(prefs);val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(20,manifest(file).getInt("version"))
+  val before=FavoriteAppearance.read(prefs);val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(21,manifest(file).getInt("version"))
   groups.favoriteGroup(g,false);shops.favoriteDepartmentType(t,false);prefs.edit().clear().commit();manager.importFile(file)
   assertTrue(groups.getGroupById(g)!!.isFavorite);assertTrue(db.shopDepartmentDao().type(t)!!.isFavorite);assertEquals(before,FavoriteAppearance.read(prefs));assertEquals(2.5,ProductCreationDefaults.read(prefs).missingQuantity,0.0);manager.discard(file)
  }

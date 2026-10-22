@@ -89,7 +89,7 @@ class Venues242DataTest {
  private fun root(file:File)=ZipFile(file).use{JSONObject(it.getInputStream(it.getEntry("manifest.json")).reader().readText())}
  private fun archive(json:JSONObject)=File(app.cacheDir,"venues242.zip").also{f->ZipOutputStream(f.outputStream()).use{z->z.putNextEntry(ZipEntry("manifest.json"));z.write(json.toString().toByteArray());z.closeEntry()}}
  @Test fun backupKeepsTypesReadsLegacyAndRejectsMalformedTypeBeforeReplacingData()=runBlocking{
-  val id=venue();val manager=BackupManager(app,db);val file=manager.exportFile();val json=root(file);assertEquals(20,json.getInt("version"));manager.importFile(file);assertEquals(VenueKinds.MARKET,db.retailStructureDao().venue(id)!!.kind)
+  val id=venue();val manager=BackupManager(app,db);val file=manager.exportFile();val json=root(file);assertEquals(21,json.getInt("version"));manager.importFile(file);assertEquals(VenueKinds.MARKET,db.retailStructureDao().venue(id)!!.kind)
   val row=json.getJSONObject("data").getJSONArray("venues").getJSONObject(0)
   row.put("kind","unsupported");assertTrue(runCatching{manager.importFile(archive(json))}.isFailure);assertEquals(VenueKinds.MARKET,db.retailStructureDao().venue(id)!!.kind)
   row.remove("kind");assertTrue(runCatching{manager.importFile(archive(json))}.isFailure)

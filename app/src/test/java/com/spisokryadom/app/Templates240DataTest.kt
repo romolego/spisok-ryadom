@@ -126,7 +126,7 @@ class Templates240DataTest {
  }
  @Test fun fullBackupRoundTripsTemplateIdentityAndRejectsMalformedTypeBeforeReplacing():Unit=runBlocking{
   val id=template();goals.addQuick(id,"Сок");val before=goals.snapshot(id);val manager=BackupManager(app,db);val file=manager.exportFile()
-  assertEquals(20,root(file).getInt("version"));goals.deleteList(id);manager.importFile(file);assertEquals(before,goals.snapshot(id))
+  assertEquals(21,root(file).getInt("version"));goals.deleteList(id);manager.importFile(file);assertEquals(before,goals.snapshot(id))
   listOf("bad",null,true).forEach{value->
    val root=root(file);val list=root.getJSONObject("data").getJSONArray("goalLists").getJSONObject(0)
    if(value==true)list.put("isTemplate",true)else list.put("isTemplate",value?:JSONObject.NULL)

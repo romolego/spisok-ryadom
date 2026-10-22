@@ -87,7 +87,7 @@ class Stores220DataTest {
  @Test fun backup16PreservesMixedMembershipAndAllBackgroundModesAndReadsOld15():Unit=runBlocking{
   val manager=BackupManager(app,db)
   for(background in listOf("","auto","#B2D8E1")){
-   db.shopDao().update(db.shopDao().getById(shop)!!.copy(purchaseBackground=background));val file=manager.exportFile();assertEquals(20,manifest(file).getInt("version"));db.shopDao().update(db.shopDao().getById(shop)!!.copy(purchaseBackground=""));manager.importFile(file)
+   db.shopDao().update(db.shopDao().getById(shop)!!.copy(purchaseBackground=background));val file=manager.exportFile();assertEquals(21,manifest(file).getInt("version"));db.shopDao().update(db.shopDao().getById(shop)!!.copy(purchaseBackground=""));manager.importFile(file)
    assertEquals(background,db.shopDao().getById(shop)!!.purchaseBackground);assertEquals(network,db.shopDao().getById(shop)!!.networkId);assertEquals(setOf(first,second,null),db.shopBranchDao().forShop(shop).map{it.venueId}.toSet());manager.discard(file)
   }
   val file=manager.exportFile();val old=manifest(file).put("version",15);old.getJSONObject("data").getJSONArray("shops").getJSONObject(0).remove("purchaseBackground");manager.importFile(archive(old));assertEquals("",db.shopDao().getById(shop)!!.purchaseBackground);manager.discard(file)

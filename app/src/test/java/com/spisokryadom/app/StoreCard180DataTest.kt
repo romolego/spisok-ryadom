@@ -57,7 +57,7 @@ class StoreCard180DataTest {
  }
  @Test fun logoSurvivesBackupRestoreAndCleanup():Unit=runBlocking{
   val path=PhotoStore.importPhoto(app,Uri.fromFile(logo()),"shop_logos");val original=File(path).readBytes();val id=db.shopDao().insert(ShopEntity(name="Магазин",logoUri=path,shoppingBackground="rose"));val manager=BackupManager(app,db);val zip=manager.exportFile()
-  ZipFile(zip).use{z->assertNotNull(z.getEntry("shop_logos/$id.png"));val root=JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText());assertEquals(20,root.getInt("version"));assertFalse(root.getJSONObject("data").getJSONArray("shops").getJSONObject(0).has("logoUri"))}
+  ZipFile(zip).use{z->assertNotNull(z.getEntry("shop_logos/$id.png"));val root=JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText());assertEquals(21,root.getInt("version"));assertFalse(root.getJSONObject("data").getJSONArray("shops").getJSONObject(0).has("logoUri"))}
   db.shopDao().deleteAll();manager.importFile(zip);val s=db.shopDao().getAllSync().single();assertArrayEquals(original,File(s.logoUri!!).readBytes());File(s.logoUri!!).setLastModified(1);MediaLifecycle.cleanup(app,db);assertTrue(File(s.logoUri!!).isFile);assertEquals("rose",s.shoppingBackground)
  }
  @Test fun oldVersion12RestoresWithDefaultStoreSymbol():Unit=runBlocking{

@@ -3,4 +3,9 @@
     <string name="widget_add">Добавить покупку</string>
     <string name="widget_empty">Покупок пока нет</string>
     <string name="widget_description">Покупки с отметками и прокруткой</string>
+    <string name="widget_title_short">Покупки</string>
+    <string name="widget_hide_bought">Скрыть купленные товары</string>
+    <string name="widget_show_bought">Показать купленные товары</string>
+    <string name="widget_bought_hidden">Купленные скрыты</string>
+    <string name="widget_pending_empty">Нет некупленных товаров</string>
 </resources>

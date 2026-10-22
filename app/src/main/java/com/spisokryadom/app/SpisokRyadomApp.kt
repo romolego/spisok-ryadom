@@ -13,10 +13,10 @@ class SpisokRyadomApp : Application() {
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val widgetPreferencesListener=android.content.SharedPreferences.OnSharedPreferenceChangeListener{_,key->
-        val widgetKeys=setOf(com.spisokryadom.app.widget.WidgetSettings.MODE,com.spisokryadom.app.widget.WidgetSettings.DEPARTMENTS,com.spisokryadom.app.widget.WidgetSettings.TEXT_SIZE)
-        if(key==null||key in widgetKeys||key=="global_default_boost_urgent_shop"||key=="active_city"){
+        val widgetKeys=com.spisokryadom.app.widget.WidgetSettings.keys
+        if(key==null||key in widgetKeys||key in com.spisokryadom.app.util.FavoriteAppearance.booleanKeys||key in com.spisokryadom.app.util.FavoriteAppearance.colorKeys||key=="global_default_boost_urgent_shop"||key=="active_city"){
             com.spisokryadom.app.widget.ShoppingWidgetProvider.refresh(this,
-                updateLayout=key==null||key==com.spisokryadom.app.widget.WidgetSettings.TEXT_SIZE)
+                updateLayout=key==null||key in widgetKeys)
         }
     }
 

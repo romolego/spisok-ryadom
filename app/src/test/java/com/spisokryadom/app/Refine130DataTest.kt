@@ -105,7 +105,7 @@ class Refine130DataTest {
  }
  @Test fun fullBackupRestoresShopBackgroundAndWidgetSettingsAndOlderCopiesDefault()=runBlocking{
   WidgetSettings(ViewMode.BY_RECIPIENTS,false,12).save(prefs)
-  val manager=BackupManager(app,db);val file=manager.exportFile();val root=manifest(file);assertEquals(20,root.getInt("version"))
+  val manager=BackupManager(app,db);val file=manager.exportFile();val root=manifest(file);assertEquals(21,root.getInt("version"))
   db.shopDao().update(db.shopDao().getById(a)!!.copy(shoppingBackground=""));WidgetSettings().save(prefs);manager.importFile(file)
   assertEquals("rose",db.shopDao().getById(a)!!.shoppingBackground);assertEquals(WidgetSettings(ViewMode.BY_RECIPIENTS,false,12),WidgetSettings.load(prefs))
   root.put("version",9);val shops=root.getJSONObject("data").getJSONArray("shops");for(i in 0 until shops.length())shops.getJSONObject(i).remove("shoppingBackground")

@@ -86,7 +86,7 @@ class Venues230DataTest {
   shops.updateVenue(db.retailStructureDao().venue(venue)!!.copy(photoUri=venuePhoto));val points=db.shopBranchDao().forShop(shop)
   save(points.map{if(it.venueId==venue)it.copy(photoUri=pointPhoto)else it});MediaLifecycle.cleanup(app,db)
   assertTrue(File(venuePhoto).isFile);assertTrue(File(pointPhoto).isFile)
-  val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(20,manifest(file).getInt("version"))
+  val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(21,manifest(file).getInt("version"))
   ZipFile(file).use{assertNotNull(it.getEntry("venue_photos/$venue.jpg"));assertNotNull(it.getEntry("branch_photos/${points.single{p->p.venueId==venue}.id}.jpg"))}
   manager.importFile(file);val restoredVenue=db.retailStructureDao().venue(venue)!!.photoUri!!;val restoredPoint=db.shopBranchDao().forShop(shop).single{it.venueId==venue}.photoUri!!
   assertNotEquals(restoredVenue,restoredPoint);assertArrayEquals(byteArrayOf(1,2,3),File(restoredVenue).readBytes());assertArrayEquals(byteArrayOf(4,5,6),File(restoredPoint).readBytes());manager.discard(file)

@@ -50,9 +50,13 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
         val venues=db.retailStructureDao().venues().associateBy{it.id}
         val cities=db.cityDao().getAllSync().associateBy{it.id}
         val cityId=locations?.currentId()?:cities.keys.firstOrNull()
-        val purchases=rows().map{row->
+        // Filter the same coherent snapshot before building any headers: bought-only shops,
+        // departments and classifiers must not survive as empty sections.
+        val purchases=rows().filter{settings.showBought||!it.bought}.map{row->
             val entry=entries.getValue(row.id)
-            WidgetItem.Purchase(row.copy(detail=(BigDecimal.valueOf(entry.quantity).stripTrailingZeros().toPlainString().replace('.',',')+" "+entry.unit).trim()))
+            val shop=shops[entry.assignedShopId]
+            WidgetItem.Purchase(row.copy(detail=(BigDecimal.valueOf(entry.quantity).stripTrailingZeros().toPlainString().replace('.',',')+" "+entry.unit).trim()),
+                shop?.shoppingBackground.orEmpty(),shop?.purchaseBackground.orEmpty(),products[entry.productId]?.isFavorite==true)
         }
         val result=mutableListOf<WidgetItem>()
         fun product(row:WidgetItem.Purchase)=products[entries.getValue(row.row.id).productId]
@@ -91,11 +95,11 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
                         val shop=shops[shopId]
                         val name=shop?.let{if(it.cityId==cityId)it.name else "${it.name} · ${cities[it.cityId]?.name?:"Другой город"}"}?:"Без магазина"
                         val label=hintLabel(place.key)?:com.spisokryadom.app.domain.physicalPlaceLabel(name,branches[branchId]?.let{if(it.venueId!=null)it.label else it.address},null)
-                        result.add(WidgetItem.Header(place.key.stableKey,label.title,label.subtitle,if(venue==null)0 else 1))
+                        result.add(WidgetItem.Header(place.key.stableKey,label.title,label.subtitle,if(venue==null)0 else 1,shop?.shoppingBackground.orEmpty()))
                         if(shop!=null){
                             val depts=place.value.groupBy{entry(it).assignedDepartmentId}
                             depts.keys.sortedWith(compareBy<Long?>{id->val dept=departments[id];dept?.displayOrder?:Int.MAX_VALUE}.thenBy{it}).forEach{id->
-                                if(settings.showDepartments&&(id!=null||depts.size>1))result.add(WidgetItem.Header("department:$shopId:$branchId:$id",departments[id]?.name?:"Без группы магазина",depth=2))
+                                if(settings.showDepartments&&(id!=null||depts.size>1))result.add(WidgetItem.Header("department:$shopId:$branchId:$id",departments[id]?.name?:"Без группы магазина",depth=2,blockBackground=shop.shoppingBackground))
                                 result.addAll(sorted(depts.getValue(id)))
                             }
                         }else result.addAll(sorted(place.value))

@@ -56,7 +56,7 @@ class MarketDataTest {
    repo.ensureShopLink(p,shop);repo.ensureShopLink(p,shop)
    assertEquals(1,db.productDao().getAllSync().size);assertEquals(2,db.productShopLinkDao().getLinksForProductSync(p).size);assertEquals("Старые данные",db.productDao().getById(p)!!.note)
    val manager=BackupManager(app,db);val file=manager.exportFile()
-   ZipFile(file).use{z->assertNotNull(z.getEntry("branch_photos/$branch.jpg"));assertEquals(20,JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText()).getInt("version"))}
+   ZipFile(file).use{z->assertNotNull(z.getEntry("branch_photos/$branch.jpg"));assertEquals(21,JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText()).getInt("version"))}
    db.shopBranchDao().update(db.shopBranchDao().get(branch)!!.copy(note="Изменено",photoUri=null))
    manager.importFile(file)
    val restored=db.shopBranchDao().get(branch)!!;assertEquals("Беру здесь сыр",restored.note);assertNotNull(PhotoStore.load(restored.photoUri!!));assertTrue(File(restored.photoUri!!).isFile)

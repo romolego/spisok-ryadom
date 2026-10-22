@@ -96,7 +96,7 @@ class GoalListIntegrationTest {
         val before = state()
         val file = export()
         val root = manifest(file)
-        assertEquals(20,root.getInt("version"))
+        assertEquals(21,root.getInt("version"))
         assertEquals(2, backup.inspect(file).goalLists)
         assertEquals(3, backup.inspect(file).entries)
         goals.deleteList(hidden)

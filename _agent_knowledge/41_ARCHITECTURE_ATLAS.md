@@ -1,3 +1,5 @@
+Виджет0.26 —[55](55_WIDGET_SETTINGS_260.md). Room23 прежний, полныйZIP21. WidgetAppearance использует общие формулы цветов; WidgetSettings задаёт независимые фоны и купленное; provider пишет только флаг показа, factory фильтрует до заголовков. Настройки общие для всех экземпляров.
+
 Текущие списки0.25 —[54](54_UNIFIED_LISTS_250.md), Room23/ZIP20. Единый владелец строк GoalListEntity, общий AddToListScreen с targetListId и PurchaseQuantityStepper; ListCopySheet доступен всем спискам. Старое разделение шаблонов отменено.
 
 Дополнение мест0.24.2 —53. Room22/ZIP19: Venue.kind, транзакционный VenueRelocation, CityPicker и ShopSymbolPicker. Сеть и торговое место независимы. Контракт52 сохраняется; прежнее разделение51 отменено54.
@@ -6,11 +8,11 @@
 
 Актуальный контракт мест0.23 —[50](50_VENUES_SHARED_ADDRESS_230.md): Room20/ZIP17, общий адрес Venue и label точки.
 
-# Атлас архитектуры ·0.25.0
+# Атлас архитектуры ·0.26.0
 
 Настройки0.21 описаны в48; предыдущие дополнения0.22 —[49](49_STORE_POINTS_UNITS_220.md), Room19/ZIP16. Шесть стилей и три режима сброса сохраняются.
 
-Текущее хранилище: Room23, 20 таблиц; полный резервный ZIP20. Главная/единые списки —54. Результаты текущей проверки —01/54; прежняя публикация —47; порядок сопровождения —42. Исторический атлас до этого аудита сохранён в history/41_ARCHITECTURE_ATLAS_before201.md.
+Текущее хранилище: Room23, 20 таблиц; полный резервный ZIP21. Главная/единые списки —54. Результаты текущей проверки —01/55; прежняя публикация —47; порядок сопровождения —42. Исторический атлас до этого аудита сохранён в history/41_ARCHITECTURE_ATLAS_before201.md.
 
 
 Это действующая карта приложения. Причины отдельных исторических исправлений — в24–40; фактические поля и ограничения — в Entity/DAO/миграциях. Пути ниже относительно корня репозитория; код Kotlin находится под `app/src/main/java/com/spisokryadom/app/`.
@@ -48,9 +50,9 @@ flowchart LR
 | Справочники / правила | `ClassifierRepository.kt`, `StandardCategories.kt`, `CreationPresetDao.kt` | Категории, единицы, получатели и FK-преднастройки |
 | Общие настройки | `ui/settings/`, `util/ProductCreationDefaults.kt`, `ProductEditingPreferences.kt` | Preferences, управление справочниками, правила нового товара |
 | Сброс | `data/repository/ResetRepository.kt`, `ui/settings/SettingsCards.kt` | Три подтверждаемых режима, editor/media lock, транзакция, согласование черновиков и поколение |
-| Резервная копия | `data/backup/BackupManager.kt`, `BackupJson.kt` | Полный ZIP20, фотографии, валидация и атомарное восстановление |
+| Резервная копия | `data/backup/BackupManager.kt`, `BackupJson.kt` | Полный ZIP21, фотографии, валидация и атомарное восстановление |
 | Текст для отправки | `ui/bulk/ShoppingTextViewModel.kt`, `BulkScreen.kt` | Временный текст из снимка покупок, без записи обратно в корзину |
-| Виджет | `widget/`, `ui/settings/WidgetSettingsCard.kt` | Общая база, группировка/шрифт, отметки и открытие приложения |
+| Виджет | `widget/`, `ui/settings/WidgetSettingsCard.kt` | Общая база, группировка/шрифт/фоны, фильтр купленного, отметки и открытие приложения |
 | Общие визуальные правила | `ui/components/Appearance.kt`, `ShoppingSymbols.kt`, `ShoppingBlockAppearance.kt` | 79 значков, цвета, иерархия и подложка магазина |
 | Общие границы | `CatalogueEdits.kt`, `MediaLifecycle.kt`, `util/Quantities.kt`, `PurchaseMoney.kt` | Синхронизация редакторов, медиа, единицы и денежные вычисления |
 

@@ -1,3 +1,5 @@
+Виджет0.26 (55): WidgetAppearance и WidgetFrame связывают фон зоны/карточки/избранного с общими цветовыми правилами. Provider имеет отдельный explicit set-visibility intent без записи в БД; прежний CAS отметки сохранён. Новые booleanPrefs, Room23 прежний, ZIP21.
+
 ## Единые списки0.25
 
 Текущий контракт54: GoalListEntity остаётся единым владельцем ShoppingListEntryEntity; Room23 нормализует исторический isTemplate. ListCopySheet заменяет TemplateApplySheet; общий AddToListScreen принимает targetListId, PurchaseQuantityStepper используется на Главной и в списках. Отдельный GoalCatalogueSheet удалён. Полная копияZIP20, старые читатели сохранены.
