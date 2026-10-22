@@ -23,3 +23,9 @@
 Публикация завершена: [PR#3](https://github.com/romolego/spisok-ryadom/pull/3) слит вmain, [v0.20.1](https://github.com/romolego/spisok-ryadom/releases/tag/v0.20.1) открыт. Все8 assets скачаны без авторизации; размер/SHA256/ZIP CRC совпали. Source commit `7c190bdd2ff49b6fc49c59c2b3ffccb0a7673568`, merge/tag commit `e6d37dc2b42fc73a09a02bc2ab54651c66288018`. Публичный source ZIP совпадает с275 проверенными файлами с учётом текстового CRLF/LF. Receipt —`docs/publications/0.20.1.json`.
 
 Локальная рабочая ветка —main. Текущие результаты и знания находятся в01/41/42/47; APK —`.local/artifacts/0.20.1/SpisokRyadom-0.20.1.apk`. Этот проект не зависит от cwd прежнего чата; его вложения и Downloads сохраняются без изменения.
+
+## Состояние после аудита0.27.0
+
+Публикация завершена: [PR#4](https://github.com/romolego/spisok-ryadom/pull/4) слит обычным merge вmain, [v0.27.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.27.0) открыт. Все8 assets повторно скачаны без авторизации; размер/SHA256 и CRC архивов совпали. Source commit `5b162177f68bdb50d3af7956fb0ab13374df29ac`, merge/tag commit `76380634c7f583e67a3d4a4a23931520e055d217`. Публичный source ZIP совпадает с330 проверенными файлами с учётом текстового CRLF/LF; бинарные fixtures побайтны. Квитанция —`docs/publications/0.27.0.json`. Исторические APK0.21–0.26 включены в отдельный архив без пересборки.
+
+Текущие код0.27.0(37)/Room24/ZIP22 и знания находятся в этой же папке, APK —`.local/artifacts/0.27.0/SpisokRyadom-0.27.0.apk`. Исторические разделы выше описывают предыдущие даты; рабочая веткаmain.
