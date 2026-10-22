@@ -19,6 +19,9 @@ interface ShoppingListEntryDao {
     """)
     fun getAll(): Flow<List<ShoppingListEntryEntity>>
 
+    @Query("SELECT * FROM shopping_list_entries")
+    fun observeAllRows():Flow<List<ShoppingListEntryEntity>>
+
     @Query("SELECT * FROM shopping_list_entries WHERE id = :id")
     suspend fun getById(id: Long): ShoppingListEntryEntity?
 

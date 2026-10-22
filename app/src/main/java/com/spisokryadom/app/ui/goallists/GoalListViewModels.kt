@@ -35,26 +35,26 @@ import java.util.Locale
 internal fun goalNumber(value: Double): String = DecimalFormat("0.######", DecimalFormatSymbols(Locale.forLanguageTag("ru"))).format(value)
 internal fun goalMoney(value: Double): String = PurchaseMoney.format(value)
 
-data class GoalListsUiState(val lists: List<GoalListEntity> = emptyList(), val loading: Boolean = true, val busy: Boolean = false, val error: String? = null, val createdId: Long? = null)
+data class GoalListsUiState(val itemCounts:Map<Long,Int> = emptyMap(),val lists: List<GoalListEntity> = emptyList(), val loading: Boolean = true, val busy: Boolean = false, val error: String? = null, val createdId: Long? = null)
 
 class GoalListsViewModel(private val repository: GoalListRepository, private val sessionGeneration: Long = ProductEditorTransactions.generation.get()) : ViewModel() {
     private val _state = MutableStateFlow(GoalListsUiState())
     val uiState = _state.asStateFlow()
-    init { viewModelScope.launch { repository.observeLists().collect { lists -> _state.update { it.copy(lists = lists, loading = false) } } } }
-    fun create(name: String, isTemplate: Boolean = false) {
+    init { viewModelScope.launch { combine(repository.observeLists(),repository.observeAllEntries()){lists,rows->lists to rows.mapNotNull{it.listId}.groupingBy{it}.eachCount()}.collect { (lists,counts) -> _state.update { it.copy(lists = lists,itemCounts=counts, loading = false) } } } }
+    fun create(name: String) {
         if (_state.value.busy || name.isBlank()) return
         _state.update { it.copy(busy = true, error = null) }
         viewModelScope.launch {
-            try { repository.withSession(sessionGeneration) { val id = repository.create(name, isTemplate); _state.update { it.copy(createdId = id) } } }
+            try { repository.withSession(sessionGeneration) { val id = repository.create(name); _state.update { it.copy(createdId = id) } } }
             catch (e: Exception) { if (e is CancellationException) throw e; _state.update { it.copy(error = e.message ?: "Не удалось создать список") } }
             finally { _state.update { it.copy(busy = false) } }
         }
     }
     fun clearNavigation() { _state.update { it.copy(createdId = null) } }
-    fun templateFromHome(name:String){
+    fun captureHome(name:String){
         if(_state.value.busy)return
         _state.update{it.copy(busy=true,error=null)}
-        viewModelScope.launch{try{repository.withSession(sessionGeneration){val id=repository.saveAsTemplate(null,name);_state.update{it.copy(createdId=id)}}}
+        viewModelScope.launch{try{repository.withSession(sessionGeneration){val id=repository.captureList(null,name);_state.update{it.copy(createdId=id)}}}
         catch(e:Exception){if(e is CancellationException)throw e;_state.update{it.copy(error=e.message)}}finally{_state.update{it.copy(busy=false)}}}
     }
     fun clearError() { _state.update { it.copy(error = null) } }
@@ -75,7 +75,6 @@ data class GoalItemEditor(
 
 data class GoalListUiState(
     val list: GoalListEntity? = null, val rows: List<GoalPurchaseRow> = emptyList(),
-    val catalogue: List<ProductEntity> = emptyList(), val catalogueQuery: String = "", val catalogueVisible: Boolean = false, val catalogueUsePriority: Boolean = false,
     val shops: List<String> = emptyList(), val loading: Boolean = true, val busy: Boolean = false,
     val editor: GoalItemEditor? = null, val error: String? = null, val message: String? = null, val deleted: Boolean = false,
     val shareText: String? = null, val selectionMode: Boolean = false, val selectedIds: Set<Long> = emptySet(), val allLists: List<GoalListEntity> = emptyList(), val openListId:Long?=null
@@ -100,7 +99,6 @@ class GoalListViewModel(
     val uiState = _state.asStateFlow()
     private val editorMutex = Mutex()
     private var editorJob: Job? = null
-    private var catalogueProducts: List<ProductEntity> = emptyList()
     private var pendingFileJson: String? = messages.read("goal_export_json")
     private data class Places(val shops: List<ShopEntity>, val branches: List<ShopBranchEntity>, val venues: List<VenueEntity>)
     init {
@@ -117,9 +115,7 @@ class GoalListViewModel(
                 } }
                 Triple(Triple(lists.find { it.id == listId }, rows, ps.filter { !it.isTemporary }), places.shops.map { labels.shop(it.id, it.name) }.distinct(), lists)
             }.flowOn(Dispatchers.Default).collect { (data, names, lists) ->
-                catalogueProducts = data.third
                 _state.update { it.copy(list = data.first, rows = data.second, loading = false, shops = names, allLists = lists, selectedIds = it.selectedIds.intersect(data.second.map { row -> row.entry.id }.toSet())) }
-                refreshCatalogue()
             }
         }
         if (_state.value.editor?.dirty == true) scheduleSave()
@@ -154,7 +150,7 @@ class GoalListViewModel(
         }
     }
     fun metadata(name: String, visible: Boolean) = command { repository.updateList(listId, name, visible) }
-    fun saveAsTemplate(name:String)=command{val id=repository.saveAsTemplate(listId,name);_state.update{it.copy(openListId=id)}}
+    fun captureList(name:String)=command{val id=repository.captureList(listId,name);_state.update{it.copy(openListId=id)}}
     fun clearNavigation(){_state.update{it.copy(openListId=null)}}
     fun deleteList() = command { repository.deleteList(listId); _state.update { it.copy(deleted = true) } }
     fun bought(row: GoalPurchaseRow, value: Boolean) = command { repository.setBought(row.entry.id, value, expectedListId = listId) }
@@ -282,19 +278,6 @@ class GoalListViewModel(
         note = savedState["goal_editor_note"] ?: "", comment = savedState["goal_editor_comment"] ?: "", editableName = savedState["goal_editor_editable"] ?: true, dirty = savedState["goal_editor_dirty"] ?: false,
         editedFields = savedState.get<ArrayList<String>>("goal_editor_fields")?.mapNotNull { runCatching { GoalItemField.valueOf(it) }.getOrNull() }?.toSet()
             ?: if (savedState.get<Boolean>("goal_editor_dirty") == true) GoalItemField.entries.toSet() else emptySet())
-    fun showCatalogue(value: Boolean) { _state.update { it.copy(catalogueVisible = value) }; if (value) refreshCatalogue() }
-    fun cataloguePriority(value: Boolean) { _state.update { it.copy(catalogueUsePriority = value) } }
-    fun catalogueQuery(query: String) { _state.update { it.copy(catalogueQuery = query) }; refreshCatalogue() }
-    private fun refreshCatalogue() {
-        val query = _state.value.catalogueQuery
-        val collator = Collator.getInstance(Locale.forLanguageTag("ru"))
-        val result = if (query.isBlank()) catalogueProducts.sortedWith { a, b -> collator.compare(a.name, b.name) } else FuzzySearch.rank(catalogueProducts, query, { it.name })
-        _state.update { it.copy(catalogue = result) }
-    }
-    fun addCatalogue(product: ProductEntity) = command {
-        repository.addCatalogue(listId, product.id, choice = if (_state.value.catalogueUsePriority) com.spisokryadom.app.data.repository.ShopChoice.AUTO else com.spisokryadom.app.data.repository.ShopChoice.NONE)
-        _state.update { it.copy(message = "${product.name}: добавлено") }
-    }
     fun export(done: (GoalListDocument) -> Unit) = command { done(repository.exportDocument(listId)) }
     fun openShare() = command { shareText(GoalListTransfer.exportText(repository.exportDocument(listId))) }
     fun shareText(text: String?) {

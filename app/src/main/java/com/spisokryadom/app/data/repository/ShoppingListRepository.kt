@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 enum class ShopChoice { AUTO, NONE, EXPLICIT }
 class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private val db: AppDatabase, private val locations: LocationRepository, private val catalogueEdits:CatalogueEdits?=null) {
     fun getAllEntries(): Flow<List<ShoppingListEntryEntity>> = entryDao.getAll()
+    fun getEntriesForList(listId:Long)=entryDao.getForList(listId)
     suspend fun getEntryById(id: Long) = entryDao.getById(id)
     private suspend fun assignments(productId:Long?=null)=com.spisokryadom.app.domain.AssignmentCatalogue(
         if(productId==null)db.productDao().getAllSync()else listOfNotNull(db.productDao().getById(productId)),db.shopDao().getAllSync(),

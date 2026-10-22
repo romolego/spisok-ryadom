@@ -129,7 +129,9 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                     onOpenList={id->navController.navigate("goal_list/$id")})
             }
             composable("goal_list/{listId}",arguments=listOf(navArgument("listId"){type=NavType.LongType})) { entry ->
-                com.spisokryadom.app.ui.goallists.GoalListScreen(entry.arguments!!.getLong("listId"),onBack={navController.popBackStack()},onOpenRegular={navController.navigate(Routes.ShoppingList.route){popUpTo(Routes.ShoppingList.route);launchSingleTop=true}},onOpenList={id->navController.navigate("goal_list/$id")})
+                com.spisokryadom.app.ui.goallists.GoalListScreen(entry.arguments!!.getLong("listId"),onBack={navController.popBackStack()},onOpenRegular={navController.navigate(Routes.ShoppingList.route){popUpTo(Routes.ShoppingList.route);launchSingleTop=true}},onOpenList={id->navController.navigate("goal_list/$id")},
+                    onAddProducts={navController.navigate(Routes.AddToList.createRoute(listId=entry.arguments!!.getLong("listId")))},
+                    onOpenProduct={id->navController.navigate(Routes.ProductCard.createRoute(id))})
             }
 
             composable(Routes.ProductDatabase.route) { entry ->
@@ -218,12 +220,17 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                         type = NavType.LongType
                         defaultValue = -1L
                     },
-                    navArgument("preselectedBranchId") { type=NavType.LongType;defaultValue = -1L }
+                    navArgument("preselectedBranchId") { type=NavType.LongType;defaultValue = -1L },
+                    navArgument("listId") { type=NavType.LongType;defaultValue = -1L }
                 )
             ) { backStackEntry ->
                 val preselectedShopId = backStackEntry.arguments?.getLong("preselectedShopId") ?: -1L
                 val branchId=backStackEntry.arguments?.getLong("preselectedBranchId") ?: -1L
+                val focus by backStackEntry.savedStateHandle.getStateFlow("focusProductId",-1L).collectAsStateWithLifecycle()
                 AddToListScreen(
+                    targetListId=backStackEntry.arguments?.getLong("listId")?.takeIf{it>0},
+                    returnedProductId=focus,onReturnHandled={backStackEntry.savedStateHandle["focusProductId"]=-1L},
+                    onCreateProduct={name,shop->navController.navigate(Routes.ProductCard.createRoute(initialName=name,preselectedShopId=shop))},
                     preselectedBranchId=branchId.takeIf{it>=0},
                     preselectedShopId = if (preselectedShopId > 0) preselectedShopId else null,
                     onNavigateBack = { navController.popBackStack() }

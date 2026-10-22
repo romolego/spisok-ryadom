@@ -47,7 +47,7 @@ class Templates240UiTest {
   apple=db.productDao().insert(ProductEntity(name="Яблоко",defaultUnit="шт"))
  };waitText("Список пуст")}
  @After fun close(){ui.activityRule.scenario.close();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
- private fun openApply(id:Long){tab("Списки");waitTag("goal-lists");ui.onNodeWithTag("goal-lists").performScrollToNode(hasTestTag("goal-list-$id"));ui.onNodeWithContentDescription("Применить шаблон: На неделю").performClick();waitTag("template-apply-confirm")}
+ private fun openApply(id:Long){tab("Списки");waitTag("goal-lists");ui.onNodeWithTag("goal-lists").performScrollToNode(hasTestTag("goal-list-$id"));ui.onNodeWithContentDescription("Добавить позиции списка: На неделю").performClick();waitTag("list-copy-confirm")}
  @Test fun favoritesFilterHasExplicitBannerAndOneTapToShowAll(){
   app.getSharedPreferences("product_db_prefs",0).edit().putBoolean("favorites_only",true).commit();tab("Товары");waitTag("favorites-filter-active")
   ui.onNodeWithTag("favorites-filter-active").assertIsDisplayed();ui.onNodeWithText("Яблоко").assertDoesNotExist();shot("favorites-active")
@@ -69,54 +69,53 @@ class Templates240UiTest {
   runBlocking{basket.markBought(entry)};waitFor{ui.onAllNodesWithTag("candidate-added-favorite-$banana",useUnmergedTree=true).fetchSemanticsNodes().isEmpty()}
   runBlocking{basket.markNotBought(entry)};waitTag("candidate-added-favorite-$banana")
  }
- @Test fun createsTemplateThroughTheSameListDialog(){
-  tab("Списки");ui.onNodeWithContentDescription("Создать список").performClick();ui.onNodeWithText("Название списка").performTextInput("Каждую неделю")
-  ui.onNodeWithText("Обычный список").performClick();ui.onNodeWithText("Шаблон").performClick();ui.onNodeWithText("Сохранить").performClick()
-  waitTag("goal-add-item");assertTrue(runBlocking{db.goalListDao().getAllSync().single().isTemplate})
-  ui.onNodeWithTag("goal-add-item").performClick();waitTag("goal-item-name");ui.onNodeWithTag("goal-item-name").performTextInput("Хлеб");ui.onNodeWithTag("goal-item-done").performClick()
-  waitTag("template-open-apply");shot("template-editor")
+ @Test fun createsOneListFormatAndAddsWithTheSharedPicker(){
+  tab("Списки");ui.onNodeWithContentDescription("Создать список").performClick();ui.onNodeWithText("Название списка").performTextInput("Рецепт")
+  ui.onNodeWithText("Тип").assertDoesNotExist();ui.onNodeWithText("Сохранить").performClick();waitTag("goal-add-item")
+  assertFalse(runBlocking{db.goalListDao().getAllSync().single().isTemplate})
+  ui.onNodeWithTag("goal-add-item").performClick();waitTag("add-screen-list");ui.onNodeWithTag("add-list-contents").assertExists()
  }
  @Test fun applicationRequiresConfirmationThenOpensMainAndWidgetSeesCopies(){
-  val id=runBlocking{goals.create("На неделю",true).also{goals.addCatalogue(it,banana,.5,"кг");goals.addQuick(it,"Хлеб",2.0,"шт")}}
-  openApply(id);ui.onNodeWithText("Все позиции шаблона (2) будут добавлены на «Главную» и появятся в виджете. Шаблон сохранится.").assertExists()
+  val id=runBlocking{goals.create("На неделю").also{goals.addCatalogue(it,banana,.5,"кг");goals.addQuick(it,"Хлеб",2.0,"шт")}}
+  openApply(id);ui.onNodeWithText("Все позиции списка (2) будут добавлены на «Главную» и появятся в виджете. Исходный список сохранится.").assertExists()
   assertTrue(runBlocking{db.shoppingListEntryDao().getVisibleSync().isEmpty()});shot("template-confirm-main")
-  ui.onNodeWithTag("template-apply-confirm").performClick();waitFor{runBlocking{db.shoppingListEntryDao().getVisibleSync().size==2}}
+  ui.onNodeWithTag("list-copy-confirm").performClick();waitFor{runBlocking{db.shoppingListEntryDao().getVisibleSync().size==2}}
   waitText("Список покупок");ui.onNode(hasText("Главная") and SemanticsMatcher.expectValue(SemanticsProperties.Role,Role.Tab)).assertIsSelected()
   assertEquals(2,runBlocking{goals.snapshot(id).entries.size});assertEquals(2,runBlocking{ShoppingWidgetData(app.container).rows().size})
  }
  @Test fun templateCanCreateAnOrdinaryListAndOpenIt(){
-  val id=runBlocking{goals.create("На неделю",true).also{goals.addQuick(it,"Грибы")}}
-  openApply(id);ui.onNodeWithText("Новый список").performClick();ui.onNodeWithTag("template-target-name").performTextInput("К выходным")
-  ui.onNodeWithTag("template-apply-confirm").performClick();waitText("К выходным");waitTag("goal-open-catalogue")
+  val id=runBlocking{goals.create("На неделю").also{goals.addQuick(it,"Грибы")}}
+  openApply(id);ui.onNodeWithText("Новый список").performClick();ui.onNodeWithTag("list-copy-target-name").performTextInput("К выходным")
+  ui.onNodeWithTag("list-copy-confirm").performClick();waitText("К выходным");waitTag("goal-open-catalogue")
   assertFalse(runBlocking{db.goalListDao().getAllSync().single{it.name=="К выходным"}.isTemplate});assertTrue(runBlocking{db.shoppingListEntryDao().getVisibleSync().isEmpty()})
  }
  @Test fun currentPurchasesCanBeCapturedAsReusableTemplate(){
   runBlocking{basket.addProduct(banana,1.0,"кг",choice=ShopChoice.NONE)};tab("Списки")
-  ui.onNodeWithContentDescription("Сохранить текущие покупки как шаблон").performClick();ui.onNodeWithText("Название шаблона").performTextInput("Повторить покупки");ui.onNodeWithText("Сохранить").performClick()
-  waitTag("template-open-apply");assertEquals(1,runBlocking{db.shoppingListEntryDao().getVisibleSync().size});assertEquals(1,runBlocking{goals.snapshot(db.goalListDao().getAllSync().single().id).entries.size})
+  ui.onNodeWithContentDescription("Сохранить текущие покупки как список").performClick();ui.onNodeWithText("Название списка").performTextInput("Повторить покупки");ui.onNodeWithText("Сохранить").performClick()
+  waitTag("list-open-copy");assertEquals(1,runBlocking{db.shoppingListEntryDao().getVisibleSync().size});assertEquals(1,runBlocking{goals.snapshot(db.goalListDao().getAllSync().single().id).entries.size})
  }
  @Test fun cancellingDoesNotAddAnythingAndExistingDestinationKeepsItsOwner(){
-  val (id,target)=runBlocking{val id=goals.create("На неделю",true);goals.addQuick(id,"Хлеб");id to goals.create("В поездку")}
-  openApply(id);ui.onNodeWithText("Отмена").performClick();waitFor{ui.onAllNodesWithTag("template-apply-confirm").fetchSemanticsNodes().isEmpty()}
+  val (id,target)=runBlocking{val id=goals.create("На неделю");goals.addQuick(id,"Хлеб");id to goals.create("В поездку")}
+  openApply(id);ui.onNodeWithText("Отмена").performClick();waitFor{ui.onAllNodesWithTag("list-copy-confirm").fetchSemanticsNodes().isEmpty()}
   assertTrue(runBlocking{goals.snapshot(target).entries.isEmpty()})
-  ui.onNodeWithContentDescription("Применить шаблон: На неделю").performClick();waitTag("template-apply-confirm");ui.onNode(hasText("В поездку") and hasAnyAncestor(hasTestTag("template-apply-sheet"))).performClick();shot("template-confirm-list")
-  ui.onNodeWithTag("template-apply-confirm").performClick();waitTag("goal-open-catalogue")
+  ui.onNodeWithContentDescription("Добавить позиции списка: На неделю").performClick();waitTag("list-copy-confirm");ui.onNode(hasText("В поездку") and hasAnyAncestor(hasTestTag("list-copy-sheet"))).performClick();shot("template-confirm-list")
+  ui.onNodeWithTag("list-copy-confirm").performClick();waitTag("goal-open-catalogue")
   assertEquals(1,runBlocking{goals.snapshot(target).entries.size});assertEquals(1,runBlocking{goals.snapshot(id).entries.size});assertTrue(runBlocking{db.shoppingListEntryDao().getVisibleSync().isEmpty()})
  }
  @Test fun templateUrgencyEditsAffectFutureCopiesAndKeepExistingPurchases(){
-  val (id,row)=runBlocking{val id=goals.create("Срочность шаблона",true);id to goals.addQuick(id,"Хлеб")}
+  val (id,row)=runBlocking{val id=goals.create("Срочность шаблона");id to goals.addQuick(id,"Хлеб")}
   tab("Списки");waitTag("goal-list-$id");ui.onNodeWithTag("goal-list-$id").performClick();waitTag("goal-entry-$row")
   ui.onNodeWithContentDescription("Действия: Хлеб").performClick();ui.onNodeWithText("Сделать срочным").performClick()
   waitFor{runBlocking{db.shoppingListEntryDao().getById(row)!!.isUrgent}}
-  val target=runBlocking{goals.applyTemplate(id,newListName="Первая копия")!!}
+  val target=runBlocking{goals.copyList(id,newListName="Первая копия")!!}
   assertTrue(runBlocking{goals.snapshot(target).entries.single().isUrgent})
   ui.onNodeWithContentDescription("Действия: Хлеб").performClick();ui.onNodeWithText("Убрать срочность").performClick()
   waitFor{runBlocking{!db.shoppingListEntryDao().getById(row)!!.isUrgent}}
-  runBlocking{goals.applyTemplate(id)}
+  runBlocking{goals.copyList(id)}
   assertFalse(runBlocking{db.shoppingListEntryDao().getVisibleSync().single().isUrgent})
   assertTrue(runBlocking{goals.snapshot(target).entries.single().isUrgent})
   assertFalse(runBlocking{goals.snapshot(id).entries.single().isBought})
-  ui.onNodeWithContentDescription("Куплено: Хлеб").assertDoesNotExist()
+  ui.onNodeWithContentDescription("Куплено: Хлеб").assertExists()
  }
 
 }

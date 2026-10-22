@@ -1,3 +1,7 @@
+## Единые списки0.25
+
+Текущий контракт54: GoalListEntity остаётся единым владельцем ShoppingListEntryEntity; Room23 нормализует исторический isTemplate. ListCopySheet заменяет TemplateApplySheet; общий AddToListScreen принимает targetListId, PurchaseQuantityStepper используется на Главной и в списках. Отдельный GoalCatalogueSheet удалён. Полная копияZIP20, старые читатели сохранены.
+
 ## Аудит0.20.1
 
 Структура0.20.1: DemoDataProvider, legacy text harness/parser и неиспользуемые UI/команды удалены. ShoppingBlockColor хранит действующий общий helper. Общая запись группы магазина и generation guard описаны41/47. Room18/ZIP14.

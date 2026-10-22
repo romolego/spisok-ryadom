@@ -38,16 +38,16 @@ class Templates240LandscapeUiTest {
   val db=Room.inMemoryDatabaseBuilder(app,AppDatabase::class.java).allowMainThreadQueries().build()
   val location=LocationRepository(db.cityDao(),db.shopDao(),app.getSharedPreferences("240-landscape",0))
   val repository=GoalListRepository(db,ShoppingListRepository(db.shoppingListEntryDao(),db,location))
-  val id=runBlocking{db.cityDao().insert(CityEntity(1,"Город"));val id=repository.create("На неделю",true);repository.addQuick(id,"Хлеб");repeat(12){repository.create("Список $it")};id}
-  val vm=TemplateApplyViewModel(id,repository)
+  val id=runBlocking{db.cityDao().insert(CityEntity(1,"Город"));val id=repository.create("На неделю");repository.addQuick(id,"Хлеб");repeat(12){repository.create("Список $it")};id}
+  val vm=ListCopyViewModel(id,repository)
   var root:android.view.View?=null
   try{
-   ui.setContent{val view=LocalView.current;SideEffect{root=view.rootView};MaterialTheme{TemplateApplySheet(id,"landscape",{},model=vm,onApplied={})}}
-   ui.waitUntil(20_000){Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(20));runCatching{ui.onNodeWithTag("template-apply-confirm").assertIsEnabled()}.isSuccess}
-   ui.onNodeWithTag("template-apply-confirm").assertIsDisplayed()
+   ui.setContent{val view=LocalView.current;SideEffect{root=view.rootView};MaterialTheme{ListCopySheet(id,"landscape",{},model=vm,onApplied={})}}
+   ui.waitUntil(20_000){Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(20));runCatching{ui.onNodeWithTag("list-copy-confirm").assertIsEnabled()}.isSuccess}
+   ui.onNodeWithTag("list-copy-confirm").assertIsDisplayed()
    assertTrue(runBlocking{db.shoppingListEntryDao().getVisibleSync().isEmpty()})
    ui.runOnIdle{val view=org.robolectric.shadows.ShadowDialog.getLatestDialog()?.takeIf{it.isShowing}?.window?.decorView?:root!!;val bitmap=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888);view.draw(Canvas(bitmap));val file=File("build/reports/refine240/screens/template-landscape-api35.png");file.parentFile!!.mkdirs();file.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()}
-   ui.onNodeWithTag("template-apply-confirm").performClick()
+   ui.onNodeWithTag("list-copy-confirm").performClick()
    ui.waitUntil(20_000){Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(20));vm.uiState.value.completed}
    assertEquals(1,runBlocking{db.shoppingListEntryDao().getVisibleSync().size});assertEquals(1,runBlocking{repository.snapshot(id).entries.size})
   }finally{vm.viewModelScope.cancel();location.closeForTest();db.close()}

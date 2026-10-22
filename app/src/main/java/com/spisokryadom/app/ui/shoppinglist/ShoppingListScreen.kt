@@ -870,49 +870,7 @@ private fun ShoppingListItem(
 
             // Right side: inline quantity control
             Spacer(modifier = Modifier.width(12.dp))
-            if(!selectionMode)Row(
-                modifier = Modifier
-                    .background(
-                        if (!isBought) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        RoundedCornerShape(8.dp)
-                    ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onDecreaseQuantity,
-                    enabled = !isBought && entry.quantity > 0 && (entry.listId == null || entry.quantity > quantityStep),
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.Remove,
-                        contentDescription = "Уменьшить",
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-                Text(
-                    text = badgeText ?: "\u2014",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = if (badgeText != null) FontWeight.Medium else FontWeight.Normal
-                    ),
-                    color = if (badgeText != null) MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    maxLines = 1,
-                    modifier = Modifier.widthIn(min = 24.dp).padding(horizontal = 2.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-                IconButton(
-                    onClick = onIncreaseQuantity,
-                    enabled = !isBought,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.Add,
-                        contentDescription = "Увеличить",
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
+            if(!selectionMode)com.spisokryadom.app.ui.components.PurchaseQuantityStepper(badgeText?:"—",isBought,entry.quantity>0&&(entry.listId==null||entry.quantity>quantityStep),onDecreaseQuantity,onIncreaseQuantity)
         }
     }
 }

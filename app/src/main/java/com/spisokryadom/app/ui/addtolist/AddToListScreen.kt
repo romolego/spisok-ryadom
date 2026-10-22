@@ -25,15 +25,33 @@ import com.spisokryadom.app.data.entity.ProductEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,preselectedBranchId:Long?=null,viewModel:AddToListViewModel=viewModel(factory=AddToListViewModel.factory(preselectedShopId,preselectedBranchId))){
+fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,preselectedBranchId:Long?=null,targetListId:Long?=null,viewModel:AddToListViewModel=viewModel(factory=AddToListViewModel.factory(preselectedShopId,preselectedBranchId,targetListId)),onCreateProduct:((String,Long?)->Unit)?=null,returnedProductId:Long=-1L,onReturnHandled:()->Unit={}){
  val state by viewModel.uiState.collectAsStateWithLifecycle();val snack=remember{SnackbarHostState()}
+ LaunchedEffect(returnedProductId){if(returnedProductId>0){viewModel.selectSavedProduct(returnedProductId);onReturnHandled()}}
  val focus=androidx.compose.ui.platform.LocalFocusManager.current
  LaunchedEffect(state.addedMessage){state.addedMessage?.let{viewModel.clearMessage();onNavigateBack()}}
  LaunchedEffect(state.browseMessage){state.browseMessage?.let{snack.showSnackbar(it);viewModel.clearBrowseMessage()}}
- Scaffold(topBar={TopAppBar(title={Text("Добавить покупку")},navigationIcon={IconButton(onClick=onNavigateBack){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Назад")}})},snackbarHost={SnackbarHost(snack)}){padding->
+ Scaffold(topBar={TopAppBar(title={Text(if(targetListId==null)"Добавить покупку"else state.targetListName?.let{"Добавить в «$it»"}?:"Список удалён",maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)},navigationIcon={IconButton(onClick=onNavigateBack){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Назад")}})},snackbarHost={SnackbarHost(snack)}){padding->
   BoxWithConstraints(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
    val listHeight=(maxHeight*0.55f).coerceIn(120.dp,360.dp)
    LazyColumn(Modifier.testTag("add-screen-list").fillMaxSize().padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+    if(targetListId!=null)item(key="contents"){
+     OutlinedCard(Modifier.fillMaxWidth().testTag("add-list-contents")){
+      Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+       Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+        Text("В списке · ${state.addedItems.size}",Modifier.weight(1f),style=MaterialTheme.typography.titleSmall)
+        TextButton(onClick=onNavigateBack){Text("Открыть")}
+       }
+       if(state.addedItems.isEmpty())Text("Пока пусто",style=MaterialTheme.typography.bodySmall)
+       else LazyColumn(Modifier.fillMaxWidth().heightIn(max=130.dp).testTag("add-list-current-items")){
+        items(state.addedItems,key={it.id}){row->Row(Modifier.fillMaxWidth().padding(vertical=3.dp)){
+         Text(row.name,Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
+         Text(row.quantity,style=MaterialTheme.typography.labelLarge)
+        }}
+       }
+      }
+     }
+    }
     item(key="shop"){ShopChoiceField(state.shops,state.selectedShopId,viewModel::onShopSelected,enabled=!state.isLoading&&!state.isShopLocked,onCreate=viewModel::createShop)}
     item(key="query"){OutlinedTextField(state.searchQuery,viewModel::onSearchQueryChanged,label={Text("Название товара")},singleLine=true,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth())}
     if(state.selectedProduct==null&&(state.searchResults.isNotEmpty()||state.searchQuery.isBlank()&&state.browseProducts))item(key="candidates"){
@@ -61,10 +79,12 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
       com.spisokryadom.app.ui.components.QuantityUnitInputWithSuggestions(state.quantity,state.unit,viewModel::quantity,viewModel::unit,state.unitSuggestions,unitLabel="Единица",enabled=!state.isLoading)
      }
      if(state.selectedProduct==null&&state.isNewProduct)item(key="new"){
-      Column{Text("Новый товар: ${state.searchQuery.trim()}");com.spisokryadom.app.ui.components.SelectionRow("Сохранить в базе товаров",state.saveToDatabase,viewModel::onSaveToDatabaseChanged,enabled=!state.isLoading)}
+      Column{
+       if(onCreateProduct!=null)TextButton(onClick={focus.clearFocus();onCreateProduct(state.searchQuery.trim(),state.selectedShopId?.takeIf{it>0})},enabled=!state.isSearching&&!state.isLoading,modifier=Modifier.testTag("add-create-product")){Text("Создать карточку товара")}
+       Text("Новый товар: ${state.searchQuery.trim()}");com.spisokryadom.app.ui.components.SelectionRow("Сохранить в базе товаров",state.saveToDatabase,viewModel::onSaveToDatabaseChanged,enabled=!state.isLoading)}
      }
      item(key="add"){
-      Button(onClick={focus.clearFocus();viewModel.add()},enabled=!state.isLoading&&!state.isSearching&&(state.selectedProduct!=null||state.isNewProduct),modifier=Modifier.fillMaxWidth()){
+      Button(onClick={focus.clearFocus();viewModel.add()},enabled=state.targetAvailable&&!state.isLoading&&!state.isSearching&&(state.selectedProduct!=null||state.isNewProduct),modifier=Modifier.fillMaxWidth()){
        Text(if(state.isLoading)"Добавление…" else "Добавить в список")
       }
      }

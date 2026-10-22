@@ -61,6 +61,7 @@ class Audit151UiTest {
         org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java, "INSTANCE", null)
     }
     private fun openList(id: Long) { tab("Списки"); waitFor { ui.onAllNodesWithTag("goal-list-$id").fetchSemanticsNodes().isNotEmpty() }; ui.onNodeWithTag("goal-list-$id").performClick(); waitFor { ui.onAllNodesWithTag("goal-open-catalogue").fetchSemanticsNodes().isNotEmpty() } }
+    private fun editPurchase(name: String) { ui.onNodeWithContentDescription("Действия: $name").performClick(); ui.onNodeWithText("Количество, цена и заметка").performClick() }
     private fun back() { ui.runOnIdle {
         val dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog()?.takeIf { it.isShowing }
         when (dialog) {
@@ -98,7 +99,7 @@ class Audit151UiTest {
     @Test fun warmWidgetAddKeepsEditedPurchaseAndOpensRegularAddFlow() {
         val id = runBlocking { repository.create("Ремонт") }
         val rowId = runBlocking { repository.addQuick(id, "Краска", 1.0, "банка") }
-        openList(id); ui.onNodeWithTag("goal-entry-$rowId").performClick(); waitText("Позиция списка")
+        openList(id); editPurchase("Краска"); waitText("Позиция списка")
         ui.onNodeWithTag("goal-item-quantity").performTextReplacement("3,5")
         val initialIntent = ui.activity.intent
         ui.runOnUiThread { org.robolectric.util.ReflectionHelpers.callInstanceMethod<Unit>(ui.activity, "onNewIntent", org.robolectric.util.ReflectionHelpers.ClassParameter.from(Intent::class.java, WidgetIntents.open(app, true))) }
@@ -113,7 +114,7 @@ class Audit151UiTest {
     @Test fun movedPurchaseCannotTrapAnUnsavedEditorOrBeRecreatedInItsOldList() {
         val from = runBlocking { repository.create("Рецепт") }; val to = runBlocking { repository.create("Поездка") }
         val rowId = runBlocking { repository.addQuick(from, "Салфетки", 2.0, "пачка") }
-        openList(from); ui.onNodeWithTag("goal-entry-$rowId").performClick(); waitText("Позиция списка")
+        openList(from); editPurchase("Салфетки"); waitText("Позиция списка")
         runBlocking { repository.moveEntriesFrom(from, setOf(rowId), to) }
         ui.onNodeWithTag("goal-item-quantity").performTextReplacement("ошибка"); back()
         waitText("Покупка удалена или перемещена. Откройте её из текущего списка")
@@ -132,7 +133,7 @@ class Audit151UiTest {
             repository.moveEntriesExpected(mapOf(row to null), id); row
         }
         openList(id); waitText("Цоколь E27"); ui.onNodeWithText("Тёплый свет").assertIsDisplayed()
-        ui.onNodeWithTag("goal-entry-$rowId").performClick(); waitText("Позиция списка")
+        editPurchase("Лампа"); waitText("Позиция списка")
         ui.onNodeWithTag("goal-item-comment").performScrollTo().performTextReplacement("Цоколь E14")
         shot("03-goal-purchase-comment")
         ui.onNodeWithTag("goal-item-done").performClick()
@@ -187,7 +188,7 @@ class Audit151UiTest {
 
     @Test fun unnamedDraftWithEnteredFieldsStaysVisibleUntilNameIsProvided() {
         val id = runBlocking { repository.create("Проект") }; openList(id)
-        ui.onNodeWithTag("goal-add-item").performClick(); waitText("Новая позиция")
+        ui.onNodeWithContentDescription("Действия со списком").performClick(); ui.onNodeWithText("Быстрая позиция с ценой").performClick(); waitText("Новая позиция")
         ui.onNodeWithTag("goal-item-price").performScrollTo().performTextInput("150")
         back(); waitText("Укажите название")
         ui.onNodeWithTag("goal-item-name").performScrollTo().assertIsDisplayed()

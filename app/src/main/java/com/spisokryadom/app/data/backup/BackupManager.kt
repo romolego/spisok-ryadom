@@ -171,7 +171,9 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
     venue.copy(photoUri=photo?.absolutePath)
    }
    val adapted=raw.copy(products=withPhotos,venues=venuesWithPhotos,branches=branchesWithPhotos,shops=shopsWithLogos,entries=if(summary.full&&root.getInt("version")<5)raw.entries.map{it.copy(assignedBranchId=oldBranches.firstOrNull{b->b.shopId==it.assignedShopId}?.id)}else raw.entries)
-   val incoming=if(root.getInt("version")<7)BackupJson.upgradeLegacy(adapted)else adapted
+   val legacyIncoming=if(root.getInt("version")<7)BackupJson.upgradeLegacy(adapted)else adapted
+   if(root.getInt("version")>=20)require(legacyIncoming.goalLists.none{it.isTemplate}){"В новой копии используется единый формат списков"}
+   val incoming=legacyIncoming.copy(goalLists=legacyIncoming.goalLists.map{it.copy(isTemplate=false)})
    if(summary.full){
     validate(incoming)
     ProductEditorTransactions.locked{
@@ -415,7 +417,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=19;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=20;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}
