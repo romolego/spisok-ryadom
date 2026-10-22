@@ -56,15 +56,21 @@ class Refine080UiTest {
  }
  @Test fun storeChoiceAlsoPutsExistingStoresBeforeNoneAndCreate(){
   var selected:Long?=1
-  content{Column(Modifier.padding(16.dp)){ShopChoiceField(listOf(ShopEntity(id=1,name="Батон"),ShopEntity(id=2,name="Аптека.ру")),selected,{selected=it},onCreate={_,_->})}}
+  content{Column(Modifier.padding(16.dp)){ShopChoiceField(listOf(ShopEntity(id=1,name="Батон"),ShopEntity(id=2,name="Аптека.ру")),selected,{selected=it},onCreate={_,_,finished->finished()})}}
   ui.onNodeWithText("Магазин").performClick()
   val positions=listOf("Батон","Аптека.ру","Подобрать автоматически","Без магазина","Новый магазин…").map{popup(it).fetchSemanticsNode().boundsInRoot.top}
   assertEquals(positions.sorted(),positions);popup("Без магазина").performClick();assertNull(selected)
-  content{Column(Modifier.padding(16.dp)){BranchChoiceField(listOf(ShopBranchEntity(id=11,shopId=1,address="Весны, 7"),ShopBranchEntity(id=12,shopId=1,address="Молокова, 19")),selected,{selected=it},onCreate={_,_->})}}
-  ui.onNodeWithText("Точка / адрес").performClick()
-  val branchPositions=listOf("Весны, 7","Молокова, 19","По приоритету для каждого товара","Без конкретного адреса","Новый адрес…").map{popup(it).fetchSemanticsNode().boundsInRoot.top}
-  assertEquals(branchPositions.sorted(),branchPositions);popup("Без конкретного адреса").performClick();assertEquals(0L,selected)
-  ui.onNodeWithText("Точка / адрес").performClick();popup("Молокова, 19").performClick();assertEquals(12L,selected)
+  var picked:Pair<Long?,Long?>?=null
+  val places=listOf(
+   com.spisokryadom.app.data.repository.ShoppingListRepository.PurchasePlace(1,11,"Батон","Весны, 7"),
+   com.spisokryadom.app.data.repository.ShoppingListRepository.PurchasePlace(1,12,"Батон","Молокова, 19"),
+   com.spisokryadom.app.data.repository.ShoppingListRepository.PurchasePlace(2,null,"Безадресный магазин",null))
+  content{MovePurchasesDialog(setOf(9),{shop,branch,done->picked=shop to branch;done(false)},{},loadPlaces={places})}
+  waitModel{ui.onAllNodesWithTag("place-option-2:null").fetchSemanticsNodes().isNotEmpty()}
+  val branchPositions=listOf("place-option-1:11","place-option-1:12","place-option-2:null").map{ui.onNodeWithTag(it).fetchSemanticsNode().boundsInRoot.top}
+  assertEquals(branchPositions.sorted(),branchPositions)
+  ui.onNodeWithTag("place-option-2:null").performClick();ui.onNodeWithText("Сменить").performClick();assertEquals(2L to null,picked)
+  ui.onNodeWithTag("place-option-1:12").performClick();ui.onNodeWithText("Сменить").performClick();assertEquals(1L to 12L,picked)
  }
  @Test fun customHexAndCannedIconCanBeSelectedTogether(){
   var saved:Pair<String,String>?=null

@@ -29,6 +29,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -41,7 +43,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.key
@@ -97,11 +98,11 @@ fun InputDialog(
     onDismiss: () -> Unit
 ) {
     var text by rememberSaveable(title,initialValue) { mutableStateOf(initialValue) }
-    AlertDialog(
-        modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
+    EditorSheet(title, onDismiss, actions = {
+        TextButton(onClick = onDismiss) { Text("Отмена") }
+        TextButton(onClick = { if (text.isNotBlank()) onConfirm(text.trim()) },
+            enabled = text.isNotBlank()) { Text("Сохранить") }
+    }) {
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
@@ -109,17 +110,7 @@ fun InputDialog(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (text.isNotBlank()) onConfirm(text.trim()) },
-                enabled = text.isNotBlank()
-            ) { Text("Сохранить") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
+    }
 }
 
 /**
@@ -175,7 +166,8 @@ fun <T> DropdownSelector(
     onCreateNew: (() -> Unit)? = null,
     createLabel: String = "Создать...",
     itemIcon:(T)->String={""},itemAccent:(T)->String={""},noneLabel:String="Не задано",allowNone:Boolean=true,onOpen:()->Unit={},itemVector:(T)->androidx.compose.ui.graphics.vector.ImageVector?={null},
-    itemFavorite:(T)->Boolean={false},favoriteOrder:(T)->Int={0},alphabetical:Boolean=false
+    itemFavorite:(T)->Boolean={false},favoriteOrder:(T)->Int={0},alphabetical:Boolean=false,
+    itemEnabled:(T)->Boolean={true}
 ) {
  androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.DROPDOWNS) {
     var expanded by remember { mutableStateOf(false) }
@@ -210,6 +202,7 @@ fun <T> DropdownSelector(
                 }
                 CompositionLocalProvider(LocalFavoriteBlock provides pinnedCopy){
                 DropdownMenuItem(
+                    enabled = itemEnabled(item),
                     modifier=if(pinnedCopy)Modifier.favoriteBlock()else Modifier,
                     text = { FavoriteMarkedLabel(itemLabel(item),itemAccent(item),if(itemVector(item)==null)itemIcon(item)else "",itemFavorite(item),small=true) },
                     leadingIcon=itemVector(item)?.let{v->{Icon(v,null,tint=MaterialTheme.colorScheme.primary)}},
@@ -266,7 +259,9 @@ fun QuantityUnitInputWithSuggestions(
     quantityLabel: String = "Количество",
     unitLabel: String = "Ед. изм.",
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    quantityModifier: Modifier = Modifier,
+    unitModifier: Modifier = Modifier
 ) {
     var unitExpanded by remember { mutableStateOf(false) }
     val filteredSuggestions = remember(unit, unitSuggestions) {
@@ -277,16 +272,14 @@ fun QuantityUnitInputWithSuggestions(
     Row(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = quantity,
-            onValueChange = { value ->
-                if (value.isEmpty() || value.matches(Regex("^\\d*[.,]?\\d*$"))) {
-                    onQuantityChange(value)
-                }
-            },
+            // Keep the raw draft, including incomplete/invalid input. The owning editor
+            // validates before writing; silently rejecting text would restore an old value.
+            onValueChange = onQuantityChange,
             label = { Text(quantityLabel) },
             enabled = enabled,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),
             singleLine = true,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).then(quantityModifier)
         )
         Spacer(modifier = Modifier.width(8.dp))
 
@@ -308,6 +301,7 @@ fun QuantityUnitInputWithSuggestions(
                 modifier = Modifier
                     .menuAnchor(MenuAnchorType.PrimaryEditable)
                     .fillMaxWidth()
+                    .then(unitModifier)
             )
             if (filteredSuggestions.isNotEmpty()) {
                 ExposedDropdownMenu(
@@ -336,29 +330,12 @@ fun PurchaseTypeSelector(
     modifier: Modifier = Modifier,
     allowedTypes:Set<String> = setOf("offline","online")
 ) {
-    Column(modifier = modifier) {
-        Text("Тип покупки", style = MaterialTheme.typography.labelLarge)
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = selectedType == "offline",
-                onClick = { onTypeChange("offline") },enabled="offline" in allowedTypes
-            )
-            Text(
-                "Оффлайн",
-                modifier = Modifier.padding(start=8.dp).clickable(enabled="offline" in allowedTypes) { onTypeChange("offline") }
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            RadioButton(
-                selected = selectedType == "online",
-                onClick = { onTypeChange("online") },enabled="online" in allowedTypes
-            )
-            Text(
-                "Онлайн",
-                modifier = Modifier.padding(start=8.dp).clickable(enabled="online" in allowedTypes) { onTypeChange("online") }
-            )
-        }
-    }
+    DropdownSelector("Тип покупки", listOf("offline", "online"), selectedType,
+        { if (it == "online") "Онлайн" else "Офлайн" },
+        { if (it != null && it in allowedTypes) onTypeChange(it) },
+        modifier = modifier.fillMaxWidth(), allowNone = false,
+        itemVector = { if (it == "online") Icons.Filled.Language else Icons.Filled.Store },
+        itemEnabled = { it in allowedTypes })
 }
 
 @Composable

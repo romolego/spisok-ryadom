@@ -48,6 +48,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.ShopEntity
+import com.spisokryadom.app.ui.components.FavoriteBlock
+import com.spisokryadom.app.ui.components.FavoriteStar
+import com.spisokryadom.app.ui.components.favoriteBackground
+import com.spisokryadom.app.ui.components.favoriteWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +68,7 @@ fun ShopListScreen(
     var batchIds by remember{mutableStateOf<Set<Long>?>(null)}
     batchIds?.let{ids->BatchProductSheet(ids,{batchIds=null},{batchIds=null;selection.clear()},stores=true,vm=batchVM)}
     val listState = rememberLazyListState()
+    val favoriteShops=state.shops.filter{it.isFavorite}.sortedWith(compareBy<ShopEntity>{it.favoriteOrder}.thenBy{it.id})
     val viewport=com.spisokryadom.app.ui.components.rememberReorderViewport(listState,state.shops.map{it.id})
     Scaffold(
         snackbarHost={BatchFeedback(batchVM)},
@@ -132,6 +137,19 @@ fun ShopListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item { Spacer(modifier = Modifier.height(4.dp)) }
+                if(favoriteShops.isNotEmpty()&&!selection.active){
+                    item(key="favorite-shops-heading"){FavoriteBlock(Modifier.fillMaxWidth()){
+                        Text("Избранные",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall)
+                    }}
+                    itemsIndexed(favoriteShops,key={_,shop->"favorite-shop-${shop.id}"}){index,shop->
+                        FavoriteBlock(Modifier.fillMaxWidth().testTag("favorite-shop-${shop.id}")){
+                            ShopListItem(shop,state.isEditing,index==0,index==favoriteShops.lastIndex,
+                                onTap={onNavigateToShopContent(shop.id)},onLongPress={onNavigateToShopCard(shop.id)},
+                                onMoveUp={viewModel.moveFavoriteUp(shop)},onMoveDown={viewModel.moveFavoriteDown(shop)})
+                        }
+                    }
+                    item(key="all-shops-heading"){Text("Все магазины",Modifier.padding(top=8.dp,bottom=4.dp),style=MaterialTheme.typography.titleSmall)}
+                }
                 state.groups.forEach{group->
                     group.venue?.let{venue->item(key="${group.key}_header"){
                         if(selection.active)Row(verticalAlignment=Alignment.CenterVertically){BatchToggle(group.shops.map{it.id}.toSet(),selection,venue.name);Text(venue.name,style=MaterialTheme.typography.titleMedium)}
@@ -173,7 +191,7 @@ private fun ShopListItem(
                 onClick = if (isEditing) ({}) else onTap,
                 onLongClick = if (isEditing) null else onLongPress
             ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = favoriteBackground(shop.isFavorite)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
@@ -189,12 +207,17 @@ private fun ShopListItem(
                     .weight(1f)
                     .padding(start = 12.dp)
             ) {
+                Row(verticalAlignment=Alignment.CenterVertically){
                 Text(
                     text = shop.name,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight=favoriteWeight(shop.isFavorite),
+                    modifier=Modifier.weight(1f,fill=false),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                FavoriteStar(shop.isFavorite,"Избранный магазин: ${shop.name}",Modifier.padding(start=6.dp))
+                }
                 if (!shop.address.isNullOrBlank()&&shop.address!=shop.name) {
                     Text(
                         text = shop.address,

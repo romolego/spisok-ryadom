@@ -57,7 +57,7 @@ class StoreCard180DataTest {
  }
  @Test fun logoSurvivesBackupRestoreAndCleanup():Unit=runBlocking{
   val path=PhotoStore.importPhoto(app,Uri.fromFile(logo()),"shop_logos");val original=File(path).readBytes();val id=db.shopDao().insert(ShopEntity(name="Магазин",logoUri=path,shoppingBackground="rose"));val manager=BackupManager(app,db);val zip=manager.exportFile()
-  ZipFile(zip).use{z->assertNotNull(z.getEntry("shop_logos/$id.png"));val root=JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText());assertEquals(21,root.getInt("version"));assertFalse(root.getJSONObject("data").getJSONArray("shops").getJSONObject(0).has("logoUri"))}
+  ZipFile(zip).use{z->assertNotNull(z.getEntry("shop_logos/$id.png"));val root=JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText());assertEquals(22,root.getInt("version"));assertFalse(root.getJSONObject("data").getJSONArray("shops").getJSONObject(0).has("logoUri"))}
   db.shopDao().deleteAll();manager.importFile(zip);val s=db.shopDao().getAllSync().single();assertArrayEquals(original,File(s.logoUri!!).readBytes());File(s.logoUri!!).setLastModified(1);MediaLifecycle.cleanup(app,db);assertTrue(File(s.logoUri!!).isFile);assertEquals("rose",s.shoppingBackground)
  }
  @Test fun oldVersion12RestoresWithDefaultStoreSymbol():Unit=runBlocking{
@@ -84,7 +84,7 @@ class StoreCard180DataTest {
   app.openOrCreateDatabase(name,0,null).use{old->val entities=JSONObject(schema.readText()).getJSONObject("database").getJSONArray("entities");for(i in 0 until entities.length()){val e=entities.getJSONObject(i);old.execSQL(e.getString("createSql").replace("\${TABLE_NAME}",e.getString("tableName")));val indices=e.getJSONArray("indices");for(j in 0 until indices.length())old.execSQL(indices.getJSONObject(j).getString("createSql").replace("\${TABLE_NAME}",e.getString("tableName")))}
    old.execSQL("INSERT INTO cities(id,name) VALUES(1,'Город')");old.execSQL("INSERT INTO shops(id,name,cityId,displayOrder,manualOrderOverride,shoppingBackground,showUrgentInCollapsed,boostUrgentShop) VALUES(7,'Магазин',1,4,1,'#DDBB44',0,1)");old.version=16
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19,AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23).build()
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19,AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24).build()
   try{val s=migrated.shopDao().getById(7)!!;assertEquals("Магазин",s.name);assertEquals("#DDBB44",s.shoppingBackground);assertEquals(4,s.displayOrder);assertTrue(s.manualOrderOverride);assertEquals(false,s.showUrgentInCollapsed);assertEquals(true,s.boostUrgentShop);assertEquals("",s.iconKey);assertNull(s.logoUri);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
   finally{migrated.close();app.deleteDatabase(name)}
  }

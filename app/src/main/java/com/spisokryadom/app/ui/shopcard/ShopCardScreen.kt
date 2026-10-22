@@ -173,14 +173,15 @@ fun ShopCardScreen(
                 .verticalScroll(scrollState).testTag("shop-card-scroll"),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
             OutlinedTextField(
                 value = state.name,
                 onValueChange = { viewModel.updateName(it) },
                 label = { Text("Название магазина") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             )
+            Row(Modifier.fillMaxWidth().testTag("shop-favorite-row"),verticalAlignment=Alignment.CenterVertically){
+            SelectionRow("Избранное",state.isFavorite,viewModel::updateFavorite,modifier=Modifier.weight(1f))
             ShopAppearance(state.shoppingBackground,state.name,state.iconKey,state.logoUri,
                 viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy,purchaseBackground=state.purchaseBackground,onPurchaseBackground=viewModel::updatePurchaseBackground)
             }

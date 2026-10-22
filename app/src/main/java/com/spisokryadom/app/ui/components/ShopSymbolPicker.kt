@@ -37,12 +37,11 @@ internal fun ShopSymbolPicker(initialIcon:String,initialLogo:String?,name:String
             finally{busy=false;busyCallback(false)}
         }
     }}
-    val locked by rememberUpdatedState(busy)
     if(deleting)ConfirmDialog("Удалить логотип?","Будет использован обычный значок магазина. Изменение сохранится после применения оформления и сохранения карточки.",onConfirm={logo=null;icon="";deleting=false},onDismiss={deleting=false})
-    ModalBottomSheet(onDismissRequest={if(!busy)onDismiss()},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true,confirmValueChange={it!=SheetValue.Hidden||!locked})){
-        Column(Modifier.fillMaxWidth().heightIn(max=(androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp-64).coerceAtLeast(190).dp).imePadding().padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-            Text("Значок или логотип",style=MaterialTheme.typography.titleLarge)
-            Column(Modifier.weight(1f,false).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)){
+    EditorSheet("Значок или логотип",onDismiss,busy=busy,actions={
+        TextButton(onClick=onDismiss,enabled=!busy){Text("Отмена")}
+        Button(onClick={onApply(icon,logo)},enabled=!busy,modifier=Modifier.testTag("shop-symbol-apply")){Text("Применить")}
+    }){
                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
                     ShopSymbol(icon,logo,56.dp)
                     Text(name.ifBlank{"Магазин"},Modifier.weight(1f),style=MaterialTheme.typography.titleMedium)
@@ -51,16 +50,9 @@ internal fun ShopSymbolPicker(initialIcon:String,initialLogo:String?,name:String
                 }
                 DropdownSelector("Готовый значок",listOf("")+appearanceOptions().map{it.first},if(logo==null)icon else null,
                     {key->appearanceOptions().find{it.first==key}?.second?:"Обычный значок магазина"},
-                    {key->if(!busy&&key!=null){icon=key;logo=null}},allowNone=false,
+                    {key->if(!busy&&key!=null){icon=key;logo=null}},allowNone=false,noneLabel=if(logo!=null)"Загруженный логотип"else "Обычный значок магазина",
                     itemVector={appearanceIcon(it)?:Icons.Filled.Store})
                 if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
                 error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
-            }
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                TextButton(onClick=onDismiss,enabled=!busy,modifier=Modifier.weight(1f)){Text("Отмена")}
-                Button(onClick={onApply(icon,logo)},enabled=!busy,modifier=Modifier.weight(1f).testTag("shop-symbol-apply")){Text("Применить")}
-            }
-            Spacer(Modifier.height(8.dp))
-        }
     }
 }

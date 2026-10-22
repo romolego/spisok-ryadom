@@ -17,7 +17,8 @@ data class BatchOptions(val recipients:List<RecipientEntity> = emptyList(),val g
 class BatchViewModel(private val context:Context,
  private val productRepository:ProductRepository,private val shopRepository:ShopRepository,
  private val shoppingListRepository:ShoppingListRepository,private val classifierRepository:ClassifierRepository,
- private val batchRepository:BatchRepository):ViewModel(){
+ private val batchRepository:BatchRepository,
+ private val sessionGeneration:Long=ProductEditorTransactions.generation.get()):ViewModel(){
  val busy=MutableStateFlow(false)
  val error=MutableStateFlow<String?>(null)
  val notice=MutableStateFlow<String?>(null)
@@ -30,8 +31,7 @@ class BatchViewModel(private val context:Context,
  fun run(done:()->Unit,block:suspend()->Unit){
   if(busy.value)return
   busy.value=true;error.value=null
-  val generation=ProductEditorTransactions.generation.get()
-  viewModelScope.launch {try{withContext(Dispatchers.IO){ProductEditorTransactions.inGeneration(generation,block)};notice.value="Изменения сохранены";done()}catch(e:Exception){if(e is CancellationException)throw e;error.value=e.message?:"Операция не выполнена"}finally{busy.value=false}}
+  viewModelScope.launch {try{withContext(Dispatchers.IO){ProductEditorTransactions.inGeneration(sessionGeneration,block)};notice.value="Изменения сохранены";done()}catch(e:Exception){if(e is CancellationException)throw e;error.value=e.message?:"Операция не выполнена"}finally{busy.value=false}}
  }
  fun products(ids:Set<Long>,change:ProductBatchChange,done:()->Unit)=run(done){ProductDraftStore.applyBatch(context,productRepository,ids,change){batchRepository.changeProducts(ids,change)}}
  fun shops(ids:Set<Long>,types:Set<Long>,done:()->Unit)=run(done){batchRepository.addDepartments(ids,types)}

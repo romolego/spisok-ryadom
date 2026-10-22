@@ -15,7 +15,7 @@ class ShopRepository(
     val locations: LocationRepository,
     private val db: AppDatabase, private val catalogueEdits:CatalogueEdits?=null
 ) {
-    suspend fun saveWithDepartments(shop:ShopEntity, departments:List<ShopDepartmentEntity>, branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>?=null,networkName:String?=null,branchOrders:Map<Long,List<Long>> = emptyMap(),convertToVenue:Boolean=false,purchaseMode:String?=null,venueEdits:Map<Long,com.spisokryadom.app.data.entity.VenueEntity> = emptyMap(),venueKind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED):Long = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+    suspend fun saveWithDepartments(shop:ShopEntity, departments:List<ShopDepartmentEntity>, branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>?=null,networkName:String?=null,convertToVenue:Boolean=false,purchaseMode:String?=null,venueEdits:Map<Long,com.spisokryadom.app.data.entity.VenueEntity> = emptyMap(),venueKind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED,appendToRoute:Boolean=false):Long = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         require(com.spisokryadom.app.util.PurchaseBackground.valid(shop.purchaseBackground)){"Выберите фон товаров магазина"}
         require(shop.name.isNotBlank()) { "Укажите название магазина" }
         require(com.spisokryadom.app.util.AppearanceColors.validOptional(shop.shoppingBackground)){"Выберите цвет фона магазина"}
@@ -32,10 +32,16 @@ class ShopRepository(
                 db.shopBranchDao().update(point.copy(venueId=null,label="$relocationKey:${point.id}"))
             }
         }
-        val resolved=if(networkName.isNullOrBlank())shop else if(shop.networkId==null)shop.copy(networkId=ensureNetwork(networkName))else{
+        val ordered=if(appendToRoute&&shop.id==0L)shop.copy(displayOrder=nextShopDisplayOrder(db,shop.cityId))else shop
+        val favorite=when {
+            !shop.isFavorite -> ordered.copy(favoriteOrder=0)
+            oldShop?.isFavorite==true -> ordered.copy(favoriteOrder=oldShop.favoriteOrder)
+            else -> ordered.copy(favoriteOrder=nextShopFavoriteOrder())
+        }
+        val resolved=if(networkName.isNullOrBlank())favorite else if(shop.networkId==null)favorite.copy(networkId=ensureNetwork(networkName))else{
             val network=db.retailStructureDao().networks().find{it.id==shop.networkId}?:error("Сеть удалена")
             require(db.retailStructureDao().networks().none{it.id!=network.id&&com.spisokryadom.app.util.FuzzySearch.normalize(it.name)==com.spisokryadom.app.util.FuzzySearch.normalize(networkName)}){"Сеть с таким названием уже есть"}
-            db.retailStructureDao().updateNetwork(network.copy(name=networkName.trim()));shop
+            db.retailStructureDao().updateNetwork(network.copy(name=networkName.trim()));favorite
         }
         val id=if(shop.id==0L)shopDao.insert(resolved) else { require(shopDao.getById(shop.id)!=null);shopDao.update(resolved);shop.id }
         purchaseMode?.let{require(it in com.spisokryadom.app.util.PurchaseModes.labels);db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(id,it))}
@@ -64,12 +70,6 @@ class ShopRepository(
             com.spisokryadom.app.domain.OutletLocations.legacy(branch.copy(venueId=venueId),venueId?.let{db.retailStructureDao().venue(it)},shop.name)
         })
         else if(db.shopBranchDao().forShop(id).isEmpty()&&!shop.address.isNullOrBlank())db.shopBranchDao().insert(com.spisokryadom.app.data.entity.ShopBranchEntity(shopId=id,address=shop.address.trim()))
-        branchOrders.forEach{(branchId,typeIds)->
-            require(db.shopBranchDao().get(branchId)?.shopId==id){"Точка относится к другому магазину"}
-            require(typeIds.distinct().size==typeIds.size&&typeIds.all{type->departmentDao.getByShopIdSync(id).any{it.typeId==type}}){"Проверьте группы точки"}
-            db.retailStructureDao().clearDepartmentOrder(branchId)
-            typeIds.forEachIndexed{order,type->db.retailStructureDao().setDepartmentOrder(com.spisokryadom.app.data.entity.BranchDepartmentOrderEntity(branchId,type,order))}
-        }
         if(branches!=null)syncPrimaryAddress(id)
         refreshPendingDepartments(id,pendingBefore)
         if(convertToVenue)this@ShopRepository.convertToVenue(id,venueKind)
@@ -92,7 +92,26 @@ class ShopRepository(
         val value=name.trim();require(value.isNotBlank()){"Укажите название магазина"};val city=locations.currentId()
         val current=shopDao.getAllSync().filter{it.cityId==city}
         current.find{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)==com.spisokryadom.app.util.FuzzySearch.normalize(value)}?.id
-            ?:shopDao.insert(ShopEntity(name=value,cityId=city,displayOrder=(current.maxOfOrNull{it.displayOrder}?:-1)+1))
+            ?:shopDao.insert(ShopEntity(name=value,cityId=city,displayOrder=nextShopDisplayOrder(db,city)))
+    }
+    private fun favoriteShopOrder()=compareBy<ShopEntity>{it.favoriteOrder}
+        .thenBy{com.spisokryadom.app.util.FuzzySearch.normalize(it.name)}.thenBy{it.id}
+    private suspend fun nextShopFavoriteOrder():Int {
+        val favorites=shopDao.getAllSync().filter{it.isFavorite}.sortedWith(favoriteShopOrder())
+        val order=com.spisokryadom.app.util.nextFavoriteOrder(favorites.map{it.favoriteOrder})
+        if(order.compact)shopDao.updateAll(favorites.mapIndexed{i,value->value.copy(favoriteOrder=i)})
+        return order.next
+    }
+    suspend fun moveFavoriteShop(id:Long,delta:Int)=db.withTransaction {
+        require(delta==1||delta== -1)
+        val current=shopDao.getById(id)?:error("Магазин удалён")
+        val favorites=shopDao.getAllSync().filter{it.isFavorite&&it.cityId==current.cityId}
+            .sortedWith(favoriteShopOrder()).toMutableList()
+        val from=favorites.indexOfFirst{it.id==id};val to=from+delta
+        if(from>=0&&to in favorites.indices){
+            favorites.add(to,favorites.removeAt(from))
+            shopDao.updateAll(favorites.mapIndexed{i,value->value.copy(favoriteOrder=i)})
+        }
     }
     // Compatibility API: a dictionary addition never attaches a department to stores.
     suspend fun moveShop(id:Long,delta:Int)=db.withTransaction{
@@ -198,8 +217,6 @@ class ShopRepository(
         }
     }
 
-    fun observeBranchOrders()=db.retailStructureDao().observeDepartmentOrder()
-    suspend fun branchOrders()=db.retailStructureDao().departmentOrder()
     suspend fun updateVenue(venue:com.spisokryadom.app.data.entity.VenueEntity)=withCatalogueEdits(db,catalogueEdits){db.withTransaction{updateVenueInTransaction(venue)}}
     private suspend fun updateVenueInTransaction(venue:com.spisokryadom.app.data.entity.VenueEntity){
         require(venue.name.isNotBlank()){"Укажите название рынка или ТЦ"}
@@ -237,10 +254,14 @@ class ShopRepository(
      * Each pavilion becomes a retailer with the SAME physical outlet ID.
      * Products and purchase IDs, notes, photos, and quantities are preserved atomically. */
     suspend fun convertToVenue(shopId:Long,kind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED):Long= withCatalogueEdits(db,catalogueEdits) { db.withTransaction{
-        val shop=shopDao.getById(shopId)?:error("Магазин удалён")
+        var shop=shopDao.getById(shopId)?:error("Магазин удалён")
         val purchaseMode=db.creationPresetDao().shopMode(shopId)
         val points=db.shopBranchDao().forShop(shopId)
         require(points.isNotEmpty()){ "Добавьте хотя бы одну точку" }
+        if(shop.displayOrder.toLong()+points.size>Int.MAX_VALUE){
+            nextShopDisplayOrder(db,shop.cityId,points.size+1)
+            shop=shopDao.getById(shopId)?:error("Магазин удалён")
+        }
         require(points.all{it.venueId==null}){"Магазин уже содержит точки в рынке или ТЦ"}
         require(com.spisokryadom.app.data.entity.VenueKinds.valid(kind)){"Выберите тип места"}
         require(db.retailStructureDao().venues().none{it.cityId==shop.cityId&&com.spisokryadom.app.util.FuzzySearch.normalize(it.name)==com.spisokryadom.app.util.FuzzySearch.normalize(shop.name)}){"Торговое место с таким названием уже есть"}
@@ -262,7 +283,7 @@ class ShopRepository(
         links.forEach{db.productShopLinkDao().delete(it)}
         val owners=mutableMapOf<Long,Long>();val deptMap=mutableMapOf<Pair<Long,Long>,Long>()
         points.forEachIndexed{index,point->
-            val owner=shopDao.insert(ShopEntity(name=point.label.ifBlank{point.address},cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,iconKey=shop.iconKey,logoUri=shop.logoUri))
+            val owner=shopDao.insert(ShopEntity(name=point.label.ifBlank{point.address},cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,iconKey=shop.iconKey,logoUri=shop.logoUri,isFavorite=shop.isFavorite,favoriteOrder=if(shop.isFavorite)nextShopFavoriteOrder()else 0))
             purchaseMode?.let{db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(owner,it))}
             owners[point.id]=owner
             db.shopBranchDao().update(point.copy(shopId=owner,venueId=venueId,address="",label="",displayOrder=0))

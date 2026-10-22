@@ -62,7 +62,7 @@ fun ShopAppearance(background:String,name:String,iconKey:String,logoUri:String?,
         Icon(Icons.Filled.Palette,"Оформление магазина")
     }
     if(open)ShopAppearanceEditor(background,name,iconKey,logoUri,purchaseBackground,onDismiss={open=false},onBusy=onBusy,externalPhotoBusy=externalPhotoBusy){color,items,icon,logo->
-        onBackground(color);onPurchaseBackground(items);onIcon(icon);if(logo!=null)onLogo(logo);open=false
+        onBackground(color);onPurchaseBackground(items);onIcon(icon);onLogo(logo);open=false
     }
 }
 
@@ -79,12 +79,13 @@ private fun ShopAppearanceEditor(initialBackground:String,name:String,initialIco
     val busyCallback by rememberUpdatedState(onBusy)
     var lastItems by rememberSaveable{mutableStateOf(initialItems.ifBlank{"auto"})}
     val locked=busy||externalPhotoBusy
-    val latestLocked by rememberUpdatedState(locked)
-    ModalBottomSheet(onDismissRequest={if(!locked)onDismiss()},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true,confirmValueChange={it!=SheetValue.Hidden||!latestLocked})){
-        Column(Modifier.fillMaxWidth().heightIn(max=(androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp-64).coerceAtLeast(190).dp).imePadding().padding(horizontal=20.dp).testTag("shop-appearance-editor"),verticalArrangement=Arrangement.spacedBy(12.dp)){
-            Text("Оформление магазина",style=MaterialTheme.typography.titleLarge)
+    EditorSheet("Оформление магазина",onDismiss,busy=locked,actions={
+        TextButton(onClick=onDismiss,enabled=!locked){Text("Отмена")}
+        Button(onClick={onApply(background,items,icon,logo)},enabled=!locked,modifier=Modifier.testTag("shop-appearance-apply")){Text("Применить")}
+    }){
+        Column(Modifier.fillMaxWidth().testTag("shop-appearance-editor"),verticalArrangement=Arrangement.spacedBy(12.dp)){
             ShopBlockPreview(background,name,icon,logo,compact=true,purchaseBackground=items)
-            Column(Modifier.weight(1f,fill=false).verticalScroll(androidx.compose.foundation.rememberScrollState()).testTag("shop-appearance-controls"),verticalArrangement=Arrangement.spacedBy(12.dp)){
+            Column(Modifier.testTag("shop-appearance-controls"),verticalArrangement=Arrangement.spacedBy(12.dp)){
                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
                     Icon(Icons.Filled.Layers,null,tint=MaterialTheme.colorScheme.primary)
                     Text("Подложка",Modifier.weight(1f).padding(horizontal=10.dp),style=MaterialTheme.typography.titleSmall)
@@ -116,11 +117,6 @@ private fun ShopAppearanceEditor(initialBackground:String,name:String,initialIco
                 }
                 if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
             }
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                TextButton(onClick=onDismiss,enabled=!locked,modifier=Modifier.weight(1f)){Text("Отмена")}
-                Button(onClick={onApply(background,items,icon,logo)},enabled=!locked,modifier=Modifier.weight(1f).testTag("shop-appearance-apply")){Text("Применить")}
-            }
-            Spacer(Modifier.height(8.dp))
         }
     }
     when(picker){

@@ -1,0 +1,353 @@
+{
+  "version": "0.27.0",
+  "roomSchema": 24,
+  "backupFormat": 22,
+  "verificationStartedUtc": "2026-10-22T17:03:24.888762+00:00",
+  "finalSourceVerificationStartedUtc": "2026-10-22T18:06:18.878914+00:00",
+  "evidenceCollectedUtc": "2026-10-22T18:26:26.229858+00:00",
+  "testRun": {
+    "kind": "full regression plus targeted whole-class recheck",
+    "classes": 112,
+    "totals": {
+      "cases": 1361,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "newCases": 116,
+    "newClasses": [
+      {
+        "class": "Audit270DataTest",
+        "cases": 32
+      },
+      {
+        "class": "Audit270FlowsUiTest",
+        "cases": 22
+      },
+      {
+        "class": "Audit270SessionTest",
+        "cases": 8
+      },
+      {
+        "class": "Audit270StoreSessionsTest",
+        "cases": 4
+      },
+      {
+        "class": "Audit270StoresUiTest",
+        "cases": 4
+      },
+      {
+        "class": "Audit270UiTest",
+        "cases": 22
+      },
+      {
+        "class": "ProductSessions270DataTest",
+        "cases": 16
+      },
+      {
+        "class": "ProductSessions270UiTest",
+        "cases": 8
+      }
+    ],
+    "suiteSeconds": "2562.779",
+    "allExpectedClassesExecuted": true,
+    "fullRun": {
+      "classes": 112,
+      "totals": {
+        "cases": 1359,
+        "failure": 10,
+        "error": 0,
+        "skipped": 0
+      },
+      "startedUtc": "2026-10-22T17:03:24.888762+00:00",
+      "suiteSeconds": "2528.217",
+      "failures": [
+        {
+          "class": "com.spisokryadom.app.GoalListsUiTest",
+          "name": "invalidDraftSurvivesRecreationAndDoesNotOverwriteLastValidQuantity"
+        },
+        {
+          "class": "com.spisokryadom.app.GoalListsUiTest",
+          "name": "invalidDraftSurvivesRecreationAndDoesNotOverwriteLastValidQuantity[28]"
+        },
+        {
+          "class": "com.spisokryadom.app.ProductFlowUiTest",
+          "name": "duplicateSearchResultsRemainAboveImeAndChooseCorrectIdentity"
+        },
+        {
+          "class": "com.spisokryadom.app.QuickAdd241DataTest",
+          "name": "legacyPointOrderCannotOverrideTheSharedOrderInMainShopOrWidget[28]"
+        },
+        {
+          "class": "com.spisokryadom.app.Refine100UiTest",
+          "name": "addPurchaseSearchShowsStarsWithoutPromotingFavorite"
+        },
+        {
+          "class": "com.spisokryadom.app.Refine100UiTest",
+          "name": "addPurchaseSearchShowsStarsWithoutPromotingFavorite[28]"
+        },
+        {
+          "class": "com.spisokryadom.app.Refine100UiTest",
+          "name": "addSearchShowsFavoriteStarInsteadOfRetiredTextMatching"
+        },
+        {
+          "class": "com.spisokryadom.app.Refine100UiTest",
+          "name": "addSearchShowsFavoriteStarInsteadOfRetiredTextMatching[28]"
+        },
+        {
+          "class": "com.spisokryadom.app.UxLayoutTest",
+          "name": "catalogAndShopCardsRemainReadableWithAddedAndLongNamedProducts"
+        },
+        {
+          "class": "com.spisokryadom.app.UxLayoutTest",
+          "name": "catalogAndShopCardsRemainReadableWithAddedAndLongNamedProducts[28]"
+        }
+      ],
+      "allExpectedClassesExecuted": true
+    },
+    "recheck": {
+      "classes": 26,
+      "classNames": [
+        "com.spisokryadom.app.ArchitectureUiTest",
+        "com.spisokryadom.app.Audit151UiTest",
+        "com.spisokryadom.app.Audit201UiTest",
+        "com.spisokryadom.app.Audit270FlowsUiTest",
+        "com.spisokryadom.app.Audit270StoresUiTest",
+        "com.spisokryadom.app.Audit270UiTest",
+        "com.spisokryadom.app.AuditUiNavigation071Test",
+        "com.spisokryadom.app.CatalogUiTest",
+        "com.spisokryadom.app.Favorites200SettingsTest",
+        "com.spisokryadom.app.GoalListsUiTest",
+        "com.spisokryadom.app.MarketUiTest",
+        "com.spisokryadom.app.ProductCard190UiTest",
+        "com.spisokryadom.app.ProductFlowUiTest",
+        "com.spisokryadom.app.PurchasePlacesUiTest",
+        "com.spisokryadom.app.QuickAdd241DataTest",
+        "com.spisokryadom.app.QuickAdd241UiTest",
+        "com.spisokryadom.app.Refine090UiTest",
+        "com.spisokryadom.app.Refine100UiTest",
+        "com.spisokryadom.app.Refine110UiTest",
+        "com.spisokryadom.app.Refine140UiTest",
+        "com.spisokryadom.app.Refine160UiTest",
+        "com.spisokryadom.app.Refine170UiTest",
+        "com.spisokryadom.app.RefinementUiTest",
+        "com.spisokryadom.app.Stores220UiTest",
+        "com.spisokryadom.app.UnifiedLists250UiTest",
+        "com.spisokryadom.app.UxLayoutTest"
+      ],
+      "totals": {
+        "cases": 292,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "startedUtc": "2026-10-22T18:06:18.878914+00:00",
+      "addedCases": [
+        {
+          "class": "com.spisokryadom.app.Audit270UiTest",
+          "name": "rawQuantitySurvivesInvalidInputUnitSelectionAndUnrelatedRerender"
+        },
+        {
+          "class": "com.spisokryadom.app.Audit270UiTest",
+          "name": "rawQuantitySurvivesInvalidInputUnitSelectionAndUnrelatedRerender[28]"
+        }
+      ],
+      "suiteSeconds": "972.241",
+      "replacesWholeClasses": true,
+      "existingCaseIdentitiesPreserved": true
+    },
+    "uniqueCasesAddedAfterFullRun": 2
+  },
+  "excludedCompileAttempt": {
+    "stage": "first post-full recheck compilation",
+    "testCasesExecuted": 0,
+    "reason": "Two new test assertions were chained after Unit-returning performTextReplacement. Only the already reviewed Audit270UiTest fixture was corrected; this failed compilation and the compile-only check contribute no test cases."
+  },
+  "sourceFiles": 330,
+  "sourceChangedAfterFullStart": true,
+  "sourceChangedAfterFinalStart": false,
+  "sourceChangedAfterRecheckStart": false,
+  "reviewedChangesAfterFullStart": [
+    "app/src/main/java/com/spisokryadom/app/ui/components/CommonComponents.kt",
+    "app/src/test/java/com/spisokryadom/app/Audit270UiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/GoalListsUiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/ProductFlowUiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/QuickAdd241DataTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Refine100UiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/UxLayoutTest.kt"
+  ],
+  "fullLocalSourceSeal": "full-local-source-seal.json",
+  "auditFindings": "AUDIT.md",
+  "removedCode": "removed-code.json",
+  "sourceSeal": "source-seal.json",
+  "localSourceSeal": "local-source-seal.json",
+  "apk": {
+    "version": "0.27.0",
+    "versionCode": 37,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2103662,
+    "sha256": "cde275400333a44fa91f60d98c35313d98374684e31af5a2e6063294b07c4e74",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 24,
+    "backupFormat": 22
+  },
+  "lint": {
+    "Warning": 83,
+    "Hint": 4
+  },
+  "screens": [
+    {
+      "file": "screens/goal-shop-zone-api28.png",
+      "sha256": "58173cda8f03b80c5551280d9800aa51d23d039b7846a501db268a1c7603a3d2",
+      "bytes": 53641,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/goal-shop-zone-api35.png",
+      "sha256": "94290f1e7245888ede01e37860c7ecdc0ed5509a76cf169cf2fefe10949db3e2",
+      "bytes": 54576,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/goal-venue-hierarchy-api28.png",
+      "sha256": "e933383ad9c335d0f48bf5f57689a978b994983b40419d4406a932685e7f4204",
+      "bytes": 63390,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/goal-venue-hierarchy-api35.png",
+      "sha256": "1962a06acd7fd8e2bb4536fcea0ba3f216751c49343bd831d10ac6f18113a00a",
+      "bytes": 63998,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/inline-create-error-recovery-api28.png",
+      "sha256": "61531c0e944a754b45aa64e8e3f862cf3f0af418301de0f6736510810ed84ee0",
+      "bytes": 57460,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/inline-create-error-recovery-api35.png",
+      "sha256": "6bbb50dd4564d8eed827c12884d4cdd024f835e29d3defeda83ca8f21e260a7d",
+      "bytes": 58216,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/landscape-color-fixed-actions-api28.png",
+      "sha256": "2dca0e2f6b0f60ad93c3ab7e28aec9401b02cf4d7eb5abfaa1ec4065b757fdd6",
+      "bytes": 32955,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/landscape-color-fixed-actions-api35.png",
+      "sha256": "1c4b4f9987ed6ca417f0862f230bcef5204bc49d45dd617ecbe3f642d32155d0",
+      "bytes": 33070,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/landscape-large-font-shop-api28.png",
+      "sha256": "3936e6fcd710d446302228298a421f3535b6c5c589fdba39662a74308ae28405",
+      "bytes": 38459,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/landscape-large-font-shop-api35.png",
+      "sha256": "bfc2fb01de4a51119d86a20abd6006a454ea325711dc23abc09a1a1d3aa7bf3c",
+      "bytes": 39187,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/restore-fresh-list-session-api28.png",
+      "sha256": "952799626c4578046113ca68ac087238ad6f2347a92856947cb9445f5a7a8706",
+      "bytes": 37854,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/restore-fresh-list-session-api35.png",
+      "sha256": "ca6c03c7e21a312ef67cd4fff36ec7a445f7c0f5ff73c3ea4ca85d2546a12c5c",
+      "bytes": 38276,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/selection-fixed-actions-api28.png",
+      "sha256": "70088fb95287162fc68cbbff8740d291d14a4780cb7b138fc6d3223b956092b0",
+      "bytes": 45728,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/selection-fixed-actions-api35.png",
+      "sha256": "583010cc7f0e9cc01ea1441e7f02130992a32d1076ee4bbd1c01aa4d59ed5424",
+      "bytes": 45924,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/store-favorite-and-palette-api28.png",
+      "sha256": "79af315d6b9c027eb3f1d70fd232e74409f60843c5b23d33d9407cf90e46167d",
+      "bytes": 100240,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/store-favorite-and-palette-api35.png",
+      "sha256": "d2ab8fc54e10b77c0b6853e613cfde1e7c353eb526c3ca3282ea38e5adce2eef",
+      "bytes": 101248,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/store-favorite-pinned-and-full-api28.png",
+      "sha256": "1fc97814873112c916cbc4ab336e85e7c34338953053dccd1406bddd445e9e3f",
+      "bytes": 58995,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/store-favorite-pinned-and-full-api35.png",
+      "sha256": "57a3bff20955379e994fae30396bc02b7197c337c8376a1ea72339e1c96a8a93",
+      "bytes": 60449,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/store-favorites-independent-style-order-api28.png",
+      "sha256": "fbd62135b5b51ca152b58c8a06451269539324cfaf926174a00af30b2615a547",
+      "bytes": 67206,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/store-favorites-independent-style-order-api35.png",
+      "sha256": "421b52851cab6411e6cb90b3a065bc428569c51f8c850ad90bb8d1a2a419e39f",
+      "bytes": 69685,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/widget-main-context-api28.png",
+      "sha256": "bf78939ad18fc61640be44cbf7052c994657da66ed02cf7668dcd453e993b132",
+      "bytes": 57419,
+      "verificationRun": "recheck"
+    },
+    {
+      "file": "screens/widget-main-context-api35.png",
+      "sha256": "2fab7642686ff006d786ff96aa752fe14d30571cdc08da4c4ea1c74e329d7cb8",
+      "bytes": 57925,
+      "verificationRun": "recheck"
+    }
+  ],
+  "previousApksAndPrivateArchivesPreserved": 39,
+  "publicationStatusAtVerification": "not_yet_published",
+  "validation": {
+    "nativeApisUsed": [
+      28,
+      35
+    ],
+    "physicalPhoneTested": false,
+    "realSoftwareKeyboardTested": false,
+    "oemWidgetHostTested": false,
+    "remoteViewsHost": "Native Robolectric RemoteViews; collection adapter/runtime receiver registration are test harnesses, not a physical OEM host"
+  },
+  "scope": [
+    "entity relationships, list ownership, migration and backup compatibility",
+    "shop favorites independent of route; store/product editor consistency",
+    "shared editor sheets, actionable controls, cancellation and stale-session rejection",
+    "Main/lists/widget grouping, shop styles, favorite marks and precise add context",
+    "batch network department consistency and overflow-safe append ordering",
+    "unchanged previous APKs/private archives; no user data copied into public evidence"
+  ],
+  "earlierAttempts": "Exploratory/interrupted attempts preceding the completed full run are retained privately. The first post-full recheck attempt failed during unit-test compilation and executed no test cases; its compile-only follow-up is also excluded. The completed full run and its 10 specified failures are reported explicitly; whole-class rechecks replace their original results in the unique final union. No single successful full run is claimed on the final source."
+}

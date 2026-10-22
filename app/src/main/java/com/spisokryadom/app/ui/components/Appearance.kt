@@ -99,11 +99,11 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
  fun slide(h:Float=hue,s:Float=saturation,v:Float=brightness){hue=h;saturation=s;brightness=v;color=colorHex(Color.hsv(h.coerceAtMost(359.999f),s,v));hex=color}
  val valid=!custom||accentColor(hex)!=null
  val filtered=remember(query){if(query.isBlank())symbols else com.spisokryadom.app.util.FuzzySearch.rank(symbols,query,{it.second.first})}
- ModalBottomSheet(onDismissRequest=onDismiss,sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)){
-  Column(Modifier.testTag("appearance-sheet").fillMaxWidth().heightIn(max=(androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp-80).coerceAtLeast(160).dp).padding(horizontal=20.dp).padding(bottom=24.dp)){
-   Text(title,style=MaterialTheme.typography.titleLarge)
-   preview?.invoke(color,icon)
-   LazyColumn(Modifier.testTag("appearance-options").fillMaxWidth().weight(1f,false)){
+ EditorSheet(title,onDismiss,scrollContent=false,actions={
+  Button(onClick={onSave(color,icon)},enabled=valid,modifier=Modifier.fillMaxWidth()){Text("Применить оформление")}
+ }){
+   LazyColumn(Modifier.testTag("appearance-options").fillMaxWidth()){
+    preview?.let{item{it(color,icon)}}
     if(withColors){
     if(!custom||preview==null)item{Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
      listOf("" to "Без цвета","green" to "Зелёный","yellow" to "Жёлтый","blue" to "Синий","rose" to "Розовый","violet" to "Фиолетовый").forEach{(key,name)->
@@ -129,8 +129,6 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
      }}}
     }
    }
-   Button(onClick={onSave(color,icon)},enabled=valid,modifier=Modifier.fillMaxWidth()){Text("Применить оформление")}
-  }
  }
 }
 @Composable private fun ColorChannel(label:String,value:Float,range:ClosedFloatingPointRange<Float>,tag:String,gradient:List<Color>,onChange:(Float)->Unit){

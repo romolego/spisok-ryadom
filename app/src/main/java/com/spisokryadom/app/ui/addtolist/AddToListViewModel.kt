@@ -19,7 +19,8 @@ data class AddToListUiState(
  val productContexts:Map<Long,String> = emptyMap(),val productContextsWithoutQuantity:Map<Long,String> = emptyMap(),val selectedShopId:Long? = -1L,val isShopLocked:Boolean=false,val saveToDatabase:Boolean=true,
  val isNewProduct:Boolean=false,val addedMessage:String?=null,val isLoading:Boolean=false,val isSearching:Boolean=false,
  val browseProducts:Boolean=true,val browseMessage:String?=null,val pendingProductLabels:Map<Long,String> = emptyMap(),
- val favoriteResults:List<ProductEntity> = emptyList(),val selectedProduct:ProductEntity?=null,val quantity:String="1",val unit:String="",val unitSuggestions:List<String> = emptyList(),val error:String?=null
+ val favoriteResults:List<ProductEntity> = emptyList(),val selectedProduct:ProductEntity?=null,val quantity:String="1",val unit:String="",val unitSuggestions:List<String> = emptyList(),val error:String?=null,
+ val shopCreationError:String?=null
 )
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddToListViewModel(private val products:ProductRepository,private val shopRepository:ShopRepository,private val basket:ShoppingListRepository,
@@ -81,15 +82,16 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
  fun selectProduct(p:ProductEntity){_uiState.value=_uiState.value.copy(selectedProduct=p,quantity=(p.defaultQuantity?.takeIf{it>0}?:1.0).let{if(it%1.0==0.0)it.toLong().toString()else it.toString()},unit=p.defaultUnit.orEmpty(),error=null)}
  fun quantity(value:String){_uiState.value=_uiState.value.copy(quantity=value,error=null)}
  fun unit(value:String){_uiState.value=_uiState.value.copy(unit=value)}
- fun createShop(name:String,done:(Long)->Unit){
-  if(_uiState.value.isLoading)return
-  _uiState.value=_uiState.value.copy(isLoading=true,error=null)
+ fun createShop(name:String,done:(Long)->Unit)=createShop(name,done,{})
+ fun createShop(name:String,done:(Long)->Unit,onFinished:()->Unit){
+  if(_uiState.value.isLoading){onFinished();return}
+  _uiState.value=_uiState.value.copy(isLoading=true,error=null,shopCreationError=null)
   viewModelScope.launch{try{ProductEditorTransactions.inGeneration(sessionGeneration){
    val id=shopRepository.createInCurrentCity(name);val shop=shopRepository.getShopById(id)?:error("Магазин удалён")
    _uiState.value=_uiState.value.copy(shops=(_uiState.value.shops.filter{it.id!=id}+shop).sortedBy{it.displayOrder},selectedShopId=id)
    done(id)}
-  }catch(e:Exception){if(e is CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message)}
-   finally{_uiState.value=_uiState.value.copy(isLoading=false)}}
+  }catch(e:Exception){if(e is CancellationException)throw e;_uiState.value=_uiState.value.copy(error=e.message,shopCreationError=e.message?:"Не удалось создать магазин")}
+   finally{_uiState.value=_uiState.value.copy(isLoading=false);onFinished()}}
  }
  fun onShopSelected(id:Long?){_uiState.update{it.copy(selectedShopId=id,selectedProduct=null,error=null,isSearching=it.isSearching||id!=it.selectedShopId)}}
  fun onSaveToDatabaseChanged(value:Boolean){_uiState.value=_uiState.value.copy(saveToDatabase=value)}

@@ -25,7 +25,11 @@ import kotlinx.coroutines.flow.Flow
 
  @Transaction open suspend fun ensureType(name:String):Long {
   val key=FuzzySearch.normalize(name);require(key.isNotBlank()) { "Укажите название группы" }
-  return typeByKey(key)?.id ?: insertType(DepartmentTypeEntity(name=name.trim(),normalizedName=key,displayOrder=(types().maxOfOrNull{it.displayOrder}?:-1)+1))
+  return typeByKey(key)?.id ?: run {
+   val rows=types();val order=com.spisokryadom.app.util.appendOrder(rows.map{it.displayOrder})
+   if(order.ranks.isNotEmpty())rows.forEach{updateType(it.copy(displayOrder=order.ranks.getValue(it.displayOrder)))}
+   insertType(DepartmentTypeEntity(name=name.trim(),normalizedName=key,displayOrder=order.next))
+  }
  }
  @Transaction open suspend fun insert(value:ShopDepartmentEntity):Long {
   val typeId=if(value.typeId>0){require(type(value.typeId)!=null);value.typeId}else ensureType(value.name)

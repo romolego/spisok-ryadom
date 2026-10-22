@@ -367,11 +367,21 @@ class ProductCardViewModel(
 
     fun favorite(value:Boolean){edit { latest->latest.copy(isFavorite=value) }}
     fun accent(value:String){edit { latest->latest.copy(accent=value) }}
-    fun createShop(name:String,done:(Long)->Unit){viewModelScope.launch(errors){
-        val id=shopRepository.createInCurrentCity(name);val shop=shopRepository.getShopById(id)?:error("Магазин удалён")
-        _shopMap.value=_shopMap.value+(id to shop);edit { latest->latest.copy(shops=(_uiState.value.shops.filter{it.id!=id}+shop).sortedBy{it.displayOrder},shopOrders=_uiState.value.shopOrders+(id to shop.displayOrder)) };done(id)
+    fun createShop(name:String,done:(Long)->Unit)=createShop(name,done,{})
+    fun createShop(name:String,done:(Long)->Unit,onFinished:()->Unit){viewModelScope.launch(errors){
+        try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+            require(keepDraftLocked()){"Товар удалён или заменён"}
+            val id=shopRepository.createInCurrentCity(name);val shop=shopRepository.getShopById(id)?:error("Магазин удалён")
+            _shopMap.value=_shopMap.value+(id to shop);edit { latest->latest.copy(shops=(_uiState.value.shops.filter{it.id!=id}+shop).sortedBy{it.displayOrder},shopOrders=_uiState.value.shopOrders+(id to shop.displayOrder)) };done(id)
+        }}finally{onFinished()}
     }}
-    fun createRecipient(name:String,done:()->Unit){viewModelScope.launch(errors){val id=classifierRepository.insertRecipient(RecipientEntity(name=name.trim(),displayOrder=classifierRepository.getMaxRecipientDisplayOrder()+1));updateRecipient(id);done()}}
+    fun createRecipient(name:String,done:()->Unit)=createRecipient(name,done,{})
+    fun createRecipient(name:String,done:()->Unit,onFinished:()->Unit){viewModelScope.launch(errors){
+        try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+            require(keepDraftLocked()){"Товар удалён или заменён"}
+            val id=classifierRepository.insertRecipient(RecipientEntity(name=name.trim(),displayOrder=classifierRepository.getMaxRecipientDisplayOrder()+1));updateRecipient(id);done()
+        }}finally{onFinished()}
+    }}
     fun updateName(name: String) {
         edit { latest->latest.copy(name = name,duplicateName=false) }
         nameQuery.value=name
@@ -601,8 +611,8 @@ class ProductCardViewModel(
     fun useExistingProduct(id:Long){
         val state=_uiState.value;if(state.isSaving||state.isPhotoBusy||!state.isNew)return
         edit { latest->latest.copy(isSaving=true,error=null) }
-        viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.locked{
-            keepDraftLocked()
+        viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+            require(keepDraftLocked()){"Товар удалён или заменён"}
             val state=_uiState.value
             require(productRepository.getProductById(id)!=null){"Товар удалён"}
             productRepository.adoptEditorProduct(id,editorStableId,state.pendingShopLinks.sortedBy{it.displayOrder}.map{it.shopId}.distinct(),
@@ -612,8 +622,8 @@ class ProductCardViewModel(
         }}
     }
     // A new editor owns its auto-created row, but must not delete it after a purchase uses it.
-    private suspend fun withdrawUnnamedNewProduct(){
-        if(productId>=0)return
+    private suspend fun withdrawUnnamedNewProduct()=com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+        if(productId>=0)return@inGeneration
         if(productRepository.getProductByStableId(editorStableId)!=null)productRepository.discardNewEditorProduct(editorStableId)
         draftBase=null;lastCommitted=null
         _uiState.update{it.copy(savedProductId=null,autoSaveIssue=null)}
@@ -626,12 +636,18 @@ class ProductCardViewModel(
         edit { latest->latest.copy(isSaving=true,error=null) }
         viewModelScope.launch{com.spisokryadom.app.data.repository.ProductEditorTransactions.locked{
             try{
+                if(editorGeneration!=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()){
+                    if(!leaving)error("База была восстановлена. Откройте товар заново")
+                    // Leaving a stale form must not delete/write the restored raw draft.
+                    closed=true;_uiState.update{it.copy(isSaving=false,isSaved=true)}
+                    return@locked
+                }
                 if(leaving&&!autoSaveEnabled()){
                     closed=true;ProductDraftStore.remove(draftPreferences,editorStableId)
                     _uiState.update{it.copy(isSaving=false,isSaved=true)}
                     return@locked
                 }
-                keepDraftLocked()
+                require(keepDraftLocked()){"Товар удалён или заменён"}
                 if(_uiState.value.name.isNotBlank())persistCurrent()else {
                     if(!leaving||productId>=0)error("Введите название товара")
                     withdrawUnnamedNewProduct()
@@ -653,15 +669,19 @@ class ProductCardViewModel(
 
     fun createGroup(name: String) {
         viewModelScope.launch(errors) {
+          com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+            require(keepDraftLocked()){"Товар удалён или заменён"}
             val id = classifierRepository.insertGroup(ProductGroupEntity(name = name.trim(),displayOrder=classifierRepository.getMaxGroupDisplayOrder()+1))
             edit { latest->latest.copy(productGroupId = id) }
+          }
         }
     }
 
     fun deleteProduct() {
         if(_uiState.value.isSaving||_uiState.value.isPhotoBusy)return
         edit { latest->latest.copy(isSaving=true) }
-        viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.locked{
+        viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+            require(keepDraftLocked()){"Товар удалён или заменён"}
             val product=productRepository.getProductByStableId(editorStableId)
             if(product!=null)productRepository.deleteProduct(product)
             closed=true;ProductDraftStore.remove(draftPreferences,editorStableId)

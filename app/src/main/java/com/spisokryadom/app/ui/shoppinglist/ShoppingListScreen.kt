@@ -900,15 +900,16 @@ private fun EditEntryDialog(
 
     val unitLabel = entryUi.entry.unit.ifBlank { null }
 
-    // A fixed content width prevents intrinsic text-field measurement from repeatedly resizing the window.
-    val dialogWidth=(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp-48).coerceIn(240,560).dp
-    AlertDialog(
-        modifier=Modifier.width(dialogWidth),
-        properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false),
-        onDismissRequest = onDismiss,
-        title = { Text(entryUi.productName) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
+    com.spisokryadom.app.ui.components.EditorSheet(
+        title=entryUi.productName,onDismiss=onDismiss,
+        actions={
+            TextButton(onClick=onDismiss){Text("Отмена")}
+            TextButton(onClick={
+                val qty=com.spisokryadom.app.util.Quantities.parse(quantity)?:return@TextButton
+                onSave(qty,note.ifBlank{null},comment.ifBlank{null})
+            },enabled=com.spisokryadom.app.util.Quantities.parse(quantity)!=null){Text("Сохранить")}
+        }
+    ) {
                 OutlinedTextField(
                     value=quantity,
                     onValueChange={value->if(value.isEmpty()||value.matches(Regex("^\\d*[.,]?\\d*$")))quantity=value},
@@ -919,8 +920,6 @@ private fun EditEntryDialog(
                     keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 // Note
                 OutlinedTextField(
                     value = note,
@@ -930,8 +929,6 @@ private fun EditEntryDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 // One-time comment for this specific purchase
                 OutlinedTextField(
                     value = comment,
@@ -940,18 +937,7 @@ private fun EditEntryDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val qty = com.spisokryadom.app.util.Quantities.parse(quantity) ?: return@TextButton
-                onSave(qty, note.ifBlank { null }, comment.ifBlank { null })
-            }, enabled = com.spisokryadom.app.util.Quantities.parse(quantity) != null) { Text("Сохранить") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

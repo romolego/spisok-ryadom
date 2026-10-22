@@ -22,7 +22,7 @@ internal suspend fun relocateVenue(db:AppDatabase,venue:VenueEntity,cityId:Long)
             moved.forEach{db.shopBranchDao().update(it)}
             continue
         }
-        val order=(db.shopDao().getAllSync().filter{it.cityId==cityId}.maxOfOrNull{it.displayOrder}?:-1)+1
+        val order=nextShopDisplayOrder(db,cityId)
         val owner=db.shopDao().insert(shop.copy(id=0,cityId=cityId,displayOrder=order,address=venue.address))
         db.creationPresetDao().shopMode(shopId)?.let{db.creationPresetDao().setShop(ShopCreationPreset(owner,it))}
         val deptMap=db.shopDepartmentDao().getByShopIdSync(shopId).associate{it.id to db.shopDepartmentDao().insert(it.copy(id=0,shopId=owner))}

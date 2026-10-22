@@ -122,6 +122,8 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
    if(summary.full)require(!root.has("preferences")||root.get("preferences") is JSONObject){"Некорректный раздел настроек в копии"}
    if(root.getInt("version")>=14)listOf("productGroups","departmentTypes").forEach{key->val a=root.getJSONObject("data").getJSONArray(key);for(i in 0 until a.length()){val row=a.getJSONObject(i);require(row.has("isFavorite")&&row.has("favoriteOrder")){"Отсутствует оформление избранных групп"}}}
    val raw=BackupJson.read(root)
+   if(root.getInt("version")>=22){val rows=root.getJSONObject("data").getJSONArray("shops");for(i in 0 until rows.length())require(rows.getJSONObject(i).has("isFavorite")&&rows.getJSONObject(i).has("favoriteOrder")){"Отсутствует настройка избранных магазинов"}}
+   if(root.getInt("version")<22)require(raw.shops.none{it.isFavorite||it.favoriteOrder!=0}){"Избранные магазины требуют копию новой версии"}
   if(root.getInt("version")>=19){val venues=root.getJSONObject("data").getJSONArray("venues");for(i in 0 until venues.length())require(venues.getJSONObject(i).has("kind")){"Отсутствует тип торгового места"}}
   if(root.getInt("version")<19)require(raw.venues.all{it.kind==com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED}){"Тип места требует копию новой версии"}
   if(root.getInt("version")<18)require(raw.goalLists.none{it.isTemplate}){"Шаблоны требуют копию новой версии"}
@@ -328,7 +330,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   require((s.products.map{it.name}+s.shops.map{it.name}+s.cities.map{it.name}+s.groups.map{it.name}+s.recipients.map{it.name}).all{it.isNotBlank()}){"Пустые названия в копии"}
   s.products.forEach{p->require(p.productGroupId==null||p.productGroupId in groups);require(p.recipientId==null||p.recipientId in recipients);p.defaultQuantity?.let{Quantities.valid(it)}}
   val networks=ids(s.networks.map{it.id},"сети");val venues=s.venues.associateBy{it.id};ids(s.venues.map{it.id},"рынки и ТЦ")
-  require(s.groups.all{it.favoriteOrder>=0}&&s.departmentTypes.all{it.favoriteOrder>=0})
+  require(s.groups.all{it.favoriteOrder>=0}&&s.departmentTypes.all{it.favoriteOrder>=0}&&s.shops.all{it.favoriteOrder>=0})
   val types=s.departmentTypes.associateBy{it.id};ids(s.departmentTypes.map{it.id},"типы отделов")
   require(s.departmentTypes.map{it.normalizedName}.distinct().size==types.size)
   require(s.departmentTypes.all{it.name.isNotBlank()&&it.normalizedName==FuzzySearch.normalize(it.name)}){"Неверная общая группа"}
@@ -417,7 +419,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=21;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=22;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}

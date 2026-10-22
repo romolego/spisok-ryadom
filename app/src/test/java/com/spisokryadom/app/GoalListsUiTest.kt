@@ -173,6 +173,7 @@ class GoalListsUiTest {
         ui.onNodeWithTag("goal-item-address").performScrollTo().assertTextContains("Мира, 8")
         ui.onNodeWithTag("goal-item-price").performScrollTo().assertTextContains("0,0000001")
         ui.onNodeWithTag("goal-item-quantity").performScrollTo().performTextReplacement("1,,")
+        ui.onNodeWithTag("goal-item-quantity").assertTextContains("1,,")
         ui.activityRule.scenario.recreate(); waitText("Позиция списка")
         ui.onNodeWithTag("goal-item-quantity").assertTextContains("1,,")
         ui.onNodeWithTag("goal-item-quantity").performTextReplacement("ошибка"); back(); waitText("Введите положительное количество")

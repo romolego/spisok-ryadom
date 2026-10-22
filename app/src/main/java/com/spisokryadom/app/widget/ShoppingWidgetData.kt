@@ -69,7 +69,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
             com.spisokryadom.app.ui.shoppinglist.ViewMode.BY_GROUPS,
             com.spisokryadom.app.ui.shoppinglist.ViewMode.BY_RECIPIENTS -> {
                 val byGroups=settings.mode==com.spisokryadom.app.ui.shoppinglist.ViewMode.BY_GROUPS
-                val groups=if(byGroups)db.productGroupDao().getAllSync().map{Triple(it.id,it.name,it.displayOrder)}
+                val groups=if(byGroups)com.spisokryadom.app.util.alphabetical(db.productGroupDao().getAllSync()){it.name}.mapIndexed{index,it->Triple(it.id,it.name,index)}
                     else db.recipientDao().getAllSync().map{Triple(it.id,it.name,it.displayOrder)}
                 val classifiers=groups.associateBy{it.first}
                 val grouped=purchases.groupBy{if(byGroups)product(it)?.productGroupId else product(it)?.recipientId}

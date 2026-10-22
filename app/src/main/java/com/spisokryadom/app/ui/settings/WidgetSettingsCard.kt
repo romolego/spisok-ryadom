@@ -1,9 +1,7 @@
 package com.spisokryadom.app.ui.settings
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.*
@@ -68,27 +66,18 @@ fun WidgetSettingsCard(value: WidgetSettings, onChange: (WidgetSettings) -> Unit
                 steps = 9, modifier = Modifier.testTag("widget-font-size"))
         }
     }
-    if (appearance) ModalBottomSheet(onDismissRequest = { appearance = false },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.fillMaxWidth()
-            .heightIn(max = (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp * .9f).dp)
-            .imePadding().padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Оформление виджета", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                HelpButton("Цвета виджета", "Подложки магазинов используют цвета из их карточек и видны при группировке по магазинам. Подложки товаров используют оформление покупок: цвет магазина, избранное и статусы. Эти два вида подложек включаются независимо. Изменения применяются сразу.")
-            }
-            Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+    if (appearance) com.spisokryadom.app.ui.components.EditorSheet("Оформление виджета",{appearance=false},actions={
+        TextButton(onClick={appearance=false}){Text("Готово")}
+    }) {
+                SettingWithHelp("Цвета виджета", "Подложки магазинов используют цвета из их карточек и видны при группировке по магазинам. Подложки товаров используют оформление покупок: цвет магазина, избранное и статусы. Эти два вида подложек включаются независимо. Изменения применяются сразу."){
+                    Text("Подложки",style=MaterialTheme.typography.labelLarge)
+                }
                 WidgetSwitch("Подложки магазинов", value.showShopBackground, "widget-shop-background") {
                     onChange(value.copy(showShopBackground = it))
                 }
                 WidgetSwitch("Подложки товаров", value.showProductBackground, "widget-product-background") {
                     onChange(value.copy(showProductBackground = it))
                 }
-            }
-            TextButton(onClick = { appearance = false }, modifier = Modifier.fillMaxWidth()) { Text("Готово") }
-            Spacer(Modifier.height(8.dp))
-        }
     }
 }
 

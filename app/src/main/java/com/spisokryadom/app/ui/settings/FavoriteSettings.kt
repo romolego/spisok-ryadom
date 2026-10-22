@@ -1,7 +1,6 @@
 package com.spisokryadom.app.ui.settings
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.HelpOutline
@@ -39,11 +38,10 @@ import com.spisokryadom.app.util.FavoriteStyle
  colorPinned?.let{pinned->val style=value.style(surface,pinned)
   AppearanceSheet("Фон избранного",style.color,withIcons=false,onSave={color,_->update(pinned){it.copy(background=color.isNotBlank(),color=color.ifBlank{it.color})};colorPinned=null},onDismiss={colorPinned=null})
  }
- val configuration=androidx.compose.ui.platform.LocalConfiguration.current
- androidx.compose.ui.window.Dialog(onDismissRequest=onDismiss,properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false)){Surface(modifier=Modifier.width(minOf(560.dp,(configuration.screenWidthDp-32).dp)).height(minOf(520.dp,(configuration.screenHeightDp-80).coerceAtLeast(240).dp)),shape=MaterialTheme.shapes.large){Column(Modifier.fillMaxSize().padding(20.dp)){
-  Row(verticalAlignment=Alignment.CenterVertically){Text("Оформление избранного",Modifier.weight(1f),style=MaterialTheme.typography.titleLarge);HelpButton("Оформление избранного","Выберите контекст. Верхний блок избранного и его повторения в полном перечне имеют независимые фон, цвет, звёздочку и жирность. «Покупки» — главный экран; «Списки» — целевые списки, каталог и подбор товаров.")}
-  Column(Modifier.weight(1f).verticalScroll(androidx.compose.foundation.rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)){
+ EditorSheet("Оформление избранного",onDismiss,actions={TextButton(onClick=onDismiss){Text("Готово")}}){
+   SettingWithHelp("Оформление избранного","Выберите контекст. Верхний блок избранного и его повторения в полном перечне имеют независимые фон, цвет, звёздочку и жирность. «Покупки» — главный экран; «Списки» — целевые списки, каталог и подбор товаров."){
    DropdownSelector("Где отображать",com.spisokryadom.app.util.FavoriteSurface.entries.toList(),surface,{it.title},{it?.let{v->selected=v.name}},allowNone=false)
+   }
    listOf(true,false).forEach{pinned->
     val s=value.style(surface,pinned);val title=if(pinned)"Блок избранного"else "В полном списке";val key=surface.title+": "+title
     Text(title,style=MaterialTheme.typography.titleSmall)
@@ -55,7 +53,5 @@ import com.spisokryadom.app.util.FavoriteStyle
     }
     CompositionLocalProvider(LocalFavoriteSurface provides surface,LocalFavoriteBlock provides pinned){FavoriteMarkedLabel("Банан",favorite=true,modifier=Modifier.fillMaxWidth().padding(12.dp))}
    }
-  }
-  TextButton(onClick=onDismiss,modifier=Modifier.align(Alignment.End)){Text("Готово")}
- }}}
+ }
 }

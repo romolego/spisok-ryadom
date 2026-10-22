@@ -1,0 +1,96 @@
+{
+  "baseline": "1742d7524973322a740516c7b68d6ac2d9cabbc3",
+  "removedFunctions": [
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/dao/RetailStructureDao.kt",
+      "symbol": "clearDepartmentOrder",
+      "replacementOrReason": "No new per-point department orders. Global shop/network order; retained restore writer and sync reader preserve historical rows."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/dao/RetailStructureDao.kt",
+      "symbol": "observeDepartmentOrder",
+      "replacementOrReason": "No active UI consumes per-point department orders; sync compatibility reader retained."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ClassifierRepository.kt",
+      "symbol": "addStandardCategories",
+      "replacementOrReason": "Current reset and default-dictionary installer. The obsolete standalone UI action no longer exists."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/GoalListRepository.kt",
+      "symbol": "addCatalogue",
+      "replacementOrReason": "Shared ShoppingListRepository writer with scoped target; legacy fixture adapter keeps explicit NONE policy."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+      "symbol": "moveOptions",
+      "replacementOrReason": "Current purchasePlaces policy is the shared authoritative choice list."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "symbol": "branchOrders",
+      "replacementOrReason": "Direct compatibility reader remains in persistence layer; unused repository wrapper removed."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+      "symbol": "observeBranchOrders",
+      "replacementOrReason": "Global shop/network order is the current source of UI order."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/MovePurchasesDialog.kt",
+      "symbol": "BranchChoiceField",
+      "replacementOrReason": "The actual MovePurchasesDialog and shared PurchasePlace selection. Legacy UI assertion moved to that real surface."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/MovePurchasesDialog.kt",
+      "symbol": "selectPlace",
+      "replacementOrReason": "Current dialog selects the exact PurchasePlace directly."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalListViewModels.kt",
+      "symbol": "export",
+      "replacementOrReason": "Active portable-list export action and codec remain; unused alternate ViewModel wrapper removed."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shoplist/ShopListViewModel.kt",
+      "symbol": "deleteShop",
+      "replacementOrReason": "Actual shop-card delete flow remains; list ViewModel wrapper was unreferenced."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListViewModel.kt",
+      "symbol": "clearBoughtByShop",
+      "replacementOrReason": "Active place-scoped clear commands remain; unused Main wrapper removed."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListViewModel.kt",
+      "symbol": "moveOptions",
+      "replacementOrReason": "Current purchasePlaces policy is the shared authoritative choice list."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListViewModel.kt",
+      "symbol": "moveShopDown",
+      "replacementOrReason": "Active place-scoped route command remains; unreferenced alternate wrapper removed."
+    },
+    {
+      "file": "app/src/main/java/com/spisokryadom/app/ui/shoppinglist/ShoppingListViewModel.kt",
+      "symbol": "moveShopUp",
+      "replacementOrReason": "Active place-scoped route command remains; unreferenced alternate wrapper removed."
+    }
+  ],
+  "removedFunctionCount": 15,
+  "removedWriterParameter": "ShopRepository.saveWithDepartments.branchOrders and its branch-specific update loop",
+  "preservedCompatibility": [
+    "All existing Room schema snapshots 8–24 and legacy migration paths",
+    "branch_department_order table, synchronous reader, backup restore writer",
+    "Historical product point-department readers and interchange",
+    "Legacy ZIP readers; strict current ZIP22 exporter"
+  ],
+  "testsRemoved": 0,
+  "testAdaptations": [
+    "Legacy obsolete BranchChoiceField fixture now exercises actual MovePurchasesDialog, keeping exact-null/point-ID and row-order assertions",
+    "Search navigation fixture waits for debounce result readiness before clicking; ID, owner and quantity assertions retained",
+    "Old catalogue fixtures now call the shared current writer",
+    "Current Room builder/version expectations updated without rewriting old migration fixtures"
+  ],
+  "scope": "Removed production functions are listed by file and symbol; removed writer parameter is counted separately. Newly introduced then abandoned helpers are not counted as baseline removals."
+}

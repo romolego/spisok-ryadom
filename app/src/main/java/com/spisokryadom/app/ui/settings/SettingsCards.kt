@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.spisokryadom.app.data.entity.*
 import com.spisokryadom.app.data.repository.ResetMode
@@ -43,27 +44,27 @@ import com.spisokryadom.app.ui.components.*
  OutlinedCard(onClick={if(!busy)open=true},modifier=Modifier.fillMaxWidth()){
   ListItem(headlineContent={Text("Сброс")},leadingContent={Icon(Icons.Filled.RestartAlt,null)},trailingContent={Icon(Icons.Filled.ChevronRight,"Открыть сброс")})
  }
- if(open)AlertDialog(onDismissRequest={if(!busy)open=false},title={Text("Сброс")},text={Column{
+ if(open)EditorSheet("Сброс",{open=false},busy=busy,actions={TextButton(onClick={open=false},enabled=!busy){Text("Закрыть")}}){
   ResetMode.entries.forEach{mode->TextButton(onClick={selected=mode;open=false},enabled=!busy,modifier=Modifier.fillMaxWidth()){Text(mode.title,Modifier.fillMaxWidth())}}
- }},confirmButton={TextButton(onClick={open=false},enabled=!busy){Text("Закрыть")}})
+ }
  selected?.let{mode->ConfirmDialog(mode.title+"?",mode.explanation,onConfirm={selected=null;onReset(mode)},onDismiss={selected=null})}
 }
 
 @Composable fun ProductUsageDialog(title:String,products:List<ProductEntity>,onOpen:(Long)->Unit,onDismiss:()->Unit){
- AlertDialog(onDismissRequest=onDismiss,title={Text(title)},text={LazyColumn(Modifier.heightIn(max=400.dp)){
+ EditorSheet(title,onDismiss,scrollContent=false,actions={TextButton(onClick=onDismiss){Text("Закрыть")}}){LazyColumn(Modifier.testTag("product-usage-list")){
   if(products.isEmpty())item{Text("Пока не используется")}
   items(com.spisokryadom.app.util.alphabetical(products){it.name},key={it.id}){p->FavoriteMarkedLabel(p.name,accent=p.accent,favorite=p.isFavorite,modifier=Modifier.fillMaxWidth().clickable{onDismiss();onOpen(p.id)}.padding(vertical=12.dp))}
- }},confirmButton={TextButton(onClick=onDismiss){Text("Закрыть")}})
+ }}
 }
 
 @Composable fun DepartmentUsageDialog(groups:List<SettingsViewModel.DepartmentUsage>,onOpen:(Long)->Unit,onShop:(Long)->Unit,onDismiss:()->Unit){
  val labels=LocalPlaceLabels.current
- AlertDialog(onDismissRequest=onDismiss,title={Text("Товары и магазины группы")},text={LazyColumn(Modifier.heightIn(max=420.dp)){
+ EditorSheet("Товары и магазины группы",onDismiss,scrollContent=false,actions={TextButton(onClick=onDismiss){Text("Закрыть")}}){LazyColumn{
   if(groups.isEmpty())item{Text("Пока не используется")}
   groups.forEach{group->
    item(key="shop_${group.shop.id}"){Text(labels.shop(group.shop.id,group.shop.name),style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary,modifier=Modifier.fillMaxWidth().clickable{onDismiss();onShop(group.shop.id)}.padding(vertical=12.dp))}
    if(group.products.isEmpty())item(key="empty_${group.shop.id}"){Text("Нет привязанных товаров",style=MaterialTheme.typography.bodySmall)}
    items(group.products,key={"${group.shop.id}_${it.id}"}){p->FavoriteMarkedLabel(p.name,accent=p.accent,favorite=p.isFavorite,modifier=Modifier.fillMaxWidth().clickable{onDismiss();onOpen(p.id)}.padding(start=12.dp,top=10.dp,bottom=10.dp))}
   }
- }},confirmButton={TextButton(onClick=onDismiss){Text("Закрыть")}})
+ }}
 }

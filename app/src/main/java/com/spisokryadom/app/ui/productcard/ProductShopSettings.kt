@@ -1,45 +1,27 @@
 package com.spisokryadom.app.ui.productcard
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.spisokryadom.app.data.entity.ShopBranchEntity
 import com.spisokryadom.app.ui.components.*
 
-/** Explicit bounds avoid intrinsic measurement of dropdown anchors inside an AlertDialog. */
+/** Shop choices use the same scrollable editor sheet as other multi-field settings. */
 @Composable
 internal fun ProductShopDialog(
     title:String, confirmLabel:String, onConfirm:()->Unit, onDismiss:()->Unit,
     canConfirm:Boolean, busy:Boolean, content:@Composable ColumnScope.()->Unit
 ) {
-    val configuration=LocalConfiguration.current
-    val width=minOf(560.dp,(configuration.screenWidthDp-48).coerceAtLeast(240).dp)
-    val height=(configuration.screenHeightDp-48).coerceAtLeast(200).dp
-    Dialog(onDismissRequest={if(!busy)onDismiss()},properties=DialogProperties(usePlatformDefaultWidth=false)) {
-        Surface(Modifier.width(width).heightIn(max=height),shape=MaterialTheme.shapes.extraLarge,
-            color=MaterialTheme.colorScheme.surfaceContainerHigh) {
-            Column(Modifier.padding(24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
-                Text(title,style=MaterialTheme.typography.headlineSmall)
-                Column(Modifier.fillMaxWidth().weight(1f,false).verticalScroll(rememberScrollState()),
-                    verticalArrangement=Arrangement.spacedBy(12.dp),content=content)
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End) {
-                    TextButton(onClick=onDismiss,enabled=!busy){Text("Отмена")}
-                    Spacer(Modifier.width(8.dp))
-                    TextButton(onClick=onConfirm,enabled=canConfirm&&!busy){Text(confirmLabel)}
-                }
-            }
-        }
-    }
+    EditorSheet(title,onDismiss,busy=busy,actions={
+        TextButton(onClick=onDismiss,enabled=!busy){Text("Отмена")}
+        Spacer(Modifier.width(8.dp))
+        TextButton(onClick=onConfirm,enabled=canConfirm&&!busy){Text(confirmLabel)}
+    },content=content)
 }
 
 /** Null selection means all current and future outlets; priority never restricts availability. */

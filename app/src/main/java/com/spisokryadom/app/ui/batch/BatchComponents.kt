@@ -129,10 +129,22 @@ private val BatchSelectionSaver=mapSaver(
   if(a=="department"&&!stores)targetShop=commonShops.find{it.id==shopId}?.id?:commonShops.singleOrNull()?.id
  }
  val title=when(action){"basket"->"Место покупки";"recipient"->"Назначить получателя";"group"->"Назначить товарную группу";"shop"->"Добавить магазины к товарам";"department"->if(stores)"Добавить группы в магазины"else "Назначить группу магазина";else->"Выбрано: ${ids.size}"}
- ModalBottomSheet(onDismissRequest={if(!busy)onDismiss()},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)){
-  Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).navigationBarsPadding()){
-   Text(title,style=MaterialTheme.typography.titleLarge,modifier=Modifier.padding(bottom=12.dp))
-   Column(Modifier.weight(1f,fill=false).verticalScroll(rememberScrollState()).testTag("batch-options")){
+ com.spisokryadom.app.ui.components.EditorSheet(title,onDismiss,busy=busy,scrollContent=false,actions={
+   if(action.isNotEmpty()){
+     TextButton(onClick={action=""},enabled=!busy){Text("Назад")}
+     Spacer(Modifier.width(12.dp))
+     Button(onClick={
+      val id=chosen.singleOrNull()
+      if(action=="basket")vm.add(ids,shopId,onDone,if(none)null else id)
+      else if(stores)vm.shops(ids,chosen,onDone)
+      else{
+       val change=when(action){"recipient"->ProductBatchChange.Recipient(id);"group"->ProductBatchChange.Group(id);"shop"->ProductBatchChange.Shops(chosen);else->ProductBatchChange.Department(targetShop!!,id)}
+       vm.products(ids,change,onDone)
+      }
+     },enabled=ready&&(chosen.isNotEmpty()||none)&&(action!="department"||stores||targetShop!=null),modifier=Modifier.weight(1f)){Text(if(busy)"Сохранение…"else "Применить к ${ids.size}")}
+   }else TextButton(onClick=onDismiss,enabled=!busy){Text("Закрыть")}
+ }){
+   Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).testTag("batch-options")){
     if(options.isLoading)LinearProgressIndicator(Modifier.fillMaxWidth().testTag("batch-options-loading"))
     if(action.isEmpty()){
      if(stores){TextButton(onClick={choose("department")},enabled=ready){Text("Добавить группы магазина")}}
@@ -160,7 +172,7 @@ private val BatchSelectionSaver=mapSaver(
       else->options.types.map{it.id to it.name}
      }
      val multiple=action=="shop"||stores
-     val favoriteIds=when(action){"group"->options.groups.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};"department"->options.types.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};else->emptyList()}
+     val favoriteIds=when(action){"group"->options.groups.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};"department"->options.types.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};"shop"->options.shops.filter{it.isFavorite}.sortedBy{it.favoriteOrder}.map{it.id};else->emptyList()}
      val dictionary=action=="group"||action=="department"
      androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.DROPDOWNS){
      val base=if(dictionary)com.spisokryadom.app.util.alphabetical(values){it.second}else values
@@ -183,21 +195,6 @@ private val BatchSelectionSaver=mapSaver(
      }}
     }
    }
-   if(action.isNotEmpty()){
-    Row(Modifier.fillMaxWidth().padding(vertical=12.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)){
-     TextButton(onClick={action=""},enabled=!busy){Text("Назад")}
-     Button(onClick={
-      val id=chosen.singleOrNull()
-      if(action=="basket")vm.add(ids,shopId,onDone,if(none)null else id)
-      else if(stores)vm.shops(ids,chosen,onDone)
-      else{
-       val change=when(action){"recipient"->ProductBatchChange.Recipient(id);"group"->ProductBatchChange.Group(id);"shop"->ProductBatchChange.Shops(chosen);else->ProductBatchChange.Department(targetShop!!,id)}
-       vm.products(ids,change,onDone)
-      }
-     },enabled=ready&&(chosen.isNotEmpty()||none)&&(action!="department"||stores||targetShop!=null),modifier=Modifier.weight(1f)){Text(if(busy)"Сохранение…"else "Применить к ${ids.size}")}
-    }
-   }else Spacer(Modifier.height(20.dp))
-  }
  }
 }
 @Composable private fun OptionRow(label:String,selected:Boolean,enabled:Boolean,multiple:Boolean=false,favorite:Boolean=false,onClick:()->Unit){

@@ -29,5 +29,8 @@ data class ShopEntity(
     @androidx.room.ColumnInfo(defaultValue="''") val iconKey:String="",
     val logoUri:String?=null,
     /** Empty = ordinary cards; auto = stronger shop tint; otherwise a custom color. */
-    @androidx.room.ColumnInfo(defaultValue="''") val purchaseBackground:String=""
+    @androidx.room.ColumnInfo(defaultValue="''") val purchaseBackground:String="",
+    /** Browsing pins are independent of the shopping route in displayOrder. */
+    @androidx.room.ColumnInfo(defaultValue="0") val isFavorite:Boolean=false,
+    @androidx.room.ColumnInfo(defaultValue="0") val favoriteOrder:Int=0
 )

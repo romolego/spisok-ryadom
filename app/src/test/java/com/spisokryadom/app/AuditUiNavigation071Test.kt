@@ -49,10 +49,11 @@ class AuditUiNavigation071Test {
   ui.onNodeWithContentDescription("Действия магазина: Батон").performClick()
   ui.onNodeWithContentDescription("Добавить товар в Батон").performClick();waitText("Добавить покупку")
   ui.onNodeWithText("Название товара").performTextReplacement("Чай")
-  val candidate=hasText("Чай") and hasClickAction() and !hasSetTextAction()
-  ui.waitUntil(20_000){ui.onAllNodes(candidate).fetchSemanticsNodes().isNotEmpty()}
-  ui.onNode(candidate).performClick()
-  ui.onNodeWithText("Добавить в список").performScrollTo().performClick();waitText("Список покупок")
+  // Browsed rows stay visible while the debounced query runs, but cannot be selected
+  // until the new result is ready. Mere existence does not mean this row is actionable.
+  ui.waitUntil(20_000){runCatching{ui.onNodeWithTag("candidate-all-$product").assertIsEnabled()}.isSuccess}
+  ui.onNodeWithTag("candidate-all-$product").performClick();waitText("Выбран")
+  ui.onNodeWithText("Добавить в список").performScrollTo().assertIsEnabled().performClick();waitText("Список покупок")
   ui.waitUntil(20_000){runBlocking{db.shoppingListEntryDao().getAllSync().filter{it.productId==product}.sumOf{it.quantity}==2.0}}
   runBlocking{
    val purchases=db.shoppingListEntryDao().getAllSync().filter{it.productId==product}

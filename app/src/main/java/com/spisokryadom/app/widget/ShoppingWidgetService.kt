@@ -51,11 +51,14 @@ class ShoppingWidgetFactory(private val context:Context):RemoteViewsService.Remo
             // Tint the rounded drawable itself: XML clipToOutline is unavailable below API31.
             // Assign even white on every bind so reused rows cannot retain another color.
             setInt(R.id.widget_purchase_background,"setColorFilter",WidgetAppearance.productBackground(purchase,snapshot.settings,snapshot.favoriteStyle))
-            setTextViewText(R.id.widget_item_title,(if(row.urgent&&!row.bought)"! "else "")+row.title)
+            setTextViewText(R.id.widget_item_title,(if(row.urgent&&!row.bought)"! "else "")+
+                (if(purchase.isFavorite&&snapshot.favoriteStyle.star)"★ "else "")+row.title)
             setTextViewText(R.id.widget_item_detail,row.detail)
             setTextViewTextSize(R.id.widget_item_title,TypedValue.COMPLEX_UNIT_SP,size.toFloat())
             setTextViewTextSize(R.id.widget_item_detail,TypedValue.COMPLEX_UNIT_SP,(size-3).coerceAtLeast(10).toFloat())
-            setInt(R.id.widget_item_title,"setPaintFlags",Paint.ANTI_ALIAS_FLAG or if(row.bought)Paint.STRIKE_THRU_TEXT_FLAG else 0)
+            val bold=purchase.isFavorite&&snapshot.favoriteStyle.bold||row.urgent&&!row.bought
+            setInt(R.id.widget_item_title,"setPaintFlags",Paint.ANTI_ALIAS_FLAG or
+                (if(row.bought)Paint.STRIKE_THRU_TEXT_FLAG else 0) or (if(bold)Paint.FAKE_BOLD_TEXT_FLAG else 0))
             setImageViewResource(R.id.widget_check,if(row.bought)R.drawable.widget_checked else R.drawable.widget_unchecked)
             setContentDescription(R.id.widget_check,(if(row.bought)"Вернуть: "else "Отметить купленным: ")+row.title)
             setOnClickFillInIntent(R.id.widget_check,ShoppingWidgetProvider.checkIntent(row))

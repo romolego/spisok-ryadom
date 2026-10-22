@@ -46,7 +46,7 @@ class UnifiedLists250UiTest {
   app.getSharedPreferences("shopping_list_prefs",0).edit().putBoolean("autosave_product_cards",false).commit()
   db.shoppingListEntryDao().deleteAll();db.goalListDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();app.container.locations.select(1)
   banana=db.productDao().insert(ProductEntity(name="Банан",isFavorite=true,defaultQuantity=.5,defaultUnit="кг"))
-  list=goals.create("Рецепт");val other=goals.create("Другой список");goals.addCatalogue(other,banana,9.0)
+  list=goals.create("Рецепт");val other=goals.create("Другой список");app.container.shoppingListRepository.addGoalCatalogueFixture(other,banana,9.0)
   shop=db.shopDao().insert(ShopEntity(name="Батон"))
  };waitText("Список пуст")}
  @After fun close(){ui.activityRule.scenario.close();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}

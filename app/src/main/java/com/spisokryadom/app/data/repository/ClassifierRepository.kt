@@ -80,10 +80,16 @@ class ClassifierRepository(
         require(recipientId==null||recipientDao.getById(recipientId)!=null){"Получатель удалён"}
         db.creationPresetDao().setGroup(com.spisokryadom.app.data.entity.GroupCreationPreset(groupId,recipientId))
     }
-    suspend fun addStandardCategories()=db.withTransaction{com.spisokryadom.app.data.db.StandardCategories.install(db.openHelper.writableDatabase)}
     fun getAllGroups(): Flow<List<ProductGroupEntity>> = productGroupDao.getAll().map{com.spisokryadom.app.util.alphabetical(it){v->v.name}}
     suspend fun getGroupById(id: Long): ProductGroupEntity? = productGroupDao.getById(id)
-    suspend fun insertGroup(group: ProductGroupEntity): Long = productGroupDao.insert(group)
+    suspend fun insertGroup(group: ProductGroupEntity): Long = db.withTransaction {
+        val rows=productGroupDao.getAllSync()
+        val order=com.spisokryadom.app.util.appendOrder(rows.map{it.displayOrder})
+        if(group.displayOrder==Int.MIN_VALUE&&order.ranks.isNotEmpty()){
+            productGroupDao.updateAll(rows.map{it.copy(displayOrder=order.ranks.getValue(it.displayOrder))})
+            productGroupDao.insert(group.copy(displayOrder=order.next))
+        }else productGroupDao.insert(group)
+    }
     suspend fun renameGroup(id:Long,name:String)=db.withTransaction{productGroupDao.getById(id)?.let{productGroupDao.update(it.copy(name=name))}}
     suspend fun deleteGroup(group: ProductGroupEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{productGroupDao.delete(group)}}
     suspend fun getMaxGroupDisplayOrder(): Int = productGroupDao.getMaxDisplayOrder()
@@ -91,7 +97,14 @@ class ClassifierRepository(
 
     fun getAllRecipients(): Flow<List<RecipientEntity>> = recipientDao.getAll()
     suspend fun getRecipientById(id: Long): RecipientEntity? = recipientDao.getById(id)
-    suspend fun insertRecipient(recipient: RecipientEntity): Long = recipientDao.insert(recipient)
+    suspend fun insertRecipient(recipient: RecipientEntity): Long = db.withTransaction {
+        val rows=recipientDao.getAllSync()
+        val order=com.spisokryadom.app.util.appendOrder(rows.map{it.displayOrder})
+        if(recipient.displayOrder==Int.MIN_VALUE&&order.ranks.isNotEmpty()){
+            recipientDao.updateAll(rows.map{it.copy(displayOrder=order.ranks.getValue(it.displayOrder))})
+            recipientDao.insert(recipient.copy(displayOrder=order.next))
+        }else recipientDao.insert(recipient)
+    }
     suspend fun updateRecipient(recipient: RecipientEntity) = recipientDao.update(recipient)
     suspend fun deleteRecipient(recipient: RecipientEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{recipientDao.delete(recipient)}}
     suspend fun getMaxRecipientDisplayOrder(): Int = recipientDao.getMaxDisplayOrder()
@@ -102,7 +115,15 @@ class ClassifierRepository(
     suspend fun getUnitById(id: Long): UnitEntity? = unitDao.getById(id)
     suspend fun insertUnit(unit: UnitEntity): Long = db.withTransaction {
         val name=Quantities.unit(unit.name);require(name.isNotBlank()){"Укажите единицу измерения"}
-        unitDao.getAllSync().find{Quantities.unit(it.name)==name}?.id?:unitDao.insert(unit.copy(name=name))
+        val rows=unitDao.getAllSync()
+        rows.find{Quantities.unit(it.name)==name}?.id?:run {
+            val order=com.spisokryadom.app.util.appendOrder(rows.map{it.displayOrder})
+            val value=if(unit.displayOrder==Int.MIN_VALUE&&order.ranks.isNotEmpty()){
+                unitDao.updateAll(rows.map{it.copy(displayOrder=order.ranks.getValue(it.displayOrder))})
+                unit.copy(name=name,displayOrder=order.next)
+            }else unit.copy(name=name)
+            unitDao.insert(value)
+        }
     }
     suspend fun getMaxUnitDisplayOrder(): Int = unitDao.getMaxDisplayOrder()
 }

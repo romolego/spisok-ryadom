@@ -101,17 +101,6 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
             note = safeNote, comment = safeComment))
     }
 
-    /** Reuses the regular list's availability and physical-outlet assignment policy. */
-    suspend fun addCatalogue(
-        listId: Long, productId: Long, quantity: Double? = null, unit: String? = null,
-        plannedUnitPrice: Double? = null, choice: ShopChoice = ShopChoice.NONE,
-        shopId: Long? = null, branchId: Long? = null
-    ): Long = db.withTransaction {
-        requireList(listId)
-        if (unit != null) validUnit(unit)
-        shopping.addProduct(productId, quantity, unit, choice, shopId, branchId, listId, validPrice(plannedUnitPrice))
-    }
-
     /** Null place parameters preserve the current assignment; empty strings deliberately clear it. */
     suspend fun updateItem(
         entryId: Long, name: String?, quantity: Double, unit: String, plannedUnitPrice: Double?,
@@ -200,6 +189,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
     suspend fun moveEntriesExpected(expectedOwners: Map<Long, Long?>, targetListId: Long?) = db.withTransaction {
         if (targetListId != null) requireList(targetListId)
         val rows = requireOwners(expectedOwners)
+        if(targetListId!=null)rows.forEach{shopping.validateTarget(it.copy(listId=targetListId))}
         rows.forEach { entries.update(it.copy(listId = targetListId, updatedAt = System.currentTimeMillis())) }
     }
 
@@ -271,6 +261,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
     suspend fun captureList(sourceListId: Long?, name: String): Long = db.withTransaction {
         if (sourceListId != null) requireList(sourceListId)
         val source = if (sourceListId == null) entries.getVisibleSync() else entries.getForListSync(sourceListId)
+        source.forEach{shopping.validatePlannedEntry(it)}
         val id = create(name)
         source.forEach { row -> entries.insert(copyPlannedRow(row, id)) }
         id
@@ -284,6 +275,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
         val source = entries.getForListSync(templateId)
         require(expectedRows == null || source.associate { it.id to it.updatedAt } == expectedRows) { "Список изменился. Проверьте позиции и повторите добавление" }
         require(source.isNotEmpty()) { "Сначала добавьте позиции в список" }
+        if(newListName!=null||targetListId!=null)source.forEach{shopping.validatePlannedEntry(it)}
         val destination = if (newListName != null) create(newListName) else targetListId
         if (destination != null) requireList(destination)
         source.forEach { row -> shopping.addOrMergeEntry(copyPlannedRow(row, destination)) }

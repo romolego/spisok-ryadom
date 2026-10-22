@@ -289,7 +289,7 @@ fun ProductCardScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name){createRecipient=false;done()}},{createRecipient=false})
+            if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name,{createRecipient=false},done)},{createRecipient=false})
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
                 com.spisokryadom.app.ui.components.SelectionRow("Избранное",state.isFavorite,{leaveName();viewModel.favorite(it)},modifier=Modifier.weight(1f))
                 IconButton(onClick={showAppearance=true}){Icon(Icons.Filled.Palette,"Цвет товара")}
@@ -569,7 +569,7 @@ private fun AddShopLinkDialog(
     onConfirm:(Long,Long?,Set<Long>?,List<Long>)->Unit,onDismiss:()->Unit,onLoadDepartments:(Long)->Unit,
     departmentsForShop:List<ShopDepartmentEntity>,suggestedDepartmentId:Long?,suggestedDepartmentReason:String?,
     branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>,
-    onCreateDepartment:(Long,String,(Long)->Unit)->Unit,onCreateShop:(String,(Long)->Unit)->Unit,creatingDepartment:Boolean,departmentsShopId:Long?,types:List<com.spisokryadom.app.data.entity.DepartmentTypeEntity>
+    onCreateDepartment:(Long,String,(Long)->Unit)->Unit,onCreateShop:(String,(Long)->Unit,()->Unit)->Unit,creatingDepartment:Boolean,departmentsShopId:Long?,types:List<com.spisokryadom.app.data.entity.DepartmentTypeEntity>
 ){
     val available=shops.filter{it.id !in existingShopIds}
     val placeLabels=com.spisokryadom.app.ui.components.LocalPlaceLabels.current
@@ -585,8 +585,8 @@ private fun AddShopLinkDialog(
     val selectedPoints=points?.toSet()
     ProductShopDialog("Добавить магазин","Добавить",{onConfirm(shopId,departmentId,selectedPoints,priority)},onDismiss,
         shopId>0&&(selectedPoints==null||selectedPoints.isNotEmpty()),creatingDepartment){
-            DropdownSelector(label="Магазин",noneLabel="Без магазина",items=available,selectedItem=available.find{it.id==shopId},itemLabel={placeLabels.shop(it.id,it.name)},onSelect={if(!creatingDepartment)shopId=it?.id?:0L},allowCreate=true,onCreateNew={creatingShop=true},createLabel="Новый магазин…")
-            if(creatingShop)com.spisokryadom.app.ui.components.InlineCreateValue("Название магазина",{name,done->onCreateShop(name){shopId=it;creatingShop=false;done()}},{creatingShop=false})
+            DropdownSelector(label="Магазин",noneLabel="Без магазина",items=available,selectedItem=available.find{it.id==shopId},itemLabel={placeLabels.shop(it.id,it.name)},onSelect={if(!creatingDepartment)shopId=it?.id?:0L},allowCreate=true,onCreateNew={creatingShop=true},createLabel="Новый магазин…",itemFavorite={it.isFavorite},favoriteOrder={it.favoriteOrder})
+            if(creatingShop)com.spisokryadom.app.ui.components.InlineCreateValue("Название магазина",{name,done->onCreateShop(name,{shopId=it;creatingShop=false},done)},{creatingShop=false})
             if(shopId>0){
                 androidx.compose.runtime.key(shopId){DepartmentChoice(validDepartments,departmentId,{departmentId=it;userSelected=true},{name,done->onCreateDepartment(shopId,name,done)},creatingDepartment,types)}
                 ProductOutletOptions(branches.filter{it.shopId==shopId},selectedPoints,{points=it?.toList()},priority,{priority=it},!creatingDepartment)

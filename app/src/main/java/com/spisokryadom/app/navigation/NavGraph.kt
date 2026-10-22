@@ -54,7 +54,14 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
     val navController = rememberNavController()
     androidx.compose.runtime.LaunchedEffect(widgetRequest) {
         if(widgetRequest!=null){
-            if(widgetRequest!="add"||navController.currentDestination?.route!=Routes.AddToList.route) {
+            val current = navController.currentBackStackEntry
+            // An add screen can belong to a separate list or a locked shop. The widget
+            // always adds to Main; only preserve an already open, unscoped Main picker.
+            val mainPicker = current?.destination?.route == Routes.AddToList.route &&
+                listOf("listId", "preselectedShopId", "preselectedBranchId").all {
+                    (current.arguments?.getLong(it) ?: -1L) < 0L
+                }
+            if(widgetRequest!="add"||!mainPicker) {
                 navController.popBackStack(Routes.ShoppingList.route,false)
                 if(widgetRequest=="add")navController.navigate(Routes.AddToList.createRoute()){launchSingleTop=true}
             }

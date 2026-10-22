@@ -150,7 +150,7 @@ class Audit151UiTest {
             val second = db.shopDao().insert(ShopEntity(name = "Второй магазин", cityId = 1))
             db.productShopLinkDao().insert(ProductShopLinkEntity(productId = product, shopId = first))
             db.productShopLinkDao().insert(ProductShopLinkEntity(productId = product, shopId = second))
-            repository.addCatalogue(id, product, quantity = 1.0, unit = "шт", plannedUnitPrice = 100.0,
+            app.container.shoppingListRepository.addGoalCatalogueFixture(id, product, quantity = 1.0, unit = "шт", plannedUnitPrice = 100.0,
                 choice = com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT, shopId = first) to second
         }
         lateinit var editor: GoalListViewModel

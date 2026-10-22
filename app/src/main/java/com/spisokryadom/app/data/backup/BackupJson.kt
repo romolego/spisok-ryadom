@@ -107,6 +107,7 @@ internal object BackupJson {
   displayOrder=if(o.has("displayOrder")&&!o.isNull("displayOrder"))o.getInt("displayOrder") else 0
  )
  fun encode(value:ShopEntity):JSONObject = JSONObject().apply {
+  put("isFavorite",value.isFavorite);put("favoriteOrder",value.favoriteOrder)
   put("id",value.id)
   put("name",value.name)
   put("address",value.address ?: JSONObject.NULL)
@@ -120,6 +121,7 @@ internal object BackupJson {
   put("shoppingBackground",value.shoppingBackground);put("iconKey",value.iconKey);put("purchaseBackground",value.purchaseBackground)
  }
  fun shops(o:JSONObject):ShopEntity = ShopEntity(
+  isFavorite=favorite(o),favoriteOrder=favoriteOrder(o),
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
   name=if(o.has("name")&&!o.isNull("name"))o.getString("name") else "",
   address=if(o.has("address")&&!o.isNull("address"))o.getString("address") else null,

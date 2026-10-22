@@ -76,7 +76,7 @@ class Templates240UiTest {
   ui.onNodeWithTag("goal-add-item").performClick();waitTag("add-screen-list");ui.onNodeWithTag("add-list-contents").assertExists()
  }
  @Test fun applicationRequiresConfirmationThenOpensMainAndWidgetSeesCopies(){
-  val id=runBlocking{goals.create("На неделю").also{goals.addCatalogue(it,banana,.5,"кг");goals.addQuick(it,"Хлеб",2.0,"шт")}}
+  val id=runBlocking{goals.create("На неделю").also{app.container.shoppingListRepository.addGoalCatalogueFixture(it,banana,.5,"кг");goals.addQuick(it,"Хлеб",2.0,"шт")}}
   openApply(id);ui.onNodeWithText("Все позиции списка (2) будут добавлены на «Главную» и появятся в виджете. Исходный список сохранится.").assertExists()
   assertTrue(runBlocking{db.shoppingListEntryDao().getVisibleSync().isEmpty()});shot("template-confirm-main")
   ui.onNodeWithTag("list-copy-confirm").performClick();waitFor{runBlocking{db.shoppingListEntryDao().getVisibleSync().size==2}}

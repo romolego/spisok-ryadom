@@ -62,13 +62,30 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         GoalListRepository.validPrice(price)
     }
     fun observeGoalLists()=db.goalListDao().observeAll()
-    private suspend fun validateTarget(entry: ShoppingListEntryEntity) {
+    internal suspend fun validateTarget(entry: ShoppingListEntryEntity) {
         validateListPrice(entry.listId,entry.plannedUnitPrice)
         entry.plannedUnitPrice?.let{require((it*entry.quantity).isFinite()){"Слишком большая сумма"}}
-        require(db.productDao().getById(entry.productId)!=null) { "Товар удалён" }
-        if(entry.assignedShopId!=null) require(db.shopDao().getById(entry.assignedShopId)!=null) { "Магазин удалён" }
+        require(db.productDao().getById(entry.productId)!=null){"Товар удалён"}
+        if(entry.assignedShopId!=null)require(db.shopDao().getById(entry.assignedShopId)!=null){"Магазин удалён"}
         if(entry.assignedBranchId!=null)require(db.shopBranchDao().get(entry.assignedBranchId)?.shopId==entry.assignedShopId){"Адрес относится к другому магазину"}
         if(entry.assignedDepartmentId!=null) require(db.shopDepartmentDao().getById(entry.assignedDepartmentId)?.shopId==entry.assignedShopId) { "Группа относится к другому магазину" }
+        if(entry.listId!=null)validatePlannedEntry(entry)
+    }
+    /** Validate before changing ownership or creating a destination/cloned product. */
+    internal suspend fun validatePlannedEntry(entry:ShoppingListEntryEntity){
+            val product=db.productDao().getById(entry.productId)?:error("Товар удалён")
+            val shop=entry.assignedShopId?.let{db.shopDao().getById(it)?:error("Магазин удалён")}
+            // Main and separate lists use this writer now. Retain the portable
+            // list's field contract here rather than in an obsolete second add API.
+            val place=shop?.let{com.spisokryadom.app.domain.PlaceLabels(venues=db.retailStructureDao().venues())
+                .place(it.name,entry.assignedBranchId?.let{point->db.shopBranchDao().get(point)})}
+            val document=com.spisokryadom.app.domain.GoalListDocument("Покупки",listOf(com.spisokryadom.app.domain.GoalListItemDraft(
+                name=product.name,quantity=entry.quantity,unit=entry.unit,unitPrice=entry.plannedUnitPrice,
+                note=entry.note.orEmpty(),comment=entry.comment.orEmpty(),
+                shopName=if(shop!=null)place?.title.orEmpty()else entry.customShopName.orEmpty(),
+                shopAddress=if(shop!=null)place?.subtitle.orEmpty()else entry.customShopAddress.orEmpty())))
+            val errors=com.spisokryadom.app.domain.GoalListTransfer.validate(document)
+            require(errors.isEmpty()){errors.joinToString("\n")}
     }
     suspend fun adjustQuantity(id: Long, delta: Double, strictVisible: Boolean = false) = db.withTransaction {
         requireVisibleEntry(id, strictVisible)
@@ -230,7 +247,7 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
                 val link=links.find{it.shopId==shopId}
                 if(link==null){
                     val exact=branchId!=null&&branchId>0
-                    db.productShopLinkDao().insert(ProductShopLinkEntity(productId=product,shopId=shopId,priority=(links.maxOfOrNull{it.priority}?:0)+1,restrictBranches=exact))
+                    db.productShopLinkDao().insert(ProductShopLinkEntity(productId=product,shopId=shopId,priority=nextProductShopPriority(db,product),restrictBranches=exact))
                     if(exact)db.shopBranchDao().insertAvailability(ProductBranchAvailabilityEntity(product,branchId!!))
                 }
                 else if(link.restrictBranches){
@@ -269,17 +286,5 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
     data class TextSnapshot(val entries:List<ShoppingListEntryEntity>,val products:List<ProductEntity>,val shops:List<ShopEntity>,val branches:List<ShopBranchEntity>,val venues:List<VenueEntity> = emptyList(),val goalLists:List<GoalListEntity> = emptyList())
     suspend fun textSnapshot():TextSnapshot=db.withTransaction {
         TextSnapshot(entryDao.getVisibleSync().filter{!it.isBought},db.productDao().getAllSync(),db.shopDao().getAllSync(),db.shopBranchDao().getAll(),db.retailStructureDao().venues(),db.goalListDao().getAllSync())
-    }
-
-
-    suspend fun moveOptions(ids:Set<Long>,shopId:Long):Set<Long> = db.withTransaction {
-        var allowed=db.shopBranchDao().forShop(shopId).map{it.id}.toSet()
-        for(id in ids) {
-            val row=entryDao.getById(id)?:continue
-            if(row.isBought)continue
-            val link=db.productShopLinkDao().getLinksForProductSync(row.productId).find{it.shopId==shopId}
-            if(link?.restrictBranches==true)allowed=allowed.intersect(db.shopBranchDao().availability(row.productId).map{it.branchId}.toSet())
-        }
-        allowed
     }
 }

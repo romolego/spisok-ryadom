@@ -104,7 +104,15 @@ class QuickAdd241DataTest {
   val classifiers=ClassifierRepository(db.productGroupDao(),db.recipientDao(),db.unitDao(),db)
   val main=com.spisokryadom.app.ui.shoppinglist.ShoppingListViewModel(basket,products,shops,classifiers,app.getSharedPreferences("241-main",0));models.put("main",main)
   val content=com.spisokryadom.app.ui.shopcontent.ShopContentViewModel(data.first,products,shops,basket,classifiers);models.put("content",content)
-  await{main.uiState.value.totalCount==2&&content.uiState.value.sections.flatMap{it.products}.size==2}
+  // Entry counts can arrive before the independent shop/department Room flows.
+  // Wait for both projections to contain their labels, without accepting any order.
+  await{
+   val mainGroup=main.uiState.value.groups.singleOrNull()
+   val contentRows=content.uiState.value.sections.singleOrNull()?.products
+   mainGroup!=null&&contentRows!=null&&main.uiState.value.totalCount==2&&mainGroup.groupId==data.first&&mainGroup.entries.size==2&&
+    mainGroup.deptSubGroups.size==2&&mainGroup.deptSubGroups.all{it.deptName!=null}&&
+    contentRows.size==2&&contentRows.all{it.departmentName!=null}
+  }
   assertEquals(listOf("Быт","Еда"),main.uiState.value.groups.single().deptSubGroups.map{it.deptName})
   assertEquals(listOf("Быт","Еда"),content.uiState.value.sections.single().products.map{it.departmentName})
   val items=runBlocking{com.spisokryadom.app.widget.ShoppingWidgetData(db,basket,places).presentation(com.spisokryadom.app.widget.WidgetSettings())}

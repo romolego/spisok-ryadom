@@ -40,13 +40,17 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
  var presetGroup by remember{mutableStateOf<com.spisokryadom.app.data.entity.ProductGroupEntity?>(null)}
  var presetBusy by remember{mutableStateOf(false)}
  var presetRecipient by remember{mutableStateOf<Long?>(null)}
- presetGroup?.let{group->AlertDialog(modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),onDismissRequest={if(!presetBusy)presetGroup=null},title={Text("Преднастройка группы")},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
+ presetGroup?.let{group->EditorSheet("Преднастройка группы",{presetGroup=null},busy=presetBusy,actions={
+  TextButton(enabled=!presetBusy,onClick={presetGroup=null}){Text("Отмена")}
+  TextButton(enabled=!presetBusy,onClick={presetBusy=true;viewModel.setGroupDefaultRecipient(group.id,presetRecipient){saved->presetBusy=false;if(saved)presetGroup=null}}){Text(if(presetBusy)"Сохранение…"else "Сохранить")}
+ }){
   Text(group.name)
   DropdownSelector(label="Получатель по умолчанию",items=recipients,selectedItem=recipients.find{it.id==presetRecipient},itemLabel={it.name},onSelect={if(!presetBusy)presetRecipient=it?.id},noneLabel="Не назначать автоматически")
   HelpButton("Получатель по умолчанию","Применяется к новым товарам. Явный выбор получателя в карточке сохраняется.")
- }},confirmButton={TextButton(enabled=!presetBusy,onClick={presetBusy=true;viewModel.setGroupDefaultRecipient(group.id,presetRecipient){saved->presetBusy=false;if(saved)presetGroup=null}}){Text(if(presetBusy)"Сохранение…"else "Сохранить")}},dismissButton={TextButton(enabled=!presetBusy,onClick={presetGroup=null}){Text("Отмена")}})}
+ }}
  val departmentUsage by viewModel.selectedDepartmentProducts.collectAsStateWithLifecycle()
- LaunchedEffect(state.resetCompleted){if(state.resetCompleted)onReset()}
+ val context=androidx.compose.ui.platform.LocalContext.current
+ LaunchedEffect(state.resetCompleted){if(state.resetCompleted){state.message?.let{android.widget.Toast.makeText(context,it,android.widget.Toast.LENGTH_LONG).show()};onReset()}}
  val widgetSettings by viewModel.widgetSettings.collectAsStateWithLifecycle()
  var editKind by rememberSaveable{mutableStateOf<String?>(null)};var editId by rememberSaveable{mutableStateOf("")};var editName by rememberSaveable{mutableStateOf("")}
  var sortKind by remember{mutableStateOf<String?>(null)}

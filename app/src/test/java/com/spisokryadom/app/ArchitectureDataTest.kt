@@ -138,7 +138,9 @@ class ArchitectureDataTest {
   val network=shops.ensureNetwork("Сеть");val venue=shops.ensureVenue(1,"Рынок")
   val d1=db.shopDepartmentDao().insert(ShopDepartmentEntity(shopId=a,name="Молочка"));val d2=db.shopDepartmentDao().insert(ShopDepartmentEntity(shopId=a,name="Сыры"))
   val types=db.shopDepartmentDao().getByShopIdSync(a).map{it.typeId}
-  shops.saveWithDepartments(db.shopDao().getById(a)!!.copy(networkId=network),db.shopDepartmentDao().getByShopIdSync(a),listOf(db.shopBranchDao().get(first)!!,db.shopBranchDao().get(second)!!.copy(venueId=venue)),branchOrders=mapOf(second to types.reversed()))
+  shops.saveWithDepartments(db.shopDao().getById(a)!!.copy(networkId=network),db.shopDepartmentDao().getByShopIdSync(a),listOf(db.shopBranchDao().get(first)!!,db.shopBranchDao().get(second)!!.copy(venueId=venue)))
+  // A legacy snapshot may still carry old per-point orders; new editors no longer write them.
+  types.reversed().forEachIndexed{order,type->db.retailStructureDao().setDepartmentOrder(BranchDepartmentOrderEntity(second,type,order))}
   val p=products.saveWithLinks(ProductEntity(name="Сыр",preferCityShopOrder=true),listOf(ProductShopLinkEntity(productId=0,shopId=a,departmentId=d1)),branchDepartments=mapOf(second to d2))
   val manager=BackupManager(app,db);val archive=manager.exportFile();manager.importFile(archive)
   assertEquals(network,db.shopDao().getById(a)!!.networkId);assertEquals(venue,db.shopBranchDao().get(second)!!.venueId)

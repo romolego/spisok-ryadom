@@ -74,6 +74,8 @@ class ShopContentViewModel(
     private val classifierRepository: ClassifierRepository
 ) : ViewModel() {
 
+    private val generation=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
+
     private val _uiState = MutableStateFlow(ShopContentUiState())
     val uiState: StateFlow<ShopContentUiState> = _uiState.asStateFlow()
 
@@ -87,10 +89,6 @@ class ShopContentViewModel(
     private var searchJob:Job?=null
     init {
         viewModelScope.launch(errors){shopRepository.departmentTypes().collect{_uiState.value=_uiState.value.copy(departmentTypes=it.associateBy{t->t.name})}}
-        viewModelScope.launch(errors) {
-            val shop = shopRepository.getShopById(shopId)
-            _uiState.value = _uiState.value.copy(shop = shop)
-        }
         viewModelScope.launch(errors) {
             productRepository.getAllProducts().collect { products ->
                 _allProducts.value = products.associateBy { it.id }
@@ -110,6 +108,7 @@ class ShopContentViewModel(
         viewModelScope.launch(errors) {
             shopRepository.getAllShops().collect { shops ->
                 _shops.value = shops.associateBy { it.id }
+                _uiState.value=_uiState.value.copy(shop=shops.find{it.id==shopId})
             }
         }
         viewModelScope.launch(errors) {
@@ -184,7 +183,6 @@ class ShopContentViewModel(
     }
 
     private fun purchaseCommand(block: suspend () -> Unit) {
-        val generation = com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
         viewModelScope.launch(errors) {
             com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation, block)
         }
@@ -235,7 +233,7 @@ class ShopContentViewModel(
             _uiState.value=_uiState.value.copy(pickProducts=result)
         }
     }
-    fun toggleProductLink(productId:Long){viewModelScope.launch(errors){productRepository.toggleShopLink(productId,shopId)}}
+    fun toggleProductLink(productId:Long){purchaseCommand{productRepository.toggleShopLink(productId,shopId)}}
 
     companion object {
         fun factory(shopId: Long): ViewModelProvider.Factory = viewModelFactory {

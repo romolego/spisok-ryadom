@@ -383,8 +383,11 @@ class ShoppingListViewModel(
 
         val result = mutableListOf<EntryGroup>()
 
-        // Named groups follow the configured priority.
-        val namedGroups = grouped.filterKeys { it != null }.entries.sortedWith(compareBy({ classifiers[it.key]?.displayOrder ?: Int.MAX_VALUE }, { it.key }))
+        // Product groups have one full alphabet throughout the app. Legacy displayOrder
+        // is retained for old backups, but only favorite pins may be reordered.
+        val namedGroups = com.spisokryadom.app.util.alphabetical(grouped.filterKeys { it != null }.entries.toList()) {
+            classifiers[it.key]?.name.orEmpty()
+        }
         for ((groupId, groupEntries) in namedGroups) {
             val sorted = sortEntries(groupEntries)
             result.add(EntryGroup(
@@ -498,18 +501,7 @@ class ShoppingListViewModel(
         purchaseCommand { shoppingListRepository.clearBoughtEntries() }
     }
 
-    fun clearBoughtByShop(shopId: Long?) {
-        purchaseCommand {
-            if (shopId != null) {
-                shoppingListRepository.clearBoughtByShop(shopId)
-            } else {
-                shoppingListRepository.clearBoughtWithoutShop()
-            }
-        }
-    }
-
     fun toggleUrgent(entryId: Long) { purchaseCommand{shoppingListRepository.toggleUrgent(entryId,strictPending=true)} }
-    suspend fun moveOptions(ids:Set<Long>,shopId:Long)=shoppingListRepository.moveOptions(ids,shopId)
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
     fun movePendingToCurrentCity(){purchaseCommand{shoppingListRepository.movePendingToCurrentCity()}}
 
@@ -572,8 +564,6 @@ class ShoppingListViewModel(
         val shop=group.groupId?:return;val targetShop=target.groupId?:return
         purchaseCommand{shopRepository.movePurchasePlace(shop,group.branchId,targetShop,target.branchId)}
     }
-    fun moveShopUp(shopId:Long){purchaseCommand{shopRepository.moveShop(shopId,-1)}}
-    fun moveShopDown(shopId:Long){purchaseCommand{shopRepository.moveShop(shopId,1)}}
 
     private fun loadCollapsedShopIds(): Set<String> {
         val raw = prefs.getStringSet(PREF_COLLAPSED_SHOPS, null) ?: return emptySet()

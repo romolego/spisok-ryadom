@@ -22,15 +22,11 @@ fun RetailRelationSelector(label:String,options:List<Pair<Long,String>>,selected
     }
     editor?.let{mode->
         var draft by rememberSaveable(mode){mutableStateOf(if(mode=="new")""else selected?.second.orEmpty())}
-        ModalBottomSheet(onDismissRequest={editor=null},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)){
-            Column(Modifier.fillMaxWidth().imePadding().padding(horizontal=20.dp).padding(bottom=16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-                Text(if(mode=="new")"Новая сеть"else "Изменить сеть",style=MaterialTheme.typography.titleLarge)
-                OutlinedTextField(draft,{draft=it},label={Text("Название сети")},singleLine=true,modifier=Modifier.fillMaxWidth())
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){
+        EditorSheet(if(mode=="new")"Новая сеть"else "Изменить сеть",{editor=null},actions={
                     TextButton(onClick={editor=null}){Text("Отмена")}
                     TextButton(onClick={if(mode=="new")onSelect(null);onNewName(draft.trim());editor=null},enabled=draft.isNotBlank()){Text("Сохранить")}
-                }
-            }
+        }){
+            OutlinedTextField(draft,{draft=it},label={Text("Название сети")},singleLine=true,modifier=Modifier.fillMaxWidth())
         }
     }
 }

@@ -252,7 +252,7 @@ class Widget260DataTest {
         val manager = BackupManager(app, db)
         val backup = manager.exportFile().also { files += it }
         val root = manifest(backup)
-        assertEquals(21, root.getInt("version"))
+        assertEquals(22, root.getInt("version"))
         db.shopDao().update(db.shopDao().getById(shopA)!!.copy(shoppingBackground = ""))
         db.shoppingListEntryDao().deleteById(visibleItem)
         WidgetSettings().save(prefs)

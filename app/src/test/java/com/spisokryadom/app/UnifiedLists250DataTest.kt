@@ -39,7 +39,7 @@ class UnifiedLists250DataTest {
  @After fun close(){models.clear();Shadows.shadowOf(Looper.getMainLooper()).idle();locations.closeForTest();db.close()}
  private fun await(check:()->Boolean){val end=System.nanoTime()+15_000_000_000;while(!check()&&System.nanoTime()<end){Shadows.shadowOf(Looper.getMainLooper()).idle();Thread.sleep(5)};assertTrue(check())}
  @Test fun sharedAddMarkersBelongToTheirDestinationAndReloadFromRoom(){
-  val ids=runBlocking{val goals=GoalListRepository(db,ShoppingListRepository(db.shoppingListEntryDao(),db,locations));val a=goals.create("Рецепт");val b=goals.create("Другой");val p=db.productDao().insert(ProductEntity(name="Банан",isFavorite=true,defaultQuantity=.5,defaultUnit="кг"));goals.addCatalogue(b,p,3.0);ShoppingListRepository(db.shoppingListEntryDao(),db,locations).addProduct(p,8.0);Triple(a,b,p)}
+  val ids=runBlocking{val goals=GoalListRepository(db,ShoppingListRepository(db.shoppingListEntryDao(),db,locations));val a=goals.create("Рецепт");val b=goals.create("Другой");val p=db.productDao().insert(ProductEntity(name="Банан",isFavorite=true,defaultQuantity=.5,defaultUnit="кг"));ShoppingListRepository(db.shoppingListEntryDao(),db,locations).addGoalCatalogueFixture(b,p,3.0);ShoppingListRepository(db.shoppingListEntryDao(),db,locations).addProduct(p,8.0);Triple(a,b,p)}
   val basket=ShoppingListRepository(db.shoppingListEntryDao(),db,locations)
   fun model()=com.spisokryadom.app.ui.addtolist.AddToListViewModel(ProductRepository(db.productDao(),db.productShopLinkDao(),db),shops,basket,prefs,targetListId=ids.first)
   val vm=model();models.put("add",vm);await{vm.uiState.value.searchResults.isNotEmpty()&&vm.uiState.value.targetListName=="Рецепт"}
@@ -72,8 +72,8 @@ class UnifiedLists250DataTest {
    old.execSQL("INSERT INTO products(id,name,stableId,purchaseType,isTemporary)VALUES(9,'Сыр','product-a','offline',0)")
    old.execSQL("INSERT INTO shopping_list_entries(id,productId,listId,quantity,unit,isBought,isUrgent,createdAt,updatedAt)VALUES(10,9,7,2,'кг',0,1,1,2),(11,9,8,3,'кг',1,0,1,2)");old.version=22
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_22_23).build()
-  try{assertEquals(23,migrated.openHelper.writableDatabase.version);assertEquals(listOf(7L,8L),migrated.goalListDao().getAllSync().sortedBy{it.id}.map{it.id});assertTrue(migrated.goalListDao().getAllSync().none{it.isTemplate});assertEquals(2.0,migrated.shoppingListEntryDao().getById(10)!!.quantity,0.0);assertTrue(migrated.shoppingListEntryDao().getById(11)!!.isBought);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}finally{migrated.close();app.deleteDatabase(name)}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24).build()
+  try{assertEquals(24,migrated.openHelper.writableDatabase.version);assertEquals(listOf(7L,8L),migrated.goalListDao().getAllSync().sortedBy{it.id}.map{it.id});assertTrue(migrated.goalListDao().getAllSync().none{it.isTemplate});assertEquals(2.0,migrated.shoppingListEntryDao().getById(10)!!.quantity,0.0);assertTrue(migrated.shoppingListEntryDao().getById(11)!!.isBought);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}finally{migrated.close();app.deleteDatabase(name)}
  }
  @Test fun fullLegacyBackupConvertsOnlyTheOldTypeAndKeepsIdentityAndPurchases():Unit=runBlocking{
   val goals=GoalListRepository(db,ShoppingListRepository(db.shoppingListEntryDao(),db,locations));val id=goals.create("Прежний шаблон");goals.addQuick(id,"Сыр",2.0,"кг",100.0)
