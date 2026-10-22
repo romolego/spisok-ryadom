@@ -279,7 +279,11 @@ class Audit121UiTest {
         ui.onNodeWithText("Батон").performClick()
         waitFor { runCatching { ui.onNodeWithContentDescription("Выбрать товары").assertIsEnabled() }.isSuccess }
         ui.onNodeWithContentDescription("Выбрать товары").performClick()
-        ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasTestTag("shop-product-$pointB-$first"))
+        // Base products and physical sections are independent Room projections.
+        // Selection can be enabled before the point-specific section is ready.
+        waitFor { runCatching {
+            ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasTestTag("shop-product-$pointB-$first"))
+        }.isSuccess }
         waitFor { ui.onAllNodesWithTag("shop-product-$pointB-$first").fetchSemanticsNodes().isNotEmpty() }
         ui.onNodeWithTag("shop-product-$pointB-$first").performClick()
         waitText("Выбрано: 1")
@@ -333,7 +337,7 @@ class Audit121UiTest {
                 waitFor { ui.onAllNodesWithTag(row).fetchSemanticsNodes().isNotEmpty() }
                 ui.onNodeWithTag(row).performClick()
                 waitText("Выбрано: 1")
-                tab("Покупки")
+                tab("Главная")
                 waitFor { ui.onAllNodesWithContentDescription("Настройки").fetchSemanticsNodes().isNotEmpty() }
                 ui.onNodeWithContentDescription("Настройки").performClick()
                 waitText("Импорт / Восстановление")

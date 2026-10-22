@@ -5,8 +5,8 @@ import androidx.room.*
 @Entity(tableName="shop_branches",foreignKeys=[
  ForeignKey(entity=ShopEntity::class,parentColumns=["id"],childColumns=["shopId"],onDelete=ForeignKey.CASCADE),
  ForeignKey(entity=VenueEntity::class,parentColumns=["id"],childColumns=["venueId"],onDelete=ForeignKey.SET_NULL)
-],indices=[Index("shopId"),Index(value=["shopId","address"],unique=true),Index(value=["id","shopId"],unique=true),Index("venueId")])
-data class ShopBranchEntity(@PrimaryKey(autoGenerate=true)val id:Long=0,val shopId:Long,val address:String,val displayOrder:Int=0,val note:String?=null,val photoUri:String?=null,val venueId:Long?=null)
+],indices=[Index("shopId"),Index(value=["id","shopId"],unique=true),Index("venueId")])
+data class ShopBranchEntity(@PrimaryKey(autoGenerate=true)val id:Long=0,val shopId:Long,val address:String,val displayOrder:Int=0,val note:String?=null,val photoUri:String?=null,val venueId:Long?=null,@ColumnInfo(defaultValue="''") val label:String="")
 
 /** This subset is owned by the product–retailer link, not by the product alone. */
 @Entity(tableName="product_branch_availability",primaryKeys=["productId","branchId"],foreignKeys=[

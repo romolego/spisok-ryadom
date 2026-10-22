@@ -47,13 +47,16 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
         val shops=db.shopDao().getAllSync().associateBy{it.id}
         val branches=db.shopBranchDao().getAll().associateBy{it.id}
         val departments=db.shopDepartmentDao().getAllSync().associateBy{it.id}
-        val orders=db.retailStructureDao().departmentOrder().associateBy{it.branchId to it.typeId}
         val venues=db.retailStructureDao().venues().associateBy{it.id}
         val cities=db.cityDao().getAllSync().associateBy{it.id}
         val cityId=locations?.currentId()?:cities.keys.firstOrNull()
-        val purchases=rows().map{row->
+        // Filter the same coherent snapshot before building any headers: bought-only shops,
+        // departments and classifiers must not survive as empty sections.
+        val purchases=rows().filter{settings.showBought||!it.bought}.map{row->
             val entry=entries.getValue(row.id)
-            WidgetItem.Purchase(row.copy(detail=(BigDecimal.valueOf(entry.quantity).stripTrailingZeros().toPlainString().replace('.',',')+" "+entry.unit).trim()))
+            val shop=shops[entry.assignedShopId]
+            WidgetItem.Purchase(row.copy(detail=(BigDecimal.valueOf(entry.quantity).stripTrailingZeros().toPlainString().replace('.',',')+" "+entry.unit).trim()),
+                shop?.shoppingBackground.orEmpty(),shop?.purchaseBackground.orEmpty(),products[entry.productId]?.isFavorite==true)
         }
         val result=mutableListOf<WidgetItem>()
         fun product(row:WidgetItem.Purchase)=products[entries.getValue(row.row.id).productId]
@@ -66,7 +69,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
             com.spisokryadom.app.ui.shoppinglist.ViewMode.BY_GROUPS,
             com.spisokryadom.app.ui.shoppinglist.ViewMode.BY_RECIPIENTS -> {
                 val byGroups=settings.mode==com.spisokryadom.app.ui.shoppinglist.ViewMode.BY_GROUPS
-                val groups=if(byGroups)db.productGroupDao().getAllSync().map{Triple(it.id,it.name,it.displayOrder)}
+                val groups=if(byGroups)com.spisokryadom.app.util.alphabetical(db.productGroupDao().getAllSync()){it.name}.mapIndexed{index,it->Triple(it.id,it.name,index)}
                     else db.recipientDao().getAllSync().map{Triple(it.id,it.name,it.displayOrder)}
                 val classifiers=groups.associateBy{it.first}
                 val grouped=purchases.groupBy{if(byGroups)product(it)?.productGroupId else product(it)?.recipientId}
@@ -91,12 +94,12 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
                         val shopId=place.key.shopId;val branchId=place.key.branchId
                         val shop=shops[shopId]
                         val name=shop?.let{if(it.cityId==cityId)it.name else "${it.name} · ${cities[it.cityId]?.name?:"Другой город"}"}?:"Без магазина"
-                        val label=hintLabel(place.key)?:com.spisokryadom.app.domain.physicalPlaceLabel(name,branches[branchId]?.address,null)
-                        result.add(WidgetItem.Header(place.key.stableKey,label.title,label.subtitle,if(venue==null)0 else 1))
+                        val label=hintLabel(place.key)?:com.spisokryadom.app.domain.physicalPlaceLabel(name,branches[branchId]?.let{if(it.venueId!=null)it.label else it.address},null)
+                        result.add(WidgetItem.Header(place.key.stableKey,label.title,label.subtitle,if(venue==null)0 else 1,shop?.shoppingBackground.orEmpty()))
                         if(shop!=null){
                             val depts=place.value.groupBy{entry(it).assignedDepartmentId}
-                            depts.keys.sortedWith(compareBy<Long?>{id->val dept=departments[id];orders[branchId to dept?.typeId]?.displayOrder?:dept?.displayOrder?:Int.MAX_VALUE}.thenBy{it}).forEach{id->
-                                if(settings.showDepartments&&(id!=null||depts.size>1))result.add(WidgetItem.Header("department:$shopId:$branchId:$id",departments[id]?.name?:"Без группы магазина",depth=2))
+                            depts.keys.sortedWith(compareBy<Long?>{id->val dept=departments[id];dept?.displayOrder?:Int.MAX_VALUE}.thenBy{it}).forEach{id->
+                                if(settings.showDepartments&&(id!=null||depts.size>1))result.add(WidgetItem.Header("department:$shopId:$branchId:$id",departments[id]?.name?:"Без группы магазина",depth=2,blockBackground=shop.shoppingBackground))
                                 result.addAll(sorted(depts.getValue(id)))
                             }
                         }else result.addAll(sorted(place.value))
@@ -109,7 +112,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
     /** Idempotent compare-and-set: repeated taps and stale widgets never undo newer changes. */
     suspend fun check(row:WidgetPurchase):Boolean = db.withTransaction {
         val entry=db.shoppingListEntryDao().getById(row.id)?:return@withTransaction false
-        if(entry.listId!=null&&db.goalListDao().getById(entry.listId)?.showInPurchases!=true)return@withTransaction false
+        if(entry.listId!=null&&db.goalListDao().getById(entry.listId)?.let{it.showInPurchases&&!it.isTemplate}!=true)return@withTransaction false
         val product=db.productDao().getById(entry.productId)?:return@withTransaction false
         if(product.stableId!=row.productStableId||entry.createdAt!=row.createdAt||entry.updatedAt!=row.updatedAt||entry.isBought!=row.bought||revision(entry)!=row.revision)return@withTransaction false
         if(row.bought)basket.markNotBought(row.id)else basket.markBought(row.id)

@@ -2,7 +2,6 @@ package com.spisokryadom.app.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -10,20 +9,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.spisokryadom.app.data.entity.*
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable fun BranchChoiceField(branches:List<ShopBranchEntity>,selected:Long?,onSelected:(Long?)->Unit,enabled:Boolean=true,onCreate:((String,(Long)->Unit)->Unit)?=null) {
- var expanded by remember{mutableStateOf(false)};var creating by remember{mutableStateOf(false)}
- if(creating)InlineCreateValue("Адрес точки",{name,done->onCreate?.invoke(name){id->onSelected(id);creating=false;done()}},{creating=false})
- ExposedDropdownMenuBox(expanded,onExpandedChange={if(enabled)expanded=it}) {
-  OutlinedTextField(if(selected==0L)"Без конкретного адреса"else if(selected==null||selected == -1L)"По приоритету"else branches.find{it.id==selected}?.let{LocalPlaceLabels.current.branch(it)}?:"Выберите адрес",{},readOnly=true,enabled=enabled,label={Text("Точка / адрес")},trailingIcon={ExposedDropdownMenuDefaults.TrailingIcon(expanded)},modifier=Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable))
-  ExposedDropdownMenu(expanded,onDismissRequest={expanded=false}) {
-   branches.forEach{b->DropdownMenuItem(text={Text(LocalPlaceLabels.current.branch(b))},onClick={onSelected(b.id);expanded=false})}
-   DropdownMenuItem(text={Text("По приоритету для каждого товара")},onClick={onSelected(-1L);expanded=false})
-   DropdownMenuItem(text={Text("Без конкретного адреса")},onClick={onSelected(0L);expanded=false})
-   if(onCreate!=null)DropdownMenuItem(text={Text("Новый адрес…")},onClick={expanded=false;creating=true})
-  }
- }
-}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun MovePurchasesDialog(
  ids:Set<Long>,onMove:(Long?,Long?,(Boolean)->Unit)->Unit,onDismiss:()->Unit,
@@ -41,9 +26,10 @@ import com.spisokryadom.app.data.entity.*
  LaunchedEffect(ids,currentPlaces){try{places=kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){loadPlaces(ids)}.filter{currentPlaces!=setOf(it.shopId to it.branchId)}}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message}}
  LaunchedEffect(adding,ids){if(adding&&additional==null)try{additional=kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){loadAdditionalPlaces?.invoke(ids).orEmpty()}}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message}}
  val options=if(adding)additional else places
- ModalBottomSheet(onDismissRequest={if(!moving)onDismiss()},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true,confirmValueChange={!moving}),containerColor=MaterialTheme.colorScheme.surface) {
-  Column(Modifier.fillMaxWidth().heightIn(max=(androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp*.86f).dp).testTag("purchase-place-picker").padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-   Text(if(adding)"Добавить место покупки"else "Сменить место покупки",style=MaterialTheme.typography.titleLarge)
+ EditorSheet(if(adding)"Добавить место покупки"else "Сменить место покупки",onDismiss,busy=moving,scrollContent=false,actions={
+   Button(onClick={selected?.let{place->moving=true;val completed:(Boolean)->Unit={success->moving=false;if(success)onDismiss()};if(adding)onAddAndMove?.invoke(place.shopId,place.branchId,completed)else onMove(place.shopId,place.branchId,completed)}},enabled=selected!=null&&!moving&&!creating,modifier=Modifier.fillMaxWidth()){Text(if(moving)"Смена места…"else if(adding)"Добавить и перенести"else "Сменить")}
+ }){
+  Column(Modifier.fillMaxWidth().testTag("purchase-place-picker"),verticalArrangement=Arrangement.spacedBy(12.dp)){
    if(options==null&&error==null)LinearProgressIndicator(Modifier.fillMaxWidth())
    if(options?.isEmpty()==true)Text(if(adding)"Все существующие места уже доступны"else "Других мест покупки нет",color=MaterialTheme.colorScheme.onSurfaceVariant)
    androidx.compose.foundation.lazy.LazyColumn(Modifier.fillMaxWidth().weight(1f,fill=false).heightIn(max=360.dp)) {
@@ -60,13 +46,10 @@ import com.spisokryadom.app.data.entity.*
     else TextButton(onClick={creating=true},enabled=!moving){Text("Новый магазин…")}
    }
    error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
-   Button(onClick={selected?.let{place->moving=true;val completed:(Boolean)->Unit={success->moving=false;if(success)onDismiss()};if(adding)onAddAndMove?.invoke(place.shopId,place.branchId,completed)else onMove(place.shopId,place.branchId,completed)}},enabled=selected!=null&&!moving&&!creating,modifier=Modifier.fillMaxWidth()){Text(if(moving)"Смена места…"else if(adding)"Добавить и перенести"else "Сменить")}
-   Spacer(Modifier.height(12.dp))
   }
  }
-}
 
-private fun Modifier.selectPlace(enabled:Boolean,onClick:()->Unit)=this.then(Modifier.clickable(enabled=enabled,onClick=onClick))
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun CopyProductShopSheet(productId:Long,onDismiss:()->Unit,loadShops:suspend(Long)->List<ShopEntity>,onCopy:(Long,(Boolean)->Unit)->Unit) {
@@ -74,19 +57,24 @@ private fun Modifier.selectPlace(enabled:Boolean,onClick:()->Unit)=this.then(Mod
  var saving by remember{mutableStateOf(false)}
  var error by remember{mutableStateOf<String?>(null)}
  LaunchedEffect(productId){try{shops=kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){loadShops(productId)}}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message}}
- ModalBottomSheet(onDismissRequest={if(!saving)onDismiss()},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true,confirmValueChange={!saving}),containerColor=MaterialTheme.colorScheme.surface) {
-  Column(Modifier.fillMaxWidth().heightIn(max=(androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp*.86f).dp).testTag("copy-product-shop-picker").padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-   Text("Добавить магазин к товару",style=MaterialTheme.typography.titleLarge)
+ EditorSheet("Добавить магазин к товару",onDismiss,busy=saving,scrollContent=false,actions={
+  TextButton(onClick=onDismiss,enabled=!saving){Text("Закрыть")}
+ }){
+  Column(Modifier.fillMaxWidth().testTag("copy-product-shop-picker"),verticalArrangement=Arrangement.spacedBy(12.dp)){
    if(shops==null&&error==null)LinearProgressIndicator(Modifier.fillMaxWidth())
    if(shops?.isEmpty()==true)Text("Товар уже привязан ко всем магазинам города",color=MaterialTheme.colorScheme.onSurfaceVariant)
    androidx.compose.foundation.lazy.LazyColumn(Modifier.fillMaxWidth().weight(1f,fill=false).heightIn(max=360.dp)) {
-    items(shops.orEmpty().size,key={i->shops!![i].id}){i->val shop=shops!![i]
-     ListItem(headlineContent={Text(LocalPlaceLabels.current.shop(shop.id,shop.name))},leadingContent={Icon(androidx.compose.material.icons.Icons.Filled.Store,null)},modifier=Modifier.fillMaxWidth().selectPlace(!saving){saving=true;onCopy(shop.id){success->saving=false;if(success)onDismiss()}})
+    val all=shops.orEmpty()
+    val pinned=all.filter{it.isFavorite}.sortedBy{it.favoriteOrder}
+    val rows=pinned.map{it to true}+all.map{it to false}
+    items(rows.size,key={i->"${rows[i].first.id}:${rows[i].second}"}){i->val(shop,pin)=rows[i]
+     CompositionLocalProvider(LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.DROPDOWNS,LocalFavoriteBlock provides pin){
+      ListItem(headlineContent={FavoriteMarkedLabel(LocalPlaceLabels.current.shop(shop.id,shop.name),favorite=shop.isFavorite)},leadingContent={ShopSymbol(shop.iconKey,shop.logoUri)},modifier=(if(pin)Modifier.favoriteBlock()else Modifier).fillMaxWidth().clickable(enabled=!saving){saving=true;onCopy(shop.id){success->saving=false;if(success)onDismiss()}})
+     }
     }
    }
    error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
    if(saving)LinearProgressIndicator(Modifier.fillMaxWidth())
-   Spacer(Modifier.height(20.dp))
   }
  }
 }

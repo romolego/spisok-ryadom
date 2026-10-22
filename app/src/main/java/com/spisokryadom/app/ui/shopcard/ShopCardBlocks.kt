@@ -11,10 +11,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun ShopCardBlock(title:String,action:(@Composable ()->Unit)?=null,content:@Composable ColumnScope.()->Unit){
+internal fun ShopCardBlock(title:String?=null,action:(@Composable ()->Unit)?=null,content:@Composable ColumnScope.()->Unit){
     OutlinedCard(Modifier.fillMaxWidth(),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){
         Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+            if(title!=null)Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
                 Text(title,Modifier.weight(1f),style=MaterialTheme.typography.titleMedium)
                 action?.invoke()
             }
@@ -26,8 +26,9 @@ internal fun ShopCardBlock(title:String,action:(@Composable ()->Unit)?=null,cont
 @Composable
 internal fun ShopPlaceSummary(state:ShopCardUiState){
     Column(Modifier.testTag("shop-place-summary"),verticalArrangement=Arrangement.spacedBy(10.dp)){
-        val memberships=state.branches.filter{it.venueId!=null||!state.venueNames[it.id].isNullOrBlank()}
-        Text(if(memberships.isEmpty())"Самостоятельный магазин"else if(memberships.size==state.branches.size)"Магазин / павильон на рынке или в ТЦ"else "Магазин с точками на рынке / в ТЦ",
+        val memberships=state.branches.filter{it.venueId!=null}
+        val isNetwork=state.networkId!=null||state.networkName.isNotBlank()
+        Text(if(isNetwork)"Магазин сети"else if(memberships.isEmpty())"Самостоятельный магазин"else if(memberships.size==state.branches.size)"Магазин / павильон на рынке или в ТЦ"else "Магазин с точками на рынке / в ТЦ",
             style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary)
         Text(state.cities.find{it.id==state.cityId}?.name?:"Текущий город",style=MaterialTheme.typography.bodyMedium)
         state.networkName.ifBlank{state.networks.find{it.id==state.networkId}?.name.orEmpty()}.takeIf{it.isNotBlank()}?.let{
@@ -38,9 +39,11 @@ internal fun ShopPlaceSummary(state:ShopCardUiState){
             Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){
                 Icon(Icons.Filled.LocationOn,null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant)
                 Column{
-                    val venue=state.venueNames[branch.id]?.takeIf{it.isNotBlank()}?:state.venues.find{it.id==branch.venueId}?.name
-                    venue?.let{Text(it,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)}
-                    Text(branch.address.ifBlank{"Укажите адрес"},style=MaterialTheme.typography.bodyMedium)
+                    val venue=state.venues.find{it.id==branch.venueId}?.let{"${com.spisokryadom.app.data.entity.VenueKinds.label(it.kind)} · ${it.name}"}
+                    Text(venue?:"Отдельный адрес",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
+                    val labels=com.spisokryadom.app.domain.PlaceLabels(state.branches,state.venues)
+                    labels.detail(branch).takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodyMedium)}
+                    if(branch.venueId!=null)Text(labels.address(branch).ifBlank{"Общий адрес пока не указан"},style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                     branch.note?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
                 }
             }

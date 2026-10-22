@@ -41,7 +41,7 @@ class InlineStoreEditingTest {
   };waitText("Список пуст")
  }
  @After fun close(){ui.activityRule.scenario.close();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
- @Test fun addressEditingIsInlineGatedAndKeepsIdentityWhileReordering(){
+ @Test fun pointEditingIsGatedAndKeepsIdentityWhileReordering(){
   openStore()
   ui.onNodeWithText("Место магазина").performScrollTo()
   ui.onNodeWithText("Для сети",substring=true).assertDoesNotExist()
@@ -50,9 +50,11 @@ class InlineStoreEditingTest {
   shot("01-addresses-view")
   ui.onNodeWithText("Править").performScrollTo().performClick()
   ui.onAllNodes(isDialog()).assertCountEquals(0)
-  ui.onNodeWithTag("branch-address-$second").performTextReplacement("Молокова, 19 (около старой квартиры)")
+  ui.onNodeWithContentDescription("Изменить точку: Молокова, 19").performScrollTo().performClick()
+  ui.onNodeWithTag("branch-address-$second").performScrollTo().performTextReplacement("Молокова, 19 (около старой квартиры)")
+  ui.onAllNodesWithText("Сохранить").onLast().performClick()
   ui.onNodeWithContentDescription("Точка выше: Молокова, 19 (около старой квартиры)").performScrollTo().performClick()
-  ui.onNodeWithTag("branch-address-$second").performScrollTo().assertTextContains("Молокова, 19 (около старой квартиры)")
+  ui.onNodeWithText("Молокова, 19 (около старой квартиры)").assertExists()
   ui.onNodeWithContentDescription("Точка ниже: Весны, 7").assertIsNotEnabled()
   assertEquals(first,runBlocking{db.shopBranchDao().forShop(shop)}.first().id)
   shot("02-address-inline")
@@ -66,19 +68,19 @@ class InlineStoreEditingTest {
   ui.waitUntil(20_000){runBlocking{db.shopDao().getAllSync().sortedBy{it.displayOrder}.first().name=="Батон"}}
   shot("03-store-reorder")
  }
- @Test fun addingAndDeletingAddressesNeverOpensAnInputDialogAndBackDiscardsDraft(){
-  openStore()
-  ui.onNodeWithText("Править").performScrollTo().performClick()
-  ui.onNodeWithText("Добавить адрес").performScrollTo().performClick()
-  ui.onAllNodes(isDialog()).assertCountEquals(0)
-  ui.onNodeWithText("Сохранить").assertIsNotEnabled()
-  val newField=ui.onNodeWithTag("branch-address--1")
-  newField.performTextReplacement("Ленина, 20")
-  ui.onNodeWithText("Сохранить").assertIsEnabled()
-  ui.onNodeWithContentDescription("Удалить точку: Ленина, 20").performScrollTo().performClick()
+ @Test fun pointModalAddsDeletesAndParentBackDiscardsDraft(){
+  openStore();ui.onNodeWithText("Править").performScrollTo().performClick()
+  ui.onNodeWithContentDescription("Добавить точку").performScrollTo().performClick();ui.onAllNodes(isDialog()).assertCountEquals(1)
+  ui.onAllNodesWithText("Сохранить").onLast().assertIsNotEnabled()
+  ui.onNodeWithTag("branch-address--1").performScrollTo().performTextReplacement("Ленина, 20")
+  ui.onAllNodesWithText("Сохранить").onLast().assertIsEnabled().performClick()
+  ui.onNodeWithContentDescription("Изменить точку: Ленина, 20").performScrollTo().performClick()
+  ui.onNodeWithContentDescription("Удалить точку").performScrollTo().performClick()
+  ui.onNodeWithText("Удалить точку?").assertExists();ui.onNodeWithText("Да").performClick()
   ui.onNodeWithText("Ленина, 20").assertDoesNotExist()
-  ui.onNodeWithTag("branch-address-$first").performScrollTo()
-  ui.onNodeWithTag("branch-address-$first").performTextReplacement("Другой адрес")
+  ui.onNodeWithContentDescription("Изменить точку: Весны, 7").performScrollTo().performClick()
+  ui.onNodeWithTag("branch-address-$first").performScrollTo().performTextReplacement("Другой адрес")
+  ui.onAllNodesWithText("Сохранить").onLast().performClick()
   ui.onNodeWithContentDescription("Назад").performClick();waitText("Магазины")
   assertEquals("Весны, 7",runBlocking{db.shopBranchDao().get(first)}!!.address)
  }

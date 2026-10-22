@@ -1,3 +1,15 @@
+## Аудит целостности0.27
+
+Актуальная структура —41 и[56_INDEPENDENT_AUDIT_270.md](56_INDEPENDENT_AUDIT_270.md), Room24/ZIP22. ShopEntity дополнен isFavorite/favoriteOrder; порядок избранного и displayOrder маршрута независимы, миграция23→24 не меняет прежние строки. EditorSheet —общий Compose-каркас компактных редакторов с закреплёнными действиями и прокруткой/IME. Его используют настройки, выбор значений, настройки магазинов товара, оформление и массовые операции; стандартные подтверждения и полноэкранный PlaceEditor остаются разными по назначению.
+
+GoalPurchaseRow получает реальные shop/branch/venue/department для общей иерархии и цветов. Виджет читает общую политику звёздочки/жирности избранного и сбрасывает стиль при повторном bind. Полное восстановление завершает прежнюю UI-сессию: Settings сообщает успех, NavGraph создаёт свежую навигацию с Главной, queued-команды проверяют поколение. Описания старых версий ниже —история; текущая модель определяется Entity/DAO и41.
+
+Виджет0.26 (55): WidgetAppearance и WidgetFrame связывают фон зоны/карточки/избранного с общими цветовыми правилами. Provider имеет отдельный explicit set-visibility intent без записи в БД; прежний CAS отметки сохранён. Новые booleanPrefs, Room23 прежний, ZIP21.
+
+## Единые списки0.25
+
+Текущий контракт54: GoalListEntity остаётся единым владельцем ShoppingListEntryEntity; Room23 нормализует исторический isTemplate. ListCopySheet заменяет TemplateApplySheet; общий AddToListScreen принимает targetListId, PurchaseQuantityStepper используется на Главной и в списках. Отдельный GoalCatalogueSheet удалён. Полная копияZIP20, старые читатели сохранены.
+
 ## Аудит0.20.1
 
 Структура0.20.1: DemoDataProvider, legacy text harness/parser и неиспользуемые UI/команды удалены. ShoppingBlockColor хранит действующий общий helper. Общая запись группы магазина и generation guard описаны41/47. Room18/ZIP14.

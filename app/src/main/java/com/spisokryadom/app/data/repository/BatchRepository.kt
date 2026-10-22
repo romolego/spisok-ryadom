@@ -61,15 +61,19 @@ class BatchRepository(private val db:AppDatabase,private val products:ProductRep
  } }
  private suspend fun ensurePlacement(shopId:Long,typeId:Long):Long {
   val dao=db.shopDepartmentDao();val rows=dao.getByShopIdSync(shopId)
-  return rows.find{it.typeId==typeId}?.id?:dao.insert(ShopDepartmentEntity(shopId=shopId,typeId=typeId,name=dao.type(typeId)!!.name,displayOrder=(rows.maxOfOrNull{it.displayOrder}?:-1)+1))
+  val id=rows.find{it.typeId==typeId}?.id?:dao.insert(ShopDepartmentEntity(shopId=shopId,typeId=typeId,name=dao.type(typeId)!!.name,displayOrder=nextDepartmentDisplayOrder(db,shopId)))
+  // The same network contract applies to a batch and to the shop/product cards.
+  // Synchronization updates placements in place, retaining product/purchase IDs.
+  synchronizeNetworkDepartments(db,shopId)
+  return id
  }
- suspend fun addDepartments(shopIds:Set<Long>,typeIds:Set<Long>)=db.withTransaction {
+ suspend fun addDepartments(shopIds:Set<Long>,typeIds:Set<Long>)=withCatalogueEdits(db,catalogueEdits){db.withTransaction {
   require(shopIds.isNotEmpty()&&typeIds.isNotEmpty()) { "Выберите магазины и группы" }
   shopIds.forEach{require(db.shopDao().getById(it)!=null){"Магазин удалён"}}
   typeIds.forEach{require(db.shopDepartmentDao().type(it)!=null){"Группа удалена"}}
   val ordered=db.shopDepartmentDao().types().filter{it.id in typeIds}
   shopIds.sorted().forEach{s->ordered.forEach{ensurePlacement(s,it.id)}}
- }
+ } }
  suspend fun changePurchases(ids:Set<Long>,change:PurchaseBatchChange)=db.withTransaction {
   require(ids.isNotEmpty()) { "Выберите покупки" }
   val rows=ids.sorted().map{db.shoppingListEntryDao().getById(it)?:error("Одна из покупок удалена. Обновите выбор")}

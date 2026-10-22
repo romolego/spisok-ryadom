@@ -5,9 +5,9 @@ import com.spisokryadom.app.data.entity.*
 class ProductContextIndex(links:List<ProductShopLinkEntity>,shops:List<ShopEntity>) {
  private val linksByProduct=links.groupBy{it.productId}
  private val shopById=shops.associateBy{it.id}
- fun context(product:ProductEntity):String {
+ fun context(product:ProductEntity,includeQuantity:Boolean=true):String {
   val names=linksByProduct[product.id].orEmpty().mapNotNull{shopById[it.shopId]?.name}.distinct()
-  return listOfNotNull(product.defaultQuantity?.let{q->"${if(q%1.0==0.0)q.toLong().toString()else q.toString()} ${product.defaultUnit.orEmpty()}"}?:product.defaultUnit,
+  return listOfNotNull(if(includeQuantity)product.defaultQuantity?.let{q->"${if(q%1.0==0.0)q.toLong().toString()else q.toString()} ${product.defaultUnit.orEmpty()}"}?:product.defaultUnit else null,
    names.takeIf{it.isNotEmpty()}?.joinToString(", "),product.note?.takeIf{it.isNotBlank()}).joinToString(" · ")
  }
 }

@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
@@ -25,24 +24,33 @@ import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel(factory=SettingsViewModel.Factory)){
+fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel(factory=SettingsViewModel.Factory),onOpenProduct:(Long)->Unit={},onOpenShop:(Long)->Unit={},onReset:()->Unit=onNavigateBack){
  val listState=androidx.compose.foundation.lazy.rememberLazyListState()
  val state by viewModel.uiState.collectAsStateWithLifecycle();val snack=remember{SnackbarHostState()}
+ if(state.resetInProgress)androidx.compose.ui.window.Dialog(onDismissRequest={},properties=androidx.compose.ui.window.DialogProperties(dismissOnBackPress=false,dismissOnClickOutside=false)){
+  Surface(shape=MaterialTheme.shapes.large){Row(Modifier.padding(24.dp),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalAlignment=Alignment.CenterVertically){CircularProgressIndicator();Text("Выполняется сброс")}}
+ }
  val recipients by viewModel.recipients.collectAsStateWithLifecycle();val groups by viewModel.productGroups.collectAsStateWithLifecycle();val units by viewModel.units.collectAsStateWithLifecycle();val depts by viewModel.departmentGroups.collectAsStateWithLifecycle()
  val viewport=rememberReorderViewport(listState,recipients.map{"r${it.id}"}+groups.map{"g${it.id}:${it.isFavorite}:${it.favoriteOrder}"}+units.map{"u${it.id}"}+depts.map{"d${it.id}:${it.isFavorite}:${it.favoriteOrder}"})
  val recipientEdit by viewModel.recipientsEditMode.collectAsStateWithLifecycle();val groupEdit by viewModel.groupsEditMode.collectAsStateWithLifecycle();val unitEdit by viewModel.unitsEditMode.collectAsStateWithLifecycle();val deptEdit by viewModel.deptGroupsEditMode.collectAsStateWithLifecycle()
  val recipientId by viewModel.selectedRecipientId.collectAsStateWithLifecycle();val groupId by viewModel.selectedGroupId.collectAsStateWithLifecycle();val unitId by viewModel.selectedUnitId.collectAsStateWithLifecycle();val deptName by viewModel.selectedDepartmentGroup.collectAsStateWithLifecycle()
- val recipientProducts by viewModel.selectedRecipientProducts.collectAsStateWithLifecycle();val groupProducts by viewModel.selectedGroupProducts.collectAsStateWithLifecycle();val unitProducts by viewModel.selectedUnitProducts.collectAsStateWithLifecycle();val deptShops by viewModel.selectedDepartmentGroupShops.collectAsStateWithLifecycle()
+ val recipientProducts by viewModel.selectedRecipientProducts.collectAsStateWithLifecycle();val groupProducts by viewModel.selectedGroupProducts.collectAsStateWithLifecycle();val unitProducts by viewModel.selectedUnitProducts.collectAsStateWithLifecycle()
  val urgency by viewModel.urgencyDefaults.collectAsStateWithLifecycle();val defaults by viewModel.addToListDefaults.collectAsStateWithLifecycle()
  val groupPresets by viewModel.groupCreationPresets.collectAsStateWithLifecycle()
  var presetGroup by remember{mutableStateOf<com.spisokryadom.app.data.entity.ProductGroupEntity?>(null)}
  var presetBusy by remember{mutableStateOf(false)}
  var presetRecipient by remember{mutableStateOf<Long?>(null)}
- presetGroup?.let{group->AlertDialog(modifier=Modifier.width(minOf(560.dp,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp-48.dp)),onDismissRequest={if(!presetBusy)presetGroup=null},title={Text("Преднастройка группы")},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
+ presetGroup?.let{group->EditorSheet("Преднастройка группы",{presetGroup=null},busy=presetBusy,actions={
+  TextButton(enabled=!presetBusy,onClick={presetGroup=null}){Text("Отмена")}
+  TextButton(enabled=!presetBusy,onClick={presetBusy=true;viewModel.setGroupDefaultRecipient(group.id,presetRecipient){saved->presetBusy=false;if(saved)presetGroup=null}}){Text(if(presetBusy)"Сохранение…"else "Сохранить")}
+ }){
   Text(group.name)
   DropdownSelector(label="Получатель по умолчанию",items=recipients,selectedItem=recipients.find{it.id==presetRecipient},itemLabel={it.name},onSelect={if(!presetBusy)presetRecipient=it?.id},noneLabel="Не назначать автоматически")
   HelpButton("Получатель по умолчанию","Применяется к новым товарам. Явный выбор получателя в карточке сохраняется.")
- }},confirmButton={TextButton(enabled=!presetBusy,onClick={presetBusy=true;viewModel.setGroupDefaultRecipient(group.id,presetRecipient){saved->presetBusy=false;if(saved)presetGroup=null}}){Text(if(presetBusy)"Сохранение…"else "Сохранить")}},dismissButton={TextButton(enabled=!presetBusy,onClick={presetGroup=null}){Text("Отмена")}})}
+ }}
+ val departmentUsage by viewModel.selectedDepartmentProducts.collectAsStateWithLifecycle()
+ val context=androidx.compose.ui.platform.LocalContext.current
+ LaunchedEffect(state.resetCompleted){if(state.resetCompleted){state.message?.let{android.widget.Toast.makeText(context,it,android.widget.Toast.LENGTH_LONG).show()};onReset()}}
  val widgetSettings by viewModel.widgetSettings.collectAsStateWithLifecycle()
  var editKind by rememberSaveable{mutableStateOf<String?>(null)};var editId by rememberSaveable{mutableStateOf("")};var editName by rememberSaveable{mutableStateOf("")}
  var sortKind by remember{mutableStateOf<String?>(null)}
@@ -66,10 +74,10 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
    "dept"->if(editId.isBlank())viewModel.createDepartmentGroup(name)else viewModel.renameDepartmentGroup(editId.toLong(),name)
   };editKind=null
  },onDismiss={editKind=null})}
- if(recipientId!=null)UsageDialog("Товары получателя",recipientProducts.map{it.name}){viewModel.selectRecipient(null)}
- if(groupId!=null)UsageDialog("Товары группы",groupProducts.map{it.name}){viewModel.selectProductGroup(null)}
- if(unitId!=null)UsageDialog("Используют единицу",unitProducts.map{it.name}){viewModel.selectUnit(null)}
- if(deptName!=null)UsageDialog("Магазины группы",deptShops.map{it.name}){viewModel.selectDepartmentGroup(null)}
+ if(recipientId!=null)ProductUsageDialog("Товары получателя",recipientProducts,onOpenProduct){viewModel.selectRecipient(null)}
+ if(groupId!=null)ProductUsageDialog("Товары группы",groupProducts,onOpenProduct){viewModel.selectProductGroup(null)}
+ if(unitId!=null)ProductUsageDialog("Используют единицу",unitProducts,onOpenProduct){viewModel.selectUnit(null)}
+ if(deptName!=null)DepartmentUsageDialog(departmentUsage,onOpenProduct,onOpenShop){viewModel.selectDepartmentGroup(null)}
  Scaffold(topBar={TopAppBar(title={Text("Настройки")},navigationIcon={IconButton(onClick=onNavigateBack,enabled=!state.isLoading){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Назад")}})},snackbarHost={SnackbarHost(snack)}){padding->
   LazyColumn(state=listState,modifier=Modifier.testTag("settings-list").fillMaxSize().padding(padding).consumeWindowInsets(padding).padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
    item(key="location"){CityPicker(enabled=!state.isLoading)}
@@ -92,25 +100,13 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
     SettingSwitch("Автосохранение карточек товаров",defaults.autoSaveProductCards,viewModel::setAutoSaveProductCards,help="Если выключено, изменения карточки сохраняются только кнопкой «Сохранить». Если включено, незавершённый ввод сохраняется при выходе.")
     }}
    }
-   item(key="creation_defaults"){
-    OutlinedCard(colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-     Text("Новые товары",style=MaterialTheme.typography.titleMedium)
-     var quantity by rememberSaveable{mutableStateOf(java.math.BigDecimal.valueOf(defaults.missingQuantity).stripTrailingZeros().toPlainString())}
-     var quantityFocused by remember{mutableStateOf(false)}
-     LaunchedEffect(defaults.missingQuantity){if(!quantityFocused)quantity=java.math.BigDecimal.valueOf(defaults.missingQuantity).stripTrailingZeros().toPlainString()}
-     SettingWithHelp("Количество, если не заполнено","Подставляется при сохранении новой карточки, если количество не введено. Явно введённое количество сохраняется без замены."){
-      OutlinedTextField(value=quantity,onValueChange={quantity=it;viewModel.setMissingQuantity(it)},label={Text("Количество, если не заполнено")},singleLine=true,isError=com.spisokryadom.app.util.Quantities.parse(quantity)==null,keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),modifier=Modifier.fillMaxWidth().onFocusChanged{quantityFocused=it.isFocused})
-     }
-     DropdownSelector(label="Тип покупки по умолчанию",items=listOf("offline","online"),selectedItem=defaults.defaultPurchaseType,itemLabel={if(it=="online")"Онлайн"else "Офлайн"},onSelect={it?.let(viewModel::setDefaultPurchaseType)},allowNone=false)
-     SettingWithHelp("Если единица не заполнена","Единица подставляется при сохранении новой карточки. До сохранения поле остаётся свободным для ввода."){DropdownSelector(label="Если единица не заполнена",items=(units.map{com.spisokryadom.app.util.Quantities.unit(it.name)}+defaults.missingUnit).filter{it.isNotBlank()}.distinct(),selectedItem=defaults.missingUnit.ifBlank{null},itemLabel={it},onSelect={viewModel.setMissingUnit(it.orEmpty())},noneLabel="Оставлять пустой")}
-
-    }}
-   }
+   item(key="creation_defaults"){CreationDefaultsCard(defaults,units,viewModel::setFillMissing,viewModel::setMissingQuantity,viewModel::setMissingUnit,viewModel::setDefaultPurchaseType)}
+   item(key="reset"){ResetSettingsCard(state.isLoading,viewModel::reset)}
    item(key="widget_settings"){WidgetSettingsCard(widgetSettings,viewModel::updateWidgetSettings)}
    item(key="favorite_settings"){FavoriteSettingsCard()}
    item(key="dropdowns_title"){Column{
     Text("Выпадающие списки",style=MaterialTheme.typography.headlineSmall,modifier=Modifier.padding(top=16.dp))
-    Row(verticalAlignment=Alignment.CenterVertically){OutlinedButton(onClick=viewModel::addStandardCategories,modifier=Modifier.weight(1f)){Text("Добавить недостающие группы")};HelpButton("Готовые группы","Добавляет недостающие товарные группы и группы магазинов из встроенного набора. Ваши названия, товары, маршруты и связи не меняются. Отделы не назначаются автоматически всем магазинам. Если набор уже полный, повторное нажатие ничего не добавляет.")}
+
    }}
    item(key="recipient_title"){ManagerTitle("Получатели",recipientEdit,viewModel::toggleRecipientsEditMode)}
    itemsIndexed(recipients,key={_,v->"recipient_${v.id}"},contentType={_,_->"manager"}){index,item->
@@ -161,4 +157,3 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
   }
  }
 }
-@Composable private fun UsageDialog(title:String,names:List<String>,onDismiss:()->Unit){AlertDialog(onDismissRequest=onDismiss,title={Text(title)},text={LazyColumn(Modifier.heightIn(max=400.dp)){if(names.isEmpty())item{Text("Пока не используется")};itemsIndexed(names,key={i,_->i}){_,name->Text(name,Modifier.fillMaxWidth().padding(vertical=8.dp))}}},confirmButton={TextButton(onClick=onDismiss){Text("Закрыть")}})}

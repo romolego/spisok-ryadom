@@ -39,8 +39,8 @@ class Favorites200SettingsTest {
  @After fun close(){ui.activityRule.scenario.close();val end=System.nanoTime()+20_000_000_000;while(ProductEditorTransactions.mutex.isLocked&&System.nanoTime()<end){Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();Thread.sleep(5)};app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
  @Test fun settingsSeparateHelpDefaultsAndDictionaryLibrary(){
   scroll(hasText("Автосохранение карточек товаров"));ui.onNodeWithText("Если выключено, изменения карточки сохраняются только кнопкой «Сохранить».").assertDoesNotExist();ui.onNodeWithContentDescription("Подсказка: Автосохранение карточек товаров").performClick();ui.onNodeWithText("Если выключено",substring=true).assertIsDisplayed();shot("01-setting-help");ui.onNodeWithText("Понятно").performClick()
-  scroll(hasText("Количество, если не заполнено"));ui.onNodeWithText("Количество, если не заполнено").performTextReplacement("2,5");waitFor{app.getSharedPreferences("shopping_list_prefs",0).getString("new_product_missing_quantity","")=="2,5"};shot("02-creation-defaults")
-  scroll(hasText("Выпадающие списки"));ui.onNodeWithText("Добавить недостающие группы").assertExists();shot("03-dictionaries-entry")
+  scroll(hasText("Подставлять, если не заполнено"));ui.onNodeWithText("Подставлять, если не заполнено").performClick();scroll(hasText("Количество"));ui.onNodeWithText("Количество").performTextReplacement("2,5");waitFor{app.getSharedPreferences("shopping_list_prefs",0).getString("new_product_missing_quantity","")=="2,5"};shot("02-creation-defaults")
+  scroll(hasText("Выпадающие списки"));ui.onNodeWithText("Добавить недостающие группы").assertDoesNotExist();shot("03-dictionaries-entry")
  }
  @Test fun fullGroupListCannotBeMovedButPinnedCopiesCan(){
   scroll(hasText("Товарные группы"));ui.onNodeWithTag("manager-edit-Товарные группы").performClick();scroll(hasContentDescription("В избранное: Аптека"));ui.onNodeWithContentDescription("Вверх: Аптека").assertDoesNotExist();ui.onNodeWithContentDescription("В избранное: Аптека").performClick()
@@ -48,11 +48,10 @@ class Favorites200SettingsTest {
   shot("04-favorite-groups");assertEquals(2,runBlocking{db.productGroupDao().getAllSync().size});assertEquals(0,runBlocking{db.productGroupDao().getById(food)!!.displayOrder})
  }
  @Test fun appearanceHasIndependentBlockAndFullListControls(){
-  scroll(hasText("Оформление избранного"));shot("05-favorite-appearance");ui.onNodeWithContentDescription("Подсказка: Оформление избранного").performClick();ui.onNodeWithText("Верхний блок",substring=true).assertIsDisplayed();ui.onNodeWithText("Понятно").performClick()
-  scroll(hasText("В полном списке"));ui.onNodeWithText("В полном списке").assertExists();shot("06-full-list-appearance")
-  val stars=ui.onAllNodes(isToggleable() and hasText("Показывать звёздочку"))
-  stars[0].performScrollTo().performClick();waitFor{!app.getSharedPreferences("shopping_list_prefs",0).getBoolean("favorite_block_star",true)}
-  assertTrue(app.getSharedPreferences("shopping_list_prefs",0).getBoolean("favorite_row_star",true));stars[1].performScrollTo().performClick();waitFor{!app.getSharedPreferences("shopping_list_prefs",0).getBoolean("favorite_row_star",true)}
+  scroll(hasText("Оформление избранного"));ui.onNodeWithText("В полном списке").assertDoesNotExist();ui.onNodeWithText("Оформление избранного").performClick();shot("05-favorite-appearance")
+  ui.onNodeWithContentDescription("Звёздочка: Покупки: Блок избранного").performClick();waitFor{!app.getSharedPreferences("shopping_list_prefs",0).getBoolean("favorite_purchases_block_star",true)}
+  assertTrue(app.getSharedPreferences("shopping_list_prefs",0).getBoolean("favorite_purchases_row_star",true));ui.onNodeWithContentDescription("Звёздочка: Покупки: В полном списке").performClick();waitFor{!app.getSharedPreferences("shopping_list_prefs",0).getBoolean("favorite_purchases_row_star",true)}
+  assertTrue(app.getSharedPreferences("shopping_list_prefs",0).getBoolean("favorite_row_star",true));shot("06-full-list-appearance")
  }
  @Test fun catalogueShowsSameFavoriteInBothZonesAndUpdatesStyleWithoutChangingRows(){
   runBlocking{db.productDao().insert(ProductEntity(name="Банан",isFavorite=true));db.productDao().insert(ProductEntity(name="Апельсин"))}
@@ -60,5 +59,18 @@ class Favorites200SettingsTest {
   ui.onNodeWithContentDescription("Назад").performClick();ui.onNodeWithText("Товары").performClick();text("База товаров");waitFor{ui.onAllNodesWithText("Банан").fetchSemanticsNodes().size==2};shot("07-catalogue-favorites")
   ui.runOnIdle{com.spisokryadom.app.util.FavoriteAppearance(block=com.spisokryadom.app.util.FavoriteStyle(star=false,bold=false),row=com.spisokryadom.app.util.FavoriteStyle(star=true,bold=true)).save(app.getSharedPreferences("shopping_list_prefs",0))}
   waitFor{ui.onAllNodesWithContentDescription("Избранный товар",substring=false).fetchSemanticsNodes().size==1};assertEquals(2,runBlocking{db.productDao().getAllSync().size});shot("08-independent-stars")
+ }
+ @Test fun everyDictionaryUsageOpensTheRealProductCard(){
+  runBlocking{
+   val recipient=db.recipientDao().insert(RecipientEntity(name="Получатель210"));db.unitDao().insert(UnitEntity(name="ед210"))
+   val shop=db.shopDao().insert(ShopEntity(name="Магазин210"))
+   val type=db.shopDepartmentDao().ensureType("Отдел210");val department=db.shopDepartmentDao().insert(ShopDepartmentEntity(shopId=shop,typeId=type,name="Отдел210"))
+   val product=db.productDao().insert(ProductEntity(name="Товар210",productGroupId=food,recipientId=recipient,defaultUnit="ед210"))
+   db.productShopLinkDao().insert(ProductShopLinkEntity(productId=product,shopId=shop,departmentId=department))
+  }
+  listOf("Получатель210","Продукты","ед210","Отдел210").forEach{label->
+   scroll(hasText(label));ui.onNodeWithText(label).performClick();text("Товар210");ui.onNodeWithText("Товар210").performClick();text("Название товара");ui.onNodeWithText("Название товара").assertExists()
+   ui.onNodeWithContentDescription("Назад").performClick();text("Настройки")
+  }
  }
 }

@@ -37,7 +37,7 @@ class Refine130UiTest {
  private var a=0L;private var b=0L;private var branch=0L;private var bakery=0L
  private fun waitFor(predicate:()->Boolean){ui.waitUntil(25_000){Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(20));ui.waitForIdle();predicate()}}
  private fun waitText(text:String)=waitFor{ui.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()}
- private fun click(text:String){waitText(text);if(text=="Магазины"||text=="Покупки")ui.onNode(hasText(text) and SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.Role,androidx.compose.ui.semantics.Role.Tab)).performClick()else ui.onNodeWithText(text).performClick()}
+ private fun click(text:String){waitText(text);if(text=="Магазины"||text=="Главная")ui.onNode(hasText(text) and SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.Role,androidx.compose.ui.semantics.Role.Tab)).performClick()else ui.onNodeWithText(text).performClick()}
  private fun shot(name:String,view:View=ui.activity.window.decorView){ui.waitForIdle();ui.runOnIdle{val bitmap=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888);view.draw(Canvas(bitmap));val file=File("../.local/refinement-0.13.0/$name-api${android.os.Build.VERSION.SDK_INT}.png");file.parentFile!!.mkdirs();file.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()}}
  @Before fun setup(){runBlocking{
   listOf("drafts","product_card_drafts",WidgetSettings.PREFS,"product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
@@ -50,11 +50,11 @@ class Refine130UiTest {
  @After fun close(){ui.activityRule.scenario.close();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
  private fun settings(){ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("widget-settings"))}
  private fun font(size:Int){ui.onNodeWithTag("widget-font-size").performScrollTo().performSemanticsAction(SemanticsActions.SetProgress){it(size.toFloat())};waitText("Размер текста: $size")}
- private fun grouping(mode:ViewMode){ui.onNodeWithText("Группировка в виджете").performScrollTo().performClick();val label=if(mode==ViewMode.FLAT)"Общий список"else mode.label;ui.onAllNodesWithText(label).onLast().performClick();waitFor{WidgetSettings.load(prefs).mode==mode}}
+ private fun grouping(mode:ViewMode){ui.onNodeWithText("Группировка в виджете").performScrollTo().performClick();val label=when(mode){ViewMode.BY_SHOPS->"По магазинам";ViewMode.BY_GROUPS->"По товарным группам";ViewMode.BY_RECIPIENTS->"По получателям";ViewMode.FLAT->"Общий список"};ui.onAllNodesWithText(label).onLast().performClick();waitFor{WidgetSettings.load(prefs).mode==mode}}
  @Test fun widgetSettingsAreIndependentAndSurviveActivityRecreation(){
   val original=prefs.all["shopping_list_view_mode"];settings();grouping(ViewMode.BY_RECIPIENTS);font(12);shot("01-widget-settings-small")
   assertEquals(original,prefs.all["shopping_list_view_mode"])
-  ui.activityRule.scenario.recreate();waitText("Настройки");ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("widget-settings"));waitText("Размер текста: 12");ui.onNode(hasText("Получатели") and hasAnyAncestor(hasTestTag("widget-settings"))).assertExists()
+  ui.activityRule.scenario.recreate();waitText("Настройки");ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("widget-settings"));waitText("Размер текста: 12");ui.onNode(hasText("По получателям") and hasAnyAncestor(hasTestTag("widget-settings"))).assertExists()
   assertEquals(WidgetSettings(ViewMode.BY_RECIPIENTS,true,12),WidgetSettings.load(prefs))
  }
  @Test fun allWidgetGroupingsAreReachableWithoutAnUnassignedMode(){
@@ -64,7 +64,7 @@ class Refine130UiTest {
    if(mode==ViewMode.BY_SHOPS)ui.onNodeWithTag("widget-departments").assertExists()else ui.onNodeWithTag("widget-departments").assertDoesNotExist()
   }
   ui.onNodeWithTag("widget-departments").performScrollTo().performClick();waitFor{!WidgetSettings.load(prefs).showDepartments};font(22);shot("02-widget-settings-large")
-  ui.onNodeWithText("Обычный размер").performScrollTo().performClick();waitText("Размер текста: 16")
+  ui.onNodeWithText("Обычный размер").assertDoesNotExist();ui.onNodeWithTag("widget-font-preview").assertDoesNotExist();font(16)
  }
  @Test fun compactDepartmentsKeepCollapseAndSelectionAndShopSeparation(){
   val deptTag="purchase-department-department_${a}_${branch}_${bakery}"
@@ -78,11 +78,11 @@ class Refine130UiTest {
  }
  @Test fun shopBackgroundSupportsCustomColorPersistsAndCanBeDisabled(){
   click("Магазины");waitText("Батон");ui.onNodeWithText("Батон").performTouchInput{longClick()};waitText("Название магазина")
-  ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-background-color").performScrollTo().performClick()
-  ui.onNodeWithTag("appearance-custom-toggle").performClick();ui.onNodeWithTag("appearance-hex").performTextReplacement("#12ABEF");click("Применить оформление");shot("05-shop-color")
+  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-background-color").performScrollTo().performClick()
+  ui.onNodeWithTag("appearance-custom-toggle").performClick();ui.onNodeWithTag("appearance-hex").performTextReplacement("#12ABEF");click("Применить оформление");ui.onNodeWithTag("shop-appearance-apply").performClick();shot("05-shop-color")
   click("Сохранить");waitText("Магазины");assertEquals("#12ABEF",runBlocking{db.shopDao().getById(b)!!.shoppingBackground})
-  click("Покупки");waitText("Хлеб с изюмом");shot("06-shopping-colored-blocks")
-  click("Магазины");waitText("Батон");ui.onNodeWithText("Батон").performTouchInput{longClick()};waitText("Название магазина");ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();click("Сохранить");waitText("Магазины")
+  click("Главная");waitText("Хлеб с изюмом");shot("06-shopping-colored-blocks")
+  click("Магазины");waitText("Батон");ui.onNodeWithText("Батон").performTouchInput{longClick()};waitText("Название магазина");ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-background-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-appearance-apply").performClick();click("Сохранить");waitText("Магазины")
   assertEquals("",runBlocking{db.shopDao().getById(b)!!.shoppingBackground})
  }
  @Test fun nativeWidgetRendersSectionsAndBothFontExtremes(){
@@ -109,6 +109,6 @@ class Refine130UiTest {
   WidgetSettings(ViewMode.BY_RECIPIENTS,true,22).save(prefs);settings();waitText("Размер текста: 22")
   runBlocking{app.container.backupManager.importFile(file);app.container.backupManager.discard(file)}
   waitText("Размер текста: 12");assertEquals(WidgetSettings(ViewMode.BY_GROUPS,false,12),WidgetSettings.load(prefs))
-  ui.onNodeWithText("Группы").assertExists()
+  ui.onNodeWithText("По товарным группам").assertExists()
  }
 }

@@ -1,0 +1,112 @@
+{
+  "version": "0.24.1",
+  "roomSchema": 21,
+  "backupFormat": 18,
+  "testRun": {
+    "kind": "targeted regression, not a full suite run",
+    "classes": 16,
+    "totals": {
+      "cases": 236,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "newCases": 16
+  },
+  "sourceFiles": 299,
+  "sourceChangedAfterFinalStart": false,
+  "apk": {
+    "version": "0.24.1",
+    "versionCode": 33,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2065438,
+    "sha256": "13ceae99a4ea78147249d46b06d6dad7226fc354478b87b03d4c50eb9fec3e07",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 21,
+    "backupFormat": 18
+  },
+  "lint": {
+    "Warning": 66,
+    "Hint": 3
+  },
+  "screens": [
+    {
+      "file": "screens/quick-stable-form-api28.png",
+      "sha256": "203ec06e9cbb0de0b9c28cc6099540be447d3ac1fed6b4a348c7c4bc90a28b07",
+      "bytes": 55456
+    },
+    {
+      "file": "screens/quick-stable-form-api35.png",
+      "sha256": "ccf2aa4293fe95148872c49ff690f783a2a6f5f8c2be4a35a545dd4703e480c3",
+      "bytes": 55821
+    },
+    {
+      "file": "screens/quick-unit-options-api28.png",
+      "sha256": "fa2e29bca1cc4cfb56d199850230d1faf3144bc07d266d1537755d3a4cfb2df9",
+      "bytes": 60912
+    },
+    {
+      "file": "screens/quick-unit-options-api35.png",
+      "sha256": "2d6fcec1f15c84458bf71d687b7247377d8dd121ab4d9d95d62d1bc397246a9a",
+      "bytes": 61417
+    },
+    {
+      "file": "screens/shop-appearance-compact-api28.png",
+      "sha256": "bb503f6fb5e2a5df29f84798fba20eaeb79c4dbcd7a4cc97e58853c8d02e24b7",
+      "bytes": 51556
+    },
+    {
+      "file": "screens/shop-appearance-compact-api35.png",
+      "sha256": "47e3bc6e338320ecba9588a4762890e1aede117396d4b94d21faac9e0beabe3a",
+      "bytes": 51960
+    },
+    {
+      "file": "screens/13-landscape-color-api35.png",
+      "sha256": "6b27a8530f0e50ce29323312afa4eda279cf5518b774161729b98e4ec9632307",
+      "bytes": 118075
+    },
+    {
+      "file": "screens/10-logo-preview-api28.png",
+      "sha256": "33140150e9e8c66a7afe8ef269207fa5e2e538b3ded7ea12a2583a71fa27702f",
+      "bytes": 51527
+    },
+    {
+      "file": "screens/10-logo-preview-api35.png",
+      "sha256": "04889b3c16871dd5527f99e66d029d6a19a03daa6c0b44ea429d6fe82e6550dd",
+      "bytes": 51996
+    },
+    {
+      "file": "screens/08-icon-picker-api28.png",
+      "sha256": "c6788d18865124ef5c06b82fa3d246d27763db2160c4f32f6200c9746063b326",
+      "bytes": 38437
+    },
+    {
+      "file": "screens/08-icon-picker-api35.png",
+      "sha256": "017ba6c24e877fec23589101b001a0136e4f6f1b8d7f6df3aa94d69fc6365433",
+      "bytes": 38946
+    }
+  ],
+  "validation": {
+    "nativeApis": [
+      28,
+      35
+    ],
+    "landscapeApi": 35,
+    "physicalPhoneTested": false,
+    "realSoftwareKeyboardTested": false,
+    "oemWidgetHostTested": false,
+    "githubPublished": false
+  },
+  "initialRun": {
+    "cases": 120,
+    "failures": 2,
+    "reason": "Old search UI test read the typed field before debounced candidates were displayed; corrected wait preserves the star assertion. Added same-shop pending-search guard and two more data cases before the final run."
+  },
+  "scope": [
+    "unit picker in quick purchase",
+    "stable debounced local search",
+    "compact shop appearance sheet and preview",
+    "shared department order in Main/shop/widget",
+    "network department synchronization with stable placement IDs and rollback"
+  ]
+}

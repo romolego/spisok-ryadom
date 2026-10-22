@@ -17,7 +17,7 @@ object DatabaseRecovery {
   if(ready.isFile)return
   destination.mkdirs()
   listOf("","-wal","-shm").forEach{suffix->File(source.path+suffix).takeIf{it.isFile}?.copyTo(File(destination,source.name+suffix),overwrite=true)}
-  listOf("product_photos","branch_photos","shop_logos").forEach{name->
+  listOf("product_photos","branch_photos","shop_logos","venue_photos").forEach{name->
    File(context.filesDir,name).takeIf{it.isDirectory}?.copyRecursively(File(destination,name),overwrite=true)
   }
   val preferences=File(context.applicationInfo.dataDir,"shared_prefs")

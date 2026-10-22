@@ -58,8 +58,8 @@ class Audit151DomainTest {
             quantity = 3.0, unit = "КГ.", isBought = true))
         val hidden = goal("Ужин")
         val shown = goal("Праздник", true)
-        val first = goals.addCatalogue(hidden, product, quantity = 0.5, unit = "кг", plannedUnitPrice = 300.0)
-        val second = goals.addCatalogue(shown, product, quantity = 2.0, unit = "кг", plannedUnitPrice = 450.0)
+        val first = shopping.addGoalCatalogueFixture(hidden, product, quantity = 0.5, unit = "кг", plannedUnitPrice = 300.0)
+        val second = shopping.addGoalCatalogueFixture(shown, product, quantity = 2.0, unit = "кг", plannedUnitPrice = 450.0)
         val before = listOf(first, second, historical).associateWith { row(it) }
         classifiers.renameUnitAndProducts(classifiers.getUnitById(unit)!!, "пакет")
         assertEquals("пакет", row(regular).unit)
@@ -74,7 +74,7 @@ class Audit151DomainTest {
         val product = db.productDao().insert(ProductEntity(name = "Сок", defaultUnit = "бутылка"))
         val regular = shopping.addProduct(product, quantity = 2.0, choice = ShopChoice.NONE)
         val hidden = goal("Поездка")
-        val target = goals.addCatalogue(hidden, product, quantity = 3.0, unit = "бутылка", plannedUnitPrice = 120.0)
+        val target = shopping.addGoalCatalogueFixture(hidden, product, quantity = 3.0, unit = "бутылка", plannedUnitPrice = 120.0)
         val bought = goals.addQuick(hidden, "Вода", quantity = 2.0, unit = "бутылка", plannedUnitPrice = 50.0)
         goals.setBought(bought, true)
         val before = listOf(target, bought).associateWith { row(it) }
@@ -176,7 +176,7 @@ class Audit151DomainTest {
         val product = products.saveWithLinks(ProductEntity(name = "Сыр", defaultUnit = "кг"),
             listOf(ProductShopLinkEntity(productId = 0, shopId = firstShop), ProductShopLinkEntity(productId = 0, shopId = secondShop)))
         val list = goal("Рецепт")
-        val id = goals.addCatalogue(list, product, quantity = 1.0, unit = "кг", plannedUnitPrice = 300.0,
+        val id = shopping.addGoalCatalogueFixture(list, product, quantity = 1.0, unit = "кг", plannedUnitPrice = 300.0,
             choice = ShopChoice.EXPLICIT, shopId = firstShop)
         val stale = row(id)
         shopping.movePending(setOf(id), secondShop, point)

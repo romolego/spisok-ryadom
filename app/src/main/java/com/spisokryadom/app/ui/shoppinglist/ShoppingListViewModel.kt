@@ -87,7 +87,7 @@ data class EntryGroup(
     val branchId: Long? = null,
     val address: String? = null,
     val venueId:Long?=null,val venueName:String?=null,val venueAddress:String?=null,val accent:String="",val iconKey:String="",
-    val shoppingBackground:String="",val shopIconKey:String="",val shopLogoUri:String?=null,val customShopName:String?=null,val customShopAddress:String?=null
+    val shoppingBackground:String="",val purchaseBackground:String="",val shopIconKey:String="",val shopLogoUri:String?=null,val customShopName:String?=null,val customShopAddress:String?=null
 ) {
     /** A retailer ID is a command target; a place key identifies one visible purchase block. */
     val placeKey: String get() = if(customShopName!=null||customShopAddress!=null) "hint:"+java.security.MessageDigest.getInstance("SHA-256").digest((customShopName.orEmpty()+"\u0000"+customShopAddress.orEmpty()).toByteArray(Charsets.UTF_8)).joinToString(""){"%02x".format(it)} else "${groupId ?: 0}:${branchId ?: 0}"
@@ -191,7 +191,6 @@ class ShoppingListViewModel(
             }.combine(shopRepository.locations.activeCity) { data,city -> data.copy(cityId=city.id) }
                 .combine(shopRepository.locations.cities){data,cities->data.copy(cityNames=cities.associate{it.id to it.name})}
                 .combine(branches){data,points->data.copy(branches=points.associateBy{it.id})}
-                .combine(shopRepository.observeBranchOrders()){data,orders->data.copy(branchOrders=orders.associateBy{it.branchId to it.typeId})}
                 .combine(shopRepository.venues()){data,venues->data.copy(venues=venues.associateBy{it.id})}
                 .combine(shopRepository.departmentTypes()){data,types->data.copy(types=types.associateBy{it.id})}
                 .combine(shoppingListRepository.observeGoalLists()){data,lists->data.copy(goalListNames=lists.associate{it.id to it.name})}
@@ -215,7 +214,6 @@ class ShoppingListViewModel(
         val globalShowUrgent: Boolean = true,
         val globalBoostUrgent: Boolean = true,
         val cityId: Long = 1,
-        val branchOrders:Map<Pair<Long,Long>,com.spisokryadom.app.data.entity.BranchDepartmentOrderEntity> = emptyMap(),
         val cityNames: Map<Long,String> = emptyMap(), val branches:Map<Long,com.spisokryadom.app.data.entity.ShopBranchEntity> = emptyMap()
     )
 
@@ -247,8 +245,8 @@ class ShoppingListViewModel(
                 recipientName = product?.recipientId?.let { data.recipients[it]?.name },
                 defaultQuantity = product?.defaultQuantity,
                 quantityStep = com.spisokryadom.app.util.Quantities.step(entry.unit, product?.defaultUnit, product?.defaultQuantity),
-                branchAddress=data.branches[entry.assignedBranchId]?.address,branchPriority=data.branches[entry.assignedBranchId]?.displayOrder?:0,
-                localDepartmentOrder=data.departments[entry.assignedDepartmentId]?.let{dept->data.branchOrders[entry.assignedBranchId to dept.typeId]?.displayOrder?:dept.displayOrder}?:Int.MAX_VALUE,
+                branchAddress=data.branches[entry.assignedBranchId]?.let{placeLabels.detail(it)},branchPriority=data.branches[entry.assignedBranchId]?.displayOrder?:0,
+                localDepartmentOrder=data.departments[entry.assignedDepartmentId]?.let{dept->dept.displayOrder}?:Int.MAX_VALUE,
                 productGroupId = product?.productGroupId, recipientId=product?.recipientId
             )
         }
@@ -313,7 +311,7 @@ class ShoppingListViewModel(
                     groupId=shop.id,
                     groupName=if(shop.cityId==cityId)shop.name else "${shop.name} · ${cityNames[shop.cityId] ?: "Другой город"}",
                     entries=sorted, deptSubGroups=subs, branchId=branch, address=rows.first().branchAddress,
-                    shoppingBackground=shop.shoppingBackground,shopIconKey=shop.iconKey,shopLogoUri=shop.logoUri,
+                    shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,shopIconKey=shop.iconKey,shopLogoUri=shop.logoUri,
                     hasBoughtEntries=sorted.any { it.entry.isBought }, canClearBought=true,
                     isCollapsed=collapsed, totalCount=sorted.size, boughtCount=sorted.count { it.entry.isBought },
                     showUrgentWhenCollapsed=resolveShowUrgentInCollapsed(shop,globalShowUrgent),
@@ -385,8 +383,11 @@ class ShoppingListViewModel(
 
         val result = mutableListOf<EntryGroup>()
 
-        // Named groups follow the configured priority.
-        val namedGroups = grouped.filterKeys { it != null }.entries.sortedWith(compareBy({ classifiers[it.key]?.displayOrder ?: Int.MAX_VALUE }, { it.key }))
+        // Product groups have one full alphabet throughout the app. Legacy displayOrder
+        // is retained for old backups, but only favorite pins may be reordered.
+        val namedGroups = com.spisokryadom.app.util.alphabetical(grouped.filterKeys { it != null }.entries.toList()) {
+            classifiers[it.key]?.name.orEmpty()
+        }
         for ((groupId, groupEntries) in namedGroups) {
             val sorted = sortEntries(groupEntries)
             result.add(EntryGroup(
@@ -500,18 +501,7 @@ class ShoppingListViewModel(
         purchaseCommand { shoppingListRepository.clearBoughtEntries() }
     }
 
-    fun clearBoughtByShop(shopId: Long?) {
-        purchaseCommand {
-            if (shopId != null) {
-                shoppingListRepository.clearBoughtByShop(shopId)
-            } else {
-                shoppingListRepository.clearBoughtWithoutShop()
-            }
-        }
-    }
-
     fun toggleUrgent(entryId: Long) { purchaseCommand{shoppingListRepository.toggleUrgent(entryId,strictPending=true)} }
-    suspend fun moveOptions(ids:Set<Long>,shopId:Long)=shoppingListRepository.moveOptions(ids,shopId)
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
     fun movePendingToCurrentCity(){purchaseCommand{shoppingListRepository.movePendingToCurrentCity()}}
 
@@ -574,8 +564,6 @@ class ShoppingListViewModel(
         val shop=group.groupId?:return;val targetShop=target.groupId?:return
         purchaseCommand{shopRepository.movePurchasePlace(shop,group.branchId,targetShop,target.branchId)}
     }
-    fun moveShopUp(shopId:Long){purchaseCommand{shopRepository.moveShop(shopId,-1)}}
-    fun moveShopDown(shopId:Long){purchaseCommand{shopRepository.moveShop(shopId,1)}}
 
     private fun loadCollapsedShopIds(): Set<String> {
         val raw = prefs.getStringSet(PREF_COLLAPSED_SHOPS, null) ?: return emptySet()

@@ -37,7 +37,7 @@ class ProductDatabaseViewModel(private val products:ProductRepository,private va
   val list=if(q.isBlank())available.sortedWith(compareBy<ProductEntity>{FuzzySearch.normalize(it.name)}.thenBy{it.id})else FuzzySearch.rank(available,q,{it.name})
   val shopMap=d.shops.associateBy{it.id};val branchMap=d.branches.associateBy{it.id}
   val sections=when(m){
-   ProductViewMode.ALPHABETICAL->listOf(ProductSection(if(q.isBlank())"Все товары" else "По релевантности",list,"all"))
+   ProductViewMode.ALPHABETICAL->listOf(ProductSection(if(q.isNotBlank())"По релевантности"else if(d.favoritesOnly)"Избранные товары"else "Все товары",list,"all"))
    ProductViewMode.BY_SHOPS->{
     val links=d.links.groupBy{it.shopId};val used=mutableSetOf<Long>()
     buildList{

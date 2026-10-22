@@ -16,10 +16,11 @@ data class ProductEditDraft(val stableId:String,val productId:Long,val newSessio
   departmentTypes=base.departmentTypes,productContexts=base.productContexts,isLoading=false)
  suspend fun persist(repository:ProductRepository,defaults:com.spisokryadom.app.util.ProductCreationDefaults?=null):Long {
   val s=state
-  val quantity=if(s.defaultQuantity.isBlank())defaults?.missingQuantity else Quantities.parse(s.defaultQuantity)?:error("Проверьте количество")
+  val fallback=defaults?.takeIf{newSession&&it.fillMissing}
+  val quantity=if(s.defaultQuantity.isBlank())fallback?.missingQuantity else Quantities.parse(s.defaultQuantity)?:error("Проверьте количество")
   val price=if(s.priceValue.isBlank())null else s.priceValue.replace(',','.').toDoubleOrNull()?.takeIf{it.isFinite()&&it>=0}?:error("Проверьте цену")
   val p=ProductEntity(id=productId.coerceAtLeast(0),stableId=stableId,name=s.name.trim(),productGroupId=s.productGroupId,recipientId=s.recipientId,
-   defaultQuantity=quantity,defaultUnit=Quantities.unit(s.defaultUnit).ifBlank{defaults?.missingUnit?.ifBlank{null}},note=s.note.trim().ifBlank{null},purchaseType=s.purchaseType,
+   defaultQuantity=quantity,defaultUnit=Quantities.unit(s.defaultUnit).ifBlank{fallback?.missingUnit?.ifBlank{null}},note=s.note.trim().ifBlank{null},purchaseType=s.purchaseType,
    sellerUrl=s.sellerUrl.trim().ifBlank{null},productUrl=s.productUrl.trim().ifBlank{null},photoUri=s.photoUri.ifBlank{null},priceValue=price,priceDate=s.priceDate.ifBlank{null},
    isTemporary=s.isTemporary,preferCityShopOrder=s.preferCityShopOrder,isFavorite=s.isFavorite,accent=s.accent)
   val links=if(newSession)s.pendingShopLinks.map{ProductShopLinkEntity(productId=0,shopId=it.shopId,priority=it.displayOrder,departmentId=it.departmentId)}else s.shopLinks.map{it.link}

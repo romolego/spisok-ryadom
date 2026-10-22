@@ -93,7 +93,7 @@ class AuditUi071Test {
   vm.updateBranches(vm.uiState.value.branches.map{it.copy(address="29 павильон",note="Сыры") }+ShopBranchEntity(id=-1,shopId=shop,address="68 павильон",note="Мясо"))
   vm.convertToVenue();await{vm.uiState.value.isSaved||vm.uiState.value.error!=null};assertNull(vm.uiState.value.error)
   val venue=db.retailStructureDao().venues().single();assertEquals("Рынок после правок",venue.name);assertEquals("Новая заметка рынка",venue.note)
-  val points=db.shopBranchDao().getAll();assertEquals(setOf("29 павильон","68 павильон"),points.map{it.address}.toSet());assertTrue(points.all{it.venueId==venue.id})
+  val points=db.shopBranchDao().getAll();assertEquals(setOf("29 павильон","68 павильон"),db.shopDao().getAllSync().map{it.name}.toSet());assertTrue(points.all{it.venueId==venue.id&&it.address.isEmpty()})
   assertEquals("Сыры",points.single{it.id==point}.note)
  }
  @Test fun pointOverrideUsesItsEffectiveDepartmentOrderAndUpdatesWhileScreenLives()=runBlocking{

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="10dp" android:background="@drawable/widget_background">
+    <TextView android:id="@+id/widget_heading" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:minHeight="36dp" android:gravity="center_vertical" android:maxLines="1" android:ellipsize="end"
+        android:text="@string/widget_title_short" android:contentDescription="@string/widget_title"
+        android:textColor="#24667A" android:textSize="20sp" android:textStyle="bold"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical|end">
+        <TextView android:id="@+id/widget_bought_status" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:text="@string/widget_bought_hidden" android:textSize="11sp" android:textColor="#24667A" android:visibility="gone"/>
+        <ImageView android:id="@+id/widget_bought_toggle" android:layout_width="48dp" android:layout_height="48dp"
+            android:layout_marginEnd="4dp" android:padding="12dp" android:src="@drawable/widget_visibility"
+            android:contentDescription="@string/widget_hide_bought" android:background="@drawable/widget_add_background"/>
+        <TextView android:id="@+id/widget_add" android:layout_width="48dp" android:layout_height="48dp"
+            android:gravity="center" android:text="+" android:textSize="30sp" android:textColor="#24667A"
+            android:contentDescription="@string/widget_add" android:background="@drawable/widget_add_background"/>
+    </LinearLayout>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <ListView android:id="@+id/widget_list" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:divider="@android:color/transparent" android:dividerHeight="0dp" android:scrollbars="vertical"/>
+        <TextView android:id="@+id/widget_empty" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:gravity="center" android:text="@string/widget_empty" android:textSize="16sp" android:textColor="#66757B"/>
+    </FrameLayout>
+</LinearLayout>

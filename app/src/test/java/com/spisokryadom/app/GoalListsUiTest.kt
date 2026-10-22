@@ -73,11 +73,11 @@ class GoalListsUiTest {
 
     @Test fun fourTabsRegularEntryAndLooseAutosaveWithUnitPrice() {
         tab("Списки"); waitText("Текущие покупки")
-        listOf("Покупки", "Списки", "Товары", "Магазины").forEach { ui.onNode(hasText(it) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)).assertExists() }
+        listOf("Главная", "Списки", "Товары", "Магазины").forEach { ui.onNode(hasText(it) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)).assertExists() }
         ui.onNodeWithTag("goal-regular").performClick(); waitText("Список покупок")
         tab("Списки"); ui.onNodeWithContentDescription("Создать список").performClick()
         ui.onNodeWithText("Название списка").performTextInput("Новый компьютер"); ui.onNodeWithText("Сохранить").performClick()
-        waitText("Новый компьютер"); ui.onNodeWithTag("goal-add-item").performClick(); waitText("Новая позиция")
+        waitText("Новый компьютер"); ui.onNodeWithContentDescription("Действия со списком").performClick();ui.onNodeWithText("Быстрая позиция с ценой").performClick(); waitText("Новая позиция")
         ui.onNodeWithTag("goal-item-name").performTextInput("Видеокарта")
         ui.onNodeWithTag("goal-item-quantity").performTextReplacement("2")
         ui.onNodeWithTag("goal-item-unit").performTextInput("шт")
@@ -93,25 +93,22 @@ class GoalListsUiTest {
             assertEquals(2, db.productDao().getAllSync().count { !it.isTemporary })
         }
         waitText("Видеокарта"); shot("02-target-loose")
-        back(); tab("Покупки"); waitText("Список пуст"); ui.onNodeWithText("Видеокарта").assertDoesNotExist()
+        back(); tab("Главная"); waitText("Список пуст"); ui.onNodeWithText("Видеокарта").assertDoesNotExist()
     }
 
     @Test fun catalogueFavoritesRepeatAndQuickAddsStayOpen() {
         val id = runBlocking { repository.create("Салат") }; openList(id)
-        ui.onNodeWithTag("goal-open-catalogue").performClick(); waitText("Избранные")
-        ui.onNodeWithTag("goal-catalogue-favorite-$banana").assertIsDisplayed()
-        ui.onNodeWithTag("goal-catalogue").performScrollToNode(hasTestTag("goal-catalogue-all-$banana")); ui.onNodeWithTag("goal-catalogue-all-$banana").assertIsDisplayed()
-        shot("03-target-catalogue")
-        ui.onNodeWithTag("goal-catalogue-all-$banana").performClick()
-        waitFor { runBlocking { db.shoppingListEntryDao().getForListSync(id).size == 1 } }
-        ui.onNodeWithTag("goal-catalogue").performScrollToNode(hasTestTag("goal-catalogue-all-$apple")); ui.onNodeWithTag("goal-catalogue-all-$apple").performClick()
-        waitFor { runBlocking { db.shoppingListEntryDao().getForListSync(id).size == 2 } }
-        ui.onNodeWithText("Из базы товаров").assertIsDisplayed()
-        runBlocking { val rows = db.shoppingListEntryDao().getForListSync(id); assertEquals(.5, rows.single { it.productId == banana }.quantity, 0.0); assertEquals(2.0, rows.single { it.productId == apple }.quantity, 0.0); assertTrue(rows.all { it.assignedShopId == null }); assertEquals(2, db.productDao().getAllSync().size) }
-        ui.onNodeWithTag("goal-catalogue-search").performTextInput("бан")
-        waitFor { ui.onAllNodesWithTag("goal-catalogue-all-$apple").fetchSemanticsNodes().isEmpty() }
-        ui.onAllNodesWithContentDescription("Избранный товар: Банан").onFirst().assertExists()
-        back(); waitText("Салат")
+        ui.onNodeWithTag("goal-open-catalogue").performClick();waitText("Избранные")
+        ui.onNodeWithTag("candidate-favorite-$banana").assertExists()
+        ui.onAllNodesWithContentDescription("Добавить: Банан").onFirst().performClick()
+        waitFor { runBlocking { db.shoppingListEntryDao().getForListSync(id).size==1 } }
+        ui.onNodeWithTag("candidate-added-favorite-$banana",useUnmergedTree=true).assertExists()
+        ui.onNodeWithTag("add-candidates").performScrollToNode(hasTestTag("candidate-all-$apple"))
+        ui.onNodeWithContentDescription("Добавить: Яблоко").performClick()
+        waitFor { runBlocking { db.shoppingListEntryDao().getForListSync(id).size==2 } }
+        ui.onNodeWithTag("add-list-contents").assertExists();shot("03-target-catalogue")
+        runBlocking { val rows=db.shoppingListEntryDao().getForListSync(id);assertEquals(.5,rows.single{it.productId==banana}.quantity,0.0);assertEquals(2.0,rows.single{it.productId==apple}.quantity,0.0);assertEquals(2,db.productDao().getAllSync().size) }
+        back();waitText("Салат")
     }
 
     @Test fun inclusionShowsTheSamePurchaseAndCheckboxSynchronizes() {
@@ -119,11 +116,11 @@ class GoalListsUiTest {
         val rowId = runBlocking { repository.addQuick(id, "Торт", 1.0, "шт", 1300.0, "Кондитерская", "Мира, 8") }
         openList(id)
         ui.onNodeWithContentDescription("Действия со списком").performClick(); ui.onNodeWithText("Настройки списка").performClick()
-        ui.onNodeWithText("Отображать в текущих покупках").performClick()
+        ui.onNodeWithText("Отображать на Главной").performClick()
         shot("12-target-settings")
         ui.onNodeWithText("Готово").performClick()
         waitFor { runBlocking { db.goalListDao().getById(id)!!.showInPurchases } }
-        back(); tab("Покупки"); waitText("Торт"); waitFor { ui.onAllNodesWithText("Список: На праздник", substring = true).fetchSemanticsNodes().isNotEmpty() }; shot("04-target-in-main")
+        back(); tab("Главная"); waitText("Торт"); waitFor { ui.onAllNodesWithText("Список: На праздник", substring = true).fetchSemanticsNodes().isNotEmpty() }; shot("04-target-in-main")
         runBlocking { assertEquals(rowId, db.shoppingListEntryDao().getAllSync().single().id) }
         openList(id); ui.onNodeWithContentDescription("Куплено: Торт").performClick()
         waitFor { runBlocking { db.shoppingListEntryDao().getById(rowId)!!.isBought } }
@@ -156,7 +153,7 @@ class GoalListsUiTest {
     @Test fun shareUsesTemporaryEditedMessageAndReopeningRegenerates() {
         val id = runBlocking { repository.create("Рецепт") }; runBlocking { repository.addQuick(id, "Огурцы", .5, "кг", 100.0) }; openList(id)
         val before = runBlocking { db.shoppingListEntryDao().getAllSync() }
-        ui.onNodeWithContentDescription("Поделиться целевым списком").performClick(); waitText("Текст списка")
+        ui.onNodeWithContentDescription("Поделиться списком").performClick(); waitText("Текст списка")
         ui.onNodeWithTag("goal-share-editor").performTextReplacement("Купи огурцы для салата")
         ui.onNodeWithTag("goal-share-send").performClick()
         ui.runOnIdle {
@@ -164,18 +161,19 @@ class GoalListsUiTest {
             val send = chooser.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)!!; assertEquals("Купи огурцы для салата", send.getStringExtra(Intent.EXTRA_TEXT))
         }
         shot("08-target-share")
-        back(); waitText("Рецепт"); ui.onNodeWithContentDescription("Поделиться целевым списком").performClick()
+        back(); waitText("Рецепт"); ui.onNodeWithContentDescription("Поделиться списком").performClick()
         waitFor { ui.onAllNodes(hasSetTextAction() and hasText("Огурцы", substring = true)).fetchSemanticsNodes().isNotEmpty() }
         runBlocking { assertEquals(before, db.shoppingListEntryDao().getAllSync()) }
     }
 
     @Test fun invalidDraftSurvivesRecreationAndDoesNotOverwriteLastValidQuantity() {
         val id = runBlocking { repository.create("Закупка") }; val rowId = runBlocking { repository.addQuick(id, "Краска", 2.0, "банка", .0000001, shopAddress = "Мира, 8") }; openList(id)
-        ui.onNodeWithTag("goal-entry-$rowId").performClick(); waitText("Позиция списка")
+        ui.onNodeWithContentDescription("Действия: Краска").performClick();ui.onNodeWithText("Количество, цена и заметка").performClick(); waitText("Позиция списка")
         ui.onNodeWithTag("goal-item-shop").assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("")))
         ui.onNodeWithTag("goal-item-address").performScrollTo().assertTextContains("Мира, 8")
         ui.onNodeWithTag("goal-item-price").performScrollTo().assertTextContains("0,0000001")
         ui.onNodeWithTag("goal-item-quantity").performScrollTo().performTextReplacement("1,,")
+        ui.onNodeWithTag("goal-item-quantity").assertTextContains("1,,")
         ui.activityRule.scenario.recreate(); waitText("Позиция списка")
         ui.onNodeWithTag("goal-item-quantity").assertTextContains("1,,")
         ui.onNodeWithTag("goal-item-quantity").performTextReplacement("ошибка"); back(); waitText("Введите положительное количество")
@@ -186,10 +184,10 @@ class GoalListsUiTest {
         ui.onNodeWithTag("goal-item-quantity").performTextReplacement("3,5"); ui.onNodeWithTag("goal-item-done").performClick()
         waitFor { ui.onAllNodesWithTag("goal-item-quantity").fetchSemanticsNodes().isEmpty() }
         runBlocking { val row = db.shoppingListEntryDao().getById(rowId)!!; assertEquals(3.5, row.quantity, 0.0); assertEquals(.0000001, row.plannedUnitPrice!!, 0.0); assertEquals("Мира, 8", row.customShopAddress); assertNull(row.customShopName); assertEquals(1, db.shoppingListEntryDao().getAllSync().size) }
-        ui.onNodeWithTag("goal-entry-$rowId").performClick(); ui.onNodeWithTag("goal-item-quantity").performTextReplacement("ошибка")
+        ui.onNodeWithContentDescription("Действия: Краска").performClick();ui.onNodeWithText("Количество, цена и заметка").performClick(); ui.onNodeWithTag("goal-item-quantity").performTextReplacement("ошибка")
         ui.runOnIdle { com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.incrementAndGet(); com.spisokryadom.app.util.DatabaseRevision.invalidate(app) }
         waitFor { ui.onAllNodesWithTag("goal-item-quantity").fetchSemanticsNodes().isEmpty() }
-        ui.onNodeWithTag("goal-entry-$rowId").performClick(); ui.onNodeWithTag("goal-item-quantity").performTextReplacement("4"); ui.onNodeWithTag("goal-item-done").performClick()
+        ui.onNodeWithContentDescription("Действия: Краска").performClick();ui.onNodeWithText("Количество, цена и заметка").performClick(); ui.onNodeWithTag("goal-item-quantity").performTextReplacement("4"); ui.onNodeWithTag("goal-item-done").performClick()
         waitFor { runBlocking { db.shoppingListEntryDao().getById(rowId)!!.quantity == 4.0 } }
     }
 
@@ -215,7 +213,7 @@ class GoalListsUiTest {
 
     @Test fun doneDuringAnInflightAutosaveCreatesOnlyOnePurchase() {
         val id = runBlocking { repository.create("Ремонт") }; openList(id)
-        ui.onNodeWithTag("goal-add-item").performClick(); waitText("Новая позиция")
+        ui.onNodeWithContentDescription("Действия со списком").performClick();ui.onNodeWithText("Быстрая позиция с ценой").performClick(); waitText("Новая позиция")
         val acquired = java.util.concurrent.CountDownLatch(1); val release = java.util.concurrent.CountDownLatch(1)
         val executor = java.util.concurrent.Executors.newSingleThreadExecutor()
         val holder = executor.submit { runBlocking { db.withTransaction { acquired.countDown(); check(release.await(30, java.util.concurrent.TimeUnit.SECONDS)) } } }
@@ -239,7 +237,7 @@ class GoalListsUiTest {
         runBlocking { val rows = db.shoppingListEntryDao().getAllSync(); assertEquals(1, rows.size); assertEquals(rowId, rows.single().id); assertEquals(target, rows.single().listId) }
         openList(target); ui.onNodeWithTag("goal-entry-$rowId").assertExists()
         runBlocking { repository.updateList(target, "Для рецепта", true) }
-        back(); tab("Покупки"); waitText("Банан"); ui.onNodeWithTag("purchase-row-$rowId").performTouchInput { longClick() }
+        back(); tab("Главная"); waitText("Банан"); ui.onNodeWithTag("purchase-row-$rowId").performTouchInput { longClick() }
         ui.onNodeWithText("Открыть список «Для рецепта»").performClick(); waitFor { ui.onAllNodesWithTag("goal-entry-$rowId").fetchSemanticsNodes().isNotEmpty() }
         runBlocking { assertEquals(1, db.shoppingListEntryDao().getAllSync().size) }
         shot("11-main-open-origin")

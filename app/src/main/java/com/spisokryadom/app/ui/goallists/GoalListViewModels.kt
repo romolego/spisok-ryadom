@@ -17,7 +17,6 @@ import com.spisokryadom.app.data.repository.ProductRepository
 import com.spisokryadom.app.data.repository.ShopRepository
 import com.spisokryadom.app.data.repository.ProductEditorTransactions
 import com.spisokryadom.app.domain.*
-import com.spisokryadom.app.util.FuzzySearch
 import com.spisokryadom.app.util.Quantities
 import com.spisokryadom.app.util.PurchaseMoney
 import com.spisokryadom.app.util.DatabaseRevision
@@ -27,7 +26,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
-import java.text.Collator
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -35,12 +33,12 @@ import java.util.Locale
 internal fun goalNumber(value: Double): String = DecimalFormat("0.######", DecimalFormatSymbols(Locale.forLanguageTag("ru"))).format(value)
 internal fun goalMoney(value: Double): String = PurchaseMoney.format(value)
 
-data class GoalListsUiState(val lists: List<GoalListEntity> = emptyList(), val loading: Boolean = true, val busy: Boolean = false, val error: String? = null, val createdId: Long? = null)
+data class GoalListsUiState(val itemCounts:Map<Long,Int> = emptyMap(),val lists: List<GoalListEntity> = emptyList(), val loading: Boolean = true, val busy: Boolean = false, val error: String? = null, val createdId: Long? = null)
 
 class GoalListsViewModel(private val repository: GoalListRepository, private val sessionGeneration: Long = ProductEditorTransactions.generation.get()) : ViewModel() {
     private val _state = MutableStateFlow(GoalListsUiState())
     val uiState = _state.asStateFlow()
-    init { viewModelScope.launch { repository.observeLists().collect { lists -> _state.update { it.copy(lists = lists, loading = false) } } } }
+    init { viewModelScope.launch { combine(repository.observeLists(),repository.observeAllEntries()){lists,rows->lists to rows.mapNotNull{it.listId}.groupingBy{it}.eachCount()}.collect { (lists,counts) -> _state.update { it.copy(lists = lists,itemCounts=counts, loading = false) } } } }
     fun create(name: String) {
         if (_state.value.busy || name.isBlank()) return
         _state.update { it.copy(busy = true, error = null) }
@@ -51,11 +49,22 @@ class GoalListsViewModel(private val repository: GoalListRepository, private val
         }
     }
     fun clearNavigation() { _state.update { it.copy(createdId = null) } }
+    fun captureHome(name:String){
+        if(_state.value.busy)return
+        _state.update{it.copy(busy=true,error=null)}
+        viewModelScope.launch{try{repository.withSession(sessionGeneration){val id=repository.captureList(null,name);_state.update{it.copy(createdId=id)}}}
+        catch(e:Exception){if(e is CancellationException)throw e;_state.update{it.copy(error=e.message)}}finally{_state.update{it.copy(busy=false)}}}
+    }
     fun clearError() { _state.update { it.copy(error = null) } }
     companion object { val Factory = viewModelFactory { initializer { GoalListsViewModel((this[APPLICATION_KEY] as SpisokRyadomApp).container.goalListRepository) } } }
 }
 
-data class GoalPurchaseRow(val entry: ShoppingListEntryEntity, val product: ProductEntity, val place: PlaceLabel?) {
+data class GoalPurchaseRow(
+    val entry: ShoppingListEntryEntity, val product: ProductEntity, val place: PlaceLabel?,
+    val shop: ShopEntity? = null, val branchPriority: Int = 0,
+    val department: ShopDepartmentEntity? = null, val venue: VenueEntity? = null,
+    val pointLabel: String? = null
+) {
     val total: Double? get() = entry.plannedUnitPrice?.let { PurchaseMoney.total(it, entry.quantity) }
 }
 
@@ -69,10 +78,10 @@ data class GoalItemEditor(
 
 data class GoalListUiState(
     val list: GoalListEntity? = null, val rows: List<GoalPurchaseRow> = emptyList(),
-    val catalogue: List<ProductEntity> = emptyList(), val catalogueQuery: String = "", val catalogueVisible: Boolean = false, val catalogueUsePriority: Boolean = false,
     val shops: List<String> = emptyList(), val loading: Boolean = true, val busy: Boolean = false,
     val editor: GoalItemEditor? = null, val error: String? = null, val message: String? = null, val deleted: Boolean = false,
-    val shareText: String? = null, val selectionMode: Boolean = false, val selectedIds: Set<Long> = emptySet(), val allLists: List<GoalListEntity> = emptyList()
+    val shareText: String? = null, val selectionMode: Boolean = false, val selectedIds: Set<Long> = emptySet(), val allLists: List<GoalListEntity> = emptyList(), val openListId:Long?=null,
+    val unitSuggestions: List<String> = emptyList()
 ) {
     private fun total(values: List<GoalPurchaseRow>): Double = values.fold(java.math.BigDecimal.ZERO) { sum, row ->
         sum + (row.entry.plannedUnitPrice?.let { PurchaseMoney.amount(it, row.entry.quantity) } ?: java.math.BigDecimal.ZERO)
@@ -86,7 +95,8 @@ data class GoalListUiState(
 class GoalListViewModel(
     private val listId: Long, private val repository: GoalListRepository, private val products: ProductRepository,
     private val shops: ShopRepository, private val savedState: SavedStateHandle = SavedStateHandle(), private val cacheDirectory: java.io.File? = null,
-    currentRevision: String? = null, private val sessionGeneration: Long = ProductEditorTransactions.generation.get()
+    currentRevision: String? = null, private val sessionGeneration: Long = ProductEditorTransactions.generation.get(),
+    private val units: Flow<List<UnitEntity>> = flowOf(emptyList())
 ) : ViewModel() {
     private val messages = GoalMessageDrafts(savedState, cacheDirectory)
     init { prepareGoalSavedState(savedState, messages, currentRevision) }
@@ -94,26 +104,28 @@ class GoalListViewModel(
     val uiState = _state.asStateFlow()
     private val editorMutex = Mutex()
     private var editorJob: Job? = null
-    private var catalogueProducts: List<ProductEntity> = emptyList()
     private var pendingFileJson: String? = messages.read("goal_export_json")
-    private data class Places(val shops: List<ShopEntity>, val branches: List<ShopBranchEntity>, val venues: List<VenueEntity>)
+    private data class Places(val shops: List<ShopEntity>, val branches: List<ShopBranchEntity>, val venues: List<VenueEntity>, val departments: List<ShopDepartmentEntity>)
     init {
-        val places = combine(shops.getAllShops(), shops.observeBranches(), shops.venues()) { s, b, v -> Places(s, b, v) }
+        viewModelScope.launch { units.collect { values -> _state.update { it.copy(unitSuggestions = values.map { unit -> unit.name }) } } }
+        val places = combine(shops.getAllShops(), shops.observeBranches(), shops.venues(), shops.getAllDepartments()) { s, b, v, d -> Places(s, b, v, d) }
         viewModelScope.launch {
             combine(repository.observeLists(), repository.observeEntries(listId), products.getAllProductsIncludingTemporary(), places) { lists, entries, ps, places ->
                 val byProduct = ps.associateBy { it.id }; val byShop = places.shops.associateBy { it.id }; val byBranch = places.branches.associateBy { it.id }
                 val labels = PlaceLabels(places.branches, places.venues)
+                val byDepartment = places.departments.associateBy { it.id }
+                val byVenue = places.venues.associateBy { it.id }
                 val rows = entries.mapNotNull { e -> byProduct[e.productId]?.let { p ->
                     val place = e.assignedShopId?.let { byShop[it] }?.let { s -> labels.place(s.name, e.assignedBranchId?.let { byBranch[it] }) }
                         ?: if (e.customShopName.isNullOrBlank() && e.customShopAddress.isNullOrBlank()) null
                         else physicalPlaceLabel(e.customShopName?.takeIf { it.isNotBlank() } ?: e.customShopAddress.orEmpty(), e.customShopAddress?.takeIf { !e.customShopName.isNullOrBlank() }, null)
-                    GoalPurchaseRow(e, p, place)
+                    val branch=byBranch[e.assignedBranchId]
+                    GoalPurchaseRow(e, p, place, byShop[e.assignedShopId], branch?.displayOrder ?: 0, byDepartment[e.assignedDepartmentId],
+                        branch?.venueId?.let{byVenue[it]},branch?.let{labels.detail(it)}?.takeIf{it.isNotBlank()})
                 } }
-                Triple(Triple(lists.find { it.id == listId }, rows, ps.filter { !it.isTemporary }), places.shops.map { labels.shop(it.id, it.name) }.distinct(), lists)
+                Triple(lists.find { it.id == listId } to rows, places.shops.map { labels.shop(it.id, it.name) }.distinct(), lists)
             }.flowOn(Dispatchers.Default).collect { (data, names, lists) ->
-                catalogueProducts = data.third
                 _state.update { it.copy(list = data.first, rows = data.second, loading = false, shops = names, allLists = lists, selectedIds = it.selectedIds.intersect(data.second.map { row -> row.entry.id }.toSet())) }
-                refreshCatalogue()
             }
         }
         if (_state.value.editor?.dirty == true) scheduleSave()
@@ -148,6 +160,8 @@ class GoalListViewModel(
         }
     }
     fun metadata(name: String, visible: Boolean) = command { repository.updateList(listId, name, visible) }
+    fun captureList(name:String)=command{val id=repository.captureList(listId,name);_state.update{it.copy(openListId=id)}}
+    fun clearNavigation(){_state.update{it.copy(openListId=null)}}
     fun deleteList() = command { repository.deleteList(listId); _state.update { it.copy(deleted = true) } }
     fun bought(row: GoalPurchaseRow, value: Boolean) = command { repository.setBought(row.entry.id, value, expectedListId = listId) }
     fun urgent(row: GoalPurchaseRow) = command { repository.toggleUrgent(row.entry.id, expectedListId = listId) }
@@ -161,8 +175,10 @@ class GoalListViewModel(
         editorJob?.cancel()
         setEditor(GoalItemEditor(entryId = row.entry.id, name = row.product.name, quantity = goalNumber(row.entry.quantity), unit = row.entry.unit,
             price = row.entry.plannedUnitPrice?.let { java.math.BigDecimal.valueOf(it).stripTrailingZeros().toPlainString().replace('.', ',') }.orEmpty(),
-            shop = if (row.entry.assignedShopId == null) row.entry.customShopName.orEmpty() else row.place?.title.orEmpty(),
-            address = if (row.entry.assignedShopId == null) row.entry.customShopAddress.orEmpty() else row.place?.subtitle.orEmpty(),
+            shop = if (row.entry.assignedShopId == null) row.entry.customShopName.orEmpty() else row.shop?.name ?: row.place?.title.orEmpty(),
+            address = if (row.entry.assignedShopId == null) row.entry.customShopAddress.orEmpty()
+                else if(row.venue!=null)listOfNotNull(row.pointLabel,row.venue.address?.takeIf{it.isNotBlank()}).joinToString(" · ")
+                else row.place?.subtitle.orEmpty(),
             note = row.entry.note.orEmpty(), comment = row.entry.comment.orEmpty(), editableName = row.product.isTemporary))
     }
     fun editDraft(transform: (GoalItemEditor) -> GoalItemEditor) {
@@ -274,20 +290,6 @@ class GoalListViewModel(
         note = savedState["goal_editor_note"] ?: "", comment = savedState["goal_editor_comment"] ?: "", editableName = savedState["goal_editor_editable"] ?: true, dirty = savedState["goal_editor_dirty"] ?: false,
         editedFields = savedState.get<ArrayList<String>>("goal_editor_fields")?.mapNotNull { runCatching { GoalItemField.valueOf(it) }.getOrNull() }?.toSet()
             ?: if (savedState.get<Boolean>("goal_editor_dirty") == true) GoalItemField.entries.toSet() else emptySet())
-    fun showCatalogue(value: Boolean) { _state.update { it.copy(catalogueVisible = value) }; if (value) refreshCatalogue() }
-    fun cataloguePriority(value: Boolean) { _state.update { it.copy(catalogueUsePriority = value) } }
-    fun catalogueQuery(query: String) { _state.update { it.copy(catalogueQuery = query) }; refreshCatalogue() }
-    private fun refreshCatalogue() {
-        val query = _state.value.catalogueQuery
-        val collator = Collator.getInstance(Locale.forLanguageTag("ru"))
-        val result = if (query.isBlank()) catalogueProducts.sortedWith { a, b -> collator.compare(a.name, b.name) } else FuzzySearch.rank(catalogueProducts, query, { it.name })
-        _state.update { it.copy(catalogue = result) }
-    }
-    fun addCatalogue(product: ProductEntity) = command {
-        repository.addCatalogue(listId, product.id, choice = if (_state.value.catalogueUsePriority) com.spisokryadom.app.data.repository.ShopChoice.AUTO else com.spisokryadom.app.data.repository.ShopChoice.NONE)
-        _state.update { it.copy(message = "${product.name}: добавлено") }
-    }
-    fun export(done: (GoalListDocument) -> Unit) = command { done(repository.exportDocument(listId)) }
     fun openShare() = command { shareText(GoalListTransfer.exportText(repository.exportDocument(listId))) }
     fun shareText(text: String?) {
         try { messages.write("goal_share_text", text); _state.update { it.copy(shareText = text) } }
@@ -310,7 +312,7 @@ class GoalListViewModel(
     fun cancelFileExport() { pendingFileJson = null; runCatching { messages.write("goal_export_json", null) } }
     companion object { fun factory(listId: Long) = viewModelFactory { initializer {
         val app = this[APPLICATION_KEY] as SpisokRyadomApp
-        GoalListViewModel(listId, app.container.goalListRepository, app.container.productRepository, app.container.shopRepository, createSavedStateHandle(), GoalMessageDrafts.directory(app), DatabaseRevision.current(app))
+        GoalListViewModel(listId, app.container.goalListRepository, app.container.productRepository, app.container.shopRepository, createSavedStateHandle(), GoalMessageDrafts.directory(app), DatabaseRevision.current(app), units = app.container.classifierRepository.getAllUnits())
     } } }
 }
 

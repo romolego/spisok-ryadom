@@ -107,6 +107,7 @@ internal object BackupJson {
   displayOrder=if(o.has("displayOrder")&&!o.isNull("displayOrder"))o.getInt("displayOrder") else 0
  )
  fun encode(value:ShopEntity):JSONObject = JSONObject().apply {
+  put("isFavorite",value.isFavorite);put("favoriteOrder",value.favoriteOrder)
   put("id",value.id)
   put("name",value.name)
   put("address",value.address ?: JSONObject.NULL)
@@ -117,9 +118,10 @@ internal object BackupJson {
   put("manualOrderOverride",value.manualOrderOverride)
   put("cityId",value.cityId)
   put("networkId",value.networkId?:JSONObject.NULL)
-  put("shoppingBackground",value.shoppingBackground);put("iconKey",value.iconKey)
+  put("shoppingBackground",value.shoppingBackground);put("iconKey",value.iconKey);put("purchaseBackground",value.purchaseBackground)
  }
  fun shops(o:JSONObject):ShopEntity = ShopEntity(
+  isFavorite=favorite(o),favoriteOrder=favoriteOrder(o),
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
   name=if(o.has("name")&&!o.isNull("name"))o.getString("name") else "",
   address=if(o.has("address")&&!o.isNull("address"))o.getString("address") else null,
@@ -130,7 +132,7 @@ internal object BackupJson {
   manualOrderOverride=if(o.has("manualOrderOverride")&&!o.isNull("manualOrderOverride"))o.getBoolean("manualOrderOverride") else false,
   cityId=if(o.has("cityId")&&!o.isNull("cityId"))o.getLong("cityId") else 1,
   networkId=if(o.has("networkId")&&!o.isNull("networkId"))o.getLong("networkId")else null,
-  shoppingBackground=o.optString("shoppingBackground",""),iconKey=o.optString("iconKey","")
+  shoppingBackground=o.optString("shoppingBackground",""),iconKey=o.optString("iconKey",""),purchaseBackground=if(o.has("purchaseBackground"))o.get("purchaseBackground").also{require(it is String){"Неверный фон товаров"}} as String else ""
  )
  fun encode(value:ShopDepartmentEntity):JSONObject = JSONObject().apply {
   put("id",value.id)
@@ -217,18 +219,18 @@ internal object BackupJson {
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
   name=if(o.has("name")&&!o.isNull("name"))o.getString("name") else ""
  )
- fun encode(value:ShopBranchEntity)=JSONObject().put("id",value.id).put("shopId",value.shopId).put("address",value.address).put("displayOrder",value.displayOrder).put("note",value.note?:JSONObject.NULL).put("venueId",value.venueId?:JSONObject.NULL)
- fun branches(o:JSONObject)=ShopBranchEntity(o.getLong("id"),o.getLong("shopId"),o.getString("address"),o.optInt("displayOrder",0),if(o.isNull("note"))null else o.optString("note").ifBlank{null},venueId=if(o.has("venueId")&&!o.isNull("venueId"))o.getLong("venueId")else null)
+ fun encode(value:ShopBranchEntity)=JSONObject().put("id",value.id).put("shopId",value.shopId).put("address",value.address).put("displayOrder",value.displayOrder).put("note",value.note?:JSONObject.NULL).put("venueId",value.venueId?:JSONObject.NULL).put("label",value.label)
+ fun branches(o:JSONObject)=ShopBranchEntity(o.getLong("id"),o.getLong("shopId"),o.getString("address"),o.optInt("displayOrder",0),if(o.isNull("note"))null else o.optString("note").ifBlank{null},venueId=if(o.has("venueId")&&!o.isNull("venueId"))o.getLong("venueId")else null,label=if(o.has("label"))strictString(o,"label")else "")
  fun encode(value:ProductBranchAvailabilityEntity)=JSONObject().put("productId",value.productId).put("branchId",value.branchId).put("shopId",value.shopId)
  fun availability(o:JSONObject)=ProductBranchAvailabilityEntity(o.getLong("productId"),o.getLong("branchId"),o.optLong("shopId",0))
  fun encode(v:RetailNetworkEntity)=JSONObject().put("id",v.id).put("name",v.name)
- fun encode(v:VenueEntity)=JSONObject().put("id",v.id).put("cityId",v.cityId).put("name",v.name).put("address",v.address?:JSONObject.NULL).put("note",v.note?:JSONObject.NULL)
+ fun encode(v:VenueEntity)=JSONObject().put("kind",v.kind).put("id",v.id).put("cityId",v.cityId).put("name",v.name).put("address",v.address?:JSONObject.NULL).put("note",v.note?:JSONObject.NULL)
  fun encode(v:DepartmentTypeEntity)=JSONObject().put("isFavorite",v.isFavorite).put("favoriteOrder",v.favoriteOrder).put("id",v.id).put("name",v.name).put("normalizedName",v.normalizedName).put("displayOrder",v.displayOrder).put("accent",v.accent).put("iconKey",v.iconKey)
  fun encode(v:BranchDepartmentOrderEntity)=JSONObject().put("branchId",v.branchId).put("typeId",v.typeId).put("displayOrder",v.displayOrder)
  fun encode(v:ProductBranchDepartmentEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("typeId",v.typeId)
  fun encode(v:ProductBranchPriorityEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("displayOrder",v.displayOrder)
- fun encode(v:GoalListEntity)=JSONObject().put("id",v.id).put("stableId",v.stableId).put("name",v.name).put("showInPurchases",v.showInPurchases).put("createdAt",v.createdAt).put("updatedAt",v.updatedAt)
- fun goalList(o:JSONObject)=GoalListEntity(strictLong(o,"id"),strictString(o,"stableId"),strictString(o,"name"),strictBoolean(o,"showInPurchases"),strictLong(o,"createdAt"),strictLong(o,"updatedAt"))
+ fun encode(v:GoalListEntity)=JSONObject().put("id",v.id).put("stableId",v.stableId).put("name",v.name).put("showInPurchases",v.showInPurchases).put("createdAt",v.createdAt).put("updatedAt",v.updatedAt).put("isTemplate",v.isTemplate)
+ fun goalList(o:JSONObject)=GoalListEntity(strictLong(o,"id"),strictString(o,"stableId"),strictString(o,"name"),strictBoolean(o,"showInPurchases"),strictLong(o,"createdAt"),strictLong(o,"updatedAt"),if(o.has("isTemplate"))strictBoolean(o,"isTemplate")else false)
  // JSONObject getters coerce strings and truncate decimals. A full snapshot must never
  // silently redirect a purchase to another owner or alter planning metadata that way.
  private fun strictLong(o:JSONObject,key:String):Long {
@@ -278,7 +280,7 @@ internal object BackupJson {
    listOf("listId","plannedUnitPrice","customShopName","customShopAddress").forEach{key->require(row.has(key)){"В копии отсутствует поле покупки $key"}}
   }
  }
- return BackupSnapshot(
+ val snapshot=BackupSnapshot(
   products=d.optJSONArray("products")?.let{a->(0 until a.length()).map{products(a.getJSONObject(it))}} ?: emptyList(),
   groups=d.optJSONArray("productGroups")?.let{a->(0 until a.length()).map{groups(a.getJSONObject(it))}} ?: emptyList(),
   recipients=d.optJSONArray("recipients")?.let{a->(0 until a.length()).map{recipients(a.getJSONObject(it))}} ?: emptyList(),
@@ -293,7 +295,7 @@ internal object BackupJson {
   branchOrder=d.optJSONArray("branchDepartmentOrder")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->BranchDepartmentOrderEntity(o.getLong("branchId"),o.getLong("typeId"),o.getInt("displayOrder"))}}}?:emptyList(),
   branchDepartments=d.optJSONArray("productBranchDepartments")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductBranchDepartmentEntity(o.getLong("productId"),o.getLong("branchId"),o.getLong("shopId"),o.getLong("typeId"))}}}?:emptyList(),
   networks=d.optJSONArray("retailNetworks")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->RetailNetworkEntity(o.getLong("id"),o.getString("name"))}}}?:emptyList(),
-  venues=d.optJSONArray("venues")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->VenueEntity(o.getLong("id"),o.getLong("cityId"),o.getString("name"),if(o.isNull("address"))null else o.optString("address"),if(o.isNull("note"))null else o.optString("note"))}}}?:emptyList(),
+  venues=d.optJSONArray("venues")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->VenueEntity(o.getLong("id"),o.getLong("cityId"),o.getString("name"),if(o.isNull("address"))null else o.optString("address"),if(o.isNull("note"))null else o.optString("note"),kind=if(o.has("kind"))strictString(o,"kind")else VenueKinds.UNSPECIFIED)}}}?:emptyList(),
   departmentTypes=d.optJSONArray("departmentTypes")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->DepartmentTypeEntity(o.getLong("id"),o.getString("name"),o.getString("normalizedName"),o.optInt("displayOrder",0),o.optString("accent",""),o.optString("iconKey",""),favorite(o),favoriteOrder(o))}}}?:emptyList(),
   branchPriorities=d.optJSONArray("productBranchPriorities")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductBranchPriorityEntity(o.getLong("productId"),o.getLong("branchId"),o.getLong("shopId"),o.getInt("displayOrder"))}}}?:emptyList(),
   goalLists=d.optJSONArray("goalLists")?.let{a->(0 until a.length()).map{goalList(a.getJSONObject(it))}}?:emptyList(),
@@ -301,5 +303,15 @@ internal object BackupJson {
   groupPresets=d.optJSONArray("groupCreationPresets")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require((o.get("groupId") is Int||o.get("groupId") is Long)&&o.has("recipientId")&&(o.isNull("recipientId")||(o.get("recipientId") is Int||o.get("recipientId") is Long)));GroupCreationPreset(o.getLong("groupId"),if(o.isNull("recipientId"))null else o.getLong("recipientId"))}}}?:emptyList(),
   preferences=root.optJSONObject("preferences") ?: JSONObject()
  )
+ if(root.getInt("version")>=17){
+  d.optJSONArray("shopBranches")?.let{rows->for(i in 0 until rows.length())require(rows.getJSONObject(i).has("label")){"Отсутствует обозначение точки"}}
+  return snapshot
+ }
+ val shops=snapshot.shops.associateBy{it.id}
+ val branches=com.spisokryadom.app.domain.OutletLocations.migrate(snapshot.branches,snapshot.venues,shops.mapValues{it.value.name})
+ return snapshot.copy(branches=branches,shops=snapshot.shops.map{shop->
+  val first=branches.filter{it.shopId==shop.id}.minWithOrNull(compareBy<ShopBranchEntity>{it.displayOrder}.thenBy{it.id})
+  if(first==null)shop else shop.copy(address=com.spisokryadom.app.domain.PlaceLabels(venues=snapshot.venues).address(first).ifBlank{null})
+ })
  }
 }

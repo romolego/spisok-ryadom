@@ -29,16 +29,19 @@ class ShopListViewModel(
     private val shopRepository: ShopRepository
 ) : ViewModel() {
 
+    private val generation=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
     private val _uiState = MutableStateFlow(ShopListUiState())
     val uiState: StateFlow<ShopListUiState> = _uiState.asStateFlow()
 
     private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(error=e.message?:"Операция не выполнена")}
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
+    private fun command(block:suspend()->Unit){viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation,block)}}
     init {
         viewModelScope.launch(errors) {
-            kotlinx.coroutines.flow.combine(shopRepository.getCityShops(),shopRepository.observeBranches(),shopRepository.venues()){shops,branches,venues->
-                val currentVenues=venues.filter{it.cityId==shopRepository.locations.currentId()}
-                fun address(shop:ShopEntity,points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>)=shop.copy(address=points.minWithOrNull(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})?.address)
+            kotlinx.coroutines.flow.combine(shopRepository.getAllShops(),shopRepository.observeBranches(),shopRepository.venues(),shopRepository.locations.activeCity){allShops,branches,venues,city->
+                val shops=allShops.filter{it.cityId==city.id}
+                val currentVenues=venues.filter{it.cityId==city.id}
+                fun address(shop:ShopEntity,points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>)=shop.copy(address=points.minWithOrNull(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})?.let{point->com.spisokryadom.app.domain.PlaceLabels(branches,venues).detail(point).takeIf{it.isNotBlank()}})
                 val physical=shops.map{shop->address(shop,branches.filter{it.shopId==shop.id})}
                 val knownVenues=currentVenues.map{it.id}.toSet()
                 val groups=buildList{
@@ -58,18 +61,16 @@ class ShopListViewModel(
     }
 
 
-    fun saveVenue(venue:com.spisokryadom.app.data.entity.VenueEntity){viewModelScope.launch(errors){shopRepository.updateVenue(venue)}}
-    fun removeVenue(id:Long){viewModelScope.launch(errors){shopRepository.deleteVenue(id)}}
-    fun deleteShop(shop: ShopEntity) {
-        viewModelScope.launch(errors) { shopRepository.deleteShop(shop) }
-    }
-
+    suspend fun saveVenue(venue:com.spisokryadom.app.data.entity.VenueEntity){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){shopRepository.updateVenue(venue)}}
+    fun removeVenue(id:Long){viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){shopRepository.deleteVenue(id)}}}
     fun toggleEditing() {
         _uiState.value = _uiState.value.copy(isEditing = !_uiState.value.isEditing)
     }
 
-    fun moveShopUp(shop:ShopEntity){viewModelScope.launch(errors){shopRepository.moveShop(shop.id,-1)}}
-    fun moveShopDown(shop:ShopEntity){viewModelScope.launch(errors){shopRepository.moveShop(shop.id,1)}}
+    fun moveShopUp(shop:ShopEntity){command{shopRepository.moveShop(shop.id,-1)}}
+    fun moveShopDown(shop:ShopEntity){command{shopRepository.moveShop(shop.id,1)}}
+    fun moveFavoriteUp(shop:ShopEntity){command{shopRepository.moveFavoriteShop(shop.id,-1)}}
+    fun moveFavoriteDown(shop:ShopEntity){command{shopRepository.moveFavoriteShop(shop.id,1)}}
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

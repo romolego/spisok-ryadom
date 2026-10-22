@@ -115,6 +115,7 @@ fun ShoppingListScreen(
     batchVM:BatchViewModel = viewModel(factory=BatchViewModel.Factory),
     onNavigateToGoalList:(Long)->Unit={}
 ) {
+ androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.PURCHASES) {
     // A full replacement can reuse numeric IDs for different records. No old
     // selection or open purchase action may survive that database revision.
     val revision=rememberDatabaseRevision()
@@ -122,6 +123,8 @@ fun ShoppingListScreen(
         ShoppingListContent(onNavigateToAddToList,onNavigateToAddToShop,onNavigateToProductCard,
             onNavigateToSettings,onNavigateToBulk,viewModel,batchVM,onNavigateToGoalList)
     }
+
+ }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -455,7 +458,7 @@ private fun ShoppingListContent(
                                     ShoppingListItem(
                                         placementModifier=Modifier.animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
                                         entryUi = entryUi,
-                                        blockBackground=backgroundKey,
+                                        blockBackground=backgroundKey,purchaseBackground=if(isByShops)group.purchaseBackground else "",
                                         viewMode = state.viewMode,
                                         onToggleBought = {
                                             if (entryUi.entry.isBought) {
@@ -483,7 +486,7 @@ private fun ShoppingListContent(
                             ShoppingListItem(
                                         placementModifier=Modifier.animateItem(fadeInSpec=androidx.compose.animation.core.tween(220),fadeOutSpec=androidx.compose.animation.core.tween(180),placementSpec=androidx.compose.animation.core.tween(300)),
                                 entryUi = entryUi,
-                                        blockBackground=backgroundKey,
+                                        blockBackground=backgroundKey,purchaseBackground=if(isByShops)group.purchaseBackground else "",
                                 viewMode = state.viewMode,
                                 onToggleBought = {
                                     if (entryUi.entry.isBought) {
@@ -720,6 +723,7 @@ private fun EntryGroupHeader(
 private fun ShoppingListItem(
     placementModifier:Modifier=Modifier,
     blockBackground:String="",
+    purchaseBackground:String="",
     entryUi: ShoppingListEntryUi,
     viewMode: ViewMode,
     onToggleBought: () -> Unit,
@@ -738,7 +742,7 @@ private fun ShoppingListItem(
         targetValue = when {
             isBought -> MaterialTheme.colorScheme.surfaceVariant
             isUrgent -> MaterialTheme.colorScheme.errorContainer
-            else -> favoriteBackground(entryUi.isFavorite)
+            else -> favoriteBackground(entryUi.isFavorite,com.spisokryadom.app.ui.components.purchaseCardColor(blockBackground,purchaseBackground,MaterialTheme.colorScheme.surface))
         },
         label = "itemBg"
     )
@@ -866,49 +870,7 @@ private fun ShoppingListItem(
 
             // Right side: inline quantity control
             Spacer(modifier = Modifier.width(12.dp))
-            if(!selectionMode)Row(
-                modifier = Modifier
-                    .background(
-                        if (!isBought) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        RoundedCornerShape(8.dp)
-                    ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onDecreaseQuantity,
-                    enabled = !isBought && entry.quantity > 0 && (entry.listId == null || entry.quantity > quantityStep),
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.Remove,
-                        contentDescription = "Уменьшить",
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-                Text(
-                    text = badgeText ?: "\u2014",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = if (badgeText != null) FontWeight.Medium else FontWeight.Normal
-                    ),
-                    color = if (badgeText != null) MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    maxLines = 1,
-                    modifier = Modifier.widthIn(min = 24.dp).padding(horizontal = 2.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-                IconButton(
-                    onClick = onIncreaseQuantity,
-                    enabled = !isBought,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.Add,
-                        contentDescription = "Увеличить",
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
+            if(!selectionMode)com.spisokryadom.app.ui.components.PurchaseQuantityStepper(badgeText?:"—",isBought,entry.quantity>0&&(entry.listId==null||entry.quantity>quantityStep),onDecreaseQuantity,onIncreaseQuantity)
         }
     }
 }
@@ -938,15 +900,16 @@ private fun EditEntryDialog(
 
     val unitLabel = entryUi.entry.unit.ifBlank { null }
 
-    // A fixed content width prevents intrinsic text-field measurement from repeatedly resizing the window.
-    val dialogWidth=(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp-48).coerceIn(240,560).dp
-    AlertDialog(
-        modifier=Modifier.width(dialogWidth),
-        properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false),
-        onDismissRequest = onDismiss,
-        title = { Text(entryUi.productName) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
+    com.spisokryadom.app.ui.components.EditorSheet(
+        title=entryUi.productName,onDismiss=onDismiss,
+        actions={
+            TextButton(onClick=onDismiss){Text("Отмена")}
+            TextButton(onClick={
+                val qty=com.spisokryadom.app.util.Quantities.parse(quantity)?:return@TextButton
+                onSave(qty,note.ifBlank{null},comment.ifBlank{null})
+            },enabled=com.spisokryadom.app.util.Quantities.parse(quantity)!=null){Text("Сохранить")}
+        }
+    ) {
                 OutlinedTextField(
                     value=quantity,
                     onValueChange={value->if(value.isEmpty()||value.matches(Regex("^\\d*[.,]?\\d*$")))quantity=value},
@@ -957,8 +920,6 @@ private fun EditEntryDialog(
                     keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 // Note
                 OutlinedTextField(
                     value = note,
@@ -968,8 +929,6 @@ private fun EditEntryDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 // One-time comment for this specific purchase
                 OutlinedTextField(
                     value = comment,
@@ -978,18 +937,7 @@ private fun EditEntryDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val qty = com.spisokryadom.app.util.Quantities.parse(quantity) ?: return@TextButton
-                onSave(qty, note.ifBlank { null }, comment.ifBlank { null })
-            }, enabled = com.spisokryadom.app.util.Quantities.parse(quantity) != null) { Text("Сохранить") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

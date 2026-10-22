@@ -20,10 +20,10 @@ import androidx.compose.ui.Alignment
 import com.spisokryadom.app.ui.components.favoriteStyle
 import com.spisokryadom.app.ui.components.favoriteWeight
 import com.spisokryadom.app.ui.components.favoriteBackground
-import com.spisokryadom.app.ui.components.favoriteSurface
-import com.spisokryadom.app.ui.components.FavoriteBlock
-import com.spisokryadom.app.ui.components.LocalFavoriteBlock
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -36,23 +36,25 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.GoalListEntity
-import com.spisokryadom.app.data.entity.ProductEntity
 import com.spisokryadom.app.ui.components.ConfirmDialog
 import com.spisokryadom.app.util.Quantities
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoalListScreen(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel? = null) {
+fun GoalListScreen(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel? = null, onOpenRegular:()->Unit=onBack, onOpenList:(Long)->Unit={},onAddProducts:(()->Unit)?=null,onOpenProduct:((Long)->Unit)?=null) {
+ androidx.compose.runtime.CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.LISTS) {
     val revision = com.spisokryadom.app.ui.batch.rememberDatabaseRevision()
     key(revision) {
         val model = viewModel ?: androidx.lifecycle.viewmodel.compose.viewModel<GoalListViewModel>(key = "goal-list-$listId-$revision", factory = GoalListViewModel.factory(listId))
-        GoalListContent(listId, onBack, model)
+        GoalListContent(listId, onBack, model, onOpenRegular, onOpenList,onAddProducts,onOpenProduct)
     }
+
+ }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel) {
+private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalListViewModel, onOpenRegular:()->Unit, onOpenList:(Long)->Unit,onAddProducts:(()->Unit)?,onOpenProduct:((Long)->Unit)?) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_STOP) { viewModel.flushEditor() }
     val context = LocalContext.current
@@ -63,18 +65,22 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
     var selectionActions by rememberSaveable { mutableStateOf(false) }
     var moveSelection by rememberSaveable { mutableStateOf(false) }
     var deleteSelection by rememberSaveable { mutableStateOf(false) }
+    var applySession by rememberSaveable{mutableStateOf<String?>(null)}
+    var captureCopy by rememberSaveable{mutableStateOf(false)}
     val snackbar = remember { SnackbarHostState() }
     val file = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> if (uri != null) viewModel.writeFile(context.contentResolver, uri) else viewModel.cancelFileExport() }
     BackHandler(enabled = state.selectionMode) { viewModel.selection(false) }
+    LaunchedEffect(state.openListId){state.openListId?.let{viewModel.clearNavigation();onOpenList(it)}}
+    applySession?.let{session->ListCopySheet(listId,session,{applySession=null}){destination->applySession=null;if(destination==null)onOpenRegular()else onOpenList(destination)}}
+    if(captureCopy)com.spisokryadom.app.ui.components.InputDialog("Сохранить копию списка",label="Название списка",onConfirm={captureCopy=false;viewModel.captureList(it)},onDismiss={captureCopy=false})
     LaunchedEffect(state.deleted) { if (state.deleted) onBack() }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
     state.error?.let { GoalErrorDialog(it, viewModel::clearError) }
-    state.editor?.let { GoalItemEditorSheet(it, state.shops, viewModel::editDraft, viewModel::finishEditor) }
-    if (state.catalogueVisible) GoalCatalogueSheet(state, viewModel::catalogueQuery, viewModel::cataloguePriority, viewModel::addCatalogue, { viewModel.showCatalogue(false) })
+    state.editor?.let { GoalItemEditorSheet(it, state.shops, state.unitSuggestions, viewModel::editDraft, viewModel::finishEditor) }
     state.shareText?.let { GoalTextSheet(state.list?.name.orEmpty(), it, viewModel::shareText) { viewModel.shareText(null) } }
     if (metadata) state.list?.let { list -> GoalMetadataDialog(list, onSave = { name, visible -> metadata = false; viewModel.metadata(name, visible) }, onDismiss = { metadata = false }) }
-    if (delete) ConfirmDialog("Удалить список?", "«${state.list?.name.orEmpty()}» и его покупки будут удалены. Каталог товаров сохранится.", { delete = false; viewModel.deleteList() }, { delete = false })
-    if (selectionActions) GoalSelectionActions(state.selectedIds.size, state.rows.any { it.entry.id in state.selectedIds && !it.entry.isBought }, state.rows.any { it.entry.id in state.selectedIds && it.entry.isBought }, { selectionActions = false; viewModel.batchBought(it) }, { selectionActions = false; moveSelection = true }, { selectionActions = false; deleteSelection = true }, { selectionActions = false })
+    if (delete) ConfirmDialog("Удалить список?", "«${state.list?.name.orEmpty()}» и его позиции будут удалены. Каталог товаров сохранится.", { delete = false; viewModel.deleteList() }, { delete = false })
+    if (selectionActions) GoalSelectionActions(state.selectedIds.size, state.rows.any { it.entry.id in state.selectedIds && !it.entry.isBought }, state.rows.any { it.entry.id in state.selectedIds && it.entry.isBought }, { selectionActions = false; viewModel.batchBought(it) }, { selectionActions = false; moveSelection = true }, { selectionActions = false; deleteSelection = true }, { selectionActions = false }, allowMove=true)
     if (moveSelection) GoalMoveSelectionDialog(listId, state.allLists, { moveSelection = false; viewModel.moveSelected(it) }, { moveSelection = false })
     if (deleteSelection) ConfirmDialog("Удалить выбранное?", "Позиций: ${state.selectedIds.size}", { deleteSelection = false; viewModel.batchDelete() }, { deleteSelection = false })
     deleteRowId?.let { id -> state.rows.find { it.entry.id == id }?.let { row ->
@@ -88,12 +94,14 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
                 IconButton(onClick = viewModel::selectAll, enabled = !state.busy) { Icon(Icons.Filled.DoneAll, "Выбрать всё") }
             } else {
             IconButton(onClick = { viewModel.selection(true) }, enabled = state.rows.isNotEmpty()) { Icon(Icons.Filled.Checklist, "Выбрать позиции") }
-            IconButton(onClick = viewModel::openShare, enabled = !state.loading && !state.busy && state.list != null) { Icon(Icons.Filled.Share, "Поделиться целевым списком") }
+            IconButton(onClick = viewModel::openShare, enabled = !state.loading && !state.busy && state.list != null) { Icon(Icons.Filled.Share, "Поделиться списком") }
             Box {
                 IconButton(onClick = { menu = true }, enabled = state.list != null) { Icon(Icons.Filled.MoreVert, "Действия со списком") }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text("Настройки списка") }, onClick = { menu = false; metadata = true }, leadingIcon = { Icon(Icons.Filled.Settings, null) })
+                    DropdownMenuItem(text={Text("Быстрая позиция с ценой")},onClick={menu=false;viewModel.newItem()},leadingIcon={Icon(Icons.Filled.Add,null)})
                     DropdownMenuItem(text = { Text("Экспортировать файл") }, enabled = !state.busy, onClick = { menu = false; viewModel.prepareFile { file.launch(it) } }, leadingIcon = { Icon(Icons.Filled.Upload, null) })
+                    DropdownMenuItem(text={Text("Сохранить копию списка")},enabled=!state.busy,onClick={menu=false;captureCopy=true},leadingIcon={Icon(Icons.Filled.ContentCopy,null)})
                     HorizontalDivider()
                     DropdownMenuItem(text = { Text("Удалить список", color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; delete = true }, leadingIcon = { Icon(Icons.Filled.Delete, null, tint = MaterialTheme.colorScheme.error) })
                 }
@@ -102,11 +110,9 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
         }) },
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = { if (state.selectionMode) Surface(shadowElevation = 2.dp) { Button(onClick = { selectionActions = true }, enabled = state.selectedIds.isNotEmpty() && !state.busy, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).navigationBarsPadding().testTag("goal-selection-actions")) { Text("Действия · ${state.selectedIds.size}") } } },
-        floatingActionButton = { if (!state.selectionMode && state.list != null) FloatingActionButton(onClick = viewModel::newItem, modifier = Modifier.testTag("goal-add-item")) { Icon(Icons.Filled.Add, "Добавить позицию") } }
+        floatingActionButton = { if (!state.selectionMode && state.list != null) FloatingActionButton(onClick = {if(onAddProducts!=null)onAddProducts()else viewModel.newItem()}, modifier = Modifier.testTag("goal-add-item")) { Icon(Icons.Filled.Add, "Добавить позицию") } }
     ) { padding ->
-        val groups = remember(state.rows) { state.rows.sortedWith(compareBy<GoalPurchaseRow> { it.entry.isBought }.thenBy { it.entry.createdAt }.thenBy { it.entry.id }).groupBy {
-            (it.entry.assignedShopId?.let { id -> "shop-$id-point-${it.entry.assignedBranchId}" } ?: goalCustomPlaceKey(it.entry.customShopName.orEmpty(), it.entry.customShopAddress.orEmpty())) to it.entry.isBought
-        } }
+        val groups = remember(state.rows) { goalPurchaseGroups(state.rows) }
         LazyColumn(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).testTag("goal-items"), contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 96.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (state.loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (!state.loading && state.list == null) item { Text("Список удалён", modifier = Modifier.padding(12.dp)) }
@@ -119,19 +125,37 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
                             Text("Осталось: ${goalMoney(state.remainingTotal)} · Куплено: ${goalMoney(state.boughtTotal)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         if (state.unpricedCount > 0) Text("Без цены: ${state.unpricedCount}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        if (!state.selectionMode) OutlinedButton(onClick = { viewModel.showCatalogue(true) }, modifier = Modifier.fillMaxWidth().testTag("goal-open-catalogue")) { Icon(Icons.Filled.Inventory2, null); Spacer(Modifier.width(8.dp)); Text("Добавить из базы товаров") }
+                        if(!state.selectionMode)Button(onClick={applySession=java.util.UUID.randomUUID().toString()},enabled=!state.busy&&state.rows.isNotEmpty(),modifier=Modifier.fillMaxWidth().testTag("list-open-copy")){Icon(Icons.Filled.PlayArrow,null);Spacer(Modifier.width(8.dp));Text("Добавить позиции списка")}
+                        if (!state.selectionMode) OutlinedButton(onClick = {if(onAddProducts!=null)onAddProducts()else viewModel.newItem()}, modifier = Modifier.fillMaxWidth().testTag("goal-open-catalogue")) { Icon(Icons.Filled.Inventory2, null); Spacer(Modifier.width(8.dp)); Text("Добавить товары") }
                     }
                 }
                 if (state.rows.isEmpty()) item { Text("Список пуст", modifier = Modifier.padding(horizontal = 4.dp, vertical = 24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                val seenVenues=mutableSetOf<Long>()
                 groups.forEach { (key, rows) ->
-                    item(key = "heading-${key.first}-${key.second}") {
+                    rows.first().venue?.let{venue->if(seenVenues.add(venue.id))item(key="venue-${venue.id}"){
+                        Column(Modifier.padding(start=4.dp,end=4.dp,top=14.dp,bottom=2.dp)){
+                            Text(venue.name,style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.primary)
+                            venue.address?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
+                        }
+                    }}
+                    item(key = "heading-$key") {
                         val place = rows.first().place
-                        Column(Modifier.padding(start = 4.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
-                            Text(if (key.second) "Куплено${place?.title?.let { " · $it" }.orEmpty()}" else place?.title ?: "Без магазина", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                            place?.subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        val shop = rows.first().shop
+                        val venue=rows.first().venue
+                        Column(Modifier.goalShopZone(shop?.shoppingBackground.orEmpty()).padding(start = if(venue==null)4.dp else 20.dp, end = 4.dp, top = 10.dp, bottom = 2.dp).testTag("goal-place-$key")) {
+                            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                                if(shop!=null)com.spisokryadom.app.ui.components.ShopSymbol(shop.iconKey,shop.logoUri,20.dp)
+                                Text(if(venue!=null)shop?.name.orEmpty() else place?.title ?: "Без магазина", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                            }
+                            (if(venue!=null)rows.first().pointLabel else place?.subtitle)?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }
                     }
-                    items(rows, key = { "entry-${it.entry.id}" }) { row -> GoalPurchaseCard(row, state.busy, { viewModel.bought(row, it) }, { viewModel.edit(row) }, { deleteRowId = row.entry.id }, { viewModel.quantity(row, it) }, { viewModel.urgent(row) }, if (state.selectionMode) row.entry.id in state.selectedIds else null, { viewModel.select(row) }) }
+                    rows.groupBy{it.entry.assignedDepartmentId}.forEach{(departmentId,departmentRows)->
+                        departmentRows.first().department?.let{department->item(key="department-$key-$departmentId"){
+                            Text(department.name,Modifier.goalShopZone(rows.first().shop?.shoppingBackground.orEmpty()).padding(start=20.dp,top=2.dp,bottom=2.dp),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                        }}
+                        items(departmentRows, key = { "entry-${it.entry.id}" }) { row -> GoalPurchaseCard(row, state.busy, { viewModel.bought(row, it) }, { if(onOpenProduct!=null)onOpenProduct(row.product.id)else viewModel.edit(row) }, { viewModel.edit(row) }, { deleteRowId = row.entry.id }, { viewModel.quantity(row, it) }, { viewModel.urgent(row) }, if (state.selectionMode) row.entry.id in state.selectedIds else null, { viewModel.select(row) }) }
+                    }
                 }
             }
         }
@@ -139,40 +163,42 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
 }
 
 @Composable
-private fun GoalPurchaseCard(row: GoalPurchaseRow, busy: Boolean, bought: (Boolean) -> Unit, edit: () -> Unit, delete: () -> Unit, quantity: (Double) -> Unit, urgent: () -> Unit, selected: Boolean?, select: () -> Unit) {
+private fun GoalPurchaseCard(row: GoalPurchaseRow, busy: Boolean, bought: (Boolean) -> Unit, edit: () -> Unit, editPurchase:()->Unit, delete: () -> Unit, quantity: (Double) -> Unit, urgent: () -> Unit, selected: Boolean?, select: () -> Unit) {
     var menu by remember { mutableStateOf(false) }
     val step = Quantities.step(row.entry.unit, row.product.defaultUnit, row.product.defaultQuantity)
-    OutlinedCard(Modifier.fillMaxWidth().clickable(onClick = if (selected != null) select else edit).testTag("goal-entry-${row.entry.id}"), colors = CardDefaults.outlinedCardColors(containerColor = if (selected == true) MaterialTheme.colorScheme.secondaryContainer else if (row.entry.isBought) MaterialTheme.colorScheme.surfaceContainerLow else favoriteBackground(row.product.isFavorite))) {
+    val cardColor = when {
+        selected == true -> MaterialTheme.colorScheme.secondaryContainer
+        row.entry.isBought -> MaterialTheme.colorScheme.surfaceVariant
+        row.entry.isUrgent -> MaterialTheme.colorScheme.errorContainer
+        else -> favoriteBackground(row.product.isFavorite,com.spisokryadom.app.ui.components.purchaseCardColor(row.shop?.shoppingBackground.orEmpty(),row.shop?.purchaseBackground.orEmpty(),MaterialTheme.colorScheme.surface))
+    }
+    Box(Modifier.goalShopZone(row.shop?.shoppingBackground.orEmpty())){
+    OutlinedCard(Modifier.fillMaxWidth().clickable(enabled=!busy,onClick = if (selected != null) select else edit).testTag("goal-entry-${row.entry.id}"), colors = CardDefaults.outlinedCardColors(containerColor = cardColor)) {
         Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Checkbox(selected ?: row.entry.isBought, { if (selected != null) select() else bought(it) }, enabled = !busy, modifier = Modifier.semantics { contentDescription = if (selected != null) "Выбрать: ${row.product.name}" else "Куплено: ${row.product.name}" })
             Column(Modifier.weight(1f).padding(start = 6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     if (row.entry.isUrgent && !row.entry.isBought) Icon(Icons.Filled.PriorityHigh, "Срочная покупка", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(17.dp))
                     if (row.product.isFavorite&&favoriteStyle().star) Icon(Icons.Filled.Star, "Избранный товар: ${row.product.name}", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
-                    Text(row.product.name,fontWeight=favoriteWeight(row.product.isFavorite), style = MaterialTheme.typography.bodyLarge, maxLines = 3, overflow = TextOverflow.Ellipsis, textDecoration = if (row.entry.isBought) TextDecoration.LineThrough else TextDecoration.None)
+                    Text(row.product.name,fontWeight=favoriteWeight(row.product.isFavorite)?:if(row.entry.isUrgent&&!row.entry.isBought)FontWeight.SemiBold else null, style = MaterialTheme.typography.bodyLarge, maxLines = 3, overflow = TextOverflow.Ellipsis, textDecoration = if (row.entry.isBought) TextDecoration.LineThrough else TextDecoration.None,color=if(row.entry.isBought)MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
                 }
                 listOfNotNull(row.entry.note, row.entry.comment).filter { it.isNotBlank() }.distinct().forEach {
                     Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
+            if(selected==null)com.spisokryadom.app.ui.components.PurchaseQuantityStepper("${goalNumber(row.entry.quantity)} ${row.entry.unit}".trim(),row.entry.isBought,row.entry.quantity>step,{quantity(-step)},{quantity(step)},enabled=!busy,decreaseLabel="Уменьшить: ${row.product.name}",increaseLabel="Увеличить: ${row.product.name}")
             if (selected == null) Box {
-                IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, "Действия: ${row.product.name}") }
+                IconButton(onClick = { menu = true },enabled=!busy) { Icon(Icons.Filled.MoreVert, "Действия: ${row.product.name}") }
                 DropdownMenu(menu, { menu = false }) {
-                    DropdownMenuItem(text = { Text("Изменить") }, onClick = { menu = false; edit() })
+                    DropdownMenuItem(text = { Text("Карточка товара") }, onClick = { menu = false; edit() })
+                    DropdownMenuItem(text = { Text("Количество, цена и заметка") }, onClick = { menu = false; editPurchase() })
                     if (!row.entry.isBought) DropdownMenuItem(text = { Text(if (row.entry.isUrgent) "Убрать срочность" else "Сделать срочным") }, onClick = { menu = false; urgent() })
                     DropdownMenuItem(text = { Text("Удалить", color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; delete() })
                 }
             }
         }
-        Row(Modifier.fillMaxWidth().padding(start = 64.dp, end = 10.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                row.entry.plannedUnitPrice?.let { Text("${goalMoney(it)} / ед.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                row.total?.let { Text(goalMoney(it), style = MaterialTheme.typography.labelLarge) }
-            }
-            if (selected == null) IconButton(onClick = { quantity(-step) }, enabled = !busy && !row.entry.isBought && row.entry.quantity > step) { Icon(Icons.Filled.Remove, "Уменьшить: ${row.product.name}", modifier = Modifier.size(20.dp)) }
-            Text("${goalNumber(row.entry.quantity)} ${row.entry.unit}".trim(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.widthIn(max = 120.dp), maxLines = 2)
-            if (selected == null) IconButton(onClick = { quantity(step) }, enabled = !busy && !row.entry.isBought) { Icon(Icons.Filled.Add, "Увеличить: ${row.product.name}", modifier = Modifier.size(20.dp)) }
-        }
+        if(row.total!=null)Text("${goalMoney(row.entry.plannedUnitPrice!!)} / ед. · ${goalMoney(row.total!!)}",Modifier.padding(start=58.dp,end=12.dp,bottom=8.dp),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+    }
     }
 }
 
@@ -180,21 +206,21 @@ private fun GoalPurchaseCard(row: GoalPurchaseRow, busy: Boolean, bought: (Boole
 private fun GoalMetadataDialog(list: GoalListEntity, onSave: (String, Boolean) -> Unit, onDismiss: () -> Unit) {
     var name by rememberSaveable(list.id) { mutableStateOf(list.name) }
     var visible by rememberSaveable(list.id) { mutableStateOf(list.showInPurchases) }
-    val width = (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp - 48).coerceIn(240, 560).dp
-    AlertDialog(modifier = Modifier.width(width), properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false), onDismissRequest = { if (name.isNotBlank()) onSave(name, visible) else onDismiss() }, title = { Text("Настройки списка") }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    com.spisokryadom.app.ui.components.EditorSheet("Настройки списка",onDismiss=onDismiss,actions={
+        TextButton(onClick=onDismiss){Text("Отмена")}
+        Button(onClick={onSave(name,visible)},enabled=name.isNotBlank()){Text("Готово")}
+    }) {
             OutlinedTextField(name, { name = it }, label = { Text("Название списка") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             Row(Modifier.fillMaxWidth().clickable { visible = !visible }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Отображать в текущих покупках", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                Text("Отображать на Главной", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
                 Switch(visible, { visible = it })
             }
-        }
-    }, confirmButton = { TextButton(onClick = { onSave(name, visible) }, enabled = name.isNotBlank()) { Text("Готово") } })
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GoalItemEditorSheet(editor: GoalItemEditor, shops: List<String>, update: ((GoalItemEditor) -> GoalItemEditor) -> Unit, finish: () -> Unit) {
+private fun GoalItemEditorSheet(editor: GoalItemEditor, shops: List<String>, units: List<String>, update: ((GoalItemEditor) -> GoalItemEditor) -> Unit, finish: () -> Unit) {
     var suggestions by remember { mutableStateOf(false) }
     val latestFinish by rememberUpdatedState(finish)
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true, confirmValueChange = { target ->
@@ -207,10 +233,9 @@ private fun GoalItemEditorSheet(editor: GoalItemEditor, shops: List<String>, upd
             editor.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(editor.name, { value -> update { it.copy(name = value) } }, readOnly = !editor.editableName, label = { Text("Название") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-name"), maxLines = 3)
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(editor.quantity, { value -> update { it.copy(quantity = value) } }, label = { Text("Количество") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f).testTag("goal-item-quantity"), singleLine = true)
-                    OutlinedTextField(editor.unit, { value -> update { it.copy(unit = value) } }, label = { Text("Ед. изм.") }, modifier = Modifier.weight(1f).testTag("goal-item-unit"), singleLine = true)
-                }
+                com.spisokryadom.app.ui.components.QuantityUnitInputWithSuggestions(editor.quantity,editor.unit,
+                    {value->update{it.copy(quantity=value)}},{value->update{it.copy(unit=value)}},units,
+                    quantityModifier=Modifier.testTag("goal-item-quantity"),unitModifier=Modifier.testTag("goal-item-unit"))
                 OutlinedTextField(editor.price, { value -> update { it.copy(price = value) } }, label = { Text("Цена за единицу, ₽") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth().testTag("goal-item-price"), singleLine = true)
                 ExposedDropdownMenuBox(expanded = suggestions && shops.isNotEmpty(), onExpandedChange = { suggestions = it }) {
                     OutlinedTextField(editor.shop, { value -> update { it.copy(shop = value) }; suggestions = false }, label = { Text("Магазин (необязательно)") }, modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable).testTag("goal-item-shop"), singleLine = true, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(suggestions) })
@@ -230,46 +255,26 @@ private fun GoalItemEditorSheet(editor: GoalItemEditor, shops: List<String>, upd
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun GoalCatalogueSheet(state: GoalListUiState, query: (String) -> Unit, priority: (Boolean) -> Unit, add: (ProductEntity) -> Unit, onDismiss: () -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.fillMaxWidth().fillMaxHeight(.95f).imePadding().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Из базы товаров", style = MaterialTheme.typography.headlineSmall)
-            OutlinedTextField(state.catalogueQuery, query, label = { Text("Поиск по названию") }, modifier = Modifier.fillMaxWidth().testTag("goal-catalogue-search"), singleLine = true, leadingIcon = { Icon(Icons.Filled.Search, null) }, trailingIcon = { com.spisokryadom.app.ui.components.VoiceSearchButton(query) })
-            Row(Modifier.fillMaxWidth().clickable { priority(!state.catalogueUsePriority) }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("По приоритету магазинов", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                Switch(state.catalogueUsePriority, priority)
-            }
-            state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
-            LazyColumn(Modifier.fillMaxWidth().weight(1f).testTag("goal-catalogue"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (state.catalogueQuery.isBlank() && state.catalogue.any { it.isFavorite }) {
-                    item { FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(vertical = 4.dp))} }
-                    items(state.catalogue.filter { it.isFavorite }, key = { "favorite-${it.id}" }) { product -> FavoriteBlock(Modifier.fillMaxWidth()){GoalCatalogueRow(product, state.busy, { add(product) }, "goal-catalogue-favorite-${product.id}")} }
-                    item { Text("Все товары", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 10.dp, bottom = 4.dp)) }
-                }
-                items(state.catalogue, key = { "all-${it.id}" }) { product -> GoalCatalogueRow(product, state.busy, { add(product) }, "goal-catalogue-all-${product.id}") }
-                if (state.catalogue.isEmpty()) item { Text("Товары не найдены", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 12.dp)) }
-            }
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Готово") }
-            Spacer(Modifier.height(8.dp))
-        }
-    }
-}
-
-@Composable
-private fun GoalCatalogueRow(product: ProductEntity, busy: Boolean, add: () -> Unit, tag: String) {
-    OutlinedCard(Modifier.fillMaxWidth().clickable(enabled = !busy, onClick = add).testTag(tag),colors=CardDefaults.outlinedCardColors(containerColor=favoriteBackground(product.isFavorite))) {
-        Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (product.isFavorite&&favoriteStyle().star) Icon(Icons.Filled.Star, "Избранный товар: ${product.name}", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
-            Column(Modifier.weight(1f)) {
-                Text(product.name,fontWeight=favoriteWeight(product.isFavorite), style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text("${goalNumber(product.defaultQuantity?.takeIf { it > 0 } ?: 1.0)} ${product.defaultUnit.orEmpty()}".trim(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            IconButton(onClick = add, enabled = !busy) { Icon(Icons.Filled.AddShoppingCart, "Добавить в целевой список: ${product.name}") }
-        }
-    }
-}
-
 /** Length-prefixed raw fields keep different portable places separate even when labels match. */
 internal fun goalCustomPlaceKey(name: String, address: String): String = "custom-${name.length}:$name-${address.length}:$address"
+
+/** The same retailer/point and department priorities used by Main; bought rows stay in their shop. */
+internal fun goalPurchaseGroups(rows:List<GoalPurchaseRow>):Map<String,List<GoalPurchaseRow>> = rows
+    .sortedWith(compareBy<GoalPurchaseRow>{it.entry.assignedShopId==null}.thenBy{it.shop?.displayOrder?:Int.MAX_VALUE}
+        .thenBy{it.entry.assignedShopId}.thenBy{it.branchPriority}.thenBy{it.entry.assignedBranchId}
+        .thenBy{it.entry.customShopName}.thenBy{it.entry.customShopAddress}
+        .thenBy{it.department?.displayOrder?:Int.MAX_VALUE}.thenBy{it.entry.assignedDepartmentId}
+        .thenBy{it.entry.isBought}.thenByDescending{it.entry.isUrgent&&!it.entry.isBought}
+        .thenBy{it.product.name.lowercase(java.util.Locale.ROOT)}.thenBy{it.entry.id})
+    .groupBy{row->row.entry.assignedShopId?.let{"shop-$it-point-${row.entry.assignedBranchId}"}
+        ?:goalCustomPlaceKey(row.entry.customShopName.orEmpty(),row.entry.customShopAddress.orEmpty())}
+    .entries.groupBy{group->group.value.first().venue?.id?.let{"venue-$it"}?:"place-${group.key}"}
+    .values.flatten().associate{it.key to it.value}
+
+@Composable
+private fun Modifier.goalShopZone(colorKey:String):Modifier {
+    val color=com.spisokryadom.app.ui.components.shoppingBlockColor(colorKey,MaterialTheme.colorScheme.surface)
+    return fillMaxWidth().then(if(color==null)Modifier else Modifier.drawBehind{
+        val gap=4.dp.toPx();drawRect(color,Offset(0f,-gap),Size(size.width,size.height+gap*2))
+    }.padding(horizontal=6.dp))
+}

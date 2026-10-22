@@ -1,6 +1,7 @@
 package com.spisokryadom.app.ui.settings
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.*
@@ -20,30 +21,37 @@ import com.spisokryadom.app.util.FavoriteStyle
  Row(verticalAlignment=Alignment.CenterVertically){Box(Modifier.weight(1f)){content()};HelpButton(title,message)}
 }
 @Composable fun FavoriteSettingsCard(){
+ var open by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
+ OutlinedCard(onClick={open=true},modifier=Modifier.fillMaxWidth()){
+  ListItem(headlineContent={Text("Оформление избранного")},leadingContent={Icon(androidx.compose.material.icons.Icons.Filled.Palette,null)},trailingContent={Icon(androidx.compose.material.icons.Icons.Filled.ChevronRight,"Открыть оформление избранного")})
+ }
+ if(open)FavoriteSettingsDialog{open=false}
+}
+
+@Composable fun FavoriteSettingsDialog(onDismiss:()->Unit){
  val prefs=androidx.compose.ui.platform.LocalContext.current.getSharedPreferences("shopping_list_prefs",0)
  val value=LocalFavoriteAppearance.current
- fun update(scope:String,change:(FavoriteStyle)->FavoriteStyle){
-  val current=com.spisokryadom.app.util.FavoriteAppearance.read(prefs)
-  (if(scope=="block")current.copy(block=change(current.block))else current.copy(row=change(current.row))).save(prefs)
+ var selected by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(com.spisokryadom.app.util.FavoriteSurface.PURCHASES.name)}
+ val surface=com.spisokryadom.app.util.FavoriteSurface.valueOf(selected)
+ fun update(pinned:Boolean,change:(FavoriteStyle)->FavoriteStyle){val current=com.spisokryadom.app.util.FavoriteAppearance.read(prefs);current.change(surface,pinned,change(current.style(surface,pinned))).save(prefs)}
+ var colorPinned by remember{mutableStateOf<Boolean?>(null)}
+ colorPinned?.let{pinned->val style=value.style(surface,pinned)
+  AppearanceSheet("Фон избранного",style.color,withIcons=false,onSave={color,_->update(pinned){it.copy(background=color.isNotBlank(),color=color.ifBlank{it.color})};colorPinned=null},onDismiss={colorPinned=null})
  }
- var colorScope by remember{mutableStateOf<String?>(null)}
- colorScope?.let{scope->val s=if(scope=="block")value.block else value.row
-  AppearanceSheet("Фон избранного",s.color,withIcons=false,onSave={color,_->
-   update(scope){it.copy(background=color.isNotBlank(),color=color.ifBlank{it.color})}
-   colorScope=null
-  },onDismiss={colorScope=null},preview={color,_->Surface(color=shoppingBlockColor(color,MaterialTheme.colorScheme.surface)?:MaterialTheme.colorScheme.surface,shape=MaterialTheme.shapes.medium){Column(Modifier.fillMaxWidth().padding(12.dp)){Text("Избранные");MarkedLabel("Банан",fontWeight=if(s.bold)androidx.compose.ui.text.font.FontWeight.Bold else null)}}})
+ EditorSheet("Оформление избранного",onDismiss,actions={TextButton(onClick=onDismiss){Text("Готово")}}){
+   SettingWithHelp("Оформление избранного","Выберите контекст. Верхний блок избранного и его повторения в полном перечне имеют независимые фон, цвет, звёздочку и жирность. «Покупки» — главный экран; «Списки» — целевые списки, каталог и подбор товаров."){
+   DropdownSelector("Где отображать",com.spisokryadom.app.util.FavoriteSurface.entries.toList(),surface,{it.title},{it?.let{v->selected=v.name}},allowNone=false)
+   }
+   listOf(true,false).forEach{pinned->
+    val s=value.style(surface,pinned);val title=if(pinned)"Блок избранного"else "В полном списке";val key=surface.title+": "+title
+    Text(title,style=MaterialTheme.typography.titleSmall)
+    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){
+     IconToggleButton(checked=s.background,onCheckedChange={v->update(pinned){it.copy(background=v)}}){Icon(Icons.Filled.FormatColorFill,"Фон: $key")}
+     IconButton(onClick={colorPinned=pinned}){Icon(Icons.Filled.Palette,"Цвет фона: $key",tint=accentColor(s.color)?:MaterialTheme.colorScheme.primary)}
+     IconToggleButton(checked=s.star,onCheckedChange={v->update(pinned){it.copy(star=v)}}){Icon(Icons.Filled.Star,"Звёздочка: $key")}
+     IconToggleButton(checked=s.bold,onCheckedChange={v->update(pinned){it.copy(bold=v)}}){Icon(Icons.Filled.FormatBold,"Жирное название: $key")}
+    }
+    CompositionLocalProvider(LocalFavoriteSurface provides surface,LocalFavoriteBlock provides pinned){FavoriteMarkedLabel("Банан",favorite=true,modifier=Modifier.fillMaxWidth().padding(12.dp))}
+   }
  }
- OutlinedCard{Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
-  Row(verticalAlignment=Alignment.CenterVertically){Text("Оформление избранного",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium);HelpButton("Оформление избранного","Верхний блок и избранные позиции в полном списке настраиваются независимо. Изменение оформления не меняет состав и порядок товаров или групп.")}
-  listOf("block" to "Блок избранного","row" to "В полном списке").forEach{(scope,title)->
-   val s=if(scope=="block")value.block else value.row
-   Text(title,style=MaterialTheme.typography.titleSmall)
-   SettingSwitch("Выделять фоном",s.background,{checked->update(scope){it.copy(background=checked)}})
-   if(s.background)TextButton(onClick={colorScope=scope}){Text("Цвет фона: $title")}
-   SettingSwitch("Показывать звёздочку",s.star,{checked->update(scope){it.copy(star=checked)}})
-   SettingSwitch("Жирное название",s.bold,{checked->update(scope){it.copy(bold=checked)}})
-   if(scope=="block")FavoriteBlock(Modifier.fillMaxWidth()){FavoriteMarkedLabel("Банан",favorite=true,modifier=Modifier.padding(12.dp))}
-   else FavoriteMarkedLabel("Банан",favorite=true,modifier=Modifier.fillMaxWidth().padding(12.dp))
-  }
- }}
 }

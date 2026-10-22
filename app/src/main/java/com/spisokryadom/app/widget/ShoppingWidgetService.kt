@@ -23,7 +23,7 @@ class ShoppingWidgetFactory(private val context:Context):RemoteViewsService.Remo
         val settings=WidgetSettings.load(prefs)
         val items=runBlocking{ShoppingWidgetData((context.applicationContext as SpisokRyadomApp).container)
             .presentation(settings,prefs.all["global_default_boost_urgent_shop"] as? Boolean?:true)}
-        frame=WidgetFrame(settings,items)
+        frame=WidgetFrame(settings,items,com.spisokryadom.app.util.FavoriteAppearance.read(prefs).purchaseRow)
     }
     override fun onDestroy(){frame=WidgetFrame()}
     override fun getCount()=frame.items.size
@@ -32,6 +32,7 @@ class ShoppingWidgetFactory(private val context:Context):RemoteViewsService.Remo
         val item=snapshot.items.getOrNull(position)?:return null
         val size=snapshot.settings.textSize
         if(item is WidgetItem.Header)return RemoteViews(context.packageName,R.layout.widget_section).apply {
+            setInt(R.id.widget_section,"setBackgroundColor",WidgetAppearance.shopBackground(item,snapshot.settings))
             setTextViewText(R.id.widget_section_title,item.title)
             setTextColor(R.id.widget_section_title,android.graphics.Color.parseColor(if(item.depth==2)"#66757B"else "#24667A"))
             setTextViewText(R.id.widget_section_detail,item.subtitle.orEmpty())
@@ -43,13 +44,21 @@ class ShoppingWidgetFactory(private val context:Context):RemoteViewsService.Remo
             setViewPadding(R.id.widget_section,((8+item.depth*8)*density).toInt(),((if(item.depth==0)12 else 4)*density).toInt(),(8*density).toInt(),(4*density).toInt())
             setOnClickFillInIntent(R.id.widget_section,Intent().putExtra("open",true))
         }
-        val row=(item as WidgetItem.Purchase).row
+        val purchase=item as WidgetItem.Purchase
+        val row=purchase.row
         return RemoteViews(context.packageName,R.layout.widget_purchase).apply {
-            setTextViewText(R.id.widget_item_title,(if(row.urgent&&!row.bought)"! "else "")+row.title)
+            setInt(R.id.widget_purchase_root,"setBackgroundColor",WidgetAppearance.shopBackground(purchase,snapshot.settings))
+            // Tint the rounded drawable itself: XML clipToOutline is unavailable below API31.
+            // Assign even white on every bind so reused rows cannot retain another color.
+            setInt(R.id.widget_purchase_background,"setColorFilter",WidgetAppearance.productBackground(purchase,snapshot.settings,snapshot.favoriteStyle))
+            setTextViewText(R.id.widget_item_title,(if(row.urgent&&!row.bought)"! "else "")+
+                (if(purchase.isFavorite&&snapshot.favoriteStyle.star)"★ "else "")+row.title)
             setTextViewText(R.id.widget_item_detail,row.detail)
             setTextViewTextSize(R.id.widget_item_title,TypedValue.COMPLEX_UNIT_SP,size.toFloat())
             setTextViewTextSize(R.id.widget_item_detail,TypedValue.COMPLEX_UNIT_SP,(size-3).coerceAtLeast(10).toFloat())
-            setInt(R.id.widget_item_title,"setPaintFlags",Paint.ANTI_ALIAS_FLAG or if(row.bought)Paint.STRIKE_THRU_TEXT_FLAG else 0)
+            val bold=purchase.isFavorite&&snapshot.favoriteStyle.bold||row.urgent&&!row.bought
+            setInt(R.id.widget_item_title,"setPaintFlags",Paint.ANTI_ALIAS_FLAG or
+                (if(row.bought)Paint.STRIKE_THRU_TEXT_FLAG else 0) or (if(bold)Paint.FAKE_BOLD_TEXT_FLAG else 0))
             setImageViewResource(R.id.widget_check,if(row.bought)R.drawable.widget_checked else R.drawable.widget_unchecked)
             setContentDescription(R.id.widget_check,(if(row.bought)"Вернуть: "else "Отметить купленным: ")+row.title)
             setOnClickFillInIntent(R.id.widget_check,ShoppingWidgetProvider.checkIntent(row))
@@ -60,4 +69,5 @@ class ShoppingWidgetFactory(private val context:Context):RemoteViewsService.Remo
     override fun getViewTypeCount()=2
     override fun getItemId(position:Int)=frame.items.getOrNull(position)?.stableId?:-1L
     override fun hasStableIds()=true
+
 }

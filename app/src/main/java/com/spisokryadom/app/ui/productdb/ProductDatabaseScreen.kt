@@ -119,7 +119,7 @@ fun ProductDatabaseScreen(
                 navigationIcon={if(selection.active)IconButton(onClick=selection::clear){Icon(Icons.Default.Close,"Отменить выбор")}},
                 actions={if(selection.active)BatchTopActions(selection,state.products.map{it.id}.toSet(),{batchIds=selection.ids})else{
                     IconButton(onClick={selection.active=true},enabled=state.products.isNotEmpty()){Icon(Icons.Default.Checklist,"Выбрать товары")}
-                    IconButton(onClick=viewModel::toggleFavorites){Icon(Icons.Default.Star,if(state.favoritesOnly)"Показать все товары"else "Только избранное",tint=if(state.favoritesOnly)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)}
+                    androidx.compose.material3.IconToggleButton(checked=state.favoritesOnly,onCheckedChange={viewModel.toggleFavorites()}){Icon(Icons.Default.Star,if(state.favoritesOnly)"Показать все товары"else "Только избранное",tint=if(state.favoritesOnly)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)}
                 }})
         },
         floatingActionButton = {
@@ -133,6 +133,13 @@ fun ProductDatabaseScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            if(state.favoritesOnly) androidx.compose.material3.Surface(color=MaterialTheme.colorScheme.secondaryContainer,modifier=Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=6.dp).testTag("favorites-filter-active"),shape=MaterialTheme.shapes.medium){
+                Row(Modifier.padding(start=12.dp,end=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                    Icon(Icons.Filled.Star,null,tint=MaterialTheme.colorScheme.onSecondaryContainer)
+                    Text("Только избранные",style=MaterialTheme.typography.labelLarge,modifier=Modifier.weight(1f))
+                    androidx.compose.material3.TextButton(onClick=viewModel::toggleFavorites){Text("Показать все")}
+                }
+            }
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = { viewModel.setSearchQuery(it) },

@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.FolderCopy
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -43,7 +43,7 @@ private data class BottomNavItem(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Routes.ShoppingList.route, "Покупки", Icons.AutoMirrored.Filled.FormatListBulleted),
+    BottomNavItem(Routes.ShoppingList.route, "Главная", Icons.Filled.Home),
     BottomNavItem("goal_lists", "Списки", Icons.Filled.FolderCopy),
     BottomNavItem(Routes.ProductDatabase.route, "Товары", Icons.Filled.Inventory2),
     BottomNavItem(Routes.ShopList.route, "Магазины", Icons.Filled.Store)
@@ -54,7 +54,14 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
     val navController = rememberNavController()
     androidx.compose.runtime.LaunchedEffect(widgetRequest) {
         if(widgetRequest!=null){
-            if(widgetRequest!="add"||navController.currentDestination?.route!=Routes.AddToList.route) {
+            val current = navController.currentBackStackEntry
+            // An add screen can belong to a separate list or a locked shop. The widget
+            // always adds to Main; only preserve an already open, unscoped Main picker.
+            val mainPicker = current?.destination?.route == Routes.AddToList.route &&
+                listOf("listId", "preselectedShopId", "preselectedBranchId").all {
+                    (current.arguments?.getLong(it) ?: -1L) < 0L
+                }
+            if(widgetRequest!="add"||!mainPicker) {
                 navController.popBackStack(Routes.ShoppingList.route,false)
                 if(widgetRequest=="add")navController.navigate(Routes.AddToList.createRoute()){launchSingleTop=true}
             }
@@ -129,7 +136,9 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                     onOpenList={id->navController.navigate("goal_list/$id")})
             }
             composable("goal_list/{listId}",arguments=listOf(navArgument("listId"){type=NavType.LongType})) { entry ->
-                com.spisokryadom.app.ui.goallists.GoalListScreen(entry.arguments!!.getLong("listId"),onBack={navController.popBackStack()})
+                com.spisokryadom.app.ui.goallists.GoalListScreen(entry.arguments!!.getLong("listId"),onBack={navController.popBackStack()},onOpenRegular={navController.navigate(Routes.ShoppingList.route){popUpTo(Routes.ShoppingList.route);launchSingleTop=true}},onOpenList={id->navController.navigate("goal_list/$id")},
+                    onAddProducts={navController.navigate(Routes.AddToList.createRoute(listId=entry.arguments!!.getLong("listId")))},
+                    onOpenProduct={id->navController.navigate(Routes.ProductCard.createRoute(id))})
             }
 
             composable(Routes.ProductDatabase.route) { entry ->
@@ -218,12 +227,17 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
                         type = NavType.LongType
                         defaultValue = -1L
                     },
-                    navArgument("preselectedBranchId") { type=NavType.LongType;defaultValue = -1L }
+                    navArgument("preselectedBranchId") { type=NavType.LongType;defaultValue = -1L },
+                    navArgument("listId") { type=NavType.LongType;defaultValue = -1L }
                 )
             ) { backStackEntry ->
                 val preselectedShopId = backStackEntry.arguments?.getLong("preselectedShopId") ?: -1L
                 val branchId=backStackEntry.arguments?.getLong("preselectedBranchId") ?: -1L
+                val focus by backStackEntry.savedStateHandle.getStateFlow("focusProductId",-1L).collectAsStateWithLifecycle()
                 AddToListScreen(
+                    targetListId=backStackEntry.arguments?.getLong("listId")?.takeIf{it>0},
+                    returnedProductId=focus,onReturnHandled={backStackEntry.savedStateHandle["focusProductId"]=-1L},
+                    onCreateProduct={name,shop->navController.navigate(Routes.ProductCard.createRoute(initialName=name,preselectedShopId=shop))},
                     preselectedBranchId=branchId.takeIf{it>=0},
                     preselectedShopId = if (preselectedShopId > 0) preselectedShopId else null,
                     onNavigateBack = { navController.popBackStack() }
@@ -234,7 +248,10 @@ fun AppNavGraph(widgetRequest:String?=null,onWidgetRequestHandled:()->Unit={}) {
 
             composable(Routes.Settings.route) {
                 SettingsScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onOpenProduct={id->navController.navigate(Routes.ProductCard.createRoute(id))},
+                    onOpenShop={id->navController.navigate(Routes.ShopContent.createRoute(id))},
+                    onReset={navController.navigate(Routes.ShoppingList.route){popUpTo(navController.graph.id){inclusive=true};launchSingleTop=true}}
                 )
             }
         }

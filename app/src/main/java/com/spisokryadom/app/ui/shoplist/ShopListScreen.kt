@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.Domain
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -46,6 +48,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spisokryadom.app.data.entity.ShopEntity
+import com.spisokryadom.app.ui.components.FavoriteBlock
+import com.spisokryadom.app.ui.components.FavoriteStar
+import com.spisokryadom.app.ui.components.favoriteBackground
+import com.spisokryadom.app.ui.components.favoriteWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,10 +68,12 @@ fun ShopListScreen(
     var batchIds by remember{mutableStateOf<Set<Long>?>(null)}
     batchIds?.let{ids->BatchProductSheet(ids,{batchIds=null},{batchIds=null;selection.clear()},stores=true,vm=batchVM)}
     val listState = rememberLazyListState()
+    val favoriteShops=state.shops.filter{it.isFavorite}.sortedWith(compareBy<ShopEntity>{it.favoriteOrder}.thenBy{it.id})
     val viewport=com.spisokryadom.app.ui.components.rememberReorderViewport(listState,state.shops.map{it.id})
     Scaffold(
         snackbarHost={BatchFeedback(batchVM)},
         topBar = {
+          Column {
             TopAppBar(
                 title = { Text(if(selection.active)"Выбрано: ${selection.ids.size}"else "Магазины", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                 navigationIcon={if(selection.active)IconButton(onClick=selection::clear){Icon(Icons.Default.Close,"Отменить выбор")}},
@@ -86,6 +94,8 @@ fun ShopListScreen(
                     }
                 }
             )
+            com.spisokryadom.app.ui.components.CityPicker(enabled=!state.isLoading&&!selection.active&&!state.isEditing,compact=true)
+          }
         },
         floatingActionButton = {
             if (!state.isEditing&&!selection.active) {
@@ -127,6 +137,19 @@ fun ShopListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item { Spacer(modifier = Modifier.height(4.dp)) }
+                if(favoriteShops.isNotEmpty()&&!selection.active){
+                    item(key="favorite-shops-heading"){FavoriteBlock(Modifier.fillMaxWidth()){
+                        Text("Избранные",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall)
+                    }}
+                    itemsIndexed(favoriteShops,key={_,shop->"favorite-shop-${shop.id}"}){index,shop->
+                        FavoriteBlock(Modifier.fillMaxWidth().testTag("favorite-shop-${shop.id}")){
+                            ShopListItem(shop,state.isEditing,index==0,index==favoriteShops.lastIndex,
+                                onTap={onNavigateToShopContent(shop.id)},onLongPress={onNavigateToShopCard(shop.id)},
+                                onMoveUp={viewModel.moveFavoriteUp(shop)},onMoveDown={viewModel.moveFavoriteDown(shop)})
+                        }
+                    }
+                    item(key="all-shops-heading"){Text("Все магазины",Modifier.padding(top=8.dp,bottom=4.dp),style=MaterialTheme.typography.titleSmall)}
+                }
                 state.groups.forEach{group->
                     group.venue?.let{venue->item(key="${group.key}_header"){
                         if(selection.active)Row(verticalAlignment=Alignment.CenterVertically){BatchToggle(group.shops.map{it.id}.toSet(),selection,venue.name);Text(venue.name,style=MaterialTheme.typography.titleMedium)}
@@ -168,7 +191,7 @@ private fun ShopListItem(
                 onClick = if (isEditing) ({}) else onTap,
                 onLongClick = if (isEditing) null else onLongPress
             ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = favoriteBackground(shop.isFavorite)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
@@ -184,12 +207,17 @@ private fun ShopListItem(
                     .weight(1f)
                     .padding(start = 12.dp)
             ) {
+                Row(verticalAlignment=Alignment.CenterVertically){
                 Text(
                     text = shop.name,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight=favoriteWeight(shop.isFavorite),
+                    modifier=Modifier.weight(1f,fill=false),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                FavoriteStar(shop.isFavorite,"Избранный магазин: ${shop.name}",Modifier.padding(start=6.dp))
+                }
                 if (!shop.address.isNullOrBlank()&&shop.address!=shop.name) {
                     Text(
                         text = shop.address,
@@ -207,31 +235,18 @@ private fun ShopListItem(
     }
 }
 
-@Composable private fun VenueHeading(venue:com.spisokryadom.app.data.entity.VenueEntity,onSave:(com.spisokryadom.app.data.entity.VenueEntity)->Unit,onDelete:(Long)->Unit){
+@Composable private fun VenueHeading(venue:com.spisokryadom.app.data.entity.VenueEntity,onSave:suspend(com.spisokryadom.app.data.entity.VenueEntity)->Unit,onDelete:(Long)->Unit){
  var editing by androidx.compose.runtime.saveable.rememberSaveable(venue.id){mutableStateOf(false)}
- var name by androidx.compose.runtime.saveable.rememberSaveable(venue.id,venue.name){mutableStateOf(venue.name)}
- var address by androidx.compose.runtime.saveable.rememberSaveable(venue.id,venue.address){mutableStateOf(venue.address.orEmpty())}
- var note by androidx.compose.runtime.saveable.rememberSaveable(venue.id,venue.note){mutableStateOf(venue.note.orEmpty())}
- var deleting by remember{mutableStateOf(false)}
- if(deleting)com.spisokryadom.app.ui.components.ConfirmDialog("Удалить рынок или ТЦ?","Магазины и покупки сохранятся.",onConfirm={onDelete(venue.id);deleting=false},onDismiss={deleting=false})
+ if(editing)com.spisokryadom.app.ui.components.VenueEditorDialog(venue,{editing=false},onSave,onDelete={onDelete(venue.id);editing=false})
  Column(Modifier.fillMaxWidth().testTag("venue-group-${venue.id}").padding(top=12.dp,bottom=4.dp)){
   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-   Icon(Icons.Filled.Store,null,tint=MaterialTheme.colorScheme.primary)
+   Icon(if(venue.kind==com.spisokryadom.app.data.entity.VenueKinds.MARKET)Icons.Filled.Storefront else Icons.Filled.Domain,null,tint=MaterialTheme.colorScheme.primary)
    Column(Modifier.weight(1f).padding(start=10.dp)){
+    Text(com.spisokryadom.app.data.entity.VenueKinds.label(venue.kind),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
     Text(venue.name,style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary)
     venue.address?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall)}
    }
-   IconButton(onClick={editing=!editing}){Icon(Icons.Filled.Edit,"Изменить рынок или ТЦ: ${venue.name}")}
-  }
-  if(editing){
-   androidx.compose.material3.OutlinedTextField(name,{name=it},label={Text("Название")},modifier=Modifier.fillMaxWidth())
-   androidx.compose.material3.OutlinedTextField(address,{address=it},label={Text("Адрес")},modifier=Modifier.fillMaxWidth())
-   androidx.compose.material3.OutlinedTextField(note,{note=it},label={Text("Заметка")},modifier=Modifier.fillMaxWidth())
-   Row{
-    androidx.compose.material3.TextButton(onClick={onSave(venue.copy(name=name,address=address,note=note));editing=false},enabled=name.isNotBlank()){Text("Сохранить")}
-    androidx.compose.material3.TextButton(onClick={deleting=true}){Text("Удалить рынок или ТЦ",color=MaterialTheme.colorScheme.error)}
-    androidx.compose.material3.TextButton(onClick={editing=false}){Text("Отмена")}
-   }
+   IconButton(onClick={editing=true}){Icon(Icons.Filled.Edit,"Изменить рынок или ТЦ: ${venue.name}")}
   }
  }
 }

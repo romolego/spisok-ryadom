@@ -86,7 +86,7 @@ class ShoppingRepresentationsTest {
   val before=db.shoppingListEntryDao().getAllSync()
   try{basket.movePending(setOf(a,p),yar,near);fail("Restricted point must be rejected")}catch(expected:IllegalArgumentException){}
   assertEquals(before,db.shoppingListEntryDao().getAllSync())
-  assertEquals(setOf(far),basket.moveOptions(setOf(a,p),yar))
+  assertEquals(setOf(far),basket.purchasePlaces(setOf(a,p)).filter{it.shopId==yar}.mapNotNull{it.branchId}.toSet())
   basket.movePending(setOf(a,p),yar)
   assertEquals(near,db.shoppingListEntryDao().getById(a)!!.assignedBranchId)
   assertEquals(far,db.shoppingListEntryDao().getById(p)!!.assignedBranchId)
@@ -103,7 +103,7 @@ class ShoppingRepresentationsTest {
   val id=basket.addProduct(pasta,3.0)
   app.getSharedPreferences("product_db_prefs",0).edit().putStringSet("collapsed_sections",setOf("BY_GROUPS_group_1")).commit()
   val backup=BackupManager(app,db);val file=backup.exportFile()
-  assertEquals(14,ZipFile(file).use{JSONObject(it.getInputStream(it.getEntry("manifest.json")).reader().readText()).getInt("version")})
+  assertEquals(22,ZipFile(file).use{JSONObject(it.getInputStream(it.getEntry("manifest.json")).reader().readText()).getInt("version")})
   db.shoppingListEntryDao().deleteAll();db.shopDao().deleteAll()
   backup.importFile(file)
   assertEquals(2,db.shopBranchDao().getAll().size)

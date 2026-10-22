@@ -194,7 +194,7 @@ class ProductRepository(
     suspend fun ensureShopLinks(productId:Long,shopIds:List<Long>,draftLinks:List<ProductShopLinkEntity> = emptyList(),availability:Map<Long,Set<Long>> = emptyMap(),departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity> = emptyList(),branchDepartments:Map<Long,Long> = emptyMap())=withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         require(productDao.getById(productId)!=null){"Товар удалён"}
         shopIds.forEach{require(db.shopDao().getById(it)!=null){"Магазин удалён"}}
-        val old=linkDao.getLinksForProductSync(productId);var priority=old.maxOfOrNull{it.priority}?:0
+        val old=linkDao.getLinksForProductSync(productId)
         val added=shopIds.distinct().filter{id->old.none{it.shopId==id}}.map{id->draftLinks.find{it.shopId==id}?:ProductShopLinkEntity(productId=productId,shopId=id)}
         val deptIds=resolveDraftDepartments(added,departments,branchDepartments.values.toSet())
         added.forEach{draft->
@@ -202,7 +202,7 @@ class ProductRepository(
             if(dept!=null)require(db.shopDepartmentDao().getById(dept)?.shopId==draft.shopId){"Группа относится к другому магазину"}
             val points=availability[draft.shopId]
             if(points!=null)require(points.isNotEmpty()&&points.all{db.shopBranchDao().get(it)?.shopId==draft.shopId}){"Выберите хотя бы одну точку этого магазина"}
-            linkDao.insert(draft.copy(id=0,productId=productId,departmentId=dept,priority=++priority,restrictBranches=points!=null))
+            linkDao.insert(draft.copy(id=0,productId=productId,departmentId=dept,priority=nextProductShopPriority(db,productId),restrictBranches=points!=null))
             points?.forEach{db.shopBranchDao().insertAvailability(com.spisokryadom.app.data.entity.ProductBranchAvailabilityEntity(productId,it))}
         }
         val newShopIds=added.map{it.shopId}.toSet()
@@ -220,7 +220,8 @@ class ProductRepository(
             require(db.shopDao().getById(dept.shopId)!=null){ "Магазин удалён" }
             val all=db.shopDepartmentDao().getByShopIdSync(dept.shopId)
             val found=all.find{(dept.typeId>0&&it.typeId==dept.typeId)||FuzzySearch.normalize(it.name)==FuzzySearch.normalize(dept.name)}
-            deptIds[dept.id]=found?.id ?: db.shopDepartmentDao().insert(dept.copy(id=0,name=dept.name.trim(),displayOrder=(all.maxOfOrNull{it.displayOrder}?:0)+1))
+            deptIds[dept.id]=found?.id ?: db.shopDepartmentDao().insert(dept.copy(id=0,name=dept.name.trim(),displayOrder=nextDepartmentDisplayOrder(db,dept.shopId)))
+            synchronizeNetworkDepartments(db,dept.shopId)
         }
         return deptIds
     }

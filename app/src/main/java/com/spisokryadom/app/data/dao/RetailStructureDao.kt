@@ -17,14 +17,12 @@ import kotlinx.coroutines.flow.Flow
  @Query("DELETE FROM venues WHERE id=:id") suspend fun deleteVenue(id:Long)
  @Query("DELETE FROM venues") suspend fun clearVenues()
 
- @Query("SELECT * FROM branch_department_order") fun observeDepartmentOrder():Flow<List<BranchDepartmentOrderEntity>>
  @Query("SELECT * FROM branch_department_order") suspend fun departmentOrder():List<BranchDepartmentOrderEntity>
  @Query("SELECT * FROM product_branch_departments") fun observeProductDepartments():Flow<List<ProductBranchDepartmentEntity>>
  @Query("SELECT * FROM product_branch_departments") suspend fun productDepartments():List<ProductBranchDepartmentEntity>
  @Query("SELECT * FROM product_branch_departments WHERE productId=:productId AND branchId=:branchId") suspend fun productDepartment(productId:Long,branchId:Long):ProductBranchDepartmentEntity?
  @Query("DELETE FROM product_branch_departments WHERE productId=:productId AND branchId=:branchId") suspend fun removeProductDepartment(productId:Long,branchId:Long)
  @Query("DELETE FROM product_branch_departments WHERE productId=:productId") suspend fun clearProductDepartments(productId:Long)
- @Query("DELETE FROM branch_department_order WHERE branchId=:branchId") suspend fun clearDepartmentOrder(branchId:Long)
  @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun setDepartmentOrder(value:BranchDepartmentOrderEntity)
  @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun setProductDepartment(value:ProductBranchDepartmentEntity)
 }

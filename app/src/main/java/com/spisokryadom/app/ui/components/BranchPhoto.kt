@@ -32,7 +32,7 @@ import java.util.UUID
  bitmap?.let{Image(it.asImageBitmap(),title,Modifier.fillMaxWidth().heightIn(max=220.dp),contentScale=ContentScale.Fit)}
 }
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-@Composable fun BranchPhotoEditor(path:String,onChange:(String?)->Unit,onBusyChange:(Boolean)->Unit={},title:String="Фото точки",directory:String="branch_photos",enabled:Boolean=true,compact:Boolean=false) {
+@Composable fun BranchPhotoEditor(path:String,onChange:(String?)->Unit,onBusyChange:(Boolean)->Unit={},title:String="Фото точки",directory:String="branch_photos",enabled:Boolean=true,compact:Boolean=false,showTitle:Boolean=true) {
  val context=LocalContext.current;val scope=rememberCoroutineScope();val latest by rememberUpdatedState(onChange);val latestBusy by rememberUpdatedState(onBusyChange)
  var busy by remember{mutableStateOf(false)};var error by remember{mutableStateOf<String?>(null)}
  var capturePath by rememberSaveable{mutableStateOf<String?>(null)}
@@ -56,13 +56,13 @@ import java.util.UUID
  if(compact){
   val bring=remember{BringIntoViewRequester()}
   val initialPath=remember{path}
-  if(confirmDelete)AlertDialog(onDismissRequest={confirmDelete=false},title={Text("Удалить фото?")},text={Text("Снимок будет убран из карточки товара.")},
+  if(confirmDelete)AlertDialog(onDismissRequest={confirmDelete=false},title={Text("Удалить фото?")},text={Text("Снимок будет убран из этой карточки.")},
    confirmButton={TextButton(onClick={confirmDelete=false;latest(null)},enabled=enabled&&!busy){Text("Удалить")}},
    dismissButton={TextButton(onClick={confirmDelete=false}){Text("Отмена")}})
-  Column(Modifier.fillMaxWidth().testTag("product-photo").bringIntoViewRequester(bring),verticalArrangement=Arrangement.spacedBy(8.dp)){
+  Column(Modifier.fillMaxWidth().testTag(if(directory=="product_photos")"product-photo"else "$directory-editor").bringIntoViewRequester(bring),verticalArrangement=Arrangement.spacedBy(8.dp)){
    if(path.isBlank()){
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-     Text(title,Modifier.weight(1f),style=MaterialTheme.typography.labelLarge)
+     if(showTitle)Text(title,Modifier.weight(1f),style=MaterialTheme.typography.labelLarge)else Spacer(Modifier.weight(1f))
      IconButton(onClick=::openGallery,enabled=enabled&&!busy){Icon(Icons.Filled.PhotoLibrary,"Выбрать фото")}
      IconButton(onClick=::openCamera,enabled=enabled&&!busy){Icon(Icons.Filled.PhotoCamera,"Камера")}
     }

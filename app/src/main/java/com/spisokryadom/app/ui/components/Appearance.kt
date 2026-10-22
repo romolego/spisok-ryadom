@@ -89,7 +89,7 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
  }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun AppearanceSheet(title:String,accent:String,iconKey:String="",withIcons:Boolean=true,onSave:(String,String)->Unit,onDismiss:()->Unit,preview:(@Composable (String,String)->Unit)?=null,withColors:Boolean=true){
+@Composable fun AppearanceSheet(title:String,accent:String,iconKey:String="",withIcons:Boolean=true,onSave:(String,String)->Unit,onDismiss:()->Unit,preview:(@Composable (String,String)->Unit)?=null,withColors:Boolean=true,noneIconLabel:String="Без значка"){
  var color by remember{mutableStateOf(accent)};var icon by remember{mutableStateOf(iconKey)}
  var custom by remember{mutableStateOf(false)};var hex by remember{mutableStateOf(colorHex(accentColor(accent)?:Color(0xFF4B81A5)))}
  var hue by remember{mutableStateOf(0f)};var saturation by remember{mutableStateOf(1f)};var brightness by remember{mutableStateOf(1f)}
@@ -99,11 +99,11 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
  fun slide(h:Float=hue,s:Float=saturation,v:Float=brightness){hue=h;saturation=s;brightness=v;color=colorHex(Color.hsv(h.coerceAtMost(359.999f),s,v));hex=color}
  val valid=!custom||accentColor(hex)!=null
  val filtered=remember(query){if(query.isBlank())symbols else com.spisokryadom.app.util.FuzzySearch.rank(symbols,query,{it.second.first})}
- ModalBottomSheet(onDismissRequest=onDismiss,sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)){
-  Column(Modifier.testTag("appearance-sheet").fillMaxWidth().heightIn(max=(androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp-80).coerceAtLeast(160).dp).padding(horizontal=20.dp).padding(bottom=24.dp)){
-   Text(title,style=MaterialTheme.typography.titleLarge)
-   preview?.invoke(color,icon)
-   LazyColumn(Modifier.testTag("appearance-options").fillMaxWidth().weight(1f,false)){
+ EditorSheet(title,onDismiss,scrollContent=false,actions={
+  Button(onClick={onSave(color,icon)},enabled=valid,modifier=Modifier.fillMaxWidth()){Text("Применить оформление")}
+ }){
+   LazyColumn(Modifier.testTag("appearance-options").fillMaxWidth()){
+    preview?.let{item{it(color,icon)}}
     if(withColors){
     if(!custom||preview==null)item{Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
      listOf("" to "Без цвета","green" to "Зелёный","yellow" to "Жёлтый","blue" to "Синий","rose" to "Розовый","violet" to "Фиолетовый").forEach{(key,name)->
@@ -123,14 +123,12 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
     }
     if(withIcons){
      item{OutlinedTextField(query,{query=it},label={Text("Найти значок")},singleLine=true,modifier=Modifier.testTag("appearance-icon-search").fillMaxWidth())}
-     item{ListItem(headlineContent={Text("Без значка")},leadingContent={RadioButton(icon.isBlank(),null)},modifier=Modifier.clickable{icon=""})}
+     item{ListItem(headlineContent={Text(noneIconLabel)},leadingContent={RadioButton(icon.isBlank(),null)},modifier=Modifier.clickable{icon=""})}
      items(filtered.chunked(2)){pair->Row(Modifier.fillMaxWidth()){pair.forEach{(key,value)->
       ListItem(headlineContent={Text(value.first,style=MaterialTheme.typography.bodySmall)},leadingContent={Icon(value.second,null,tint=if(key==icon)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)},modifier=Modifier.testTag("appearance-icon-$key").weight(1f).clickable{icon=key},colors=ListItemDefaults.colors(containerColor=if(key==icon)MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface))
      }}}
     }
    }
-   Button(onClick={onSave(color,icon)},enabled=valid,modifier=Modifier.fillMaxWidth()){Text("Применить оформление")}
-  }
  }
 }
 @Composable private fun ColorChannel(label:String,value:Float,range:ClosedFloatingPointRange<Float>,tag:String,gradient:List<Color>,onChange:(Float)->Unit){

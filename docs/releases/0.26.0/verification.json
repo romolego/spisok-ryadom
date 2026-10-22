@@ -1,0 +1,167 @@
+{
+  "version": "0.26.0",
+  "roomSchema": 23,
+  "backupFormat": 21,
+  "testRun": {
+    "kind": "targeted data/UI regression with three renderer UI classes rechecked after compatibility fix, not a full suite run",
+    "classes": 10,
+    "totals": {
+      "cases": 161,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "newCases": 25
+  },
+  "sourceFiles": 317,
+  "sourceChangedAfterFinalStart": false,
+  "productionChangedAfterBroadRun": true,
+  "rendererFilesChangedAfterBroadRun": [
+    "app/src/main/java/com/spisokryadom/app/widget/ShoppingWidgetService.kt",
+    "app/src/main/res/layout/widget_purchase.xml"
+  ],
+  "testOnlyCorrectionsAfterBroadRun": [
+    "app/src/test/java/com/spisokryadom/app/Refine130UiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Widget260UiTest.kt"
+  ],
+  "dataLayerChangedAfterBroadRun": false,
+  "verificationRuns": {
+    "broad": {
+      "classes": 10,
+      "cases": 161,
+      "failures": 6
+    },
+    "firstRecheck": {
+      "classes": 2,
+      "cases": 25,
+      "failures": 0
+    },
+    "rendererRecheck": {
+      "classes": 3,
+      "cases": 37,
+      "failures": 0
+    },
+    "reason": "Old grouping label updated to its explicit product-group wording. Native RemoteViews tests register the production receiver for Robolectric PendingIntent delivery and establish drawable bounds before isolated color drawing. Manifest component, real button PendingIntent, purchase nonmutation and original color assertions retained. After that recheck, static analysis identified clipToOutline XML as API31-only. Only the renderer and its layout changed to tint the rounded GradientDrawable through API-compatible ImageView.setColorFilter; all three renderer UI classes rerun. Data, settings and backup code unchanged. Final source seal unchanged after renderer recheck began."
+  },
+  "apk": {
+    "version": "0.26.0",
+    "versionCode": 36,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2087278,
+    "sha256": "d3d88c0a55981316c5140021a152e7ccc15c7d1d5cbc791a09fac0ae24851e15",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 23,
+    "backupFormat": 21
+  },
+  "lint": {
+    "Warning": 70,
+    "Hint": 4
+  },
+  "screens": [
+    {
+      "file": "screens/appearance-settings-api28.png",
+      "sha256": "81a8a0c83bfe0b4d191e8af8ba0b5f2bac1edea8a08bd5e484d22309cc80bdc2",
+      "bytes": 36038
+    },
+    {
+      "file": "screens/appearance-settings-api35.png",
+      "sha256": "29dc157d07743e35fbb2d7ccdc87e645938f32f5271a9f2b764bb0cc178fe655",
+      "bytes": 36171
+    },
+    {
+      "file": "screens/widget-bought-hidden-api28.png",
+      "sha256": "029576a1c29f937aa85beab18ac1a96df50b58b41d3dd558ef63cb6f8e161a98",
+      "bytes": 47244
+    },
+    {
+      "file": "screens/widget-bought-hidden-api35.png",
+      "sha256": "26ff142fc56a13a83db417644f9db9feeb2fec8082e25ae83cafdae8b1da70b6",
+      "bytes": 47803
+    },
+    {
+      "file": "screens/widget-by-product-groups-api28.png",
+      "sha256": "2c9c996aaf8406544c33afaddc7624555ca3ab9ef0c4be9b995164e9d88d7317",
+      "bytes": 42250
+    },
+    {
+      "file": "screens/widget-by-product-groups-api35.png",
+      "sha256": "7214a8afcaa3cb2e1cba93a641d9e3efc5f314a42c2aab149b4a3d9d31090962",
+      "bytes": 42775
+    },
+    {
+      "file": "screens/widget-flat-api28.png",
+      "sha256": "15f27fb1a590e3b3ea2582338537e1d2757dc3576929d234276b58e4adb8a459",
+      "bytes": 33793
+    },
+    {
+      "file": "screens/widget-flat-api35.png",
+      "sha256": "24274048f1602d3f01c873c84188b3a221f018ec08aa8fbdc9db844253033b50",
+      "bytes": 34135
+    },
+    {
+      "file": "screens/widget-low-landscape-api35.png",
+      "sha256": "ef6ba3af11f20d8b3c3bad5b32cc2d7edff1408bf1af22b158e3a0a372860170",
+      "bytes": 36753
+    },
+    {
+      "file": "screens/widget-narrow-largest-font-api28.png",
+      "sha256": "f608655c32b9ba9ef3f98d645c91226dcec95692dfba883485280e2b9b24a968",
+      "bytes": 34001
+    },
+    {
+      "file": "screens/widget-narrow-largest-font-api35.png",
+      "sha256": "144330d38a37c40d6cac7d0bf6fbc45d4f29f02b53c45013180c3c4f57234065",
+      "bytes": 34632
+    },
+    {
+      "file": "screens/widget-shop-and-product-colors-api28.png",
+      "sha256": "33c318b3c9cf646104ad23b66568c25f74ddc90c846222a689824eec26fabd50",
+      "bytes": 45604
+    },
+    {
+      "file": "screens/widget-shop-and-product-colors-api35.png",
+      "sha256": "187c607c0825818ba6b609eda8e6759295694305e1163973f7c49f34bf5c73f8",
+      "bytes": 45924
+    },
+    {
+      "file": "screens/01-widget-settings-small-api28.png",
+      "sha256": "c7896cb2cc490d1cb5c7b6977c87a1e8baaf61ee0f21dbb506516e5d68c32324",
+      "bytes": 103649
+    },
+    {
+      "file": "screens/01-widget-settings-small-api35.png",
+      "sha256": "580a8aa83cfc9fb8768cfd7b65f91662f4826617ef86775db91a5ad9929aa3e7",
+      "bytes": 105097
+    },
+    {
+      "file": "screens/02-widget-settings-large-api28.png",
+      "sha256": "a91a5793ba2365435e8218e724d8684b9643cfb02d8b4e36830ac608ce06add1",
+      "bytes": 101096
+    },
+    {
+      "file": "screens/02-widget-settings-large-api35.png",
+      "sha256": "12b2472077edb0f6b167094220cb1e28228f26426658e2a90407c95a642fa2ae",
+      "bytes": 102281
+    }
+  ],
+  "validation": {
+    "nativeApis": [
+      28,
+      35
+    ],
+    "landscapeApi": 35,
+    "physicalPhoneTested": false,
+    "realSoftwareKeyboardTested": false,
+    "oemWidgetHostTested": false,
+    "githubPublished": false,
+    "remoteViewsHost": "Native RemoteViews with manual collection adapter; PendingIntent delivered through runtime registration of the production provider in Robolectric, manifest target asserted"
+  },
+  "scope": [
+    "independent shop-zone and product-card backgrounds using shared application tint policy",
+    "four explicit grouping modes and optional shop departments",
+    "reversible bought filtering before all headers without purchase mutation",
+    "optional widget visibility action, explicit/idempotent target and disabled-stale-action rejection",
+    "all widget settings refresh globally; active filter status, narrow and low landscape layouts",
+    "ZIP21 strict booleans, ZIP20 missing defaults, current shared-list scope and unchanged purchase CAS"
+  ]
+}

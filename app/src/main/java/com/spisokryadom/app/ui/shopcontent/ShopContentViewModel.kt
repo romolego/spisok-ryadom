@@ -74,6 +74,8 @@ class ShopContentViewModel(
     private val classifierRepository: ClassifierRepository
 ) : ViewModel() {
 
+    private val generation=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
+
     private val _uiState = MutableStateFlow(ShopContentUiState())
     val uiState: StateFlow<ShopContentUiState> = _uiState.asStateFlow()
 
@@ -87,10 +89,6 @@ class ShopContentViewModel(
     private var searchJob:Job?=null
     init {
         viewModelScope.launch(errors){shopRepository.departmentTypes().collect{_uiState.value=_uiState.value.copy(departmentTypes=it.associateBy{t->t.name})}}
-        viewModelScope.launch(errors) {
-            val shop = shopRepository.getShopById(shopId)
-            _uiState.value = _uiState.value.copy(shop = shop)
-        }
         viewModelScope.launch(errors) {
             productRepository.getAllProducts().collect { products ->
                 _allProducts.value = products.associateBy { it.id }
@@ -110,6 +108,7 @@ class ShopContentViewModel(
         viewModelScope.launch(errors) {
             shopRepository.getAllShops().collect { shops ->
                 _shops.value = shops.associateBy { it.id }
+                _uiState.value=_uiState.value.copy(shop=shops.find{it.id==shopId})
             }
         }
         viewModelScope.launch(errors) {
@@ -152,11 +151,10 @@ class ShopContentViewModel(
                 .combine(_departments){data,departments->data.copy(departments=departments)}
                 .combine(_shops){data,shops->data.copy(shops=shops)}
                 .combine(productRepository.observeBranchDepartments()){data,overrides->data to overrides}
-                .combine(shopRepository.observeBranchOrders()){(data,overrides),orders->
+                .combine(shopRepository.venues()){(data,overrides),venues->
                 val products=data.products;val allPoints=data.points;val availability=data.availability;val entries=data.entries
                 val overrideMap=overrides.associateBy{it.branchId to it.productId}
-                val pointRoutes=overrides.any{it.shopId==shopId}||orders.any{order->allPoints.any{it.id==order.branchId&&it.shopId==shopId}}
-                val orderMap=orders.associateBy{it.branchId to it.typeId}
+                val pointRoutes=overrides.any{it.shopId==shopId}
                 val branchMap=allPoints.associateBy{it.id}
                 val departmentByType=data.departments.values.filter{it.shopId==shopId}.associateBy{it.typeId}
                 val pendingByProduct=entries.filter{!it.isBought&&it.assignedShopId==shopId}.groupBy{it.productId}
@@ -172,9 +170,9 @@ class ShopContentViewModel(
                         }
                         val sorted=rows.sortedWith(compareBy<ShopProductUi>{row->
                             val type=overrideMap[point.id to row.product.id]?.typeId?:data.departments[row.link.departmentId]?.typeId
-                            orderMap[point.id to type]?.displayOrder?:departmentByType[type]?.displayOrder?:Int.MAX_VALUE
+                            departmentByType[type]?.displayOrder?:Int.MAX_VALUE
                         }.thenByDescending{it.product.isFavorite}.thenBy{FuzzySearch.normalize(it.product.name)})
-                        ShopPointSection(point.id,point.address,point.note,point.photoUri,sorted)
+                        ShopPointSection(point.id,com.spisokryadom.app.domain.PlaceLabels(allPoints,venues).branch(point),point.note,point.photoUri,sorted)
                     }.filter{it.products.isNotEmpty()}.toMutableList()
                     val general=if(pointRoutes)emptyList()else products.filter{!it.link.restrictBranches}.map{row->row.copy(purchases=com.spisokryadom.app.ui.components.pendingPurchases(pendingByProduct[row.product.id].orEmpty(),data.shops,branchMap))}
                     if(general.isNotEmpty())result.add(ShopPointSection(null,"Во всех точках",null,null,general))
@@ -185,7 +183,6 @@ class ShopContentViewModel(
     }
 
     private fun purchaseCommand(block: suspend () -> Unit) {
-        val generation = com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
         viewModelScope.launch(errors) {
             com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation, block)
         }
@@ -236,7 +233,7 @@ class ShopContentViewModel(
             _uiState.value=_uiState.value.copy(pickProducts=result)
         }
     }
-    fun toggleProductLink(productId:Long){viewModelScope.launch(errors){productRepository.toggleShopLink(productId,shopId)}}
+    fun toggleProductLink(productId:Long){purchaseCommand{productRepository.toggleShopLink(productId,shopId)}}
 
     companion object {
         fun factory(shopId: Long): ViewModelProvider.Factory = viewModelFactory {

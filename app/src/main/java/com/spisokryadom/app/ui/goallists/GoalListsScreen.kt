@@ -8,8 +8,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,9 +44,14 @@ private fun GoalListsContent(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var create by rememberSaveable { mutableStateOf(false) }
+    var capture by rememberSaveable { mutableStateOf(false) }
+    var applyId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var applySession by rememberSaveable { mutableStateOf("") }
     var importSession by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(state.createdId) { state.createdId?.let { viewModel.clearNavigation(); onOpenList(it) } }
-    if (create) InputDialog("Новый список", label = "Название списка", onConfirm = { create = false; viewModel.create(it) }, onDismiss = { create = false })
+    if (create) InputDialog("Новый список",label="Название списка",onConfirm={name->create=false;viewModel.create(name)},onDismiss={create=false})
+    if(capture)InputDialog("Список из текущих покупок",label="Название списка",onConfirm={capture=false;viewModel.captureHome(it)},onDismiss={capture=false})
+    applyId?.let{id->ListCopySheet(id,applySession,{applyId=null}){destination->applyId=null;if(destination==null)onOpenRegular()else onOpenList(destination)}}
     importSession?.let { session -> GoalImportSheet(session, onDismiss = { importSession = null }, onImported = { importSession = null; onOpenList(it) }) }
     state.error?.let { GoalErrorDialog(it, viewModel::clearError) }
     Scaffold(
@@ -62,24 +69,21 @@ private fun GoalListsContent(
                             Text("Текущие покупки", style = MaterialTheme.typography.titleMedium)
                             Text("Основной список", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                        IconButton(onClick={capture=true},enabled=!state.busy){Icon(Icons.Filled.ContentCopy,"Сохранить текущие покупки как список")}
                     }
                 }
             }
             if (state.loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-            if (!state.loading && state.lists.isEmpty()) item {
-                Text("Отдельные списки", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp))
-                Text("Пока нет списков", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
-            }
+            if(!state.loading&&state.lists.isEmpty())item{Text("Пока нет списков",color=MaterialTheme.colorScheme.onSurfaceVariant)}
             items(state.lists, key = { it.id }) { list ->
                 OutlinedCard(Modifier.fillMaxWidth().clickable { onOpenList(list.id) }.testTag("goal-list-${list.id}")) {
                     Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Icon(Icons.Filled.ListAlt, null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = MaterialTheme.colorScheme.primary)
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(list.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text(if (list.showInPurchases) "Отображается в покупках" else "Отдельный список", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Позиций: ${state.itemCounts[list.id]?:0}" + if(list.showInPurchases)" · На Главной"else "", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        IconButton(onClick={applySession=java.util.UUID.randomUUID().toString();applyId=list.id},enabled=!state.busy){Icon(Icons.Filled.PlayArrow,"Добавить позиции списка: ${list.name}")}
                     }
                 }
             }

@@ -37,6 +37,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
     private val lists get() = db.goalListDao()
     private val entries get() = db.shoppingListEntryDao()
 
+    fun observeAllEntries()=entries.observeAllRows()
     fun observeLists() = lists.observeAll()
     fun observeEntries(listId: Long) = entries.getForList(listId)
     suspend fun getList(id: Long) = lists.getById(id)
@@ -98,17 +99,6 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
             quantity = safeQuantity, unit = safeUnit, explicitNoShop = true,
             plannedUnitPrice = price, customShopName = placeName, customShopAddress = placeAddress,
             note = safeNote, comment = safeComment))
-    }
-
-    /** Reuses the regular list's availability and physical-outlet assignment policy. */
-    suspend fun addCatalogue(
-        listId: Long, productId: Long, quantity: Double? = null, unit: String? = null,
-        plannedUnitPrice: Double? = null, choice: ShopChoice = ShopChoice.NONE,
-        shopId: Long? = null, branchId: Long? = null
-    ): Long = db.withTransaction {
-        requireList(listId)
-        if (unit != null) validUnit(unit)
-        shopping.addProduct(productId, quantity, unit, choice, shopId, branchId, listId, validPrice(plannedUnitPrice))
     }
 
     /** Null place parameters preserve the current assignment; empty strings deliberately clear it. */
@@ -199,6 +189,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
     suspend fun moveEntriesExpected(expectedOwners: Map<Long, Long?>, targetListId: Long?) = db.withTransaction {
         if (targetListId != null) requireList(targetListId)
         val rows = requireOwners(expectedOwners)
+        if(targetListId!=null)rows.forEach{shopping.validateTarget(it.copy(listId=targetListId))}
         rows.forEach { entries.update(it.copy(listId = targetListId, updatedAt = System.currentTimeMillis())) }
     }
 
@@ -239,7 +230,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
                 shopName = if (assigned) place?.title.orEmpty() else entry.customShopName.orEmpty(),
                 shopAddress = if (assigned) place?.subtitle.orEmpty() else entry.customShopAddress.orEmpty(),
                 isBought = entry.isBought, isUrgent = entry.isUrgent)
-        })
+        }, isTemplate = snapshot.list.isTemplate)
     }
 
     /** Portable import creates an isolated hidden list, never matches local catalogue IDs/names. */
@@ -257,13 +248,45 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
             validItemName(it.name); Quantities.valid(it.quantity); validUnit(it.unit); validPrice(it.unitPrice)
             longText(it.note); longText(it.comment); shortText(it.shopName, 500); shortText(it.shopAddress, 1000)
         }
-        val id = lists.insert(GoalListEntity(name = name, stableId = stableId))
+        val id = lists.insert(GoalListEntity(name = name, stableId = stableId, isTemplate = false))
         document.items.forEach {
             val entryId = addQuick(id, it.name, it.quantity, it.unit, it.unitPrice, it.shopName, it.shopAddress, it.note,
                 comment = it.comment)
             if (it.isUrgent) entries.toggleUrgency(entryId)
         }
         id
+    }
+
+    /** Copies have fresh row IDs and never share quick-product edits. */
+    suspend fun captureList(sourceListId: Long?, name: String): Long = db.withTransaction {
+        if (sourceListId != null) requireList(sourceListId)
+        val source = if (sourceListId == null) entries.getVisibleSync() else entries.getForListSync(sourceListId)
+        source.forEach{shopping.validatePlannedEntry(it)}
+        val id = create(name)
+        source.forEach { row -> entries.insert(copyPlannedRow(row, id)) }
+        id
+    }
+
+    /** The complete application, including an optional new destination, either commits or rolls back. */
+    suspend fun copyList(templateId: Long, targetListId: Long? = null, newListName: String? = null, expectedRows: Map<Long, Long>? = null): Long? = db.withTransaction {
+        requireList(templateId)
+        require(targetListId!=templateId){"Выберите другой список"}
+        require(newListName == null || targetListId == null) { "Выберите одно назначение" }
+        val source = entries.getForListSync(templateId)
+        require(expectedRows == null || source.associate { it.id to it.updatedAt } == expectedRows) { "Список изменился. Проверьте позиции и повторите добавление" }
+        require(source.isNotEmpty()) { "Сначала добавьте позиции в список" }
+        if(newListName!=null||targetListId!=null)source.forEach{shopping.validatePlannedEntry(it)}
+        val destination = if (newListName != null) create(newListName) else targetListId
+        if (destination != null) requireList(destination)
+        source.forEach { row -> shopping.addOrMergeEntry(copyPlannedRow(row, destination)) }
+        destination
+    }
+
+    private suspend fun copyPlannedRow(row: ShoppingListEntryEntity, owner: Long?): ShoppingListEntryEntity {
+        val product = db.productDao().getById(row.productId) ?: error("Товар удалён")
+        val productId = if (product.isTemporary) db.productDao().insert(product.copy(id = 0, stableId = java.util.UUID.randomUUID().toString())) else product.id
+        val now = System.currentTimeMillis()
+        return row.copy(id = 0, productId = productId, listId = owner, isBought = false, createdAt = now, updatedAt = now)
     }
 
     private suspend fun requireList(id: Long) = lists.getById(id) ?: error("Список удалён")

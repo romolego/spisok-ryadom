@@ -81,10 +81,11 @@ class MarketUiTest {
  @Test fun pointNoteIsADraftAndCameraUsesPrivateCaptureUri(){
   ui.onNodeWithText("Магазины").performClick();waitText("Енисейский привоз");ui.onNodeWithText("Енисейский привоз").performTouchInput{longClick()};waitText("Название магазина")
   ui.onNodeWithText("Править").performScrollTo().performClick()
+  ui.onNodeWithContentDescription("Изменить точку: 29 павильон — сыры").performScrollTo().performClick()
   ui.onNodeWithTag("branch-note-$cheesePoint").performScrollTo().performTextReplacement("Беру адыгейский и масло")
   assertEquals("Беру сыр и масло",runBlocking{db.shopBranchDao().get(cheesePoint)!!}.note)
   org.robolectric.Shadows.shadowOf(app.packageManager).addResolveInfoForIntent(android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE),android.content.pm.ResolveInfo().apply{activityInfo=android.content.pm.ActivityInfo().apply{name="CameraActivity";packageName="test.camera"}})
-  ui.onAllNodesWithText("Камера").onFirst().performScrollTo().performClick()
+  ui.onNodeWithContentDescription("Камера").performScrollTo().performClick()
   val started=org.robolectric.Shadows.shadowOf(ui.activity).nextStartedActivityForResult
   assertNotNull("Camera: "+org.robolectric.shadows.ShadowLog.getLogsForTag("BranchPhoto").map{it.throwable?.stackTraceToString()},started)
   assertEquals(android.provider.MediaStore.ACTION_IMAGE_CAPTURE,started.intent.action)
@@ -95,7 +96,7 @@ class MarketUiTest {
   app.contentResolver.openOutputStream(uri)!!.use{bitmap.compress(Bitmap.CompressFormat.JPEG,90,it)};bitmap.recycle()
   org.robolectric.Shadows.shadowOf(ui.activity).receiveResult(started.intent,android.app.Activity.RESULT_OK,null)
   ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Фото точки").fetchSemanticsNodes().isNotEmpty()}
-  ui.onAllNodes(isDialog()).assertCountEquals(0);ui.onNodeWithTag("branch-note-$cheesePoint").performScrollTo();shot("05-point-metadata")
+  ui.onAllNodes(isDialog()).assertCountEquals(1);ui.onNodeWithTag("branch-note-$cheesePoint").performScrollTo();shot("05-point-metadata");ui.onAllNodesWithText("Сохранить").onLast().performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины");assertEquals("Беру адыгейский и масло",runBlocking{db.shopBranchDao().get(cheesePoint)!!}.note);assertTrue(File(runBlocking{db.shopBranchDao().get(cheesePoint)!!}.photoUri!!).isFile)
  }
 }

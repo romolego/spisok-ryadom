@@ -1,0 +1,45 @@
+{
+  "version": "0.22.0",
+  "checks": {
+    "tests": 231,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": 16,
+  "recheckedCases": 9,
+  "changedAfterExtendedRun": [
+    "app/src/main/java/com/spisokryadom/app/ui/shopcard/ShopCardBlocks.kt"
+  ],
+  "fullRegression": false,
+  "execution": "One successful extended test set, then all 9 UI cases of Stores220UiTest repeated after simplifying the network heading. Release/lint built from the final unchanged source seal.",
+  "newChecks": 25,
+  "newTestApis": [
+    28,
+    35
+  ],
+  "landscapeApi": 35,
+  "sourceSealFiles": 286,
+  "unchangedSinceFreeze": true,
+  "roomSchema": 19,
+  "backupFormat": 16,
+  "lint": {
+    "Error": 0,
+    "Warning": 79,
+    "Information": 0,
+    "Hint": 3
+  },
+  "apk": {
+    "version": "0.22.0",
+    "versionCode": 30,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2032542,
+    "sha256": "885718bfa3174000fa1534de124cbdeddb5efd0bc264904a2df86c6744ef4ed1",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 19,
+    "backupFormat": 16
+  },
+  "nativeScreenshots": 7,
+  "physicalPhoneTested": false,
+  "githubPublication": "Local iteration; last published release remains 0.20.1."
+}

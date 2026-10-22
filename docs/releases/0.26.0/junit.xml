@@ -1,0 +1,184 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites tests="161" failures="0" errors="0" skipped="0">
+  <testsuite name="com.spisokryadom.app.Audit151BackupTest" tests="16" failures="0" errors="0" skipped="0">
+    <testcase name="plannedPriceCannotBeCoercedFromNumericString[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="6.734" />
+    <testcase name="goalStringsCannotBeCoercedFromNonStrings[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.378" />
+    <testcase name="missingOwnerAndPlanningFieldsCannotSilentlyEraseMetadata[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.264" />
+    <testcase name="malformedUtf8InsideManifestCannotSilentlyReplaceSavedName[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.162" />
+    <testcase name="fractionalListIdsCannotBeTruncatedIntoAnotherOwner[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.149" />
+    <testcase name="stringListIdCannotBeCoercedIntoAnOwner[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.158" />
+    <testcase name="goalVisibilityCannotBeCoercedFromString[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.139" />
+    <testcase name="numericVersionMustBeAnIntegerRatherThanRounded[28]" classname="com.spisokryadom.app.Audit151BackupTest" time="0.14" />
+    <testcase name="plannedPriceCannotBeCoercedFromNumericString" classname="com.spisokryadom.app.Audit151BackupTest" time="6.435" />
+    <testcase name="goalStringsCannotBeCoercedFromNonStrings" classname="com.spisokryadom.app.Audit151BackupTest" time="0.222" />
+    <testcase name="missingOwnerAndPlanningFieldsCannotSilentlyEraseMetadata" classname="com.spisokryadom.app.Audit151BackupTest" time="0.207" />
+    <testcase name="malformedUtf8InsideManifestCannotSilentlyReplaceSavedName" classname="com.spisokryadom.app.Audit151BackupTest" time="0.216" />
+    <testcase name="fractionalListIdsCannotBeTruncatedIntoAnotherOwner" classname="com.spisokryadom.app.Audit151BackupTest" time="0.137" />
+    <testcase name="stringListIdCannotBeCoercedIntoAnOwner" classname="com.spisokryadom.app.Audit151BackupTest" time="0.143" />
+    <testcase name="goalVisibilityCannotBeCoercedFromString" classname="com.spisokryadom.app.Audit151BackupTest" time="0.137" />
+    <testcase name="numericVersionMustBeAnIntegerRatherThanRounded" classname="com.spisokryadom.app.Audit151BackupTest" time="0.14" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.GoalListIntegrationTest" tests="34" failures="0" errors="0" skipped="0">
+    <testcase name="quickTargetNameDoesNotBlockPermanentCatalogueCardWithSameName[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="6.77" />
+    <testcase name="regularCatalogueAddNeverMergesWithTargetEvenWhenBothShown[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.204" />
+    <testcase name="regularTextIncludesShownSourceNameAndCustomPlaceButNoHiddenOrBoughtRows[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.174" />
+    <testcase name="mainBoughtClearDoesNotTouchHiddenGoalPurchases[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.151" />
+    <testcase name="staleEditorSessionRejectsWritesAfterRestoreReusesNumericIds[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.356" />
+    <testcase name="fullZip11RestoresEveryListIdentityOwnershipPriceAndVisibility[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.323" />
+    <testcase name="zip10RestoresRegularDefaultsAndReplacesAnyLaterGoalLists[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.22" />
+    <testcase name="malformedGoalBackupRejectsAtomicallyIncludingHiddenRows[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.38" />
+    <testcase name="mainPlaceMoveRejectsHiddenCapturedRowBeforeAddingAvailabilityOrPriority[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.14" />
+    <testcase name="catalogueUnitChangesPreserveTargetQuantityPriceMeaning[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.144" />
+    <testcase name="widgetVisibilityUsesOriginalPurchaseIdsAndRejectsHiddenStaleClick[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.235" />
+    <testcase name="mainBatchRejectsWholeCapturedSelectionAfterMemberMovesIntoHiddenList[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.127" />
+    <testcase name="olderVersionCannotSmuggleNewListMetadataIntoRegularPurchases[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.241" />
+    <testcase name="deletingCatalogueProductKeepsEveryTargetFactAsTemporaryProduct[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.13" />
+    <testcase name="placeClearSeparatesCustomPlaceFromUnassignedAndOtherCustomPlace[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.124" />
+    <testcase name="queuedEditorSessionRechecksGenerationAfterWaitingBehindRestoreLock[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.224" />
+    <testcase name="widgetBoughtFlagAndGoalListOperateOnOneRow[28]" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.1" />
+    <testcase name="quickTargetNameDoesNotBlockPermanentCatalogueCardWithSameName" classname="com.spisokryadom.app.GoalListIntegrationTest" time="6.6" />
+    <testcase name="regularCatalogueAddNeverMergesWithTargetEvenWhenBothShown" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.142" />
+    <testcase name="regularTextIncludesShownSourceNameAndCustomPlaceButNoHiddenOrBoughtRows" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.13" />
+    <testcase name="mainBoughtClearDoesNotTouchHiddenGoalPurchases" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.136" />
+    <testcase name="staleEditorSessionRejectsWritesAfterRestoreReusesNumericIds" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.332" />
+    <testcase name="fullZip11RestoresEveryListIdentityOwnershipPriceAndVisibility" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.206" />
+    <testcase name="zip10RestoresRegularDefaultsAndReplacesAnyLaterGoalLists" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.182" />
+    <testcase name="malformedGoalBackupRejectsAtomicallyIncludingHiddenRows" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.346" />
+    <testcase name="mainPlaceMoveRejectsHiddenCapturedRowBeforeAddingAvailabilityOrPriority" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.104" />
+    <testcase name="catalogueUnitChangesPreserveTargetQuantityPriceMeaning" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.114" />
+    <testcase name="widgetVisibilityUsesOriginalPurchaseIdsAndRejectsHiddenStaleClick" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.151" />
+    <testcase name="mainBatchRejectsWholeCapturedSelectionAfterMemberMovesIntoHiddenList" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.109" />
+    <testcase name="olderVersionCannotSmuggleNewListMetadataIntoRegularPurchases" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.184" />
+    <testcase name="deletingCatalogueProductKeepsEveryTargetFactAsTemporaryProduct" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.111" />
+    <testcase name="placeClearSeparatesCustomPlaceFromUnassignedAndOtherCustomPlace" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.102" />
+    <testcase name="queuedEditorSessionRechecksGenerationAfterWaitingBehindRestoreLock" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.183" />
+    <testcase name="widgetBoughtFlagAndGoalListOperateOnOneRow" classname="com.spisokryadom.app.GoalListIntegrationTest" time="0.087" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.GoalListWidgetTest" tests="10" failures="0" errors="0" skipped="0">
+    <testcase name="portableStoresAddressesAndUnassignedPurchasesAreSeparateWidgetSections[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="6.731" />
+    <testcase name="hiddenOrDeletedTargetDoesNotLeakPortableHeadingsAndRejectsStaleWidgetAction[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.181" />
+    <testcase name="hintIdentityIsDelimiterSafeStableAcrossPurchaseChangesAndOtherModesStayUnchanged[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.155" />
+    <testcase name="portableHintDoesNotMergeIntoLocalShopWithIdenticalCaption[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.126" />
+    <testcase name="addressOnlyAndRepeatedCaptionsRenderOnceAndRowsHavePortableFallback[28]" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.111" />
+    <testcase name="portableStoresAddressesAndUnassignedPurchasesAreSeparateWidgetSections" classname="com.spisokryadom.app.GoalListWidgetTest" time="17.609" />
+    <testcase name="hiddenOrDeletedTargetDoesNotLeakPortableHeadingsAndRejectsStaleWidgetAction" classname="com.spisokryadom.app.GoalListWidgetTest" time="1.147" />
+    <testcase name="hintIdentityIsDelimiterSafeStableAcrossPurchaseChangesAndOtherModesStayUnchanged" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.736" />
+    <testcase name="portableHintDoesNotMergeIntoLocalShopWithIdenticalCaption" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.127" />
+    <testcase name="addressOnlyAndRepeatedCaptionsRenderOnceAndRowsHavePortableFallback" classname="com.spisokryadom.app.GoalListWidgetTest" time="0.094" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Refine110DataTest" tests="16" failures="0" errors="0" skipped="0">
+    <testcase name="additionalDestinationUsesSameContextWithoutChangingFacts[28]" classname="com.spisokryadom.app.Refine110DataTest" time="6.394" />
+    <testcase name="widgetCheckboxChangesActualBasketAndIsIdempotent[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.163" />
+    <testcase name="actionTokensAreCompleteAndColdLaunchTargetsAreExplicit[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.114" />
+    <testcase name="staleWidgetDoesNotOverwriteEditedMovedOrDeletedPurchase[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.188" />
+    <testcase name="textAndSharePreserveRussianAndExcludeBought[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.103" />
+    <testcase name="physicalPlaceShowsVenueAndPavilionOnce[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.096" />
+    <testcase name="widgetShowsFreshNamesPlaceQuantityAndBoughtState[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.121" />
+    <testcase name="retailerContextDoesNotClaimMixedStreetAndMallOutlets[28]" classname="com.spisokryadom.app.Refine110DataTest" time="0.083" />
+    <testcase name="additionalDestinationUsesSameContextWithoutChangingFacts" classname="com.spisokryadom.app.Refine110DataTest" time="6.588" />
+    <testcase name="widgetCheckboxChangesActualBasketAndIsIdempotent" classname="com.spisokryadom.app.Refine110DataTest" time="0.127" />
+    <testcase name="actionTokensAreCompleteAndColdLaunchTargetsAreExplicit" classname="com.spisokryadom.app.Refine110DataTest" time="0.115" />
+    <testcase name="staleWidgetDoesNotOverwriteEditedMovedOrDeletedPurchase" classname="com.spisokryadom.app.Refine110DataTest" time="0.113" />
+    <testcase name="textAndSharePreserveRussianAndExcludeBought" classname="com.spisokryadom.app.Refine110DataTest" time="0.126" />
+    <testcase name="physicalPlaceShowsVenueAndPavilionOnce" classname="com.spisokryadom.app.Refine110DataTest" time="0.106" />
+    <testcase name="widgetShowsFreshNamesPlaceQuantityAndBoughtState" classname="com.spisokryadom.app.Refine110DataTest" time="0.102" />
+    <testcase name="retailerContextDoesNotClaimMixedStreetAndMallOutlets" classname="com.spisokryadom.app.Refine110DataTest" time="0.17" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Refine110UiTest" tests="12" failures="0" errors="0" skipped="0">
+    <testcase name="sharedTextUnderstandsContextualPavilionHeading[28]" classname="com.spisokryadom.app.Refine110UiTest" time="36.504" />
+    <testcase name="widgetRemoteViewsRenderScrollableRowsAndCheckedState[28]" classname="com.spisokryadom.app.Refine110UiTest" time="5.63" />
+    <testcase name="shareSendsVisibleEditedTextWithoutSavingBasket[28]" classname="com.spisokryadom.app.Refine110UiTest" time="1.919" />
+    <testcase name="productCardShowsMarketBeforePavilion[28]" classname="com.spisokryadom.app.Refine110UiTest" time="4.333" />
+    <testcase name="widgetAddIntentOpensAddPurchaseEvenFromAnotherScreen[28]" classname="com.spisokryadom.app.Refine110UiTest" time="2.827" />
+    <testcase name="movePickerSeparatesMarketAndPavilion[28]" classname="com.spisokryadom.app.Refine110UiTest" time="2.173" />
+    <testcase name="sharedTextUnderstandsContextualPavilionHeading" classname="com.spisokryadom.app.Refine110UiTest" time="25.936" />
+    <testcase name="widgetRemoteViewsRenderScrollableRowsAndCheckedState" classname="com.spisokryadom.app.Refine110UiTest" time="1.307" />
+    <testcase name="shareSendsVisibleEditedTextWithoutSavingBasket" classname="com.spisokryadom.app.Refine110UiTest" time="0.76" />
+    <testcase name="productCardShowsMarketBeforePavilion" classname="com.spisokryadom.app.Refine110UiTest" time="1.622" />
+    <testcase name="widgetAddIntentOpensAddPurchaseEvenFromAnotherScreen" classname="com.spisokryadom.app.Refine110UiTest" time="1.534" />
+    <testcase name="movePickerSeparatesMarketAndPavilion" classname="com.spisokryadom.app.Refine110UiTest" time="1.408" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Refine130DataTest" tests="18" failures="0" errors="0" skipped="0">
+    <testcase name="fullBackupRestoresShopBackgroundAndWidgetSettingsAndOlderCopiesDefault[28]" classname="com.spisokryadom.app.Refine130DataTest" time="6.961" />
+    <testcase name="malformedNewPreferencesAndBackgroundRejectBeforeDatabaseChanges[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.405" />
+    <testcase name="schema13MigratesWithoutChangingPurchases[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.31" />
+    <testcase name="everyGroupingPreservesAllRowsAndMissingClassifiers[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.251" />
+    <testcase name="widgetCheckboxUsesSameFreshTokenAfterRegrouping[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.183" />
+    <testcase name="urgencyRespectsManualOrderAndBoughtHistory[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.209" />
+    <testcase name="widgetSettingsAreIndependentPersistedAndDefensive[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.249" />
+    <testcase name="hidingDepartmentsDoesNotChangeTheShoppingRoute[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.164" />
+    <testcase name="shopsUseSeparatePhysicalBlocksAndTheirOwnDepartmentRoute[28]" classname="com.spisokryadom.app.Refine130DataTest" time="0.138" />
+    <testcase name="fullBackupRestoresShopBackgroundAndWidgetSettingsAndOlderCopiesDefault" classname="com.spisokryadom.app.Refine130DataTest" time="6.742" />
+    <testcase name="malformedNewPreferencesAndBackgroundRejectBeforeDatabaseChanges" classname="com.spisokryadom.app.Refine130DataTest" time="0.29" />
+    <testcase name="schema13MigratesWithoutChangingPurchases" classname="com.spisokryadom.app.Refine130DataTest" time="0.288" />
+    <testcase name="everyGroupingPreservesAllRowsAndMissingClassifiers" classname="com.spisokryadom.app.Refine130DataTest" time="0.199" />
+    <testcase name="widgetCheckboxUsesSameFreshTokenAfterRegrouping" classname="com.spisokryadom.app.Refine130DataTest" time="0.185" />
+    <testcase name="urgencyRespectsManualOrderAndBoughtHistory" classname="com.spisokryadom.app.Refine130DataTest" time="0.19" />
+    <testcase name="widgetSettingsAreIndependentPersistedAndDefensive" classname="com.spisokryadom.app.Refine130DataTest" time="0.19" />
+    <testcase name="hidingDepartmentsDoesNotChangeTheShoppingRoute" classname="com.spisokryadom.app.Refine130DataTest" time="0.138" />
+    <testcase name="shopsUseSeparatePhysicalBlocksAndTheirOwnDepartmentRoute" classname="com.spisokryadom.app.Refine130DataTest" time="0.127" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Refine130UiTest" tests="12" failures="0" errors="0" skipped="0">
+    <testcase name="nativeWidgetRendersSectionsAndBothFontExtremes[28]" classname="com.spisokryadom.app.Refine130UiTest" time="20.605" />
+    <testcase name="widgetSettingsAreIndependentAndSurviveActivityRecreation[28]" classname="com.spisokryadom.app.Refine130UiTest" time="2.28" />
+    <testcase name="allWidgetGroupingsAreReachableWithoutAnUnassignedMode[28]" classname="com.spisokryadom.app.Refine130UiTest" time="1.457" />
+    <testcase name="restoredWidgetPreferencesRefreshAlreadyOpenSettings[28]" classname="com.spisokryadom.app.Refine130UiTest" time="0.719" />
+    <testcase name="shopBackgroundSupportsCustomColorPersistsAndCanBeDisabled[28]" classname="com.spisokryadom.app.Refine130UiTest" time="2.022" />
+    <testcase name="compactDepartmentsKeepCollapseAndSelectionAndShopSeparation[28]" classname="com.spisokryadom.app.Refine130UiTest" time="0.683" />
+    <testcase name="nativeWidgetRendersSectionsAndBothFontExtremes" classname="com.spisokryadom.app.Refine130UiTest" time="12.557" />
+    <testcase name="widgetSettingsAreIndependentAndSurviveActivityRecreation" classname="com.spisokryadom.app.Refine130UiTest" time="1.782" />
+    <testcase name="allWidgetGroupingsAreReachableWithoutAnUnassignedMode" classname="com.spisokryadom.app.Refine130UiTest" time="1.302" />
+    <testcase name="restoredWidgetPreferencesRefreshAlreadyOpenSettings" classname="com.spisokryadom.app.Refine130UiTest" time="0.732" />
+    <testcase name="shopBackgroundSupportsCustomColorPersistsAndCanBeDisabled" classname="com.spisokryadom.app.Refine130UiTest" time="1.985" />
+    <testcase name="compactDepartmentsKeepCollapseAndSelectionAndShopSeparation" classname="com.spisokryadom.app.Refine130UiTest" time="0.688" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Settings210DataTest" tests="18" failures="0" errors="0" skipped="0">
+    <testcase name="sixFavoriteStylesPersistIndependentlyAndLegacyKeysSeedNewContexts[28]" classname="com.spisokryadom.app.Settings210DataTest" time="6.309" />
+    <testcase name="defaultsOffKeepsBlankFieldsAndOnFillsOnlyNewMissingFields[28]" classname="com.spisokryadom.app.Settings210DataTest" time="0.209" />
+    <testcase name="restoringBuiltInsKeepsCustomDataIdsRelationsAndLocalRouteAndIsIdempotent[28]" classname="com.spisokryadom.app.Settings210DataTest" time="0.271" />
+    <testcase name="fullResetClearsPrivateDataAndSettingsAndInvalidatesOldEditors[28]" classname="com.spisokryadom.app.Settings210DataTest" time="0.281" />
+    <testcase name="oldBackup14SeedsContextsAndInvalidNewPreferenceTypesRefuseAtomically[28]" classname="com.spisokryadom.app.Settings210DataTest" time="0.326" />
+    <testcase name="oldConfiguredDefaultsMigrateEnabledButCanBeExplicitlyDisabled[28]" classname="com.spisokryadom.app.Settings210DataTest" time="0.101" />
+    <testcase name="backup15RoundTripsAllContextsAndDisabledDefaults[28]" classname="com.spisokryadom.app.Settings210DataTest" time="0.205" />
+    <testcase name="failedDatabaseResetRollsBackBeforePreferencesAndPhotosAreTouched[28]" classname="com.spisokryadom.app.Settings210DataTest" time="0.093" />
+    <testcase name="dictionaryResetDetachesReferencesButPreservesPurchasesAndRawInput[28]" classname="com.spisokryadom.app.Settings210DataTest" time="0.14" />
+    <testcase name="sixFavoriteStylesPersistIndependentlyAndLegacyKeysSeedNewContexts" classname="com.spisokryadom.app.Settings210DataTest" time="6.618" />
+    <testcase name="defaultsOffKeepsBlankFieldsAndOnFillsOnlyNewMissingFields" classname="com.spisokryadom.app.Settings210DataTest" time="0.158" />
+    <testcase name="restoringBuiltInsKeepsCustomDataIdsRelationsAndLocalRouteAndIsIdempotent" classname="com.spisokryadom.app.Settings210DataTest" time="0.185" />
+    <testcase name="fullResetClearsPrivateDataAndSettingsAndInvalidatesOldEditors" classname="com.spisokryadom.app.Settings210DataTest" time="0.24" />
+    <testcase name="oldBackup14SeedsContextsAndInvalidNewPreferenceTypesRefuseAtomically" classname="com.spisokryadom.app.Settings210DataTest" time="0.296" />
+    <testcase name="oldConfiguredDefaultsMigrateEnabledButCanBeExplicitlyDisabled" classname="com.spisokryadom.app.Settings210DataTest" time="0.081" />
+    <testcase name="backup15RoundTripsAllContextsAndDisabledDefaults" classname="com.spisokryadom.app.Settings210DataTest" time="0.205" />
+    <testcase name="failedDatabaseResetRollsBackBeforePreferencesAndPhotosAreTouched" classname="com.spisokryadom.app.Settings210DataTest" time="0.098" />
+    <testcase name="dictionaryResetDetachesReferencesButPreservesPurchasesAndRawInput" classname="com.spisokryadom.app.Settings210DataTest" time="0.143" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Widget260DataTest" tests="12" failures="0" errors="0" skipped="0">
+    <testcase name="storeAndProductPresentationAreIndependentAndNeverLeakAcrossOwnersOrModes[28]" classname="com.spisokryadom.app.Widget260DataTest" time="6.992" />
+    <testcase name="malformedWidgetBooleansFailBeforeDatabasePreferencesOrGenerationChange[28]" classname="com.spisokryadom.app.Widget260DataTest" time="0.497" />
+    <testcase name="widgetPreferencesKeepOldDefaultsAndRecoverFromWrongLocalTypes[28]" classname="com.spisokryadom.app.Widget260DataTest" time="0.272" />
+    <testcase name="hidingBoughtFiltersBeforeEveryGroupingWithoutChangingAnyBasketOrOwner[28]" classname="com.spisokryadom.app.Widget260DataTest" time="0.298" />
+    <testcase name="filteredAndRestyledFramesStillUseFreshIdempotentPurchaseTokens[28]" classname="com.spisokryadom.app.Widget260DataTest" time="0.207" />
+    <testcase name="fullBackupRoundTripsWidgetOptionsAndOldCopiesUseCompatibleMissingDefaults[28]" classname="com.spisokryadom.app.Widget260DataTest" time="0.371" />
+    <testcase name="storeAndProductPresentationAreIndependentAndNeverLeakAcrossOwnersOrModes" classname="com.spisokryadom.app.Widget260DataTest" time="7.516" />
+    <testcase name="malformedWidgetBooleansFailBeforeDatabasePreferencesOrGenerationChange" classname="com.spisokryadom.app.Widget260DataTest" time="0.4" />
+    <testcase name="widgetPreferencesKeepOldDefaultsAndRecoverFromWrongLocalTypes" classname="com.spisokryadom.app.Widget260DataTest" time="0.174" />
+    <testcase name="hidingBoughtFiltersBeforeEveryGroupingWithoutChangingAnyBasketOrOwner" classname="com.spisokryadom.app.Widget260DataTest" time="0.265" />
+    <testcase name="filteredAndRestyledFramesStillUseFreshIdempotentPurchaseTokens" classname="com.spisokryadom.app.Widget260DataTest" time="0.258" />
+    <testcase name="fullBackupRoundTripsWidgetOptionsAndOldCopiesUseCompatibleMissingDefaults" classname="com.spisokryadom.app.Widget260DataTest" time="0.309" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Widget260UiTest" tests="13" failures="0" errors="0" skipped="0">
+    <testcase name="widgetEyePendingIntentHidesAndRestoresBoughtWithoutChangingAnyPurchase[28]" classname="com.spisokryadom.app.Widget260UiTest" time="13.348" />
+    <testcase name="actualSettingsPersistIndependentGroupingVisibilityAndAppearanceAcrossRecreation[28]" classname="com.spisokryadom.app.Widget260UiTest" time="1.697" />
+    <testcase name="shopAndProductTintAreIndependentAndRemoteViewsReapplyClearsRecycledColors[28]" classname="com.spisokryadom.app.Widget260UiTest" time="0.586" />
+    <testcase name="disabledWidgetButtonDisappearsAndAnAlreadyRenderedStaleActionDoesNothing[28]" classname="com.spisokryadom.app.Widget260UiTest" time="0.358" />
+    <testcase name="nativeRowsFollowProductGroupsAndFlatModeWithoutLosingPendingOrBoughtItems[28]" classname="com.spisokryadom.app.Widget260UiTest" time="0.545" />
+    <testcase name="narrowWidgetAtLargestFontKeepsBothHeaderActionsReachableAndShowsHiddenState[28]" classname="com.spisokryadom.app.Widget260UiTest" time="0.385" />
+    <testcase name="widgetEyePendingIntentHidesAndRestoresBoughtWithoutChangingAnyPurchase" classname="com.spisokryadom.app.Widget260UiTest" time="13.467" />
+    <testcase name="actualSettingsPersistIndependentGroupingVisibilityAndAppearanceAcrossRecreation" classname="com.spisokryadom.app.Widget260UiTest" time="1.767" />
+    <testcase name="shopAndProductTintAreIndependentAndRemoteViewsReapplyClearsRecycledColors" classname="com.spisokryadom.app.Widget260UiTest" time="0.608" />
+    <testcase name="disabledWidgetButtonDisappearsAndAnAlreadyRenderedStaleActionDoesNothing" classname="com.spisokryadom.app.Widget260UiTest" time="0.311" />
+    <testcase name="nativeRowsFollowProductGroupsAndFlatModeWithoutLosingPendingOrBoughtItems" classname="com.spisokryadom.app.Widget260UiTest" time="0.609" />
+    <testcase name="narrowWidgetAtLargestFontKeepsBothHeaderActionsReachableAndShowsHiddenState" classname="com.spisokryadom.app.Widget260UiTest" time="0.407" />
+    <testcase name="lowLandscapeWidgetKeepsVisibilityActionAndScrollablePurchasesAtLargestFont" classname="com.spisokryadom.app.Widget260UiTest" time="0.321" />
+  </testsuite>
+</testsuites>

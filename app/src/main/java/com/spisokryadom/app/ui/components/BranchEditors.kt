@@ -1,7 +1,6 @@
 package com.spisokryadom.app.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.platform.testTag
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,88 +11,70 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.spisokryadom.app.data.entity.ShopBranchEntity
 
-@Composable fun BranchesEditor(branches:List<ShopBranchEntity>,onChange:(List<ShopBranchEntity>)->Unit,onBusyChange:(Boolean)->Unit={},venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),venueNames:Map<Long,String> = emptyMap(),onVenueName:(Long,String)->Unit={_,_->},pointGroups:@Composable (ShopBranchEntity)->Unit={},unified:Boolean=false,externalPhotoBusy:Boolean=false) {
- var photoBusy by remember{mutableStateOf(false)}
- var editingId by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<Long?>(null) }
- val focus=androidx.compose.ui.platform.LocalFocusManager.current
- Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-  Text("Адреса и точки магазина",style=MaterialTheme.typography.titleMedium)
-  AnimatedOrderColumn(branches,{it.id}) { index,branch ->
-   val editing=unified||editingId==branch.id
-   val duplicate=branches.any{it.id!=branch.id&&it.address.trim().equals(branch.address.trim(),ignoreCase=true)}
-   OutlinedCard(Modifier.fillMaxWidth()) {
-    Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-     Row(verticalAlignment=Alignment.CenterVertically) {
-      Column(Modifier.weight(1f).then(if(!editing)Modifier.clickable(enabled=!photoBusy){editingId=branch.id}else Modifier)) {
-       Text(if(index==0)"Основная точка"else "Приоритет ${index+1}",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)
-       if(!editing){
-        Text(branch.address,style=MaterialTheme.typography.bodyLarge)
-        venues.find{it.id==branch.venueId}?.let{Text(it.name,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
-       }
-      }
-      if(!unified)IconButton(onClick={if(editing){focus.clearFocus();editingId=null}else editingId=branch.id},enabled=!photoBusy&&(!editing||branch.address.isNotBlank()&&!duplicate)) {
-       Icon(if(editing)Icons.Filled.Check else Icons.Filled.Edit,if(editing)"Завершить редактирование адреса"else "Изменить адрес: ${branch.address}")
-      }
+private val OutletDraftSaver=androidx.compose.runtime.saveable.listSaver<ShopBranchEntity,Any>(
+ save={listOf(it.id,it.shopId,it.address,it.displayOrder,it.note.orEmpty(),it.photoUri.orEmpty(),it.venueId?:0L,it.label)},
+ restore={ShopBranchEntity(it[0] as Long,it[1] as Long,it[2] as String,it[3] as Int,(it[4] as String).ifBlank{null},(it[5] as String).ifBlank{null},(it[6] as Long).takeIf{v->v!=0L},it[7] as String)})
+
+@Composable fun BranchesEditor(branches:List<ShopBranchEntity>,onChange:(List<ShopBranchEntity>)->Unit,onBusyChange:(Boolean)->Unit={},venues:List<com.spisokryadom.app.data.entity.VenueEntity> = emptyList(),externalPhotoBusy:Boolean=false,onVenueChange:(com.spisokryadom.app.data.entity.VenueEntity)->Unit={},cityId:Long=1) {
+ var editingId by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf<Long?>(null)}
+ var adding by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
+ val labels=com.spisokryadom.app.domain.PlaceLabels(branches,venues)
+ Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
+  Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+   Text("Точки магазина",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium)
+   IconButton(onClick={adding=true}){Icon(Icons.Filled.Add,"Добавить точку")}
+  }
+  branches.forEachIndexed{index,point->key(point.id){
+   OutlinedCard(Modifier.fillMaxWidth().testTag("branch-summary-${point.id}")){
+    Column(Modifier.fillMaxWidth().padding(top=4.dp,bottom=12.dp)){
+     Row(Modifier.fillMaxWidth().padding(start=12.dp),verticalAlignment=Alignment.CenterVertically){
+      Text(if(index==0)"Основная точка"else "Приоритет ${index+1}",Modifier.weight(1f),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)
+      ReorderButtons({onChange(com.spisokryadom.app.domain.OutletLocations.move(branches,point.id,-1))},{onChange(com.spisokryadom.app.domain.OutletLocations.move(branches,point.id,1))},index>0,index<branches.lastIndex,"Точка выше: ${labels.branch(point)}","Точка ниже: ${labels.branch(point)}")
+      IconButton(onClick={editingId=point.id}){Icon(Icons.Filled.Edit,"Изменить точку: ${labels.branch(point)}")}
      }
-     if(!editing){
-      branch.note?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)}
-      branch.photoUri?.takeIf{it.isNotBlank()}?.let{BranchPhotoPreview(it)}
-     }
-     if(editing) {
-      OutlinedTextField(branch.address,{value->onChange(branches.map{if(it.id==branch.id)it.copy(address=value)else it})},
-       label={Text("Адрес")},minLines=1,maxLines=4,isError=branch.address.isBlank()||duplicate,
-       supportingText=if(duplicate)({Text("Адрес добавлен дважды")})else null,
-       modifier=Modifier.fillMaxWidth().testTag("branch-address-${branch.id}"))
-      OutlinedTextField(branch.note.orEmpty(),{value->onChange(branches.map{if(it.id==branch.id)it.copy(note=value)else it})},label={Text("Заметка точки")},minLines=1,maxLines=3,modifier=Modifier.fillMaxWidth().testTag("branch-note-${branch.id}"))
-      RetailRelationSelector("Рынок или ТЦ",venues.map{it.id to it.name},branch.venueId,venueNames[branch.id].orEmpty(),
-       onSelect={id->onChange(branches.map{if(it.id==branch.id)it.copy(venueId=id)else it})},onNewName={onVenueName(branch.id,it)})
-      BranchPhotoEditor(branch.photoUri.orEmpty(),enabled=!photoBusy&&!externalPhotoBusy,onChange={path->onChange(branches.map{if(it.id==branch.id)it.copy(photoUri=path)else it})},onBusyChange={value->photoBusy=value;onBusyChange(value)})
-      pointGroups(branch)
-      Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End) {
-       ReorderButtons(
-        onUp={focus.clearFocus();val list=branches.toMutableList();list.add(index-1,list.removeAt(index));onChange(list)},
-        onDown={focus.clearFocus();val list=branches.toMutableList();list.add(index+1,list.removeAt(index));onChange(list)},
-        canMoveUp=!photoBusy&&index>0,canMoveDown=!photoBusy&&index<branches.lastIndex,
-        upDescription="Точка выше: ${branch.address}",downDescription="Точка ниже: ${branch.address}")
-       IconButton(onClick={onChange(branches.filter{it.id!=branch.id});editingId=null},enabled=!photoBusy){Icon(Icons.Filled.Delete,"Удалить точку: ${branch.address}")}
-      }
-     }
+     Text(labels.branch(point),Modifier.fillMaxWidth().clickable{editingId=point.id}.padding(horizontal=12.dp).testTag("branch-summary-text-${point.id}"),style=MaterialTheme.typography.bodyMedium)
     }
    }
-  }
-  OutlinedButton(onClick={
-   val id=minOf(-1L,(branches.minOfOrNull{it.id}?:0L)-1L)
-   onChange(branches+ShopBranchEntity(id=id,shopId=0,address=""));editingId=id
-  },enabled=!photoBusy,modifier=Modifier.fillMaxWidth()){Icon(Icons.Filled.Add,null);Text("Добавить адрес")}
+  }}
  }
-}
-
-@Composable fun BranchAvailabilityEditor(shops:List<Pair<Long,String>>,branches:List<ShopBranchEntity>,selected:Map<Long,Set<Long>>,onChange:(Map<Long,Set<Long>>)->Unit,priorities:Map<Long,List<Long>> = emptyMap(),onPriorityChange:((Map<Long,List<Long>>)->Unit)?=null) {
- if(shops.none{pair->branches.count{it.shopId==pair.first}>1})return
- Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-  Text("Точки продажи товара",style=MaterialTheme.typography.titleMedium)
-  shops.forEach{(shopId,name)->val points=branches.filter{it.shopId==shopId}.sortedWith(compareBy<ShopBranchEntity>{it.displayOrder}.thenBy{it.id})
-   val ranked=points.filter{shopId !in selected||it.id in selected[shopId].orEmpty()}.sortedWith(compareBy<ShopBranchEntity>{priorities[shopId]?.indexOf(it.id)?.takeIf{it>=0}?:Int.MAX_VALUE}.thenBy{it.displayOrder}.thenBy{it.id})
-   if(points.size>1)OutlinedCard(Modifier.fillMaxWidth()){Column(Modifier.padding(12.dp)) {
-    Text(name,style=MaterialTheme.typography.titleSmall)
-    Row(Modifier.fillMaxWidth().toggleable(shopId in selected,role=androidx.compose.ui.semantics.Role.Switch){restricted->onChange(if(restricted)selected+(shopId to setOf(points.first().id))else selected-shopId)},verticalAlignment=Alignment.CenterVertically){
-     Switch(shopId in selected,null);Text("Только выбранные точки",Modifier.weight(1f).padding(start=12.dp,top=8.dp,bottom=8.dp))
-    }
-    if(shopId in selected) {
-     points.forEach{branch->SelectionRow(branch.address,branch.id in selected[shopId].orEmpty(),{checked->
-      val ids=selected[shopId].orEmpty().toMutableSet();if(checked)ids.add(branch.id)else ids.remove(branch.id);onChange(selected+(shopId to ids))
-     },tag="branch-choice-${branch.id}")}
-     if(selected[shopId].isNullOrEmpty())Text("Выберите хотя бы одну точку",color=MaterialTheme.colorScheme.error)
-    }else Text("Во всех точках",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-    if(onPriorityChange!=null&&ranked.size>1){
-     var editing by remember(shopId){mutableStateOf(false)}
-     TextButton(onClick={editing=!editing}){Text(if(editing)"Готово: приоритет точек"else "Приоритет точек")}
-     if(editing)AnimatedOrderColumn(ranked,{it.id},spacing=0.dp){index,point->
-      fun move(delta:Int){val next=ranked.map{it.id}.toMutableList();val to=index+delta;if(to in next.indices){val other=next[to];next[to]=next[index];next[index]=other;onPriorityChange(priorities+(shopId to next))}}
-      Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text(point.address,Modifier.weight(1f));ReorderButtons({move(-1)},{move(1)},index>0,index<ranked.lastIndex,"Выше приоритет точки: ${point.address}","Ниже приоритет точки: ${point.address}")}
+ val point=if(adding)ShopBranchEntity(id=minOf(-1L,(branches.minOfOrNull{it.id}?:0L)-1L),shopId=0,address="")else branches.find{it.id==editingId}
+ if(point!=null)key(point.id){
+  var draft by androidx.compose.runtime.saveable.rememberSaveable(point.id,stateSaver=OutletDraftSaver){mutableStateOf(point)}
+  var venueEditingId by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf<Long?>(null)}
+  val venueEditing=venueEditingId?.let{id->venues.find{it.id==id}?:com.spisokryadom.app.data.entity.VenueEntity(id,cityId,"")}
+  var photoBusy by remember{mutableStateOf(false)}
+  var deleting by remember{mutableStateOf(false)}
+  val venue=venues.find{it.id==draft.venueId}
+  val candidate=if(venue==null)draft else draft.copy(address="")
+  val duplicate=branches.any{it.id!=point.id&&com.spisokryadom.app.domain.OutletLocations.key(it)==com.spisokryadom.app.domain.OutletLocations.key(candidate)}
+  fun close(){adding=false;editingId=null}
+  if(deleting)ConfirmDialog("Удалить точку?","Ограничения доступности товаров будут проверены при сохранении магазина.",onConfirm={onChange(branches.filter{it.id!=point.id});deleting=false;close()},onDismiss={deleting=false})
+  PlaceEditorDialog(if(adding)"Новая точка"else "Точка магазина",::close,{
+   val saved=candidate.copy(displayOrder=if(adding)branches.size else point.displayOrder)
+   onChange(if(adding)branches+saved else branches.map{if(it.id==saved.id)saved else it});close()
+  },canSave=!duplicate&&(venue!=null||draft.address.isNotBlank()||draft.label.isNotBlank()),busy=photoBusy){
+   DropdownSelector("Торговое место",venues,venue,{"${com.spisokryadom.app.data.entity.VenueKinds.label(it.kind)} · ${it.name}"},{selected->draft=draft.copy(venueId=selected?.id)},allowCreate=true,createLabel="Новое торговое место…",noneLabel="Отдельный адрес",alphabetical=true,onCreateNew={
+    venueEditingId=minOf(-1L,(venues.minOfOrNull{it.id}?:0L)-1L)
+   })
+   if(venue!=null){
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+     Column(Modifier.weight(1f)){
+      Text("Общий адрес",style=MaterialTheme.typography.labelSmall)
+      Text(venue.address?.takeIf{it.isNotBlank()}?:"Адрес пока не указан")
      }
+     IconButton(onClick={venueEditingId=venue.id}){Icon(Icons.Filled.Edit,"Изменить рынок или ТЦ")}
     }
-   }}
+    venue.photoUri?.let{BranchPhotoPreview(it,"Рынок или ТЦ")}
+    OutlinedTextField(draft.label,{draft=draft.copy(label=it)},label={Text("Павильон, этаж или место внутри")},modifier=Modifier.fillMaxWidth().testTag("branch-label-${point.id}"))
+   }else {
+    OutlinedTextField(draft.label,{draft=draft.copy(label=it)},label={Text("Название точки (необязательно)")},modifier=Modifier.fillMaxWidth())
+    OutlinedTextField(draft.address,{draft=draft.copy(address=it)},label={Text("Адрес")},modifier=Modifier.fillMaxWidth().testTag("branch-address-${point.id}"))
+   }
+   if(duplicate)Text("Эта точка уже добавлена",color=MaterialTheme.colorScheme.error)
+   OutlinedTextField(draft.note.orEmpty(),{draft=draft.copy(note=it)},label={Text("Заметка точки")},maxLines=3,modifier=Modifier.fillMaxWidth().testTag("branch-note-${point.id}"))
+   BranchPhotoEditor(draft.photoUri.orEmpty(),{draft=draft.copy(photoUri=it)},{photoBusy=it;onBusyChange(it)},compact=true,showTitle=false,enabled=!externalPhotoBusy||photoBusy)
+   if(!adding)IconButton(onClick={deleting=true}){Icon(Icons.Filled.Delete,"Удалить точку")}
   }
+  venueEditing?.let{value->VenueEditorDialog(value,onDismiss={venueEditingId=null},onSave={saved->onVenueChange(saved);draft=draft.copy(venueId=saved.id)},allowCityChange=false)}
  }
 }

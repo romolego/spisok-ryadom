@@ -1,0 +1,51 @@
+{
+  "version": "0.23.0",
+  "checks": {
+    "tests": 1091,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": 91,
+  "fullRegression": true,
+  "singleUnchangedSourceFullRun": false,
+  "fullCasesBeforeCityFix": 1089,
+  "recheckedClasses": 6,
+  "recheckedCases": 92,
+  "changedAfterFullRun": [
+    "app/src/main/java/com/spisokryadom/app/data/repository/ShopRepository.kt",
+    "app/src/test/java/com/spisokryadom/app/Venues230DataTest.kt"
+  ],
+  "execution": "Complete 1089-case run, then all cases in six affected classes after a reproduced multi-venue cross-city transaction failure; two new cases included. Final release/lint on unchanged final source seal.",
+  "newChecks": 46,
+  "newApis": [
+    28,
+    35
+  ],
+  "landscapeAndRestorationApi": 35,
+  "sourceSealFiles": 291,
+  "unchangedSinceFreeze": true,
+  "oldSchemasUnchanged": 12,
+  "roomSchema": 20,
+  "backupFormat": 17,
+  "lint": {
+    "Error": 0,
+    "Warning": 79,
+    "Information": 0,
+    "Hint": 3
+  },
+  "apk": {
+    "version": "0.23.0",
+    "versionCode": 31,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2049054,
+    "sha256": "bd6d25e9fe1b2de954a876b4790f6402e5cdd4a5497628f7ca9456d25d73cb28",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 20,
+    "backupFormat": 17
+  },
+  "nativeScreenshots": 9,
+  "physicalPhoneTested": false,
+  "privateExportVerification": "Separate local source set; no personal fixture in repository. Original ZIP16 and corrected ZIP17 round-trip checked.",
+  "githubPublication": "Local iteration; last published release 0.20.1."
+}

@@ -51,12 +51,15 @@ class ArchitectureUiTest {
   ui.waitUntil(20_000){runBlocking{db.shoppingListEntryDao().getById(entryB)!!.quantity==3.0}}
   assertEquals(1.0,runBlocking{db.shoppingListEntryDao().getById(entryA)!!.quantity},0.0)
  }
- @Test fun networkAndVenueAreCreatedInlineAndSavedOnTheSamePhysicalPoint(){
+ @Test fun networkAndVenueUsePointEditorAndSaveOnTheSamePhysicalPoint(){
   ui.onAllNodesWithText("Магазины").onLast().performClick();waitText("Командор");ui.onNodeWithText("Командор").performTouchInput{longClick()};waitText("Название магазина")
   ui.onNodeWithText("Править").performScrollTo().performClick()
-  ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();ui.onNodeWithText("Название сети").performScrollTo().performTextReplacement("Командор")
-  ui.onAllNodesWithText("Рынок или ТЦ").onLast().performScrollTo().performClick();ui.onNodeWithText("Новый рынок или ТЦ…").performClick();ui.onNodeWithText("Название рынка или ТЦ").performScrollTo().performTextReplacement("Планета")
-  ui.onNodeWithTag("branch-note-$second").performScrollTo().performTextReplacement("Вход с парковки");shot("02-inline-physical-point")
+  ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();ui.onNodeWithText("Название сети").assertIsDisplayed().performTextReplacement("Командор");ui.onAllNodesWithText("Сохранить").onLast().performClick()
+  ui.onNodeWithContentDescription("Изменить точку: В торговом центре").performScrollTo().performClick()
+  ui.onNodeWithText("Торговое место").performClick();ui.onNodeWithText("Новое торговое место…").performClick();ui.onNodeWithTag("venue-name").performTextReplacement("Планета")
+  ui.onNodeWithTag("venue-address").performTextReplacement("Адрес ТЦ, 1");ui.onAllNodesWithText("Сохранить").onLast().performClick()
+  ui.onNodeWithTag("branch-label-$second").performTextReplacement("В торговом центре")
+  ui.onNodeWithTag("branch-note-$second").performScrollTo().performTextReplacement("Вход с парковки");shot("02-inline-physical-point");ui.onAllNodesWithText("Сохранить").onLast().performClick()
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   ui.waitUntil(20_000){runBlocking{db.shopDao().getById(shop)!!.networkId!=null}}
   runBlocking{val point=db.shopBranchDao().get(second)!!;assertEquals(shop,point.shopId);assertNotNull(point.venueId);assertEquals("Планета",db.retailStructureDao().venue(point.venueId!!)!!.name);assertEquals("Вход с парковки",point.note);assertEquals(2,db.shopBranchDao().forShop(shop).size)}
@@ -74,8 +77,8 @@ class ArchitectureUiTest {
   runBlocking{db.shopDao().update(db.shopDao().getById(shop)!!.copy(name="Енисейский привоз"))}
   ui.onAllNodesWithText("Магазины").onLast().performClick();waitText("Енисейский привоз");ui.onNodeWithText("Енисейский привоз").performTouchInput{longClick()};waitText("Название магазина")
   ui.onNodeWithText("Править").performScrollTo().performClick()
-  ui.onNodeWithText("Преобразовать в рынок или ТЦ").performScrollTo().performClick();waitText("Преобразовать в рынок или ТЦ?")
-  ui.onNode(hasText("Да") and hasAnyAncestor(isDialog())).performClick();waitText("Магазины");waitText("Около дома")
+  ui.onNodeWithText("Преобразовать в торговое место").performScrollTo().performClick();waitText("Преобразовать в торговое место")
+  ui.onNodeWithText("Преобразовать",substring=false).performClick();waitText("Магазины");waitText("Около дома")
   reveal(hasText("Енисейский привоз"));reveal(hasText("Около дома") and hasAnyAncestor(shopRow));reveal(hasText("В торговом центре") and hasAnyAncestor(shopRow));reveal(hasText("Батон"));ui.onNodeWithText("Рынок или ТЦ").assertDoesNotExist();shot("05-market-pavilions")
   runBlocking{assertNotNull(db.shoppingListEntryDao().getById(entryA));assertEquals(first,db.shoppingListEntryDao().getById(entryA)!!.assignedBranchId);assertEquals(second,db.shoppingListEntryDao().getById(entryB)!!.assignedBranchId);assertEquals(1,db.productDao().getAllSync().size)}
  }

@@ -63,8 +63,8 @@ fun ShopCardScreen(
     viewModel: ShopCardViewModel = viewModel(factory = ShopCardViewModel.factory(shopId))
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val validBranches=state.branches.all{it.address.isNotBlank()}&&
-        state.branches.map{it.address.trim().lowercase(java.util.Locale.ROOT)}.distinct().size==state.branches.size
+    val validBranches=com.spisokryadom.app.domain.OutletLocations.valid(state.branches)
+    val placeVenues=state.venues.filter{it.id !in state.venueEdits}+state.venueEdits.values
     state.error?.let { message -> androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={TextButton(onClick=viewModel::clearError){Text("Понятно")}}) }
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
@@ -80,7 +80,18 @@ fun ShopCardScreen(
     var showAddDepartmentDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showConvertConfirm by remember { mutableStateOf(false) }
-    if(showConvertConfirm)ConfirmDialog("Преобразовать в рынок или ТЦ?","Каждая точка станет отдельным магазином внутри «${state.name}». Товары и покупки сохранятся.",onConfirm={viewModel.convertToVenue();showConvertConfirm=false},onDismiss={showConvertConfirm=false})
+    var conversionKind by rememberSaveable{mutableStateOf(com.spisokryadom.app.data.entity.VenueKinds.MARKET)}
+    if(showConvertConfirm)androidx.compose.material3.ModalBottomSheet(onDismissRequest={showConvertConfirm=false},sheetState=androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded=true)){
+        Column(Modifier.fillMaxWidth().padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+            Text("Преобразовать в торговое место",style=MaterialTheme.typography.titleLarge)
+            DropdownSelector("Тип места",com.spisokryadom.app.data.entity.VenueKinds.choices,conversionKind,com.spisokryadom.app.data.entity.VenueKinds::label,{it?.let{conversionKind=it}},allowNone=false)
+            Text("Каждая точка станет отдельным магазином внутри «${state.name}». Товары и покупки сохранятся.",style=MaterialTheme.typography.bodyMedium)
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){
+                TextButton(onClick={showConvertConfirm=false}){Text("Отмена")}
+                TextButton(onClick={viewModel.convertToVenue(conversionKind);showConvertConfirm=false}){Text("Преобразовать")}
+            }
+        }
+    }
     var isPlaceEditing by rememberSaveable { mutableStateOf(false) }
     var isDepartmentsEditing by remember { mutableStateOf(false) }
 
@@ -169,6 +180,11 @@ fun ShopCardScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+            Row(Modifier.fillMaxWidth().testTag("shop-favorite-row"),verticalAlignment=Alignment.CenterVertically){
+            SelectionRow("Избранное",state.isFavorite,viewModel::updateFavorite,modifier=Modifier.weight(1f))
+            ShopAppearance(state.shoppingBackground,state.name,state.iconKey,state.logoUri,
+                viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy,purchaseBackground=state.purchaseBackground,onPurchaseBackground=viewModel::updatePurchaseBackground)
+            }
 
             ShopCardBlock("Место магазина",action={
                 TextButton(onClick={isPlaceEditing=!isPlaceEditing},enabled=!state.isPhotoBusy&&(!isPlaceEditing||validBranches)){
@@ -177,44 +193,24 @@ fun ShopCardScreen(
             }) {
                 if(isPlaceEditing){
                     CityField(state.cityId,viewModel::updateCity)
-            com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,state.venues.filter{it.cityId==state.cityId},state.venueNames,viewModel::updateVenueName,pointGroups={point->
-                val types=state.departments.distinctBy{it.typeId}.filter{it.typeId>0}
-                if(point.id>0&&types.size>1){
-                    Text("Порядок групп в точке",style=MaterialTheme.typography.titleSmall)
-                    val order=state.branchOrders[point.id].orEmpty()
-                    val sorted=types.sortedWith(compareBy<ShopDepartmentEntity>{order.indexOf(it.typeId).takeIf{idx->idx>=0}?:Int.MAX_VALUE}.thenBy{it.displayOrder})
-                    com.spisokryadom.app.ui.components.AnimatedOrderColumn(sorted,{it.typeId}){index,group->
-                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                            Text(group.name,Modifier.weight(1f))
-                            fun move(delta:Int){val ids=sorted.map{it.typeId}.toMutableList();ids.add(index+delta,ids.removeAt(index));viewModel.updateBranchOrder(point.id,ids)}
-                            com.spisokryadom.app.ui.components.ReorderButtons({move(-1)},{move(1)},index>0,index<sorted.lastIndex)
-                        }
-                    }
-                }
-            },unified=true,externalPhotoBusy=state.isPhotoBusy)
-
                     RetailRelationSelector("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName)
-                    if(!state.isNew&&state.branches.isNotEmpty()){
+            com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,placeVenues.filter{it.cityId==state.cityId},externalPhotoBusy=state.isPhotoBusy,onVenueChange=viewModel::updateVenue,cityId=state.cityId)
+
+                    if(!state.isNew&&state.branches.isNotEmpty()&&state.branches.all{it.venueId==null}){
                         HorizontalDivider()
                         Text("Рынок или ТЦ объединяет самостоятельные магазины и павильоны. При преобразовании каждая точка станет отдельным магазином внутри него.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                        TextButton(onClick={showConvertConfirm=true},enabled=validBranches&&!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в рынок или ТЦ")}
+                        TextButton(onClick={showConvertConfirm=true},enabled=validBranches&&!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в торговое место")}
                     }
-                }else ShopPlaceSummary(state)
+                }else ShopPlaceSummary(state.copy(venues=placeVenues))
             }
 
-            ShopCardBlock("Покупки в магазине") {
+            ShopCardBlock {
                 DropdownSelector(label="Тип покупок в магазине",items=com.spisokryadom.app.util.PurchaseModes.labels.keys.toList(),
                     selectedItem=state.purchaseMode,itemLabel={com.spisokryadom.app.util.PurchaseModes.labels.getValue(it)},
                     itemVector={when(it){"online"->Icons.Filled.Language;"offline"->Icons.Filled.Store;"both"->Icons.Filled.SwapHoriz;else->Icons.Filled.Settings}},
                     onSelect={it?.let(viewModel::updatePurchaseMode)},allowNone=false,modifier=Modifier.fillMaxWidth())
                 OutlinedTextField(value=state.note,onValueChange=viewModel::updateNote,label={Text("Короткая заметка")},
                     modifier=Modifier.fillMaxWidth(),minLines=1,maxLines=3)
-            }
-
-            ShopAppearance(state.shoppingBackground,state.name,state.iconKey,state.logoUri,
-                viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy)
-
-            ShopCardBlock("Настройки срочности") {
                 DropdownSelector("Срочные в свёрнутом магазине",UrgencyOverride.entries,state.showUrgentInCollapsed,{it.label},
                     {it?.let(viewModel::updateShowUrgentInCollapsed)},allowNone=false)
                 DropdownSelector("Поднимать магазин со срочными",UrgencyOverride.entries,state.boostUrgentShop,{it.label},

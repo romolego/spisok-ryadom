@@ -13,5 +13,6 @@ data class GoalListEntity(
     val name: String,
     @ColumnInfo(defaultValue = "0") val showInPurchases: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "0") val isTemplate: Boolean = false
 )

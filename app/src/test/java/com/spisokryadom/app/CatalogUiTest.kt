@@ -43,7 +43,7 @@ class CatalogUiTest {
   ui.onNode(hasSetTextAction()).performTextReplacement("яблыки");waitText("Товаров: 1");ui.onNodeWithText("Яблоки Гала").assertIsDisplayed();shot("05-fuzzy-small")
   ui.onNodeWithText("Группы").performClick();ui.onNode(hasSetTextAction()).performTextClearance();waitText("Товаров: 5001")
   ui.onNode(hasScrollToIndexAction()).performScrollToIndex(2600)
-  ui.onNodeWithText("Покупки").performClick();ui.onNodeWithContentDescription("Добавить в список").performClick()
+  ui.onNodeWithText("Главная").performClick();ui.onNodeWithContentDescription("Добавить в список").performClick()
   ui.onNode(hasSetTextAction() and hasText("Название товара")).performTextReplacement("яблыки")
   waitText("Яблоки Гала");ui.onNodeWithText("Яблоки Гала").performScrollTo().performClick()
   ui.onNode(hasSetTextAction() and hasText("Количество")).performTextReplacement("0,75")

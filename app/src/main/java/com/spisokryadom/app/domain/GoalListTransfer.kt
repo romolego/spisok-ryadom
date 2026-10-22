@@ -16,7 +16,7 @@ data class GoalListItemDraft(
     val comment: String = "",
 )
 
-data class GoalListDocument(val name: String, val items: List<GoalListItemDraft>)
+data class GoalListDocument(val name: String, val items: List<GoalListItemDraft>, val isTemplate: Boolean = false)
 enum class GoalListTransferFormat { TEXT, JSON, PLAIN_TEXT }
 data class GoalListTransferPreview(
     val document: GoalListDocument?,
@@ -45,6 +45,7 @@ object GoalListTransfer {
     const val MAX_UNIT_PRICE = 1_000_000_000_000.0
     private const val HEADER = "Список рядом — целевой список v1"
     private const val HEADER_V2 = "Список рядом — целевой список v2"
+    private const val HEADER_TEMPLATE = "Список рядом — шаблон v3"
     private const val JSON_FORMAT = "spisok-ryadom-goal-list"
     private const val NUMBER = "[+-]?(?:[0-9]+(?:[.,][0-9]+)?|[.,][0-9]+)(?:[eE][+-]?[0-9]+)?"
 
@@ -78,9 +79,9 @@ object GoalListTransfer {
 
     fun exportText(document: GoalListDocument): String {
         requireValid(document)
-        val version = if (document.items.any { it.comment.isNotEmpty() }) 2 else 1
+        val version = if (document.isTemplate) 3 else if (document.items.any { it.comment.isNotEmpty() }) 2 else 1
         val result = buildString {
-            append(if (version == 2) HEADER_V2 else HEADER).append('\n').append("Название: ").append(quote(document.name)).append('\n')
+            append(if (version == 3) HEADER_TEMPLATE else if (version >= 2) HEADER_V2 else HEADER).append('\n').append("Название: ").append(quote(document.name)).append('\n')
             var previousPlace: Pair<String, String>? = null
             document.items.forEach { item ->
                 val place = item.shopName to item.shopAddress
@@ -93,7 +94,7 @@ object GoalListTransfer {
                 append(quote(item.name)).append(" | ").append(decimal(item.quantity)).append(' ').append(quote(item.unit))
                 append(" | ").append(item.unitPrice?.let { "${decimal(it)} ₽/ед." } ?: "—")
                 append(" | ").append(quote(item.note))
-                if (version == 2) append(" | ").append(quote(item.comment))
+                if (version >= 2) append(" | ").append(quote(item.comment))
                 append('\n')
             }
         }.trimEnd('\n')
@@ -103,16 +104,17 @@ object GoalListTransfer {
 
     fun exportJson(document: GoalListDocument): String {
         requireValid(document)
-        val version = if (document.items.any { it.comment.isNotEmpty() }) 2 else 1
+        val version = if (document.isTemplate) 3 else if (document.items.any { it.comment.isNotEmpty() }) 2 else 1
         val result = buildString {
             append("{\n  \"format\": ").append(quote(JSON_FORMAT)).append(",\n  \"version\": ").append(version).append(",\n  \"name\": ").append(quote(document.name))
+            if (version == 3) append(",\n  \"isTemplate\": true")
             append(",\n  \"items\": [")
             document.items.forEachIndexed { index, item ->
                 if (index > 0) append(',')
                 append("\n    {\"name\": ").append(quote(item.name)).append(", \"quantity\": ").append(decimal(item.quantity))
                 append(", \"unit\": ").append(quote(item.unit)).append(", \"unitPrice\": ").append(item.unitPrice?.let(::decimal) ?: "null")
                 append(", \"note\": ").append(quote(item.note))
-                if (version == 2) append(", \"comment\": ").append(quote(item.comment))
+                if (version >= 2) append(", \"comment\": ").append(quote(item.comment))
                 append(", \"shopName\": ").append(quote(item.shopName))
                 append(", \"shopAddress\": ").append(quote(item.shopAddress)).append(", \"isBought\": ").append(item.isBought)
                 append(", \"isUrgent\": ").append(item.isUrgent).append('}')
@@ -160,7 +162,7 @@ object GoalListTransfer {
 
     private fun parseExactText(text: String): GoalListDocument {
         val lines = text.lines()
-        val version = when (lines.first()) { HEADER -> 1; HEADER_V2 -> 2; else -> fail("Неизвестная версия текстового списка. Поддерживаются v1 и v2") }
+        val version = when (lines.first()) { HEADER -> 1; HEADER_V2 -> 2; HEADER_TEMPLATE -> 3; else -> fail("Неизвестная версия текстового списка. Поддерживаются v1, v2 и шаблон v3") }
         var name: String? = null
         var shopName = ""
         var shopAddress = ""
@@ -186,7 +188,7 @@ object GoalListTransfer {
                     val body = line.substring(6)
                     val urgent = body.startsWith("! ")
                     val parts = splitQuoted(if (urgent) body.substring(2) else body, prefix)
-                    ensure(parts.size == (if (version == 2) 5 else 4), "$prefix: нужны название, количество/единица, цена, заметка" + if (version == 2) " и комментарий" else "")
+                    ensure(parts.size == (if (version >= 2) 5 else 4), "$prefix: нужны название, количество/единица, цена, заметка" + if (version >= 2) " и комментарий" else "")
                     val quantityUnit = Regex("^($NUMBER)\\s+(\".*\")$").matchEntire(parts[1])
                         ?: fail("$prefix: количество и единица должны выглядеть как 2 \"кг\"")
                     val price = if (parts[2] == "—") null else {
@@ -195,13 +197,13 @@ object GoalListTransfer {
                         number(match.groupValues[1], prefix, price = true)
                     }
                     items += GoalListItemDraft(stringToken(parts[0], prefix), number(quantityUnit.groupValues[1], prefix, quantity = true),
-                        stringToken(quantityUnit.groupValues[2], prefix), price, stringToken(parts[3], prefix), shopName, shopAddress, bought, urgent, if (version == 2) stringToken(parts[4], prefix) else "")
+                        stringToken(quantityUnit.groupValues[2], prefix), price, stringToken(parts[3], prefix), shopName, shopAddress, bought, urgent, if (version >= 2) stringToken(parts[4], prefix) else "")
                     ensure(items.size <= MAX_ITEMS, "В списке не может быть более $MAX_ITEMS позиций")
                 }
                 else -> fail("$prefix: непонятная строка; проверьте формат перед импортом")
             }
         }
-        return GoalListDocument(name ?: fail("Не указано название списка"), items)
+        return GoalListDocument(name ?: fail("Не указано название списка"), items, isTemplate = version == 3)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -209,8 +211,11 @@ object GoalListTransfer {
         val root = JsonReader(text).read() as? Map<String, Any?> ?: fail("JSON списка должен быть объектом")
         ensure(root["format"] == JSON_FORMAT, "Это не файл целевого списка «Список рядом»")
         val rawVersion = root["version"] as? BigDecimal
-        val version = when { rawVersion?.compareTo(BigDecimal.ONE) == 0 -> 1; rawVersion?.compareTo(BigDecimal(2)) == 0 -> 2; else -> fail("Неизвестная версия JSON списка") }
-        unknownKeys(root, setOf("format", "version", "name", "items"), "списка", warnings)
+        val version = when { rawVersion?.compareTo(BigDecimal.ONE) == 0 -> 1; rawVersion?.compareTo(BigDecimal(2)) == 0 -> 2; rawVersion?.compareTo(BigDecimal(3)) == 0 -> 3; else -> fail("Неизвестная версия JSON списка") }
+        unknownKeys(root, setOf("format", "version", "name", "items", "isTemplate"), "списка", warnings)
+        val isTemplate = optionalBoolean(root, "isTemplate", "Список")
+        ensure(version != 3 || root.containsKey("isTemplate"), "JSON версии 3 должен содержать тип списка")
+        ensure(version >= 3 || !isTemplate, "Шаблон требует JSON версии 3")
         val name = requiredString(root, "name", "Название списка")
         val rows = root["items"] as? List<*> ?: fail("JSON: items должен быть массивом")
         ensure(rows.size <= MAX_ITEMS, "В списке не может быть более $MAX_ITEMS позиций")
@@ -220,13 +225,13 @@ object GoalListTransfer {
             unknownKeys(obj, setOf("name", "quantity", "unit", "unitPrice", "note", "comment", "shopName", "shopAddress", "isBought", "isUrgent"), where, warnings)
             val price = obj["unitPrice"]?.let { numericValue(it, "$where, цена", price = true) }
             val comment = optionalString(obj, "comment", where)
-            ensure(version == 2 || comment.isEmpty(), "$where: комментарий требует JSON списка версии 2")
+            ensure(version >= 2 || comment.isEmpty(), "$where: комментарий требует JSON списка версии 2")
             GoalListItemDraft(requiredString(obj, "name", "$where, название"),
                 numericValue(obj["quantity"], "$where, количество", quantity = true), requiredString(obj, "unit", "$where, единица"), price,
                 optionalString(obj, "note", where), optionalString(obj, "shopName", where), optionalString(obj, "shopAddress", where),
                 optionalBoolean(obj, "isBought", where), optionalBoolean(obj, "isUrgent", where), comment)
         }
-        return GoalListDocument(name, items)
+        return GoalListDocument(name, items, isTemplate = isTemplate)
     }
 
     private fun parsePlainText(text: String, warnings: MutableList<String>): GoalListDocument {

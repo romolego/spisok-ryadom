@@ -1,0 +1,192 @@
+{
+  "version": "0.24.0",
+  "roomSchema": 21,
+  "backupFormat": 18,
+  "fullRun": {
+    "totals": {
+      "cases": 1140,
+      "failure": 2,
+      "error": 0,
+      "skipped": 0
+    },
+    "classes": 94,
+    "failedCases": [
+      {
+        "class": "com.spisokryadom.app.Audit121UiTest",
+        "case": "shopBatchAddRequiresAndUsesExplicitPointInsteadOfDifferentPreferredPoint[28]"
+      },
+      {
+        "class": "com.spisokryadom.app.Audit121UiTest",
+        "case": "shopBatchAddRequiresAndUsesExplicitPointInsteadOfDifferentPreferredPoint"
+      }
+    ]
+  },
+  "rechecks": [
+    {
+      "class": "com.spisokryadom.app.Audit121UiTest",
+      "cases": 16,
+      "reportSha256": "5372dd35bbca756045008235ebfabe47ec92bcec9723f0da6a6e595f2995edd5"
+    },
+    {
+      "class": "com.spisokryadom.app.GoalListStorageTest",
+      "cases": 38,
+      "reportSha256": "ad2215ac9b040c3e7951d69dedf07d9d5309988b8f372624657a35b384f42d98"
+    },
+    {
+      "class": "com.spisokryadom.app.GoalListsUiTest",
+      "cases": 18,
+      "reportSha256": "9cb38f0e45a84a618914ff7878eb2f5b0793b492c15ca9a461f338d9b7107858"
+    },
+    {
+      "class": "com.spisokryadom.app.GoalListTransferTest",
+      "cases": 19,
+      "reportSha256": "3b5a1a5d848be2c3bd29d916b1621ddcae31339f4d03a8383efb3d9396cfbc0b"
+    },
+    {
+      "class": "com.spisokryadom.app.Refine140DataTest",
+      "cases": 16,
+      "reportSha256": "595b09617cfcc7c131dbc2f8de9fafedef012c60d1ef0e7e1679a858509c3fa5"
+    },
+    {
+      "class": "com.spisokryadom.app.Refine140UiTest",
+      "cases": 10,
+      "reportSha256": "f4e167cec82472998e7f73e5492dd9a154e1c067272aa4506056765ef9a57972"
+    },
+    {
+      "class": "com.spisokryadom.app.Templates240DataTest",
+      "cases": 32,
+      "reportSha256": "5ac7ef363f68941490035198778f20e13b74a69afaa42cc737dcce30ac3c51db"
+    },
+    {
+      "class": "com.spisokryadom.app.Templates240LandscapeUiTest",
+      "cases": 1,
+      "reportSha256": "98686a4c4aaaf434fb8f39a1ec636b4cd3d492e22eccf73cc839abf7f6ce1bdc"
+    },
+    {
+      "class": "com.spisokryadom.app.Templates240UiTest",
+      "cases": 18,
+      "reportSha256": "9ab4dcc7aad1d76a64b87169bf6f1e6c7825ed5f047db37eeaf4bf0bccc56332"
+    }
+  ],
+  "finalUnique": {
+    "totals": {
+      "cases": 1142,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "classes": 94,
+    "newCases": 51
+  },
+  "sourceFiles": 296,
+  "sourceChangedAfterFullStart": [
+    "app/src/main/java/com/spisokryadom/app/ui/goallists/GoalListScreen.kt",
+    "app/src/test/java/com/spisokryadom/app/Audit121UiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Templates240UiTest.kt"
+  ],
+  "productionChangedAfterFullStart": true,
+  "apk": {
+    "version": "0.24.0",
+    "versionCode": 32,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2065438,
+    "sha256": "59039909b7e30e832b74440bd06dc9c6b22a53e7868057a9aa5851a1a3d6c5ec",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 21,
+    "backupFormat": 18
+  },
+  "lint": {
+    "Warning": 66,
+    "Hint": 3
+  },
+  "screens": [
+    {
+      "file": "screens/favorites-active-api28.png",
+      "sha256": "0365cb0b8d092151923e09ebb85b03b707d0e3f3e2296c64331b0ee8151bd238",
+      "bytes": 65590
+    },
+    {
+      "file": "screens/favorites-active-api35.png",
+      "sha256": "a130af582228ed8b08aa0727aed7913e6e673cb5116ea21520a8f03c73ff79d0",
+      "bytes": 67009
+    },
+    {
+      "file": "screens/favorites-added-api28.png",
+      "sha256": "c0740333f7c371a9b2f7e8982db2769573e97e8b0f69e50e08f293accc9efdf3",
+      "bytes": 59708
+    },
+    {
+      "file": "screens/favorites-added-api35.png",
+      "sha256": "79239d80a6b094ffdfde0bd7ba7b717fc8636996ad8ea893d4a8d93895fb8496",
+      "bytes": 60377
+    },
+    {
+      "file": "screens/template-confirm-list-api28.png",
+      "sha256": "2b728911f63bfef9887a8fb16a485e50823fbbcf70ca6f8a1a3287ec2bc85a4a",
+      "bytes": 62805
+    },
+    {
+      "file": "screens/template-confirm-list-api35.png",
+      "sha256": "37a8ad7e5515dbf13926bcdfa383d73214ac6e618476ca6f771f3703a1bfa4e3",
+      "bytes": 63630
+    },
+    {
+      "file": "screens/template-confirm-main-api28.png",
+      "sha256": "e253fd0049e86098cfaa63c3603e65e27216ddbbd53e63fe588098713678310c",
+      "bytes": 63265
+    },
+    {
+      "file": "screens/template-confirm-main-api35.png",
+      "sha256": "2698e95ae2ca036ec6c597059586d50763e4b9de7c5bf0114960a06052923928",
+      "bytes": 64003
+    },
+    {
+      "file": "screens/template-editor-api28.png",
+      "sha256": "1551b44d8488ae745035899168ba1f39c8e223d864a5916568f830f33715c333",
+      "bytes": 47564
+    },
+    {
+      "file": "screens/template-editor-api35.png",
+      "sha256": "67225afff6af3e67f008c8752e56463b7fcfbec1259ea8ecd3b262deab09d402",
+      "bytes": 47964
+    },
+    {
+      "file": "screens/template-landscape-api35.png",
+      "sha256": "a392a38ad55a0bab6ee5fb23fb69164df86509e31f194efc8d7365e7c5f5a2f2",
+      "bytes": 36509
+    }
+  ],
+  "validation": {
+    "newNativeApis": [
+      28,
+      35
+    ],
+    "landscapeApi": 35,
+    "physicalPhoneTested": false,
+    "oemWidgetHostTested": false,
+    "privateExportsPublished": false,
+    "githubPublished": false,
+    "privateZip17RoundTrip": {
+      "cases": 2,
+      "failures": 0,
+      "errors": 0,
+      "apis": [
+        28,
+        35
+      ],
+      "archiveFormat": 17,
+      "sectionsPreserved": 20,
+      "preferencesPreserved": true,
+      "originalUnchanged": true,
+      "notPartOfPublicSyntheticCaseCount": true
+    }
+  },
+  "scope": [
+    "explicit favorites filter",
+    "pending quantities in quick chooser",
+    "Main navigation label",
+    "reusable templates",
+    "Room20 to21",
+    "full ZIP18 and portable template v3"
+  ]
+}

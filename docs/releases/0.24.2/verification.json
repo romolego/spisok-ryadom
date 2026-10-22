@@ -1,0 +1,179 @@
+{
+  "version": "0.24.2",
+  "roomSchema": 22,
+  "backupFormat": 19,
+  "testRun": {
+    "kind": "targeted regression, not a full suite run",
+    "classes": 36,
+    "totals": {
+      "cases": 538,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "newCases": 44
+  },
+  "sourceFiles": 306,
+  "sourceChangedAfterFinalStart": false,
+  "productionChangedAfterBroadRun": false,
+  "testOnlyCorrectionsAfterBroadRun": [
+    "app/src/test/java/com/spisokryadom/app/ArchitectureUiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/PurchasePlacesUiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Refine130DataTest.kt",
+    "app/src/test/java/com/spisokryadom/app/StorePlaces242UiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Stores220UiTest.kt"
+  ],
+  "verificationRuns": {
+    "broad": {
+      "classes": 36,
+      "cases": 538,
+      "failures": 10
+    },
+    "recheck": {
+      "classes": 5,
+      "cases": 65,
+      "failures": 0
+    },
+    "reason": "UI locators updated for the bottom sheet and layered dialogs; candidate waits for enabled state; old outlet route assertion updated to the existing shared-department contract. All five classes rerun on byte-identical production sources."
+  },
+  "apk": {
+    "version": "0.24.2",
+    "versionCode": 34,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2081822,
+    "sha256": "3b3d5011b7db88841853c5eb0b7d61ecbb9ef0590948aa9a9631e64c988c1068",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 22,
+    "backupFormat": 19
+  },
+  "lint": {
+    "Warning": 66,
+    "Hint": 4
+  },
+  "screens": [
+    {
+      "file": "screens/appearance-disabled-controls-api28.png",
+      "sha256": "43e15f231edd290d6ddd43ed1fd03e820a0d19eb0710f327987df89a82a0a49d",
+      "bytes": 47082
+    },
+    {
+      "file": "screens/appearance-disabled-controls-api35.png",
+      "sha256": "603ef929a29f9780f627c21939acfab0ff9dd4666ed507fee853bfa741b20913",
+      "bytes": 47240
+    },
+    {
+      "file": "screens/logo-delete-confirmation-api28.png",
+      "sha256": "1d0a4ea1ab134be0102a7d2e7b22945dca836dd5dd55b722cd2734792c82146a",
+      "bytes": 33246
+    },
+    {
+      "file": "screens/logo-delete-confirmation-api35.png",
+      "sha256": "f227dac5cc78fd2899ba193d6fd681542b6741f03090642392fdae0fbb62880b",
+      "bytes": 33208
+    },
+    {
+      "file": "screens/long-address-large-text-api28.png",
+      "sha256": "f25c3911bb3fb2ff9cab960ebd17090e094b3c3acc9e15c331d10292dda67db6",
+      "bytes": 60681
+    },
+    {
+      "file": "screens/long-address-large-text-api35.png",
+      "sha256": "2c1d476a86e989e6826c44985a0ea5716b357ae124163e0a5db962117ba76526",
+      "bytes": 61867
+    },
+    {
+      "file": "screens/network-name-landscape-api35.png",
+      "sha256": "c724503068904f70ecb1bc058fc609bd7e5f4cf0a7cdd8e7211f7180489acdc4",
+      "bytes": 25676
+    },
+    {
+      "file": "screens/shopping-city-help-api28.png",
+      "sha256": "ff8319c73aa66a5f590d0eca46d13c1b55019d8270d114f2ecaae3999a2cd082",
+      "bytes": 45128
+    },
+    {
+      "file": "screens/shopping-city-help-api35.png",
+      "sha256": "55b3d1e4a5f07a2e965a04d714c02f37eef098f96aa5b8f4025c5ccf8c4e51ce",
+      "bytes": 45117
+    },
+    {
+      "file": "screens/store-place-order-api28.png",
+      "sha256": "269816dd1076de6ce276fd17999569d8ad20e4e0aa1431b64c48a02fd876ec3d",
+      "bytes": 102815
+    },
+    {
+      "file": "screens/store-place-order-api35.png",
+      "sha256": "4b7dacca09ea9495b38eed0d9b48a807bb13c459fc73bccc0d3689b1d782ebfc",
+      "bytes": 104481
+    },
+    {
+      "file": "screens/stores-in-selected-city-api28.png",
+      "sha256": "70e63e48c295fefbdfb9052b2ed74233b8114c4d5edfa5cbaab7928eb4782ca4",
+      "bytes": 35855
+    },
+    {
+      "file": "screens/stores-in-selected-city-api35.png",
+      "sha256": "1bf86b69344e0fb311ceb80224c2b23f46db9119aa8220b708aa489147ff8d7a",
+      "bytes": 36662
+    },
+    {
+      "file": "screens/symbol-chooser-landscape-api35.png",
+      "sha256": "180261656d16872fdbd1e271fe4509f4903fb7df650dcd226eae1c0f776212e1",
+      "bytes": 31386
+    },
+    {
+      "file": "screens/venue-type-city-api28.png",
+      "sha256": "cdb3ecbf939edf29d8edf051ea3939aad01f52c3d6ce214d2c57d07ab8949191",
+      "bytes": 73831
+    },
+    {
+      "file": "screens/venue-type-city-api35.png",
+      "sha256": "e862b73e1540aca53f1d1e8b6c93d2bd7104740630e40de74150100d8300519d",
+      "bytes": 74424
+    },
+    {
+      "file": "screens/13-landscape-color-api35.png",
+      "sha256": "6b27a8530f0e50ce29323312afa4eda279cf5518b774161729b98e4ec9632307",
+      "bytes": 118075
+    },
+    {
+      "file": "screens/12-logo-purchases-api28.png",
+      "sha256": "92b6e5f8175d83ea2cbd94b56902b465a23b609b08cbc2524a133d0658a5e6fc",
+      "bytes": 51458
+    },
+    {
+      "file": "screens/12-logo-purchases-api35.png",
+      "sha256": "6c7c85a6fd0317f3b668ddd38cca4113b03a4bf0a266de73f5a6c4d1edf613f6",
+      "bytes": 52540
+    },
+    {
+      "file": "screens/08-icon-picker-api28.png",
+      "sha256": "f63131ebf0ff9b763b29822bdfaa6cc549ea8b5add9c3457bb8a96bb645e509e",
+      "bytes": 32548
+    },
+    {
+      "file": "screens/08-icon-picker-api35.png",
+      "sha256": "912c3c4d9eb3b81c62a9b8433ee4b882760024a55fa26bbca2a0b2b85cb6ea76",
+      "bytes": 32792
+    }
+  ],
+  "validation": {
+    "nativeApis": [
+      28,
+      35
+    ],
+    "landscapeApi": 35,
+    "physicalPhoneTested": false,
+    "realSoftwareKeyboardTested": false,
+    "oemWidgetHostTested": false,
+    "githubPublished": false
+  },
+  "scope": [
+    "readable outlet addresses and priority controls",
+    "city-network-outlets order and network pencil",
+    "explicit market/mall types and transactional venue city relocation",
+    "independent background switches and unified preset/logo picker",
+    "compact purchase/note/urgency block",
+    "schema21-to22 migration and full ZIP19 with legacy readers"
+  ]
+}

@@ -43,7 +43,9 @@ data class SettingsUiState(
     val pendingExportPath: String? = null,
     val exportLaunched:Boolean=false,
     val pendingImportPath:String?=null,
-    val importSummary:String?=null
+    val importSummary:String?=null,
+    val resetCompleted:Boolean=false,
+    val resetInProgress:Boolean=false
 )
 
 // ── Department group model (cross-shop) ──────────────────────────────────────
@@ -71,7 +73,7 @@ data class AddToListDefaultsState(
     val rememberShopPriorityOnMove:Boolean=false,
     val browseProductsOnAdd:Boolean=true,
     val autoSaveProductCards:Boolean=true,
-    val defaultPurchaseType:String="offline",val missingUnit:String="шт",val missingQuantity:Double=1.0
+    val defaultPurchaseType:String="offline",val missingUnit:String="шт",val missingQuantity:Double=1.0,val fillMissing:Boolean=false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -81,7 +83,8 @@ class SettingsViewModel(
     private val productRepository: ProductRepository,
     private val shopRepository: ShopRepository,
     private val prefs: SharedPreferences,
-    private val context:Context
+    private val context:Context,
+    private val resetRepository:com.spisokryadom.app.data.repository.ResetRepository?=null
 ) : ViewModel() {
 
     // ── Backup ───────────────────────────────────────────────────────────────
@@ -89,6 +92,10 @@ class SettingsViewModel(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
     private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(isLoading=false,message=e.message?:"Операция не выполнена")}
+    private val sessionGeneration=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
+    private fun editCatalogue(block:suspend()->Unit){viewModelScope.launch(Dispatchers.IO+errors){
+        com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(sessionGeneration,block)
+    }}
 
     fun prepareExport() {
         if(_uiState.value.isLoading||_uiState.value.pendingExportPath!=null)return
@@ -127,7 +134,7 @@ class SettingsViewModel(
         _uiState.value=_uiState.value.copy(pendingImportPath=null,importSummary=null,isLoading=true)
         viewModelScope.launch(Dispatchers.IO+errors){try{
             val info=backupManager.importFile(File(path))
-            _uiState.value=_uiState.value.copy(isLoading=false,message=if(info.full)"Полная копия восстановлена"else "Каталог перенесён. Текущие покупки сохранены")
+            _uiState.value=_uiState.value.copy(isLoading=false,resetCompleted=info.full,message=if(info.full)"Полная копия восстановлена"else "Каталог перенесён. Текущие покупки сохранены")
         }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,message="Восстановление не выполнено: ${e.message}")}
         finally{backupManager.discard(File(path))}}
     }
@@ -181,19 +188,29 @@ class SettingsViewModel(
             autoSaveProductCards=com.spisokryadom.app.util.ProductEditingPreferences.enabled(prefs),
             defaultPurchaseType=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).purchaseType,
             missingUnit=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit,
-            missingQuantity=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingQuantity
+            missingQuantity=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingQuantity,
+            fillMissing=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).fillMissing
         )
     }
 
     val groupCreationPresets=classifierRepository.creationPresets().stateIn(viewModelScope,kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),emptyList())
     fun setGroupDefaultRecipient(groupId:Long,recipientId:Long?,done:(Boolean)->Unit={}){viewModelScope.launch{
-        try{classifierRepository.defaultRecipient(groupId,recipientId);done(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(message=e.message?:"Преднастройка не сохранена");done(false)}
+        try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(sessionGeneration){classifierRepository.defaultRecipient(groupId,recipientId)};done(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(message=e.message?:"Преднастройка не сохранена");done(false)}
     }}
-    fun addStandardCategories(){viewModelScope.launch(errors){val added=classifierRepository.addStandardCategories();_uiState.value=_uiState.value.copy(message=if(added==0)"Все готовые группы уже есть"else "Добавлено недостающих групп: $added")}}
     fun setDefaultPurchaseType(value:String){if(value in setOf("offline","online"))prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.TYPE,value).apply()}
     fun setMissingQuantity(value:String){com.spisokryadom.app.util.Quantities.parse(value)?.let{prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.QUANTITY,value.trim()).apply()}}
-    fun favoriteGroup(id:Long,value:Boolean){viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.favoriteGroup(id,value)}}
-    fun favoriteDepartment(id:Long,value:Boolean){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.favoriteDepartmentType(id,value)}}
+    fun setFillMissing(value:Boolean){prefs.edit().putBoolean(com.spisokryadom.app.util.ProductCreationDefaults.ENABLED,value).apply()}
+    fun reset(mode:com.spisokryadom.app.data.repository.ResetMode){
+        if(_uiState.value.isLoading)return
+        _uiState.value=_uiState.value.copy(isLoading=true,resetInProgress=true)
+        viewModelScope.launch(Dispatchers.IO){try{
+            requireNotNull(resetRepository){"Сброс недоступен"}.reset(mode)
+            _selectedRecipientId.value=null;_selectedGroupId.value=null;_selectedUnitId.value=null;_selectedDepartmentGroup.value=null
+            _uiState.value=_uiState.value.copy(isLoading=false,resetInProgress=false,resetCompleted=mode!=com.spisokryadom.app.data.repository.ResetMode.BUILT_INS,message="Сброс выполнен")
+        }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,resetInProgress=false,message=e.message?:"Не удалось выполнить сброс")}}
+    }
+    fun favoriteGroup(id:Long,value:Boolean){editCatalogue{classifierRepository.favoriteGroup(id,value)}}
+    fun favoriteDepartment(id:Long,value:Boolean){editCatalogue{shopRepository.favoriteDepartmentType(id,value)}}
     fun setMissingUnit(value:String){prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.UNIT,com.spisokryadom.app.util.Quantities.unit(value)).apply()}
     fun setAutoSaveProductCards(value:Boolean){
         prefs.edit().putBoolean(com.spisokryadom.app.util.ProductEditingPreferences.KEY,value).commit()
@@ -263,20 +280,20 @@ class SettingsViewModel(
     }
 
     fun createRecipient(name: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             val maxOrder = classifierRepository.getMaxRecipientDisplayOrder()
             classifierRepository.insertRecipient(RecipientEntity(name = name, displayOrder = maxOrder + 1))
         }
     }
 
     fun renameRecipient(recipient: RecipientEntity, newName: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             classifierRepository.updateRecipient(recipient.copy(name = newName))
         }
     }
 
     fun deleteRecipient(recipient: RecipientEntity) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             classifierRepository.deleteRecipient(recipient)
             if (_selectedRecipientId.value == recipient.id) {
                 _selectedRecipientId.value = null
@@ -284,9 +301,9 @@ class SettingsViewModel(
         }
     }
 
-    fun moveRecipientUp(value:RecipientEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveRecipient(value.id,-1)} }
+    fun moveRecipientUp(value:RecipientEntity) { editCatalogue{classifierRepository.moveRecipient(value.id,-1)} }
 
-    fun moveRecipientDown(value:RecipientEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveRecipient(value.id,1)} }
+    fun moveRecipientDown(value:RecipientEntity) { editCatalogue{classifierRepository.moveRecipient(value.id,1)} }
 
     // ── Product Groups ──────────────────────────────────────────────────────
 
@@ -307,20 +324,20 @@ class SettingsViewModel(
     }
 
     fun createProductGroup(name: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             val maxOrder = classifierRepository.getMaxGroupDisplayOrder()
             classifierRepository.insertGroup(ProductGroupEntity(name = name, displayOrder = maxOrder + 1))
         }
     }
 
     fun renameProductGroup(group: ProductGroupEntity, newName: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             classifierRepository.renameGroup(group.id,newName)
         }
     }
 
     fun deleteProductGroup(group: ProductGroupEntity) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             classifierRepository.deleteGroup(group)
             if (_selectedGroupId.value == group.id) {
                 _selectedGroupId.value = null
@@ -328,9 +345,9 @@ class SettingsViewModel(
         }
     }
 
-    fun moveProductGroupUp(value:ProductGroupEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveGroup(value.id,-1)} }
+    fun moveProductGroupUp(value:ProductGroupEntity) { editCatalogue{classifierRepository.moveGroup(value.id,-1)} }
 
-    fun moveProductGroupDown(value:ProductGroupEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveGroup(value.id,1)} }
+    fun moveProductGroupDown(value:ProductGroupEntity) { editCatalogue{classifierRepository.moveGroup(value.id,1)} }
 
     // ── Units of measurement ─────────────────────────────────────────────────
 
@@ -353,21 +370,21 @@ class SettingsViewModel(
     }
 
     fun createUnit(name: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             val maxOrder = classifierRepository.getMaxUnitDisplayOrder()
             classifierRepository.insertUnit(UnitEntity(name = name, displayOrder = maxOrder + 1))
         }
     }
 
     fun renameUnit(unit: UnitEntity, newName: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             classifierRepository.renameUnitAndProducts(unit,newName)
             if(com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit==com.spisokryadom.app.util.Quantities.unit(unit.name))setMissingUnit(newName)
         }
     }
 
     fun deleteUnit(unit: UnitEntity) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             classifierRepository.deleteUnitAndProducts(unit)
             if(com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit==com.spisokryadom.app.util.Quantities.unit(unit.name))setMissingUnit("")
             if (_selectedUnitId.value == unit.id) {
@@ -376,9 +393,9 @@ class SettingsViewModel(
         }
     }
 
-    fun moveUnitUp(value:UnitEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveUnit(value.id,-1)} }
+    fun moveUnitUp(value:UnitEntity) { editCatalogue{classifierRepository.moveUnit(value.id,-1)} }
 
-    fun moveUnitDown(value:UnitEntity) { viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.moveUnit(value.id,1)} }
+    fun moveUnitDown(value:UnitEntity) { editCatalogue{classifierRepository.moveUnit(value.id,1)} }
 
     // ── Shop department groups (cross-shop view) ─────────────────────────────
 
@@ -408,24 +425,28 @@ class SettingsViewModel(
     private val _selectedDepartmentGroup = MutableStateFlow<Long?>(null)
     val selectedDepartmentGroup: StateFlow<Long?> = _selectedDepartmentGroup.asStateFlow()
 
-    val selectedDepartmentGroupShops: StateFlow<List<ShopEntity>> =
-        combine(_selectedDepartmentGroup, departmentGroups) { name, groups ->
-            if (name != null) groups.find { it.id == name }?.shops ?: emptyList()
-            else emptyList()
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    data class DepartmentUsage(val shop:ShopEntity,val products:List<ProductEntity>)
+    val selectedDepartmentProducts=combine(_selectedDepartmentGroup,productRepository.getAllProducts(),combine(productRepository.getAllShopLinks(),productRepository.observeBranchDepartments()){links,overrides->links to overrides},allDepartments,shopRepository.getShopsForDisplay()){type,products,relations,departments,shops->
+        val (links,overrides)=relations
+        val ids=departments.filter{it.typeId==type}.map{it.id}.toSet()
+        shops.filter{s->departments.any{it.shopId==s.id&&it.typeId==type}}.map{s->
+            val productIds=(links.filter{it.shopId==s.id&&it.departmentId in ids}.map{it.productId}+overrides.filter{it.shopId==s.id&&it.typeId==type}.map{it.productId}).toSet()
+            DepartmentUsage(s,com.spisokryadom.app.util.alphabetical(products.filter{it.id in productIds}){it.name})
+        }.let{com.spisokryadom.app.util.alphabetical(it){v->v.shop.name}}
+    }.stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),emptyList())
 
     fun selectDepartmentGroup(name: Long?) {
         _selectedDepartmentGroup.value = name
     }
 
-    fun renameDepartmentGroup(id:Long,newName:String){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.renameDepartmentGlobally(id,newName)}}
-    fun deleteDepartmentGroup(id:Long){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.deleteDepartmentGlobally(id);if(_selectedDepartmentGroup.value==id)_selectedDepartmentGroup.value=null}}
+    fun renameDepartmentGroup(id:Long,newName:String){editCatalogue{shopRepository.renameDepartmentGlobally(id,newName)}}
+    fun deleteDepartmentGroup(id:Long){editCatalogue{shopRepository.deleteDepartmentGlobally(id);if(_selectedDepartmentGroup.value==id)_selectedDepartmentGroup.value=null}}
 
-    fun moveDepartment(id:Long,delta:Int){viewModelScope.launch(Dispatchers.IO+errors){shopRepository.moveDepartmentType(id,delta)}}
-    fun alphabetize(kind:String){viewModelScope.launch(Dispatchers.IO+errors){classifierRepository.alphabetize(kind)}}
-    fun style(kind:String,id:Long,accent:String,icon:String){viewModelScope.launch(Dispatchers.IO+errors){if(kind=="dept")shopRepository.styleDepartmentType(id,accent,icon)else classifierRepository.style(kind,id,accent,icon)}}
+    fun moveDepartment(id:Long,delta:Int){editCatalogue{shopRepository.moveDepartmentType(id,delta)}}
+    fun alphabetize(kind:String){editCatalogue{classifierRepository.alphabetize(kind)}}
+    fun style(kind:String,id:Long,accent:String,icon:String){editCatalogue{if(kind=="dept")shopRepository.styleDepartmentType(id,accent,icon)else classifierRepository.style(kind,id,accent,icon)}}
     fun createDepartmentGroup(name: String) {
-        viewModelScope.launch(Dispatchers.IO+errors) {
+        editCatalogue {
             shopRepository.createDepartmentType(name)
         }
     }
@@ -444,7 +465,7 @@ class SettingsViewModel(
                     productRepository = app.container.productRepository,
                     shopRepository = app.container.shopRepository,
                     prefs = prefs,
-                    context=app
+                    context=app,resetRepository=app.container.resetRepository
                 )
             }
         }

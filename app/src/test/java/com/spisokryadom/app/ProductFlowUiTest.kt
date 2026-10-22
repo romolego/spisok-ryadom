@@ -89,7 +89,9 @@ class ProductFlowUiTest {
    androidx.core.view.ViewCompat.dispatchApplyWindowInsets(find(ui.activity.window.decorView)!!,insets)
   };ui.waitForIdle()
   val candidate=ui.onNodeWithText("Командор · Имбирные");candidate.assertIsDisplayed();assertTrue(candidate.getUnclippedBoundsInRoot().bottom<341.dp);shot("03-search-ime")
-  candidate.performClick();ui.onNodeWithText("Выбран").assertExists();ui.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Добавить в список"));ui.onNodeWithText("Добавить в список").assertIsEnabled();shot("03b-add-action");println("ADD bounds="+ui.onNodeWithText("Добавить в список").getUnclippedBoundsInRoot());ui.onNodeWithText("Добавить в список").performClick();shot("03c-after-add")
+  // Cached browse rows remain visible while the debounced search is running.
+  ui.waitUntil(20_000){runCatching{ui.onNodeWithTag("candidate-all-${ids[0]}").assertIsEnabled()}.isSuccess}
+  ui.onNodeWithTag("candidate-all-${ids[0]}").performClick();waitText("Выбран");ui.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Добавить в список"));ui.onNodeWithText("Добавить в список").assertIsEnabled();shot("03b-add-action");println("ADD bounds="+ui.onNodeWithText("Добавить в список").getUnclippedBoundsInRoot());ui.onNodeWithText("Добавить в список").performClick();shot("03c-after-add")
   ui.waitUntil(20_000){runBlocking{db.shoppingListEntryDao().getAllSync().isNotEmpty()}};assertEquals(ids[0],runBlocking{db.shoppingListEntryDao().getAllSync().single().productId})
  }
  @Test fun productPhotoCameraImportsAndPersistsAndCancelPreservesOldPhoto(){

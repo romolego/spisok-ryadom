@@ -1,0 +1,32 @@
+--- a/app/src/main/java/com/spisokryadom/app/ui/goallists/GoalListScreen.kt
++++ b/app/src/main/java/com/spisokryadom/app/ui/goallists/GoalListScreen.kt
+@@ -173 +173 @@
+-                    if (!template&&!row.entry.isBought) DropdownMenuItem(text = { Text(if (row.entry.isUrgent) "Убрать срочность" else "Сделать срочным") }, onClick = { menu = false; urgent() })
++                    if (!row.entry.isBought) DropdownMenuItem(text = { Text(if (row.entry.isUrgent) "Убрать срочность" else "Сделать срочным") }, onClick = { menu = false; urgent() })
+--- a/app/src/test/java/com/spisokryadom/app/Audit121UiTest.kt
++++ b/app/src/test/java/com/spisokryadom/app/Audit121UiTest.kt
+@@ -282 +282,5 @@
+-        ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasTestTag("shop-product-$pointB-$first"))
++        // Base products and physical sections are independent Room projections.
++        // Selection can be enabled before the point-specific section is ready.
++        waitFor { runCatching {
++            ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasTestTag("shop-product-$pointB-$first"))
++        }.isSuccess }
+--- a/app/src/test/java/com/spisokryadom/app/Templates240UiTest.kt
++++ b/app/src/test/java/com/spisokryadom/app/Templates240UiTest.kt
+@@ -105,0 +106,15 @@
++ @Test fun templateUrgencyEditsAffectFutureCopiesAndKeepExistingPurchases(){
++  val (id,row)=runBlocking{val id=goals.create("Срочность шаблона",true);id to goals.addQuick(id,"Хлеб")}
++  tab("Списки");waitTag("goal-list-$id");ui.onNodeWithTag("goal-list-$id").performClick();waitTag("goal-entry-$row")
++  ui.onNodeWithContentDescription("Действия: Хлеб").performClick();ui.onNodeWithText("Сделать срочным").performClick()
++  waitFor{runBlocking{db.shoppingListEntryDao().getById(row)!!.isUrgent}}
++  val target=runBlocking{goals.applyTemplate(id,newListName="Первая копия")!!}
++  assertTrue(runBlocking{goals.snapshot(target).entries.single().isUrgent})
++  ui.onNodeWithContentDescription("Действия: Хлеб").performClick();ui.onNodeWithText("Убрать срочность").performClick()
++  waitFor{runBlocking{!db.shoppingListEntryDao().getById(row)!!.isUrgent}}
++  runBlocking{goals.applyTemplate(id)}
++  assertFalse(runBlocking{db.shoppingListEntryDao().getVisibleSync().single().isUrgent})
++  assertTrue(runBlocking{goals.snapshot(target).entries.single().isUrgent})
++  assertFalse(runBlocking{goals.snapshot(id).entries.single().isBought})
++  ui.onNodeWithContentDescription("Куплено: Хлеб").assertDoesNotExist()
++ }

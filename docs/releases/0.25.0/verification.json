@@ -1,0 +1,155 @@
+{
+  "version": "0.25.0",
+  "roomSchema": 23,
+  "backupFormat": 20,
+  "testRun": {
+    "kind": "targeted regression with one test-class recheck, not a full suite run",
+    "classes": 26,
+    "totals": {
+      "cases": 382,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "newCases": 18
+  },
+  "sourceFiles": 310,
+  "sourceChangedAfterFinalStart": false,
+  "productionChangedAfterBroadRun": false,
+  "testOnlyCorrectionsAfterBroadRun": [
+    "app/src/test/java/com/spisokryadom/app/Audit151UiTest.kt"
+  ],
+  "verificationRuns": {
+    "broad": {
+      "classes": 26,
+      "cases": 382,
+      "failures": 8
+    },
+    "recheck": {
+      "classes": 1,
+      "cases": 18,
+      "failures": 0
+    },
+    "reason": "Historical purchase-editor tests now open the row menu or quick-price action because the row opens the genuine product card and the primary plus opens the shared picker. Original assertions for drafts, prices, comments, ownership and widget deep links are retained. Production sources unchanged."
+  },
+  "apk": {
+    "version": "0.25.0",
+    "versionCode": 35,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2081818,
+    "sha256": "2aa4a25718a5423d07795fb1b265899713d05a6039c9b225e217f3098a9b9749",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 23,
+    "backupFormat": 20
+  },
+  "lint": {
+    "Warning": 66,
+    "Hint": 4
+  },
+  "screens": [
+    {
+      "file": "screens/normal-product-card-from-list-api28.png",
+      "sha256": "991b637dbb2a407a70b3a5431515729b4a70d8cff1548f7b764c9df076c76708",
+      "bytes": 78403
+    },
+    {
+      "file": "screens/normal-product-card-from-list-api35.png",
+      "sha256": "551cf65a526a1a32e201525d60019b2bcbe4562ff379205b2353f96f9ada163b",
+      "bytes": 80057
+    },
+    {
+      "file": "screens/shared-picker-added-api28.png",
+      "sha256": "361bff221ad1140d8c5a799b288f039e756f5b0acb052e12ae1adf21f855d877",
+      "bytes": 67863
+    },
+    {
+      "file": "screens/shared-picker-added-api35.png",
+      "sha256": "9ecd372d679668aaab62ef1a6dc5142628fe12703b55657ba5bbc8b1facd2f9b",
+      "bytes": 68696
+    },
+    {
+      "file": "screens/unified-list-contents-api28.png",
+      "sha256": "ad7da012291ccbab9deb9804598a730e5eef97cca34e32ce4453f979ef55a3fd",
+      "bytes": 44358
+    },
+    {
+      "file": "screens/unified-list-contents-api35.png",
+      "sha256": "867f768d4c938e1cc351c45004f49000589329a40171845e10c1a8f8807f12fc",
+      "bytes": 45068
+    },
+    {
+      "file": "screens/favorites-active-api28.png",
+      "sha256": "0365cb0b8d092151923e09ebb85b03b707d0e3f3e2296c64331b0ee8151bd238",
+      "bytes": 65590
+    },
+    {
+      "file": "screens/favorites-active-api35.png",
+      "sha256": "a130af582228ed8b08aa0727aed7913e6e673cb5116ea21520a8f03c73ff79d0",
+      "bytes": 67009
+    },
+    {
+      "file": "screens/favorites-added-api28.png",
+      "sha256": "c0740333f7c371a9b2f7e8982db2769573e97e8b0f69e50e08f293accc9efdf3",
+      "bytes": 59708
+    },
+    {
+      "file": "screens/favorites-added-api35.png",
+      "sha256": "79239d80a6b094ffdfde0bd7ba7b717fc8636996ad8ea893d4a8d93895fb8496",
+      "bytes": 60377
+    },
+    {
+      "file": "screens/template-confirm-list-api28.png",
+      "sha256": "a772d6de2b2c1c84b65f688a441d0affe52c96f23127e7a9776ee6d6cf99c634",
+      "bytes": 67459
+    },
+    {
+      "file": "screens/template-confirm-list-api35.png",
+      "sha256": "1446478137f3bf0137a4ed0602d2f95272c85bafa6f1db6612d513035f5c9097",
+      "bytes": 68246
+    },
+    {
+      "file": "screens/template-confirm-main-api28.png",
+      "sha256": "54f00adae77926663211e3a386169c45183fa18336cc3da149dea8f2ff971154",
+      "bytes": 65818
+    },
+    {
+      "file": "screens/template-confirm-main-api35.png",
+      "sha256": "1cd8fe8a4f7898b879105054bc3a9c91afc4a95f21fe60f592e2fd407e7caced",
+      "bytes": 66387
+    },
+    {
+      "file": "screens/template-landscape-api35.png",
+      "sha256": "37d752501c2be036d70bc2e3425969b80972a0451141d81c584ab95e3d2957a9",
+      "bytes": 37698
+    },
+    {
+      "file": "screens/01-physical-shops-api28.png",
+      "sha256": "737d66df486336d44b219d711aacf6bb4f8f8768ed69f251b27f2f685c135cb4",
+      "bytes": 71385
+    },
+    {
+      "file": "screens/01-physical-shops-api35.png",
+      "sha256": "31b050167b59d51dd0e6945f408df23d0c1b373fd344f65ebcbd9a4649b24eed",
+      "bytes": 72366
+    }
+  ],
+  "validation": {
+    "nativeApis": [
+      28,
+      35
+    ],
+    "landscapeApi": 35,
+    "physicalPhoneTested": false,
+    "realSoftwareKeyboardTested": false,
+    "oemWidgetHostTested": false,
+    "githubPublished": false
+  },
+  "scope": [
+    "one reusable list kind; lossless schema22-to23 migration",
+    "legacy portable template v3 and full ZIP19 import as ordinary list; canonical ZIP20",
+    "one shared add flow scoped to list; immediate actual contents and favorite/all markers",
+    "create full product with store from search and return to original list; cancel without purchase",
+    "genuine product cards for catalogue and temporary entries; promotion without duplicate purchase",
+    "common main/list quantity stepper; independent copying with transaction and version guards"
+  ]
+}
