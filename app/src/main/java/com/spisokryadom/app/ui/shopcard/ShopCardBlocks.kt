@@ -11,10 +11,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun ShopCardBlock(title:String,action:(@Composable ()->Unit)?=null,content:@Composable ColumnScope.()->Unit){
+internal fun ShopCardBlock(title:String?=null,action:(@Composable ()->Unit)?=null,content:@Composable ColumnScope.()->Unit){
     OutlinedCard(Modifier.fillMaxWidth(),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){
         Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+            if(title!=null)Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
                 Text(title,Modifier.weight(1f),style=MaterialTheme.typography.titleMedium)
                 action?.invoke()
             }
@@ -39,7 +39,7 @@ internal fun ShopPlaceSummary(state:ShopCardUiState){
             Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){
                 Icon(Icons.Filled.LocationOn,null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant)
                 Column{
-                    val venue=state.venues.find{it.id==branch.venueId}?.name
+                    val venue=state.venues.find{it.id==branch.venueId}?.let{"${com.spisokryadom.app.data.entity.VenueKinds.label(it.kind)} · ${it.name}"}
                     Text(venue?:"Отдельный адрес",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
                     val labels=com.spisokryadom.app.domain.PlaceLabels(state.branches,state.venues)
                     labels.detail(branch).takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodyMedium)}

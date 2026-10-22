@@ -25,10 +25,10 @@ class LocationRepository(private val citiesDao: CityDao, private val shopsDao: S
     suspend fun currentId(): Long {
         val list=citiesDao.getAllSync(); return list.find { it.id==selected.value }?.id ?: list.firstOrNull()?.id ?: 1
     }
-    suspend fun add(name: String): Long = edits.withLock {
+    suspend fun add(name: String, selectAfterCreate: Boolean = true): Long = edits.withLock {
         val value=name.trim(); require(value.isNotEmpty()) { "Введите название города" }
         val existing=citiesDao.getAllSync().find { FuzzySearch.normalize(it.name)==FuzzySearch.normalize(value) }
-        (existing?.id ?: citiesDao.insert(CityEntity(name=value))).also { select(it) }
+        (existing?.id ?: citiesDao.insert(CityEntity(name=value))).also { if(selectAfterCreate)select(it) }
     }
     suspend fun rename(city: CityEntity, name: String) = edits.withLock {
         require(name.isNotBlank()) { "Введите название города" }

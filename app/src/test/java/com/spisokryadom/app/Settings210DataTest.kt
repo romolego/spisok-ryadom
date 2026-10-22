@@ -118,7 +118,7 @@ class Settings210DataTest {
   FavoriteAppearance().change(FavoriteSurface.PURCHASES,false,FavoriteStyle(false,"#ABCDEF",false,false)).change(FavoriteSurface.DROPDOWNS,true,FavoriteStyle(true,"#FEDCBA",false,true)).save(prefs)
   prefs.edit().putBoolean(ProductCreationDefaults.ENABLED,false).commit();val before=FavoriteAppearance.read(prefs)
   val manager=BackupManager(app,db);val file=manager.exportFile()
-  ZipFile(file).use{z->assertEquals(18,JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText()).getInt("version"))}
+  ZipFile(file).use{z->assertEquals(19,JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText()).getInt("version"))}
   prefs.edit().clear().commit();manager.importFile(file);assertEquals(before,FavoriteAppearance.read(prefs));assertFalse(ProductCreationDefaults.read(prefs).fillMissing);manager.discard(file)
  }
  @Test fun oldBackup14SeedsContextsAndInvalidNewPreferenceTypesRefuseAtomically():Unit=runBlocking {

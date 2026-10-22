@@ -126,9 +126,9 @@ class PurchasePlacesUiTest {
   ui.onNodeWithText("Править").performScrollTo().performClick();ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();waitText("Название сети")
   ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр")
   ui.onAllNodes(isPopup()).assertCountEquals(0);shot("08-optional-network-inline")
-  ui.onNodeWithText("Отмена нового названия").performScrollTo().performClick();ui.onNodeWithText("Название сети").assertDoesNotExist()
+  ui.onNodeWithText("Отмена").performClick();ui.onNodeWithText("Название сети").assertDoesNotExist()
   runBlocking{assertTrue(db.retailStructureDao().networks().isEmpty());assertNull(db.shopDao().getById(yar)!!.networkId)}
-  ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр")
+  ui.onNodeWithText("Сеть").performScrollTo().performClick();ui.onNodeWithText("Новая сеть…").performClick();ui.onNodeWithText("Название сети").performTextReplacement("Красный Яр");ui.onAllNodesWithText("Сохранить").onLast().performClick()
   ui.onNodeWithText("Готово").performScrollTo().performClick();shot("09-optional-network-summary")
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   runBlocking{assertEquals(1,db.retailStructureDao().networks().size);assertNotNull(db.shopDao().getById(yar)!!.networkId);assertEquals(2,db.shopBranchDao().forShop(yar).size)}
@@ -140,7 +140,7 @@ class PurchasePlacesUiTest {
   ui.onNodeWithContentDescription("Добавить товар в Красный Яр · Молокова, 54").performClick();waitText("Добавить покупку")
   ui.onNodeWithText("Название товара").performTextReplacement("Сыр адыгейский");waitText("Сыр адыгейский")
   val candidate=hasText("Сыр адыгейский") and hasClickAction() and !hasSetTextAction()
-  ui.waitUntil(20_000){ui.onAllNodes(candidate).fetchSemanticsNodes().isNotEmpty()}
+  ui.waitUntil(20_000){runCatching{ui.onNode(candidate).assertIsEnabled()}.isSuccess}
   ui.onNode(candidate).performClick();waitText("Выбран");shot("10-add-at-exact-place")
   ui.onNodeWithText("Добавить в список").performScrollTo().performClick()
   waitText("Список покупок")

@@ -80,11 +80,11 @@ class QuickAdd241UiTest {
   ui.onNodeWithTag("shop-background-switch").assertDoesNotExist()
   ui.onNodeWithContentDescription("Оформление магазина").performClick();waitText("Подложка")
   ui.onNodeWithTag("shop-appearance-apply").assertIsDisplayed();shot("shop-appearance-compact")
-  ui.onNodeWithText("Фон товаров").performScrollTo().performClick();ui.onNodeWithText("В тон подложки").performClick()
+  ui.onNodeWithTag("shop-items-switch").performScrollTo().performClick()
   ui.onNodeWithText("Отмена").performClick();ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   assertEquals("",runBlocking{db.shopDao().getById(id)!!.purchaseBackground})
   ui.onNodeWithText("Фикс Прайс").performTouchInput{longClick()};waitText("Название магазина")
-  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithText("Фон товаров").performScrollTo().performClick();ui.onNodeWithText("В тон подложки").performClick()
+  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-items-switch").performScrollTo().performClick()
   ui.onNodeWithTag("shop-appearance-apply").performClick();ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   assertEquals("auto",runBlocking{db.shopDao().getById(id)!!.purchaseBackground})
  }

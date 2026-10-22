@@ -37,8 +37,9 @@ class ShopListViewModel(
     fun clearError(){_uiState.value=_uiState.value.copy(error=null)}
     init {
         viewModelScope.launch(errors) {
-            kotlinx.coroutines.flow.combine(shopRepository.getCityShops(),shopRepository.observeBranches(),shopRepository.venues()){shops,branches,venues->
-                val currentVenues=venues.filter{it.cityId==shopRepository.locations.currentId()}
+            kotlinx.coroutines.flow.combine(shopRepository.getAllShops(),shopRepository.observeBranches(),shopRepository.venues(),shopRepository.locations.activeCity){allShops,branches,venues,city->
+                val shops=allShops.filter{it.cityId==city.id}
+                val currentVenues=venues.filter{it.cityId==city.id}
                 fun address(shop:ShopEntity,points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>)=shop.copy(address=points.minWithOrNull(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})?.let{point->com.spisokryadom.app.domain.PlaceLabels(branches,venues).detail(point).takeIf{it.isNotBlank()}})
                 val physical=shops.map{shop->address(shop,branches.filter{it.shopId==shop.id})}
                 val knownVenues=currentVenues.map{it.id}.toSet()

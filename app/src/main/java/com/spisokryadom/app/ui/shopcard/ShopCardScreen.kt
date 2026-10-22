@@ -80,7 +80,18 @@ fun ShopCardScreen(
     var showAddDepartmentDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showConvertConfirm by remember { mutableStateOf(false) }
-    if(showConvertConfirm)ConfirmDialog("Преобразовать в рынок или ТЦ?","Каждая точка станет отдельным магазином внутри «${state.name}». Товары и покупки сохранятся.",onConfirm={viewModel.convertToVenue();showConvertConfirm=false},onDismiss={showConvertConfirm=false})
+    var conversionKind by rememberSaveable{mutableStateOf(com.spisokryadom.app.data.entity.VenueKinds.MARKET)}
+    if(showConvertConfirm)androidx.compose.material3.ModalBottomSheet(onDismissRequest={showConvertConfirm=false},sheetState=androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded=true)){
+        Column(Modifier.fillMaxWidth().padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+            Text("Преобразовать в торговое место",style=MaterialTheme.typography.titleLarge)
+            DropdownSelector("Тип места",com.spisokryadom.app.data.entity.VenueKinds.choices,conversionKind,com.spisokryadom.app.data.entity.VenueKinds::label,{it?.let{conversionKind=it}},allowNone=false)
+            Text("Каждая точка станет отдельным магазином внутри «${state.name}». Товары и покупки сохранятся.",style=MaterialTheme.typography.bodyMedium)
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){
+                TextButton(onClick={showConvertConfirm=false}){Text("Отмена")}
+                TextButton(onClick={viewModel.convertToVenue(conversionKind);showConvertConfirm=false}){Text("Преобразовать")}
+            }
+        }
+    }
     var isPlaceEditing by rememberSaveable { mutableStateOf(false) }
     var isDepartmentsEditing by remember { mutableStateOf(false) }
 
@@ -181,28 +192,24 @@ fun ShopCardScreen(
             }) {
                 if(isPlaceEditing){
                     CityField(state.cityId,viewModel::updateCity)
+                    RetailRelationSelector("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName)
             com.spisokryadom.app.ui.components.BranchesEditor(state.branches,viewModel::updateBranches,viewModel::updatePhotoBusy,placeVenues.filter{it.cityId==state.cityId},externalPhotoBusy=state.isPhotoBusy,onVenueChange=viewModel::updateVenue,cityId=state.cityId)
 
-                    RetailRelationSelector("Сеть",state.networks.map{it.id to it.name},state.networkId,state.networkName,viewModel::updateNetwork,viewModel::updateNetworkName)
                     if(!state.isNew&&state.branches.isNotEmpty()&&state.branches.all{it.venueId==null}){
                         HorizontalDivider()
                         Text("Рынок или ТЦ объединяет самостоятельные магазины и павильоны. При преобразовании каждая точка станет отдельным магазином внутри него.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                        TextButton(onClick={showConvertConfirm=true},enabled=validBranches&&!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в рынок или ТЦ")}
+                        TextButton(onClick={showConvertConfirm=true},enabled=validBranches&&!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в торговое место")}
                     }
                 }else ShopPlaceSummary(state.copy(venues=placeVenues))
             }
 
-            ShopCardBlock("Покупки в магазине") {
+            ShopCardBlock {
                 DropdownSelector(label="Тип покупок в магазине",items=com.spisokryadom.app.util.PurchaseModes.labels.keys.toList(),
                     selectedItem=state.purchaseMode,itemLabel={com.spisokryadom.app.util.PurchaseModes.labels.getValue(it)},
                     itemVector={when(it){"online"->Icons.Filled.Language;"offline"->Icons.Filled.Store;"both"->Icons.Filled.SwapHoriz;else->Icons.Filled.Settings}},
                     onSelect={it?.let(viewModel::updatePurchaseMode)},allowNone=false,modifier=Modifier.fillMaxWidth())
                 OutlinedTextField(value=state.note,onValueChange=viewModel::updateNote,label={Text("Короткая заметка")},
                     modifier=Modifier.fillMaxWidth(),minLines=1,maxLines=3)
-            }
-
-
-            ShopCardBlock("Настройки срочности") {
                 DropdownSelector("Срочные в свёрнутом магазине",UrgencyOverride.entries,state.showUrgentInCollapsed,{it.label},
                     {it?.let(viewModel::updateShowUrgentInCollapsed)},allowNone=false)
                 DropdownSelector("Поднимать магазин со срочными",UrgencyOverride.entries,state.boostUrgentShop,{it.label},

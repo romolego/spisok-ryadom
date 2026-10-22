@@ -20,21 +20,22 @@ private val OutletDraftSaver=androidx.compose.runtime.saveable.listSaver<ShopBra
  var adding by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
  val labels=com.spisokryadom.app.domain.PlaceLabels(branches,venues)
  Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
-  Text("Точки · в порядке приоритета",style=MaterialTheme.typography.titleMedium)
-  // Compact stable rows keep priority actions reachable without opening a large form.
+  Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+   Text("Точки магазина",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium)
+   IconButton(onClick={adding=true}){Icon(Icons.Filled.Add,"Добавить точку")}
+  }
   branches.forEachIndexed{index,point->key(point.id){
-   OutlinedCard(Modifier.fillMaxWidth()){
-    Row(Modifier.fillMaxWidth().padding(start=12.dp),verticalAlignment=Alignment.CenterVertically){
-     Column(Modifier.weight(1f).clickable{editingId=point.id}){
-      Text(if(index==0)"Основная точка"else "Приоритет ${index+1}",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)
-      Text(labels.branch(point),style=MaterialTheme.typography.bodyMedium)
+   OutlinedCard(Modifier.fillMaxWidth().testTag("branch-summary-${point.id}")){
+    Column(Modifier.fillMaxWidth().padding(top=4.dp,bottom=12.dp)){
+     Row(Modifier.fillMaxWidth().padding(start=12.dp),verticalAlignment=Alignment.CenterVertically){
+      Text(if(index==0)"Основная точка"else "Приоритет ${index+1}",Modifier.weight(1f),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)
+      ReorderButtons({onChange(com.spisokryadom.app.domain.OutletLocations.move(branches,point.id,-1))},{onChange(com.spisokryadom.app.domain.OutletLocations.move(branches,point.id,1))},index>0,index<branches.lastIndex,"Точка выше: ${labels.branch(point)}","Точка ниже: ${labels.branch(point)}")
+      IconButton(onClick={editingId=point.id}){Icon(Icons.Filled.Edit,"Изменить точку: ${labels.branch(point)}")}
      }
-     ReorderButtons({onChange(com.spisokryadom.app.domain.OutletLocations.move(branches,point.id,-1))},{onChange(com.spisokryadom.app.domain.OutletLocations.move(branches,point.id,1))},index>0,index<branches.lastIndex,"Точка выше: ${labels.branch(point)}","Точка ниже: ${labels.branch(point)}")
-     IconButton(onClick={editingId=point.id}){Icon(Icons.Filled.Edit,"Изменить точку: ${labels.branch(point)}")}
+     Text(labels.branch(point),Modifier.fillMaxWidth().clickable{editingId=point.id}.padding(horizontal=12.dp).testTag("branch-summary-text-${point.id}"),style=MaterialTheme.typography.bodyMedium)
     }
    }
   }}
-  OutlinedButton(onClick={adding=true},modifier=Modifier.fillMaxWidth()){Icon(Icons.Filled.Add,null);Text("Добавить точку")}
  }
  val point=if(adding)ShopBranchEntity(id=minOf(-1L,(branches.minOfOrNull{it.id}?:0L)-1L),shopId=0,address="")else branches.find{it.id==editingId}
  if(point!=null)key(point.id){
@@ -52,7 +53,7 @@ private val OutletDraftSaver=androidx.compose.runtime.saveable.listSaver<ShopBra
    val saved=candidate.copy(displayOrder=if(adding)branches.size else point.displayOrder)
    onChange(if(adding)branches+saved else branches.map{if(it.id==saved.id)saved else it});close()
   },canSave=!duplicate&&(venue!=null||draft.address.isNotBlank()||draft.label.isNotBlank()),busy=photoBusy){
-   DropdownSelector("Рынок или ТЦ",venues,venue,{it.name},{selected->draft=draft.copy(venueId=selected?.id)},allowCreate=true,createLabel="Новый рынок или ТЦ…",noneLabel="Отдельный адрес",alphabetical=true,onCreateNew={
+   DropdownSelector("Торговое место",venues,venue,{"${com.spisokryadom.app.data.entity.VenueKinds.label(it.kind)} · ${it.name}"},{selected->draft=draft.copy(venueId=selected?.id)},allowCreate=true,createLabel="Новое торговое место…",noneLabel="Отдельный адрес",alphabetical=true,onCreateNew={
     venueEditingId=minOf(-1L,(venues.minOfOrNull{it.id}?:0L)-1L)
    })
    if(venue!=null){
@@ -74,6 +75,6 @@ private val OutletDraftSaver=androidx.compose.runtime.saveable.listSaver<ShopBra
    BranchPhotoEditor(draft.photoUri.orEmpty(),{draft=draft.copy(photoUri=it)},{photoBusy=it;onBusyChange(it)},compact=true,showTitle=false,enabled=!externalPhotoBusy||photoBusy)
    if(!adding)IconButton(onClick={deleting=true}){Icon(Icons.Filled.Delete,"Удалить точку")}
   }
-  venueEditing?.let{value->VenueEditorDialog(value,onDismiss={venueEditingId=null},onSave={saved->onVenueChange(saved);draft=draft.copy(venueId=saved.id)})}
+  venueEditing?.let{value->VenueEditorDialog(value,onDismiss={venueEditingId=null},onSave={saved->onVenueChange(saved);draft=draft.copy(venueId=saved.id)},allowCityChange=false)}
  }
 }

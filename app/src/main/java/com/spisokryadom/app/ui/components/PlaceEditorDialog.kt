@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.spisokryadom.app.data.entity.VenueEntity
+import com.spisokryadom.app.data.entity.VenueKinds
 import kotlinx.coroutines.launch
 
 /** The same fixed top actions for outlets and venues; only the body scrolls, including with IME. */
@@ -26,7 +27,10 @@ import kotlinx.coroutines.launch
  }
 }
 
-@Composable fun VenueEditorDialog(venue:VenueEntity,onDismiss:()->Unit,onSave:suspend(VenueEntity)->Unit,onDelete:(()->Unit)?=null){
+@Composable fun VenueEditorDialog(venue:VenueEntity,onDismiss:()->Unit,onSave:suspend(VenueEntity)->Unit,onDelete:(()->Unit)?=null,allowCityChange:Boolean=true){
+ var cityId by rememberSaveable(venue.id){mutableStateOf(venue.cityId)}
+ var kind by rememberSaveable(venue.id){mutableStateOf(if(venue.id<=0)VenueKinds.MARKET else venue.kind)}
+ var cityConfirm by remember{mutableStateOf(false)}
  var name by rememberSaveable(venue.id){mutableStateOf(venue.name)}
  var address by rememberSaveable(venue.id){mutableStateOf(venue.address.orEmpty())}
  var note by rememberSaveable(venue.id){mutableStateOf(venue.note.orEmpty())}
@@ -34,20 +38,31 @@ import kotlinx.coroutines.launch
  var photoBusy by remember{mutableStateOf(false)};var saving by remember{mutableStateOf(false)}
  var error by remember{mutableStateOf<String?>(null)};var deleting by remember{mutableStateOf(false)}
  val scope=rememberCoroutineScope()
- if(deleting)ConfirmDialog("Удалить рынок или ТЦ?","Магазины, точки и покупки сохранятся. Точки получат текущий адрес рынка или ТЦ.",onConfirm={deleting=false;onDelete?.invoke()},onDismiss={deleting=false})
- PlaceEditorDialog(if(venue.id>0)"Рынок или ТЦ"else "Новый рынок или ТЦ",onDismiss,{
+ if(deleting)ConfirmDialog("Удалить торговое место?","Магазины, точки и покупки сохранятся. Точки получат текущий общий адрес.",onConfirm={deleting=false;onDelete?.invoke()},onDismiss={deleting=false})
+ fun save(){
   saving=true;error=null;scope.launch{
-   try{onSave(venue.copy(name=name.trim(),address=address.trim().ifBlank{null},note=note.trim().ifBlank{null},photoUri=photo));onDismiss()}
+   try{onSave(venue.copy(cityId=cityId,kind=kind,name=name.trim(),address=address.trim().ifBlank{null},note=note.trim().ifBlank{null},photoUri=photo));onDismiss()}
    catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message?:"Не удалось сохранить"}
    finally{saving=false}
   }
+ }
+ if(cityConfirm)ConfirmDialog("Изменить город места?","Все точки внутри переедут вместе с ним. Другие адреса сетевых магазинов останутся в прежнем городе. Товары и покупки сохранятся.",onConfirm={cityConfirm=false;save()},onDismiss={cityConfirm=false})
+ PlaceEditorDialog(if(venue.id>0)VenueKinds.label(kind)else "Новое торговое место",onDismiss,{
+  if(venue.id>0&&cityId!=venue.cityId)cityConfirm=true else save()
  },canSave=name.isNotBlank(),busy=photoBusy||saving){
+  DropdownSelector("Тип места",VenueKinds.choices,kind,VenueKinds::label,{it?.let{kind=it}},allowNone=false)
+  if(allowCityChange)CityField(cityId,{cityId=it},label="Город места")
+  else {
+   val locations=(androidx.compose.ui.platform.LocalContext.current.applicationContext as com.spisokryadom.app.SpisokRyadomApp).container.locations
+   val cities by locations.cities.collectAsState()
+   OutlinedTextField(cities.find{it.id==cityId}?.name.orEmpty(),{},readOnly=true,label={Text("Город места")},modifier=Modifier.fillMaxWidth())
+  }
   OutlinedTextField(name,{name=it},label={Text("Название")},modifier=Modifier.fillMaxWidth().testTag("venue-name"))
   OutlinedTextField(address,{address=it},label={Text("Общий адрес")},modifier=Modifier.fillMaxWidth().testTag("venue-address"))
   Text("Один адрес для всех магазинов и павильонов внутри. Изменение применяется ко всем точкам этого рынка или ТЦ.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   OutlinedTextField(note,{note=it},label={Text("Заметка")},maxLines=3,modifier=Modifier.fillMaxWidth())
   BranchPhotoEditor(photo.orEmpty(),{photo=it},{photoBusy=it},title="Рынок или ТЦ",directory="venue_photos",compact=true,showTitle=false,enabled=!saving)
   error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
-  if(onDelete!=null)TextButton(onClick={deleting=true},enabled=!photoBusy&&!saving){Text("Удалить рынок или ТЦ",color=MaterialTheme.colorScheme.error)}
+  if(onDelete!=null)TextButton(onClick={deleting=true},enabled=!photoBusy&&!saving){Text("Удалить торговое место",color=MaterialTheme.colorScheme.error)}
  }
 }

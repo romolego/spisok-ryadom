@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.Domain
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -66,6 +68,7 @@ fun ShopListScreen(
     Scaffold(
         snackbarHost={BatchFeedback(batchVM)},
         topBar = {
+          Column {
             TopAppBar(
                 title = { Text(if(selection.active)"Выбрано: ${selection.ids.size}"else "Магазины", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                 navigationIcon={if(selection.active)IconButton(onClick=selection::clear){Icon(Icons.Default.Close,"Отменить выбор")}},
@@ -86,6 +89,8 @@ fun ShopListScreen(
                     }
                 }
             )
+            com.spisokryadom.app.ui.components.CityPicker(enabled=!state.isLoading&&!selection.active&&!state.isEditing,compact=true)
+          }
         },
         floatingActionButton = {
             if (!state.isEditing&&!selection.active) {
@@ -212,8 +217,9 @@ private fun ShopListItem(
  if(editing)com.spisokryadom.app.ui.components.VenueEditorDialog(venue,{editing=false},onSave,onDelete={onDelete(venue.id);editing=false})
  Column(Modifier.fillMaxWidth().testTag("venue-group-${venue.id}").padding(top=12.dp,bottom=4.dp)){
   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-   Icon(Icons.Filled.Store,null,tint=MaterialTheme.colorScheme.primary)
+   Icon(if(venue.kind==com.spisokryadom.app.data.entity.VenueKinds.MARKET)Icons.Filled.Storefront else Icons.Filled.Domain,null,tint=MaterialTheme.colorScheme.primary)
    Column(Modifier.weight(1f).padding(start=10.dp)){
+    Text(com.spisokryadom.app.data.entity.VenueKinds.label(venue.kind),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
     Text(venue.name,style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary)
     venue.address?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall)}
    }

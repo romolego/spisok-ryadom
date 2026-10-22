@@ -70,7 +70,7 @@ class InlineStoreEditingTest {
  }
  @Test fun pointModalAddsDeletesAndParentBackDiscardsDraft(){
   openStore();ui.onNodeWithText("Править").performScrollTo().performClick()
-  ui.onNodeWithText("Добавить точку").performScrollTo().performClick();ui.onAllNodes(isDialog()).assertCountEquals(1)
+  ui.onNodeWithContentDescription("Добавить точку").performScrollTo().performClick();ui.onAllNodes(isDialog()).assertCountEquals(1)
   ui.onAllNodesWithText("Сохранить").onLast().assertIsNotEnabled()
   ui.onNodeWithTag("branch-address--1").performScrollTo().performTextReplacement("Ленина, 20")
   ui.onAllNodesWithText("Сохранить").onLast().assertIsEnabled().performClick()

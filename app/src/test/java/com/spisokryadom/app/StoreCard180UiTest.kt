@@ -55,7 +55,7 @@ class StoreCard180UiTest {
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины");runBlocking{val s=db.shopDao().getById(shop)!!;assertEquals(false,s.showUrgentInCollapsed);assertEquals(true,s.boostUrgentShop);assertEquals("Доставка по будням",s.note);assertEquals("online",db.creationPresetDao().shopMode(shop))}
  }
  @Test fun duplicateAddressCannotBeHiddenOrSaved(){
-  ui.onNodeWithText("Править").performClick();ui.onNodeWithText("Добавить точку").performScrollTo().performClick()
+  ui.onNodeWithText("Править").performClick();ui.onNodeWithContentDescription("Добавить точку").performScrollTo().performClick()
   ui.onNodeWithTag("branch-address--1").performScrollTo().performTextReplacement("весны, 1 ")
   ui.onAllNodesWithText("Сохранить").onLast().assertIsNotEnabled()
   ui.onNodeWithTag("branch-address--1").performTextReplacement("Весны, 2")
@@ -71,14 +71,14 @@ class StoreCard180UiTest {
   ui.onNodeWithTag("shop-appearance-apply").performClick();ui.onNodeWithText("Сохранить").performClick();waitText("Магазины");assertEquals("#E0C76F",runBlocking{db.shopDao().getById(shop)!!.shoppingBackground})
  }
  @Test fun iconOnlyPickerAndVenueSummaryAreCoherent(){
-  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithContentDescription("Выбрать значок магазина").performScrollTo().performClick();ui.onNodeWithTag("appearance-custom-toggle").assertDoesNotExist();ui.onNodeWithTag("appearance-icon-search").performTextInput("Покупки");ui.onNodeWithTag("appearance-icon-bag").performScrollTo().performClick();shot("08-icon-picker");ui.onNodeWithText("Применить оформление").performClick()
+  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-symbol-edit").performScrollTo().performClick();ui.onNodeWithText("Готовый значок").performClick();ui.onNodeWithText("Покупки",substring=false).performScrollTo().performClick();shot("08-icon-picker");ui.onNodeWithTag("shop-symbol-apply").performClick()
   ui.onNodeWithTag("shop-appearance-apply").performClick();ui.onNodeWithText("Сохранить").performClick();waitText("Магазины");assertEquals("bag",runBlocking{db.shopDao().getById(shop)!!.iconKey});shot("09-store-list-icon")
  }
  @Test fun galleryLogoCanBeImportedSavedAndDisplayedInPurchases(){
   val f=File(app.cacheDir,"synthetic-logo.png");val b=Bitmap.createBitmap(80,80,Bitmap.Config.ARGB_8888);b.eraseColor(0xFF2E7D6B.toInt());val c=Canvas(b);val p=android.graphics.Paint().apply{color=android.graphics.Color.WHITE;textSize=48f;isAntiAlias=true};c.drawText("Я",21f,57f,p);f.outputStream().use{b.compress(Bitmap.CompressFormat.PNG,100,it)};b.recycle()
-  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithContentDescription("Загрузить логотип магазина").performScrollTo().performClick();val shadow=Shadows.shadowOf(ui.activity);val request=shadow.nextStartedActivityForResult;assertEquals(android.content.Intent.ACTION_GET_CONTENT,request.intent.action)
+  ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-symbol-edit").performScrollTo().performClick();ui.onNodeWithContentDescription("Загрузить логотип магазина").performScrollTo().performClick();val shadow=Shadows.shadowOf(ui.activity);val request=shadow.nextStartedActivityForResult;assertEquals(android.content.Intent.ACTION_GET_CONTENT,request.intent.action)
   ui.runOnUiThread{shadow.receiveResult(request.intent,android.app.Activity.RESULT_OK,android.content.Intent().setData(android.net.Uri.fromFile(f)))}
-  waitFor{runCatching{ui.onNodeWithTag("shop-appearance-apply").assertIsEnabled()}.isSuccess};ui.onNodeWithTag("shop-appearance-preview");shot("10-logo-preview");ui.onNodeWithTag("shop-appearance-apply").performClick();ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
+  waitFor{runCatching{ui.onNodeWithTag("shop-symbol-apply").assertIsEnabled()}.isSuccess};ui.onNodeWithTag("shop-symbol-apply").performClick();ui.onNodeWithTag("shop-appearance-preview");shot("10-logo-preview");ui.onNodeWithTag("shop-appearance-apply").performClick();ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   assertNotNull(runBlocking{db.shopDao().getById(shop)!!.logoUri});shot("11-logo-store-list")
   runBlocking{val id=app.container.productRepository.saveWithLinks(ProductEntity(name="Пример покупки"),listOf(ProductShopLinkEntity(productId=0,shopId=shop)));app.container.shoppingListRepository.addProduct(id,choice=com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT,shopId=shop)}
   ui.onNodeWithText("Главная").performClick();waitText("Пример покупки");shot("12-logo-purchases")

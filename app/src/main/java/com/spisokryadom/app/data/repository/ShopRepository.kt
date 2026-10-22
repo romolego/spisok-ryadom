@@ -15,7 +15,7 @@ class ShopRepository(
     val locations: LocationRepository,
     private val db: AppDatabase, private val catalogueEdits:CatalogueEdits?=null
 ) {
-    suspend fun saveWithDepartments(shop:ShopEntity, departments:List<ShopDepartmentEntity>, branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>?=null,networkName:String?=null,branchOrders:Map<Long,List<Long>> = emptyMap(),convertToVenue:Boolean=false,purchaseMode:String?=null,venueEdits:Map<Long,com.spisokryadom.app.data.entity.VenueEntity> = emptyMap()):Long = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+    suspend fun saveWithDepartments(shop:ShopEntity, departments:List<ShopDepartmentEntity>, branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>?=null,networkName:String?=null,branchOrders:Map<Long,List<Long>> = emptyMap(),convertToVenue:Boolean=false,purchaseMode:String?=null,venueEdits:Map<Long,com.spisokryadom.app.data.entity.VenueEntity> = emptyMap(),venueKind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED):Long = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         require(com.spisokryadom.app.util.PurchaseBackground.valid(shop.purchaseBackground)){"Выберите фон товаров магазина"}
         require(shop.name.isNotBlank()) { "Укажите название магазина" }
         require(com.spisokryadom.app.util.AppearanceColors.validOptional(shop.shoppingBackground)){"Выберите цвет фона магазина"}
@@ -52,10 +52,10 @@ class ShopRepository(
         val venueIds=venueEdits.mapValues{(key,value)->
             require(key!=0L&&key==value.id){"Проверьте ссылку на рынок или ТЦ"}
             require(value.cityId==shop.cityId){"Торговый комплекс относится к другому городу"}
-            if(key>0){updateVenue(value);key}else{
+            if(key>0){updateVenueInTransaction(value);key}else{
                 require(value.name.isNotBlank()){"Укажите название рынка или ТЦ"}
                 require(db.retailStructureDao().venues().none{it.cityId==value.cityId&&com.spisokryadom.app.util.FuzzySearch.normalize(it.name)==com.spisokryadom.app.util.FuzzySearch.normalize(value.name)}){"Рынок или ТЦ с таким названием уже есть"}
-                ensureVenue(value.cityId,value.name).also{newId->updateVenue(value.copy(id=newId))}
+                ensureVenue(value.cityId,value.name).also{newId->updateVenueInTransaction(value.copy(id=newId))}
             }
         }
         if(branches!=null)saveBranches(id,branches.map{branch->
@@ -72,7 +72,7 @@ class ShopRepository(
         }
         if(branches!=null)syncPrimaryAddress(id)
         refreshPendingDepartments(id,pendingBefore)
-        if(convertToVenue)this@ShopRepository.convertToVenue(id)
+        if(convertToVenue)this@ShopRepository.convertToVenue(id,venueKind)
         id
     } }
     private suspend fun refreshPendingDepartments(shopId:Long,before:List<com.spisokryadom.app.data.entity.ShoppingListEntryEntity>) {
@@ -200,11 +200,14 @@ class ShopRepository(
 
     fun observeBranchOrders()=db.retailStructureDao().observeDepartmentOrder()
     suspend fun branchOrders()=db.retailStructureDao().departmentOrder()
-    suspend fun updateVenue(venue:com.spisokryadom.app.data.entity.VenueEntity)=db.withTransaction{
+    suspend fun updateVenue(venue:com.spisokryadom.app.data.entity.VenueEntity)=withCatalogueEdits(db,catalogueEdits){db.withTransaction{updateVenueInTransaction(venue)}}
+    private suspend fun updateVenueInTransaction(venue:com.spisokryadom.app.data.entity.VenueEntity){
         require(venue.name.isNotBlank()){"Укажите название рынка или ТЦ"}
         val old=db.retailStructureDao().venue(venue.id)?:error("Рынок или ТЦ удалён")
-        require(old.cityId==venue.cityId){"Город торгового центра нельзя менять отдельно от его магазинов"}
+        require(com.spisokryadom.app.data.entity.VenueKinds.valid(venue.kind)){"Выберите тип места"}
+        require(db.cityDao().getById(venue.cityId)!=null){"Город удалён"}
         require(db.retailStructureDao().venues().none{it.id!=venue.id&&it.cityId==venue.cityId&&com.spisokryadom.app.util.FuzzySearch.normalize(it.name)==com.spisokryadom.app.util.FuzzySearch.normalize(venue.name)}){"Рынок или ТЦ с таким названием уже есть"}
+        if(old.cityId!=venue.cityId)relocateVenue(db,old,venue.cityId)
         db.retailStructureDao().updateVenue(venue.copy(name=venue.name.trim(),address=venue.address?.trim()?.ifBlank{null},note=venue.note?.trim()?.ifBlank{null}))
         db.shopBranchDao().getAll().filter{it.venueId==venue.id}.map{it.shopId}.distinct().forEach{syncPrimaryAddress(it)}
     }
@@ -233,13 +236,15 @@ class ShopRepository(
     /** Explicit conversion, never a heuristic based on a market-looking name.
      * Each pavilion becomes a retailer with the SAME physical outlet ID.
      * Products and purchase IDs, notes, photos, and quantities are preserved atomically. */
-    suspend fun convertToVenue(shopId:Long):Long= withCatalogueEdits(db,catalogueEdits) { db.withTransaction{
+    suspend fun convertToVenue(shopId:Long,kind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED):Long= withCatalogueEdits(db,catalogueEdits) { db.withTransaction{
         val shop=shopDao.getById(shopId)?:error("Магазин удалён")
         val purchaseMode=db.creationPresetDao().shopMode(shopId)
         val points=db.shopBranchDao().forShop(shopId)
         require(points.isNotEmpty()){ "Добавьте хотя бы одну точку" }
         require(points.all{it.venueId==null}){"Магазин уже содержит точки в рынке или ТЦ"}
-        val venueId=db.retailStructureDao().insertVenue(com.spisokryadom.app.data.entity.VenueEntity(cityId=shop.cityId,name=shop.name,address=null,note=shop.note))
+        require(com.spisokryadom.app.data.entity.VenueKinds.valid(kind)){"Выберите тип места"}
+        require(db.retailStructureDao().venues().none{it.cityId==shop.cityId&&com.spisokryadom.app.util.FuzzySearch.normalize(it.name)==com.spisokryadom.app.util.FuzzySearch.normalize(shop.name)}){"Торговое место с таким названием уже есть"}
+        val venueId=db.retailStructureDao().insertVenue(com.spisokryadom.app.data.entity.VenueEntity(cityId=shop.cityId,name=shop.name,address=null,note=shop.note,kind=kind))
         val departments=departmentDao.getByShopIdSync(shopId)
         val allLinks=db.productShopLinkDao().getAllSync()
         val links=allLinks.filter{it.shopId==shopId}

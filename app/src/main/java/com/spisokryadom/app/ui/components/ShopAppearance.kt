@@ -1,7 +1,5 @@
 package com.spisokryadom.app.ui.components
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,8 +16,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spisokryadom.app.util.PhotoStore
@@ -77,17 +76,8 @@ private fun ShopAppearanceEditor(initialBackground:String,name:String,initialIco
     var lastColor by rememberSaveable{mutableStateOf(initialBackground.ifBlank{"rose"})}
     var picker by rememberSaveable{mutableStateOf("")}
     var busy by remember{mutableStateOf(false)}
-    var error by remember{mutableStateOf<String?>(null)}
-    val context=LocalContext.current;val scope=rememberCoroutineScope()
     val busyCallback by rememberUpdatedState(onBusy)
-    val gallery=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->if(uri!=null){
-        busy=true;busyCallback(true);error=null
-        scope.launch{
-            try{logo=withContext(Dispatchers.IO){PhotoStore.importPhoto(context,uri,"shop_logos")};icon=""}
-            catch(e:Exception){if(e is CancellationException)throw e;error=e.message?:"Не удалось загрузить логотип"}
-            finally{busy=false;busyCallback(false)}
-        }
-    }}
+    var lastItems by rememberSaveable{mutableStateOf(initialItems.ifBlank{"auto"})}
     val locked=busy||externalPhotoBusy
     val latestLocked by rememberUpdatedState(locked)
     ModalBottomSheet(onDismissRequest={if(!locked)onDismiss()},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true,confirmValueChange={it!=SheetValue.Hidden||!latestLocked})){
@@ -101,25 +91,30 @@ private fun ShopAppearanceEditor(initialBackground:String,name:String,initialIco
                     if(background.isNotBlank())IconButton(onClick={picker="block"},enabled=!locked,modifier=Modifier.testTag("shop-background-color")){
                         Icon(Icons.Filled.Circle,"Цвет подложки",tint=accentColor(background)?:MaterialTheme.colorScheme.primary)
                     }
-                    Switch(background.isNotBlank(),{if(it)background=lastColor else{lastColor=background;background=""}},enabled=!locked,modifier=Modifier.testTag("shop-background-switch"))
+                    Checkbox(background.isNotBlank(),{if(it)background=lastColor else{lastColor=background;background=""}},enabled=!locked,modifier=Modifier.testTag("shop-background-switch"))
                 }
-                DropdownSelector("Фон товаров",listOf("","auto","custom"),if(items.isBlank()||items=="auto")items else "custom",
-                    {when(it){"auto"->"В тон подложки";"custom"->"Свой цвет";else->"Обычный фон"}},
-                    {mode->if(!locked)when(mode){"auto"->items="auto";"custom"->picker="items";""->items=""}},allowNone=false)
-                if(items.isNotBlank()&&items!="auto")Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                    Text("Цвет товаров",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
-                    IconButton(onClick={picker="items"},enabled=!locked){Icon(Icons.Filled.Circle,"Цвет фона товаров",tint=accentColor(items)?:MaterialTheme.colorScheme.primary)}
+                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                    Icon(Icons.Filled.ViewAgenda,null,tint=MaterialTheme.colorScheme.primary)
+                    Text("Выделение товаров",Modifier.weight(1f).padding(horizontal=10.dp),style=MaterialTheme.typography.titleSmall)
+                    Checkbox(items.isNotBlank(),{checked->if(checked)items=lastItems else{lastItems=items;items=""}},enabled=!locked,modifier=Modifier.testTag("shop-items-switch"))
+                }
+                if(items.isNotBlank()){
+                    DropdownSelector("Фон товаров",listOf("auto","custom"),if(items=="auto")"auto"else "custom",
+                        {if(it=="auto")"В тон подложки"else "Свой цвет"},
+                        {mode->if(!locked)when(mode){"auto"->items="auto";"custom"->picker="items"}},allowNone=false)
+                    if(items!="auto")Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                        Text("Цвет товаров",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
+                        IconButton(onClick={picker="items"},enabled=!locked){Icon(Icons.Filled.Circle,"Цвет фона товаров",tint=accentColor(items)?:MaterialTheme.colorScheme.primary)}
+                    }
                 }
                 HorizontalDivider()
-                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                    ShopSymbol(icon,logo,32.dp)
-                    Spacer(Modifier.weight(1f))
-                    IconButton(onClick={picker="icon"},enabled=!locked){Icon(Icons.Filled.GridView,"Выбрать значок магазина")}
-                    IconButton(onClick={gallery.launch("image/*")},enabled=!locked){Icon(Icons.Filled.AddPhotoAlternate,"Загрузить логотип магазина")}
-                    IconButton(onClick={icon="";logo=null},enabled=!locked&&(icon.isNotBlank()||logo!=null)){Icon(Icons.Filled.RestartAlt,"Вернуть обычный значок")}
+                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
+                    FilledTonalIconButton(onClick={picker="icon"},enabled=!locked,modifier=Modifier.size(64.dp).testTag("shop-symbol-edit")){
+                        Box(Modifier.semantics{contentDescription="Изменить значок или логотип магазина"}){ShopSymbol(icon,logo,40.dp)}
+                    }
+                    Text(if(logo!=null)"Логотип магазина"else "Значок магазина",style=MaterialTheme.typography.bodyMedium)
                 }
                 if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
-                error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
             }
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
                 TextButton(onClick=onDismiss,enabled=!locked,modifier=Modifier.weight(1f)){Text("Отмена")}
@@ -131,6 +126,6 @@ private fun ShopAppearanceEditor(initialBackground:String,name:String,initialIco
     when(picker){
         "block"->AppearanceSheet("Цвет подложки",background,withIcons=false,onSave={c,_->background=c;if(c.isNotBlank())lastColor=c;picker=""},onDismiss={picker=""},preview={c,_->ShopBlockPreview(c,name,icon,logo,compact=true,purchaseBackground=items)})
         "items"->AppearanceSheet("Цвет товаров",items.takeUnless{it=="auto"}.orEmpty(),withIcons=false,onSave={c,_->items=c;picker=""},onDismiss={picker=""},preview={c,_->ShopBlockPreview(background,name,icon,logo,compact=true,purchaseBackground=c)})
-        "icon"->AppearanceSheet("Значок магазина","",icon,withColors=false,noneIconLabel="Обычный значок магазина",onSave={_,i->icon=i;logo=null;picker=""},onDismiss={picker=""})
+        "icon"->ShopSymbolPicker(icon,logo,name,onDismiss={picker=""},onBusy={busy=it;busyCallback(it)},onApply={i,l->icon=i;logo=l;picker=""})
     }
 }

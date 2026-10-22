@@ -222,7 +222,7 @@ internal object BackupJson {
  fun encode(value:ProductBranchAvailabilityEntity)=JSONObject().put("productId",value.productId).put("branchId",value.branchId).put("shopId",value.shopId)
  fun availability(o:JSONObject)=ProductBranchAvailabilityEntity(o.getLong("productId"),o.getLong("branchId"),o.optLong("shopId",0))
  fun encode(v:RetailNetworkEntity)=JSONObject().put("id",v.id).put("name",v.name)
- fun encode(v:VenueEntity)=JSONObject().put("id",v.id).put("cityId",v.cityId).put("name",v.name).put("address",v.address?:JSONObject.NULL).put("note",v.note?:JSONObject.NULL)
+ fun encode(v:VenueEntity)=JSONObject().put("kind",v.kind).put("id",v.id).put("cityId",v.cityId).put("name",v.name).put("address",v.address?:JSONObject.NULL).put("note",v.note?:JSONObject.NULL)
  fun encode(v:DepartmentTypeEntity)=JSONObject().put("isFavorite",v.isFavorite).put("favoriteOrder",v.favoriteOrder).put("id",v.id).put("name",v.name).put("normalizedName",v.normalizedName).put("displayOrder",v.displayOrder).put("accent",v.accent).put("iconKey",v.iconKey)
  fun encode(v:BranchDepartmentOrderEntity)=JSONObject().put("branchId",v.branchId).put("typeId",v.typeId).put("displayOrder",v.displayOrder)
  fun encode(v:ProductBranchDepartmentEntity)=JSONObject().put("productId",v.productId).put("branchId",v.branchId).put("shopId",v.shopId).put("typeId",v.typeId)
@@ -293,7 +293,7 @@ internal object BackupJson {
   branchOrder=d.optJSONArray("branchDepartmentOrder")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->BranchDepartmentOrderEntity(o.getLong("branchId"),o.getLong("typeId"),o.getInt("displayOrder"))}}}?:emptyList(),
   branchDepartments=d.optJSONArray("productBranchDepartments")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductBranchDepartmentEntity(o.getLong("productId"),o.getLong("branchId"),o.getLong("shopId"),o.getLong("typeId"))}}}?:emptyList(),
   networks=d.optJSONArray("retailNetworks")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->RetailNetworkEntity(o.getLong("id"),o.getString("name"))}}}?:emptyList(),
-  venues=d.optJSONArray("venues")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->VenueEntity(o.getLong("id"),o.getLong("cityId"),o.getString("name"),if(o.isNull("address"))null else o.optString("address"),if(o.isNull("note"))null else o.optString("note"))}}}?:emptyList(),
+  venues=d.optJSONArray("venues")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->VenueEntity(o.getLong("id"),o.getLong("cityId"),o.getString("name"),if(o.isNull("address"))null else o.optString("address"),if(o.isNull("note"))null else o.optString("note"),kind=if(o.has("kind"))strictString(o,"kind")else VenueKinds.UNSPECIFIED)}}}?:emptyList(),
   departmentTypes=d.optJSONArray("departmentTypes")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->DepartmentTypeEntity(o.getLong("id"),o.getString("name"),o.getString("normalizedName"),o.optInt("displayOrder",0),o.optString("accent",""),o.optString("iconKey",""),favorite(o),favoriteOrder(o))}}}?:emptyList(),
   branchPriorities=d.optJSONArray("productBranchPriorities")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductBranchPriorityEntity(o.getLong("productId"),o.getLong("branchId"),o.getLong("shopId"),o.getInt("displayOrder"))}}}?:emptyList(),
   goalLists=d.optJSONArray("goalLists")?.let{a->(0 until a.length()).map{goalList(a.getJSONObject(it))}}?:emptyList(),

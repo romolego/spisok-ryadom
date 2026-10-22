@@ -21,7 +21,8 @@ import org.robolectric.annotation.*
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk=[28,35],application=Application::class,qualifiers="w360dp-h640dp-xhdpi")
+@Config(sdk=[28,35],application=SpisokRyadomApp::class,qualifiers="w360dp-h640dp-xhdpi")
+@SQLiteMode(SQLiteMode.Mode.NATIVE)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @LooperMode(LooperMode.Mode.PAUSED)
 class Venues230UiTest {
@@ -40,7 +41,7 @@ class Venues230UiTest {
  @Test fun selectingMallUsesItsAddressAndDoesNotRequireAnotherAddress(){
   var points by mutableStateOf(listOf(ShopBranchEntity(1,1,"Мира, 1")))
   show{BranchesEditor(points,{points=it},venues=listOf(venue))}
-  ui.onNodeWithText("Добавить точку").performClick();ui.onNodeWithText("Рынок или ТЦ").performClick();ui.onNodeWithText("ТЦ Аврора").performClick()
+  ui.onNodeWithContentDescription("Добавить точку").performClick();ui.onNodeWithText("Торговое место").performClick();ui.onNodeWithText("Торговое место · ТЦ Аврора").performClick()
   ui.onNodeWithText("Парковая, 10").assertIsDisplayed();ui.onNodeWithTag("branch-address--1").assertDoesNotExist()
   ui.onNodeWithTag("branch-label--1").performTextInput("2 этаж")
   ui.onNodeWithText("Выбрать фото").assertDoesNotExist();ui.onNodeWithContentDescription("Выбрать фото").assertExists();ui.onAllNodesWithText("Сохранить").onLast().assertIsDisplayed().assertIsEnabled();shot("point-in-mall")
@@ -49,7 +50,7 @@ class Venues230UiTest {
  @Test fun newVenueHasOwnEditorAndIsReusableForTheNextPoint(){
   var points by mutableStateOf(emptyList<ShopBranchEntity>());var venues by mutableStateOf(emptyList<VenueEntity>())
   show{BranchesEditor(points,{points=it},venues=venues,onVenueChange={venues=venues.filter{v->v.id!=it.id}+it},cityId=1)}
-  ui.onNodeWithText("Добавить точку").performClick();ui.onNodeWithText("Рынок или ТЦ").performClick();ui.onNodeWithText("Новый рынок или ТЦ…").performClick()
+  ui.onNodeWithContentDescription("Добавить точку").performClick();ui.onNodeWithText("Торговое место").performClick();ui.onNodeWithText("Новое торговое место…").performClick()
   ui.onNodeWithTag("venue-name").performTextInput("Рынок");ui.onNodeWithTag("venue-address").performTextInput("Общий адрес, 7");ui.onAllNodesWithText("Сохранить").onLast().performClick()
   ui.onNodeWithText("Общий адрес, 7").assertIsDisplayed();ui.onAllNodesWithText("Сохранить").onLast().performClick();assertEquals(1,venues.size);assertEquals(1,points.size);assertEquals(venues.single().id,points.single().venueId)
  }

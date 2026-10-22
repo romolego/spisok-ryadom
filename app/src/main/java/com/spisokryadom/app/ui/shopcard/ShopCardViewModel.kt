@@ -103,7 +103,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     fun updateNetwork(id:Long?){_uiState.value=_uiState.value.copy(networkId=id)}
     fun updateNetworkName(name:String){_uiState.value=_uiState.value.copy(networkName=name)}
     fun updateVenue(value:com.spisokryadom.app.data.entity.VenueEntity){_uiState.value=_uiState.value.copy(venueEdits=_uiState.value.venueEdits+(value.id to value.copy(cityId=_uiState.value.cityId)))}
-    fun convertToVenue(){if(!_uiState.value.isNew)saveDraft(convert=true)}
+    fun convertToVenue(kind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED){if(!_uiState.value.isNew)saveDraft(convert=true,venueKind=kind)}
 
     fun updateBranches(value:List<com.spisokryadom.app.data.entity.ShopBranchEntity>){_uiState.value=_uiState.value.copy(branches=value.mapIndexed{i,point->point.copy(displayOrder=i)})}
     fun updatePhotoBusy(value:Boolean){_uiState.value=_uiState.value.copy(isPhotoBusy=value)}
@@ -115,7 +115,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     fun updateShowUrgentInCollapsed(value:UrgencyOverride){_uiState.value=_uiState.value.copy(showUrgentInCollapsed=value)}
     fun updateBoostUrgentShop(value:UrgencyOverride){_uiState.value=_uiState.value.copy(boostUrgentShop=value)}
     fun save()=saveDraft(convert=false)
-    private fun saveDraft(convert:Boolean){
+    private fun saveDraft(convert:Boolean,venueKind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED){
         val state=_uiState.value;if(state.isSaving||state.isPhotoBusy||state.name.isBlank()||state.isLoading)return
         _uiState.value=state.copy(isSaving=true,error=null)
         command {
@@ -125,7 +125,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
                 showUrgentInCollapsed=overrideToBoolean(state.showUrgentInCollapsed),boostUrgentShop=overrideToBoolean(state.boostUrgentShop),
                 manualOrderOverride=if(old?.boostUrgentShop==overrideToBoolean(state.boostUrgentShop))old?.manualOrderOverride?:false else false)
             val departments=if(state.isNew)state.pendingDepartments.sortedBy{it.displayOrder}.map{ShopDepartmentEntity(shopId=0,name=it.name,displayOrder=it.displayOrder)}else state.departments.sortedBy{it.displayOrder}
-            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,convertToVenue=convert,purchaseMode=state.purchaseMode,venueEdits=state.venueEdits.filterKeys{id->id>0||state.branches.any{it.venueId==id}})
+            currentShopId=shopRepository.saveWithDepartments(shop,departments,state.branches,state.networkName,convertToVenue=convert,venueKind=venueKind,purchaseMode=state.purchaseMode,venueEdits=state.venueEdits.filterKeys{id->id>0||state.branches.any{it.venueId==id}})
             _uiState.value=_uiState.value.copy(isSaving=false,isSaved=true)
         }
     }

@@ -126,7 +126,7 @@ class Templates240DataTest {
  }
  @Test fun fullBackupRoundTripsTemplateIdentityAndRejectsMalformedTypeBeforeReplacing():Unit=runBlocking{
   val id=template();goals.addQuick(id,"Сок");val before=goals.snapshot(id);val manager=BackupManager(app,db);val file=manager.exportFile()
-  assertEquals(18,root(file).getInt("version"));goals.deleteList(id);manager.importFile(file);assertEquals(before,goals.snapshot(id))
+  assertEquals(19,root(file).getInt("version"));goals.deleteList(id);manager.importFile(file);assertEquals(before,goals.snapshot(id))
   listOf("bad",null,true).forEach{value->
    val root=root(file);val list=root.getJSONObject("data").getJSONArray("goalLists").getJSONObject(0)
    if(value==true)list.put("showInPurchases",true)else list.put("isTemplate",value?:JSONObject.NULL)
@@ -161,7 +161,7 @@ class Templates240DataTest {
    old.execSQL("INSERT INTO products(id,name,purchaseType,isTemporary,stableId)VALUES(8,'Чай','offline',1,'old-product')")
    old.execSQL("INSERT INTO shopping_list_entries(id,productId,listId,quantity,unit,isBought,isUrgent,createdAt,updatedAt)VALUES(7,8,9,3,'пачка',1,0,1,2)");old.version=20
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_20_21).build()
-  try{val owner=migrated.goalListDao().getById(9)!!;assertFalse(owner.isTemplate);assertTrue(owner.showInPurchases);assertEquals("old-list",owner.stableId);assertEquals(9L,migrated.shoppingListEntryDao().getById(7)!!.listId);assertTrue(migrated.shoppingListEntryDao().getById(7)!!.isBought);assertEquals(21,migrated.openHelper.writableDatabase.version)}finally{migrated.close();app.deleteDatabase(name)}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22).build()
+  try{val owner=migrated.goalListDao().getById(9)!!;assertFalse(owner.isTemplate);assertTrue(owner.showInPurchases);assertEquals("old-list",owner.stableId);assertEquals(9L,migrated.shoppingListEntryDao().getById(7)!!.listId);assertTrue(migrated.shoppingListEntryDao().getById(7)!!.isBought);assertEquals(22,migrated.openHelper.writableDatabase.version)}finally{migrated.close();app.deleteDatabase(name)}
  }
 }
