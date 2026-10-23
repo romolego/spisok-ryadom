@@ -49,12 +49,12 @@ class Audit270StoresUiTest {
  @After fun close(){ui.activityRule.scenario.close();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
  @Test fun storeFavoriteAndAppearanceShareOneRowAndOnlySaveCommitsTheFavorite(){
   card()
-  val favorite=ui.onNodeWithText("Избранное").getUnclippedBoundsInRoot()
+  val favorite=ui.onNodeWithTag("favorite-toggle").getUnclippedBoundsInRoot()
   val palette=ui.onNodeWithContentDescription("Оформление магазина").getUnclippedBoundsInRoot()
   val name=ui.onNodeWithText("Название магазина").getUnclippedBoundsInRoot()
   assertTrue(palette.left>=favorite.right);assertTrue(kotlin.math.abs((palette.top.value+palette.bottom.value-favorite.top.value-favorite.bottom.value)/2)<20)
   assertTrue(palette.top>name.top)
-  ui.onNodeWithText("Избранное").performClick();assertFalse(runBlocking{db.shopDao().getById(first)!!.isFavorite})
+  ui.onNodeWithTag("favorite-toggle").performClick();assertFalse(runBlocking{db.shopDao().getById(first)!!.isFavorite})
   ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-background-switch").performClick()
   ui.onNodeWithText("Отмена").performClick();assertEquals("",runBlocking{db.shopDao().getById(first)!!.shoppingBackground})
   shot("store-favorite-and-palette")
@@ -69,7 +69,7 @@ class Audit270StoresUiTest {
   stores();waitFor{ui.onAllNodesWithTag("favorite-shop-$second").fetchSemanticsNodes().isNotEmpty()}
   ui.onNode(hasContentDescription("Избранный магазин: Ближний магазин") and hasAnyAncestor(hasTestTag("favorite-shop-$first"))).assertDoesNotExist()
   ui.onNode(hasContentDescription("Избранный магазин: Ближний магазин") and hasAnyAncestor(hasTestTag("shop-order-$first-0"))).assertExists()
-  ui.onNodeWithContentDescription("Изменить порядок").performClick()
+  ui.onNodeWithContentDescription("Управление магазинами").performClick();ui.onNodeWithText("Изменить порядок").performClick()
   ui.onNode(hasContentDescription("Переместить вверх") and hasAnyAncestor(hasTestTag("favorite-shop-$second"))).performClick()
   waitFor{runBlocking{db.shopDao().getById(second)!!.favoriteOrder<db.shopDao().getById(first)!!.favoriteOrder}}
   assertEquals(listOf(first,second),runBlocking{db.shopDao().getAllSync().map{it.id}})

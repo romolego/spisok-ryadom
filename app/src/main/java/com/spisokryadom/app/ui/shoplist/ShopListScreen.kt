@@ -1,6 +1,8 @@
 package com.spisokryadom.app.ui.shoplist
 
 import com.spisokryadom.app.ui.batch.*
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -64,7 +66,8 @@ fun ShopListScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     state.error?.let{message->androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,text={Text(message)},confirmButton={androidx.compose.material3.TextButton(onClick=viewModel::clearError){Text("Понятно")}})}
-    val selection=rememberBatchSelection(state.shops.map{it.id}.toSet(),loaded=!state.isLoading)
+    val selection=rememberBatchSelection(state.shops.map{it.id}.toSet(),scopeKey="${state.cityId}:${state.favoritesOnly}",loaded=!state.isLoading)
+    var editMenu by remember{mutableStateOf(false)}
     var batchIds by remember{mutableStateOf<Set<Long>?>(null)}
     batchIds?.let{ids->BatchProductSheet(ids,{batchIds=null},{batchIds=null;selection.clear()},stores=true,vm=batchVM)}
     val listState = rememberLazyListState()
@@ -75,26 +78,28 @@ fun ShopListScreen(
         topBar = {
           Column {
             TopAppBar(
-                title = { Text(if(selection.active)"Выбрано: ${selection.ids.size}"else "Магазины", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                title = { if(selection.active)Text("Выбрано: ${selection.ids.size}",maxLines=1)else com.spisokryadom.app.ui.components.FavoriteListTitle("Магазины",state.favoritesOnly) },
                 navigationIcon={if(selection.active)IconButton(onClick=selection::clear){Icon(Icons.Default.Close,"Отменить выбор")}},
                 actions = {
                     if(selection.active)BatchTopActions(selection,state.shops.map{it.id}.toSet(),{batchIds=selection.ids})
-                    else if(!state.isEditing)IconButton(onClick={selection.active=true},enabled=state.shops.isNotEmpty()){Icon(Icons.Default.Checklist,"Выбрать магазины")}
-                    if (!selection.active&&state.shops.size > 1) {
-                        IconButton(onClick = { viewModel.toggleEditing() }) {
-                            Icon(
-                                imageVector = if (state.isEditing) Icons.Filled.Check else Icons.Filled.Edit,
-                                contentDescription = if (state.isEditing) "Готово" else "Изменить порядок",
-                                tint = if (state.isEditing)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    else if(state.isEditing){
+                        IconButton(onClick=viewModel::toggleEditing){Icon(Icons.Filled.Check,"Готово")}
+                    }else{
+                        Box{
+                            IconButton(onClick={editMenu=true},enabled=state.shops.isNotEmpty()){Icon(Icons.Filled.Edit,"Управление магазинами")}
+                            androidx.compose.material3.DropdownMenu(expanded=editMenu,onDismissRequest={editMenu=false}){
+                                androidx.compose.material3.DropdownMenuItem(text={Text("Выбрать магазины")},leadingIcon={Icon(Icons.Filled.Checklist,null)},onClick={editMenu=false;selection.active=true})
+                                androidx.compose.material3.DropdownMenuItem(text={Text("Изменить порядок")},leadingIcon={Icon(Icons.Filled.Edit,null)},enabled=state.shops.size>1,onClick={editMenu=false;viewModel.startEditing()})
+                            }
+                        }
+                        androidx.compose.material3.IconToggleButton(checked=state.favoritesOnly,onCheckedChange={viewModel.toggleFavorites()}){
+                            Icon(if(state.favoritesOnly)Icons.Filled.Star else Icons.Filled.StarBorder,
+                                if(state.favoritesOnly)"Показать все магазины"else "Только избранные магазины",
+                                tint=if(state.favoritesOnly)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                         }
                     }
                 }
             )
-            com.spisokryadom.app.ui.components.CityPicker(enabled=!state.isLoading&&!selection.active&&!state.isEditing,compact=true)
           }
         },
         floatingActionButton = {
@@ -121,7 +126,7 @@ fun ShopListScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Нет магазинов",
+                        if(state.favoritesOnly)"Нет избранных магазинов"else "Нет магазинов",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -137,7 +142,7 @@ fun ShopListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item { Spacer(modifier = Modifier.height(4.dp)) }
-                if(favoriteShops.isNotEmpty()&&!selection.active){
+                if(favoriteShops.isNotEmpty()&&!selection.active&&!state.favoritesOnly){
                     item(key="favorite-shops-heading"){FavoriteBlock(Modifier.fillMaxWidth()){
                         Text("Избранные",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall)
                     }}

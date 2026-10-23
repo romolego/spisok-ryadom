@@ -25,13 +25,15 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel(factory=SettingsViewModel.Factory),onOpenProduct:(Long)->Unit={},onOpenShop:(Long)->Unit={},onReset:()->Unit=onNavigateBack){
+ var managerKind by rememberSaveable{mutableStateOf<String?>(null)}
+ val managerListState=key(managerKind){androidx.compose.foundation.lazy.rememberLazyListState()}
  val listState=androidx.compose.foundation.lazy.rememberLazyListState()
  val state by viewModel.uiState.collectAsStateWithLifecycle();val snack=remember{SnackbarHostState()}
  if(state.resetInProgress)androidx.compose.ui.window.Dialog(onDismissRequest={},properties=androidx.compose.ui.window.DialogProperties(dismissOnBackPress=false,dismissOnClickOutside=false)){
   Surface(shape=MaterialTheme.shapes.large){Row(Modifier.padding(24.dp),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalAlignment=Alignment.CenterVertically){CircularProgressIndicator();Text("Выполняется сброс")}}
  }
  val recipients by viewModel.recipients.collectAsStateWithLifecycle();val groups by viewModel.productGroups.collectAsStateWithLifecycle();val units by viewModel.units.collectAsStateWithLifecycle();val depts by viewModel.departmentGroups.collectAsStateWithLifecycle()
- val viewport=rememberReorderViewport(listState,recipients.map{"r${it.id}"}+groups.map{"g${it.id}:${it.isFavorite}:${it.favoriteOrder}"}+units.map{"u${it.id}"}+depts.map{"d${it.id}:${it.isFavorite}:${it.favoriteOrder}"})
+ val viewport=rememberReorderViewport(managerListState,recipients.map{"r${it.id}"}+groups.map{"g${it.id}:${it.isFavorite}:${it.favoriteOrder}"}+units.map{"u${it.id}"}+depts.map{"d${it.id}:${it.isFavorite}:${it.favoriteOrder}"})
  val recipientEdit by viewModel.recipientsEditMode.collectAsStateWithLifecycle();val groupEdit by viewModel.groupsEditMode.collectAsStateWithLifecycle();val unitEdit by viewModel.unitsEditMode.collectAsStateWithLifecycle();val deptEdit by viewModel.deptGroupsEditMode.collectAsStateWithLifecycle()
  val recipientId by viewModel.selectedRecipientId.collectAsStateWithLifecycle();val groupId by viewModel.selectedGroupId.collectAsStateWithLifecycle();val unitId by viewModel.selectedUnitId.collectAsStateWithLifecycle();val deptName by viewModel.selectedDepartmentGroup.collectAsStateWithLifecycle()
  val recipientProducts by viewModel.selectedRecipientProducts.collectAsStateWithLifecycle();val groupProducts by viewModel.selectedGroupProducts.collectAsStateWithLifecycle();val unitProducts by viewModel.selectedUnitProducts.collectAsStateWithLifecycle()
@@ -78,6 +80,57 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
  if(groupId!=null)ProductUsageDialog("Товары группы",groupProducts,onOpenProduct){viewModel.selectProductGroup(null)}
  if(unitId!=null)ProductUsageDialog("Используют единицу",unitProducts,onOpenProduct){viewModel.selectUnit(null)}
  if(deptName!=null)DepartmentUsageDialog(departmentUsage,onOpenProduct,onOpenShop){viewModel.selectDepartmentGroup(null)}
+ fun closeManager(){
+  when(managerKind){"recipient"->if(recipientEdit)viewModel.toggleRecipientsEditMode();"group"->if(groupEdit)viewModel.toggleGroupsEditMode();"unit"->if(unitEdit)viewModel.toggleUnitsEditMode();"dept"->if(deptEdit)viewModel.toggleDeptGroupsEditMode()}
+  managerKind=null
+ }
+ managerKind?.let{kind->EditorSheet(when(kind){"recipient"->"Получатели";"group"->"Товарные группы";"unit"->"Единицы измерения";else->"Группы магазинов"},
+  onDismiss=::closeManager,busy=state.isLoading,scrollContent=false,actions={
+   val title=when(kind){"recipient"->"Получатели";"group"->"Товарные группы";"unit"->"Единицы измерения";else->"Группы магазинов"}
+   val editing=when(kind){"recipient"->recipientEdit;"group"->groupEdit;"unit"->unitEdit;else->deptEdit}
+   IconToggleButton(checked=editing,onCheckedChange={when(kind){"recipient"->viewModel.toggleRecipientsEditMode();"group"->viewModel.toggleGroupsEditMode();"unit"->viewModel.toggleUnitsEditMode();else->viewModel.toggleDeptGroupsEditMode()}},modifier=Modifier.testTag("manager-edit-$title")){
+    Icon(if(editing)Icons.Filled.Check else Icons.Filled.Edit,if(editing)"Завершить правку: $title"else "Править: $title")
+   }
+   Spacer(Modifier.weight(1f))
+   TextButton(onClick=::closeManager){Text("Закрыть")}
+  }){
+  LazyColumn(state=managerListState,modifier=Modifier.fillMaxWidth().testTag("dictionary-manager"),verticalArrangement=Arrangement.spacedBy(8.dp)){
+if(managerKind=="recipient"){
+   itemsIndexed(recipients,key={_,v->"recipient_${v.id}"},contentType={_,_->"manager"}){index,item->
+    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,recipientEdit,{viewModel.selectRecipient(item.id)},{edit("recipient",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteRecipient(item)}},{viewport.capture();viewModel.moveRecipientUp(item)},{viewport.capture();viewModel.moveRecipientDown(item)},index==0,index==recipients.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("recipient",item.id,item.accent to item.iconKey)})}
+   }
+   if(recipientEdit)item(key="recipient_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("recipient","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить получателя")};IconButton(onClick={sortKind="recipient"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Получатели")}}}
+}
+if(managerKind=="group"){
+   val favoriteGroups=groups.filter{it.isFavorite}.sortedWith(compareBy<com.spisokryadom.app.data.entity.ProductGroupEntity>{it.favoriteOrder}.thenBy{it.name})
+   if(favoriteGroups.isNotEmpty())item(key="group_favorites_title"){FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные",Modifier.padding(8.dp),style=MaterialTheme.typography.titleSmall)}}
+   itemsIndexed(favoriteGroups+groups,key={i,v->if(i<favoriteGroups.size)"group_favorite_${v.id}"else "group_${v.id}"},contentType={_,_->"manager"}){index,item->
+    val pinned=index<favoriteGroups.size
+    val row:@Composable ()->Unit={ManagerRow(item.name,groupEdit,{viewModel.selectProductGroup(item.id)},{edit("group",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteProductGroup(item)}},{viewport.capture();viewModel.moveProductGroupUp(item)},{viewport.capture();viewModel.moveProductGroupDown(item)},index==0,index==favoriteGroups.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("group",item.id,item.accent to item.iconKey)},
+     subtitle=groupPresets.find{it.groupId==item.id}?.recipientId?.let{id->recipients.find{it.id==id}?.name?.let{"Получатель по умолчанию: $it"}},
+     onDefaults={presetRecipient=groupPresets.find{it.groupId==item.id}?.recipientId;presetGroup=item},reorderable=pinned,favorite=item.isFavorite,onFavorite={viewModel.favoriteGroup(item.id,!item.isFavorite)})}
+    if(pinned)FavoriteBlock(Modifier.fillMaxWidth()){row()}else Column{if(index==favoriteGroups.size&&favoriteGroups.isNotEmpty())Text("Все группы · А–Я",Modifier.padding(vertical=8.dp),style=MaterialTheme.typography.titleSmall);row()}
+   }
+   if(groupEdit)item(key="group_add"){TextButton(onClick={edit("group","","")}){Icon(Icons.Filled.Add,null);Text("Добавить группу товаров")}}
+}
+if(managerKind=="unit"){
+   itemsIndexed(units,key={_,v->"unit_${v.id}"},contentType={_,_->"manager"}){index,item->
+    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,unitEdit,{viewModel.selectUnit(item.id)},{edit("unit",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteUnit(item)}},{viewport.capture();viewModel.moveUnitUp(item)},{viewport.capture();viewModel.moveUnitDown(item)},index==0,index==units.lastIndex)}
+   }
+   if(unitEdit)item(key="unit_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("unit","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить единицу")};IconButton(onClick={sortKind="unit"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Единицы измерения")}}}
+}
+if(managerKind=="dept"){
+   val favoriteDepts=depts.filter{it.isFavorite}.sortedWith(compareBy<DepartmentGroup>{it.favoriteOrder}.thenBy{it.name})
+   if(favoriteDepts.isNotEmpty())item(key="dept_favorites_title"){FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные",Modifier.padding(8.dp),style=MaterialTheme.typography.titleSmall)}}
+   itemsIndexed(favoriteDepts+depts,key={i,v->if(i<favoriteDepts.size)"dept_favorite_${v.id}"else "dept_${v.id}"},contentType={_,_->"manager"}){index,item->
+    val pinned=index<favoriteDepts.size
+    val row:@Composable ()->Unit={ManagerRow(item.name,deptEdit,{viewModel.selectDepartmentGroup(item.id)},{edit("dept",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteDepartmentGroup(item.id)}},{viewport.capture();viewModel.moveDepartment(item.id,-1)},{viewport.capture();viewModel.moveDepartment(item.id,1)},index==0,index==favoriteDepts.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("dept",item.id,item.accent to item.iconKey)},reorderable=pinned,favorite=item.isFavorite,onFavorite={viewModel.favoriteDepartment(item.id,!item.isFavorite)})}
+    if(pinned)FavoriteBlock(Modifier.fillMaxWidth()){row()}else Column{if(index==favoriteDepts.size&&favoriteDepts.isNotEmpty())Text("Все группы · А–Я",Modifier.padding(vertical=8.dp),style=MaterialTheme.typography.titleSmall);row()}
+   }
+   if(deptEdit)item(key="dept_add"){TextButton(onClick={edit("dept","","")}){Icon(Icons.Filled.Add,null);Text("Добавить группу магазина")}}
+}
+  }
+ }}
  Scaffold(topBar={TopAppBar(title={Text("Настройки")},navigationIcon={IconButton(onClick=onNavigateBack,enabled=!state.isLoading){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Назад")}})},snackbarHost={SnackbarHost(snack)}){padding->
   LazyColumn(state=listState,modifier=Modifier.testTag("settings-list").fillMaxSize().padding(padding).consumeWindowInsets(padding).padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
    item(key="location"){CityPicker(enabled=!state.isLoading)}
@@ -101,49 +154,23 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
     }}
    }
    item(key="creation_defaults"){CreationDefaultsCard(defaults,units,viewModel::setFillMissing,viewModel::setMissingQuantity,viewModel::setMissingUnit,viewModel::setDefaultPurchaseType)}
-   item(key="reset"){ResetSettingsCard(state.isLoading,viewModel::reset)}
    item(key="widget_settings"){WidgetSettingsCard(widgetSettings,viewModel::updateWidgetSettings)}
    item(key="favorite_settings"){FavoriteSettingsCard()}
    item(key="dropdowns_title"){Column{
     Text("Выпадающие списки",style=MaterialTheme.typography.headlineSmall,modifier=Modifier.padding(top=16.dp))
 
    }}
-   item(key="recipient_title"){ManagerTitle("Получатели",recipientEdit,viewModel::toggleRecipientsEditMode)}
-   itemsIndexed(recipients,key={_,v->"recipient_${v.id}"},contentType={_,_->"manager"}){index,item->
-    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,recipientEdit,{viewModel.selectRecipient(item.id)},{edit("recipient",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteRecipient(item)}},{viewport.capture();viewModel.moveRecipientUp(item)},{viewport.capture();viewModel.moveRecipientDown(item)},index==0,index==recipients.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("recipient",item.id,item.accent to item.iconKey)})}
+   itemsIndexed(listOf("recipient" to "Получатели","group" to "Товарные группы","unit" to "Единицы измерения","dept" to "Группы магазинов"),key={_,v->"dictionary-${v.first}"}){_,entry->
+    OutlinedCard(onClick={managerKind=entry.first},modifier=Modifier.fillMaxWidth().testTag("dictionary-open-${entry.first}")){
+     ListItem(headlineContent={Text(entry.second)},trailingContent={Icon(Icons.Filled.ChevronRight,"Открыть: ${entry.second}")})
+    }
    }
-   if(recipientEdit)item(key="recipient_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("recipient","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить получателя")};IconButton(onClick={sortKind="recipient"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Получатели")}}}
-   item(key="group_title"){ManagerTitle("Товарные группы",groupEdit,viewModel::toggleGroupsEditMode)}
-   val favoriteGroups=groups.filter{it.isFavorite}.sortedWith(compareBy<com.spisokryadom.app.data.entity.ProductGroupEntity>{it.favoriteOrder}.thenBy{it.name})
-   if(favoriteGroups.isNotEmpty())item(key="group_favorites_title"){FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные",Modifier.padding(8.dp),style=MaterialTheme.typography.titleSmall)}}
-   itemsIndexed(favoriteGroups+groups,key={i,v->if(i<favoriteGroups.size)"group_favorite_${v.id}"else "group_${v.id}"},contentType={_,_->"manager"}){index,item->
-    val pinned=index<favoriteGroups.size
-    val row:@Composable ()->Unit={ManagerRow(item.name,groupEdit,{viewModel.selectProductGroup(item.id)},{edit("group",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteProductGroup(item)}},{viewport.capture();viewModel.moveProductGroupUp(item)},{viewport.capture();viewModel.moveProductGroupDown(item)},index==0,index==favoriteGroups.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("group",item.id,item.accent to item.iconKey)},
-     subtitle=groupPresets.find{it.groupId==item.id}?.recipientId?.let{id->recipients.find{it.id==id}?.name?.let{"Получатель по умолчанию: $it"}},
-     onDefaults={presetRecipient=groupPresets.find{it.groupId==item.id}?.recipientId;presetGroup=item},reorderable=pinned,favorite=item.isFavorite,onFavorite={viewModel.favoriteGroup(item.id,!item.isFavorite)})}
-    if(pinned)FavoriteBlock(Modifier.fillMaxWidth()){row()}else Column{if(index==favoriteGroups.size&&favoriteGroups.isNotEmpty())Text("Все группы · А–Я",Modifier.padding(vertical=8.dp),style=MaterialTheme.typography.titleSmall);row()}
-   }
-   if(groupEdit)item(key="group_add"){TextButton(onClick={edit("group","","")}){Icon(Icons.Filled.Add,null);Text("Добавить группу товаров")}}
-   item(key="unit_title"){ManagerTitle("Единицы измерения",unitEdit,viewModel::toggleUnitsEditMode)}
-   itemsIndexed(units,key={_,v->"unit_${v.id}"},contentType={_,_->"manager"}){index,item->
-    Box(Modifier.animateItem(fadeInSpec=null,fadeOutSpec=null,placementSpec=androidx.compose.animation.core.tween(300))){ManagerRow(item.name,unitEdit,{viewModel.selectUnit(item.id)},{edit("unit",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteUnit(item)}},{viewport.capture();viewModel.moveUnitUp(item)},{viewport.capture();viewModel.moveUnitDown(item)},index==0,index==units.lastIndex)}
-   }
-   if(unitEdit)item(key="unit_add"){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton(onClick={edit("unit","","")},modifier=Modifier.weight(1f)){Icon(Icons.Filled.Add,null);Spacer(Modifier.width(8.dp));Text("Добавить единицу")};IconButton(onClick={sortKind="unit"}){Icon(Icons.Filled.SortByAlpha,"По алфавиту: Единицы измерения")}}}
-   item(key="dept_title"){ManagerTitle("Группы магазинов",deptEdit,viewModel::toggleDeptGroupsEditMode)}
-   val favoriteDepts=depts.filter{it.isFavorite}.sortedWith(compareBy<DepartmentGroup>{it.favoriteOrder}.thenBy{it.name})
-   if(favoriteDepts.isNotEmpty())item(key="dept_favorites_title"){FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные",Modifier.padding(8.dp),style=MaterialTheme.typography.titleSmall)}}
-   itemsIndexed(favoriteDepts+depts,key={i,v->if(i<favoriteDepts.size)"dept_favorite_${v.id}"else "dept_${v.id}"},contentType={_,_->"manager"}){index,item->
-    val pinned=index<favoriteDepts.size
-    val row:@Composable ()->Unit={ManagerRow(item.name,deptEdit,{viewModel.selectDepartmentGroup(item.id)},{edit("dept",item.id.toString(),item.name)},{remove(item.name){viewModel.deleteDepartmentGroup(item.id)}},{viewport.capture();viewModel.moveDepartment(item.id,-1)},{viewport.capture();viewModel.moveDepartment(item.id,1)},index==0,index==favoriteDepts.lastIndex,accent=item.accent,iconKey=item.iconKey,onStyle={styleTarget=Triple("dept",item.id,item.accent to item.iconKey)},reorderable=pinned,favorite=item.isFavorite,onFavorite={viewModel.favoriteDepartment(item.id,!item.isFavorite)})}
-    if(pinned)FavoriteBlock(Modifier.fillMaxWidth()){row()}else Column{if(index==favoriteDepts.size&&favoriteDepts.isNotEmpty())Text("Все группы · А–Я",Modifier.padding(vertical=8.dp),style=MaterialTheme.typography.titleSmall);row()}
-   }
-   if(deptEdit)item(key="dept_add"){TextButton(onClick={edit("dept","","")}){Icon(Icons.Filled.Add,null);Text("Добавить группу магазина")}}
+   item(key="reset"){ResetSettingsCard(state.isLoading,viewModel::reset)}
    item{Spacer(Modifier.height(32.dp))}
   }
  }
 }
 @Composable internal fun SettingSwitch(label:String,value:Boolean,onChange:(Boolean)->Unit,help:String?=null){Row(Modifier.fillMaxWidth().padding(vertical=6.dp).heightIn(min=48.dp).toggleable(value,role=androidx.compose.ui.semantics.Role.Switch,onValueChange=onChange).padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f).padding(end=16.dp),style=MaterialTheme.typography.bodyLarge.copy(lineHeight=21.sp));if(help!=null)HelpButton(label,help);Switch(value,null)}}
-@Composable private fun ManagerTitle(title:String,edit:Boolean,onEdit:()->Unit){HorizontalDivider();Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text(title,Modifier.weight(1f),style=MaterialTheme.typography.titleLarge);TextButton(onClick=onEdit,modifier=Modifier.testTag("manager-edit-$title")){Text(if(edit)"Готово" else "Править")}}}
 @Composable private fun ManagerRow(name:String,editing:Boolean,onSelect:()->Unit,onRename:()->Unit,onDelete:()->Unit,onUp:()->Unit,onDown:()->Unit,first:Boolean,last:Boolean,accent:String="",iconKey:String="",onStyle:(()->Unit)?=null,subtitle:String?=null,onDefaults:(()->Unit)?=null,reorderable:Boolean=true,favorite:Boolean=false,onFavorite:(()->Unit)?=null){
  Column(Modifier.fillMaxWidth()){
   FavoriteMarkedLabel(name,accent,iconKey,favorite,Modifier.fillMaxWidth().clickable(onClick=onSelect).padding(vertical=12.dp))

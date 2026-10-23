@@ -1,0 +1,275 @@
+{
+  "version": "0.28.0",
+  "roomSchema": 25,
+  "backupFormat": 23,
+  "verificationStartedUtc": "2026-10-23T03:08:08.371886+00:00",
+  "evidenceCollectedUtc": "2026-10-23T11:05:38.829011+00:00",
+  "testRun": {
+    "kind": "targeted regression of 34 complete classes plus a whole-class reset UI recheck; not the full application suite",
+    "classes": 34,
+    "totals": {
+      "cases": 494,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "newCases": 58,
+    "newClasses": [
+      {
+        "class": "Settings280ComponentsUiTest",
+        "cases": 6
+      },
+      {
+        "class": "Settings280UiTest",
+        "cases": 16
+      },
+      {
+        "class": "SettingsCities280DataTest",
+        "cases": 36
+      }
+    ],
+    "classNames": [
+      "com.spisokryadom.app.ArchitectureMigrationTest",
+      "com.spisokryadom.app.Audit151BackupTest",
+      "com.spisokryadom.app.Audit270DataTest",
+      "com.spisokryadom.app.Audit270StoresUiTest",
+      "com.spisokryadom.app.Favorites200SettingsTest",
+      "com.spisokryadom.app.GoalListIntegrationTest",
+      "com.spisokryadom.app.MigrationRegressionTest",
+      "com.spisokryadom.app.ProductCard190DataTest",
+      "com.spisokryadom.app.ProductCard190LandscapeTest",
+      "com.spisokryadom.app.ProductCard190UiTest",
+      "com.spisokryadom.app.ProductFlowUiTest",
+      "com.spisokryadom.app.ProductSessions270DataTest",
+      "com.spisokryadom.app.ProductSessions270UiTest",
+      "com.spisokryadom.app.QuickAdd241DataTest",
+      "com.spisokryadom.app.QuickAdd241UiTest",
+      "com.spisokryadom.app.Refine160UiTest",
+      "com.spisokryadom.app.Refine170DataTest",
+      "com.spisokryadom.app.Refine170UiTest",
+      "com.spisokryadom.app.RefinementUiTest",
+      "com.spisokryadom.app.Settings210DataTest",
+      "com.spisokryadom.app.Settings210UiTest",
+      "com.spisokryadom.app.Settings280ComponentsUiTest",
+      "com.spisokryadom.app.Settings280UiTest",
+      "com.spisokryadom.app.SettingsCities280DataTest",
+      "com.spisokryadom.app.StorePlaces242DataTest",
+      "com.spisokryadom.app.StorePlaces242LayoutTest",
+      "com.spisokryadom.app.StorePlaces242UiTest",
+      "com.spisokryadom.app.Stores220DataTest",
+      "com.spisokryadom.app.Templates240UiTest",
+      "com.spisokryadom.app.UxLayoutTest",
+      "com.spisokryadom.app.Venues230DataTest",
+      "com.spisokryadom.app.Venues242DataTest",
+      "com.spisokryadom.app.Widget260DataTest",
+      "com.spisokryadom.app.Widget260UiTest"
+    ],
+    "initialTargetedRun": {
+      "totals": {
+        "cases": 494,
+        "failure": 2,
+        "error": 0,
+        "skipped": 0
+      },
+      "classes": 34,
+      "failures": [
+        {
+          "class": "com.spisokryadom.app.Refine170UiTest",
+          "name": "standardCategoriesButtonIsIdempotentAndDoesNotPopulateShops[28]"
+        },
+        {
+          "class": "com.spisokryadom.app.Refine170UiTest",
+          "name": "standardCategoriesButtonIsIdempotentAndDoesNotPopulateShops"
+        }
+      ],
+      "startedUtc": "2026-10-23T03:08:08.371886+00:00"
+    },
+    "recheck": {
+      "totals": {
+        "cases": 12,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "classes": 1,
+      "startedUtc": "2026-10-23T11:02:49.534161+00:00",
+      "existingCaseIdentitiesPreserved": true
+    }
+  },
+  "sourceFiles": 336,
+  "apk": {
+    "version": "0.28.0",
+    "versionCode": 38,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2120046,
+    "sha256": "5620d37320597ea7d74fb7f60ae892e2919104f82e8bfec34403cb16548dccd4",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 25,
+    "backupFormat": 23
+  },
+  "lint": {
+    "Warning": 83,
+    "Hint": 4
+  },
+  "screens": [
+    {
+      "file": "screens/all-widget-settings-api28.png",
+      "sha256": "ce006bb6a92e9075457b1cef28990fe370a38c6eff7e78464663e7465b0460d5",
+      "bytes": 72571
+    },
+    {
+      "file": "screens/all-widget-settings-api35.png",
+      "sha256": "395ed452efc442678703d406e6de42bdd2835881406f7f7d6ea51ae3303bc7a0",
+      "bytes": 72443
+    },
+    {
+      "file": "screens/catalogue-favorite-title-api28.png",
+      "sha256": "9551e9b4e8826055ebdca1f8aa5dfe4a2b317236d1f2102e5fe3cb69100f2e54",
+      "bytes": 61026
+    },
+    {
+      "file": "screens/catalogue-favorite-title-api35.png",
+      "sha256": "eeedd158e4c9724964da874e7481e8af62295fd267606706ea4f6e055a50a78d",
+      "bytes": 62476
+    },
+    {
+      "file": "screens/city-specific-shop-addresses-api28.png",
+      "sha256": "4549011780ab82954651de73e4cf562e0ce2d5d31ff96cd7a47817ca5326f401",
+      "bytes": 90397
+    },
+    {
+      "file": "screens/city-specific-shop-addresses-api35.png",
+      "sha256": "37e1af0bf163b0ee1483c3f6fe542dde7f49cac8213af6053d861f95b1124af3",
+      "bytes": 91555
+    },
+    {
+      "file": "screens/dictionary-dept-api28.png",
+      "sha256": "6ed6ebc2587b9a257f6063d62fb2a0260f2d136c8688154c5b1be097ebd1180a",
+      "bytes": 32147
+    },
+    {
+      "file": "screens/dictionary-dept-api35.png",
+      "sha256": "2c6a896187305e926447ad4528052dba23de8107eb2e21d1a4417f44d93a6d68",
+      "bytes": 32857
+    },
+    {
+      "file": "screens/dictionary-group-api28.png",
+      "sha256": "c2401163086a28508f01738d917c9a747fc9146d2b9d2ec00adc7275e7059f45",
+      "bytes": 29960
+    },
+    {
+      "file": "screens/dictionary-group-api35.png",
+      "sha256": "098e79fa9d7e768bab6f3d8d506f731f348101382f3de3db39b4be0dcb93959d",
+      "bytes": 30782
+    },
+    {
+      "file": "screens/dictionary-recipient-api28.png",
+      "sha256": "313fd818dc3f81c37b84157a574a7821b3f1be2485475c3524056156745a18ca",
+      "bytes": 29059
+    },
+    {
+      "file": "screens/dictionary-recipient-api35.png",
+      "sha256": "4b7b14394c91a222867771dfc7e6cb9cba5ac528e2658bd5b2de1cbb63c983e3",
+      "bytes": 29854
+    },
+    {
+      "file": "screens/dictionary-unit-api28.png",
+      "sha256": "d925aa683c85c77ae012f798425918157a626e65b530a6566fdc01476c0ca17f",
+      "bytes": 28554
+    },
+    {
+      "file": "screens/dictionary-unit-api35.png",
+      "sha256": "325bf6eed6675990ceed612892751444f8ce1b91dd7fa4614805b20965ba3859",
+      "bytes": 30158
+    },
+    {
+      "file": "screens/product-photo-toolbar-api28.png",
+      "sha256": "2a7043a357a931dc1b65bb31117ae7e8f047b5b7495a6fb7fe12d382256bff8e",
+      "bytes": 75039
+    },
+    {
+      "file": "screens/product-photo-toolbar-api35.png",
+      "sha256": "e2c0a96f3d5c2c6a79e88d3138442dc09c0663ff7b9952ff8e4b21ec96a8afd5",
+      "bytes": 76354
+    },
+    {
+      "file": "screens/reset-menu-api28.png",
+      "sha256": "de649f5a160efa1a4f9be0b2472de4460f5651ef8dae7af28b00a4f933197546",
+      "bytes": 33462
+    },
+    {
+      "file": "screens/reset-menu-api35.png",
+      "sha256": "4cb3f6d0f35363e2d7e36d27a80ab739efec4cc82ecbf0190bd6692e0834b3e4",
+      "bytes": 33429
+    },
+    {
+      "file": "screens/settings-bottom-reset-api28.png",
+      "sha256": "0dff10db793eab303b45f98e0be746c44bddf31447ba2865b0ca04f7c6498752",
+      "bytes": 102739
+    },
+    {
+      "file": "screens/settings-bottom-reset-api35.png",
+      "sha256": "6dcd17ebcef6c003850b7644b357121ecb938c7ac12d7ff3630401cebcc11dc0",
+      "bytes": 104559
+    },
+    {
+      "file": "screens/shop-batch-urgency-api28.png",
+      "sha256": "c83ded386d74a2301ab35130cd2a563a0b9a39db6c09c5d75d27f35ddbc4e00d",
+      "bytes": 37550
+    },
+    {
+      "file": "screens/shop-batch-urgency-api35.png",
+      "sha256": "3ad13ec208c6b5d95f6e563b57d2a40ce26684bd4fc6ddcfdbbe2e175161f105",
+      "bytes": 37573
+    },
+    {
+      "file": "screens/shop-favorite-title-api28.png",
+      "sha256": "38a009a7941ffe5d02a86a38654abaf311b6b4d5a1304a98561970304a64bed9",
+      "bytes": 34668
+    },
+    {
+      "file": "screens/shop-favorite-title-api35.png",
+      "sha256": "d57a59a65da86a243d07058d9ed15947af4fa923755c74dfe0dba4004e5bb477",
+      "bytes": 35184
+    },
+    {
+      "file": "screens/shop-star-toolbar-api28.png",
+      "sha256": "93a7b5f137b7f83312269a69368a7af22862b1a1596e2dbdb6b6a0f3670607f9",
+      "bytes": 101475
+    },
+    {
+      "file": "screens/shop-star-toolbar-api35.png",
+      "sha256": "cb011b123ef4562d37e1690a30423291b03e21e7baaa8f69fd7128e66a66f6aa",
+      "bytes": 102372
+    },
+    {
+      "file": "screens/widget-low-landscape-api28.png",
+      "sha256": "78bad2deb368707a084aaeb310248af0ec0aadd4d8090d4b5af501c3d8843240",
+      "bytes": 39294
+    },
+    {
+      "file": "screens/widget-low-landscape-api35.png",
+      "sha256": "9821f6de19a74fc1343f3165b31f3af725154eb20853ab5934e98c155f0072de",
+      "bytes": 39458
+    }
+  ],
+  "preservedPrivateAndApks": 40,
+  "physicalDeviceTested": false,
+  "limitations": [
+    "Robolectric native graphics on API28/35; no physical phone, Gboard, OEM widget host or external gallery provider tested.",
+    "Existing independent legacy shops are not merged by matching names.",
+    "Moving a physical venue into a city that already has the same explicit shop family is rejected atomically; no automatic profile merge."
+  ],
+  "excludedPreliminaryRuns": [
+    "Focused and preflight attempts are private diagnostics, not included in these counts.",
+    "Earlier targeted run had two reset UI timing failures and predates the final shared city-draft fix; it is not final verification.",
+    "First unchanged-source recheck was interrupted before completion; none of its results are included. The entire 12-case class was subsequently rerun successfully."
+  ],
+  "finalSourceVerificationStartedUtc": "2026-10-23T11:02:49.534161+00:00",
+  "reviewedChangesAfterTargetedStart": [
+    "app/src/test/java/com/spisokryadom/app/Refine170UiTest.kt"
+  ],
+  "applicationSchemaBuildUnchangedBetweenRuns": true,
+  "sourceChangedAfterTargetedStart": true,
+  "sourceChangedAfterRecheckStart": false
+}

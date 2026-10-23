@@ -89,7 +89,7 @@ class Venues242DataTest {
  private fun root(file:File)=ZipFile(file).use{JSONObject(it.getInputStream(it.getEntry("manifest.json")).reader().readText())}
  private fun archive(json:JSONObject)=File(app.cacheDir,"venues242.zip").also{f->ZipOutputStream(f.outputStream()).use{z->z.putNextEntry(ZipEntry("manifest.json"));z.write(json.toString().toByteArray());z.closeEntry()}}
  @Test fun backupKeepsTypesReadsLegacyAndRejectsMalformedTypeBeforeReplacingData()=runBlocking{
-  val id=venue();val manager=BackupManager(app,db);val file=manager.exportFile();val json=root(file);assertEquals(22,json.getInt("version"));manager.importFile(file);assertEquals(VenueKinds.MARKET,db.retailStructureDao().venue(id)!!.kind)
+  val id=venue();val manager=BackupManager(app,db);val file=manager.exportFile();val json=root(file);assertEquals(23,json.getInt("version"));manager.importFile(file);assertEquals(VenueKinds.MARKET,db.retailStructureDao().venue(id)!!.kind)
   val row=json.getJSONObject("data").getJSONArray("venues").getJSONObject(0)
   row.put("kind","unsupported");assertTrue(runCatching{manager.importFile(archive(json))}.isFailure);assertEquals(VenueKinds.MARKET,db.retailStructureDao().venue(id)!!.kind)
   row.remove("kind");assertTrue(runCatching{manager.importFile(archive(json))}.isFailure)
@@ -101,7 +101,7 @@ class Venues242DataTest {
   app.openOrCreateDatabase(name,0,null).use{old->val entities=JSONObject(schema.readText()).getJSONObject("database").getJSONArray("entities");for(i in 0 until entities.length()){val e=entities.getJSONObject(i);old.execSQL(e.getString("createSql").replace("\${TABLE_NAME}",e.getString("tableName")));val indices=e.getJSONArray("indices");for(j in 0 until indices.length())old.execSQL(indices.getJSONObject(j).getString("createSql").replace("\${TABLE_NAME}",e.getString("tableName")))}
    old.execSQL("INSERT INTO cities(id,name)VALUES(1,'Город')");old.execSQL("INSERT INTO venues(id,cityId,name,address,photoUri)VALUES(7,1,'Рынок','Общий адрес','photo.jpg')");old.version=21
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24).build()
-  try{assertEquals(24,migrated.openHelper.writableDatabase.version);assertEquals(VenueEntity(7,1,"Рынок","Общий адрес",photoUri="photo.jpg"),migrated.retailStructureDao().venue(7))}finally{migrated.close();app.deleteDatabase(name)}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25).build()
+  try{assertEquals(25,migrated.openHelper.writableDatabase.version);assertEquals(VenueEntity(7,1,"Рынок","Общий адрес",photoUri="photo.jpg"),migrated.retailStructureDao().venue(7))}finally{migrated.close();app.deleteDatabase(name)}
  }
 }

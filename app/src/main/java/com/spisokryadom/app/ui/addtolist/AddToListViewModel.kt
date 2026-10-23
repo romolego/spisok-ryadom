@@ -24,7 +24,7 @@ data class AddToListUiState(
 )
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddToListViewModel(private val products:ProductRepository,private val shopRepository:ShopRepository,private val basket:ShoppingListRepository,
- private val prefs:SharedPreferences,preselectedShopId:Long?=null,private val preselectedBranchId:Long?=null,
+ private val prefs:SharedPreferences,private val preselectedShopId:Long?=null,private val preselectedBranchId:Long?=null,
  private val units:Flow<List<UnitEntity>> = flowOf(emptyList()),private val targetListId:Long?=null):ViewModel(){
  private val sessionGeneration=ProductEditorTransactions.generation.get()
  private val _uiState=MutableStateFlow(AddToListUiState(quantity=ProductCreationDefaults.read(prefs).let{if(it.fillMissing)java.math.BigDecimal.valueOf(it.missingQuantity).stripTrailingZeros().toPlainString()else ""},selectedShopId=preselectedShopId ?: -1L,isShopLocked=preselectedShopId!=null,
@@ -59,12 +59,21 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
     ps.associate{it.id to index.context(it)} to ps.associate{it.id to index.context(it,includeQuantity=false)}
    }.flowOn(Dispatchers.Default).collect{(contexts,withoutQuantity)->_uiState.update{it.copy(productContexts=contexts,productContextsWithoutQuantity=withoutQuantity)}}
   }
-  viewModelScope.launch { shopRepository.getCityShops().collect{shops->_uiState.update{it.copy(shops=shops)}} }
+  viewModelScope.launch {
+   combine(shopRepository.getAllShops(),shopRepository.locations.activeCity){shops,city->shops to city}.collect{(all,city)->
+    if(city.id==shopRepository.locations.currentId()){
+     val shops=all.filter{it.cityId==city.id}
+     _uiState.update{state->val unavailable=state.selectedShopId?.takeIf{it>0}?.let{id->shops.none{it.id==id}}==true
+      state.copy(shops=shops,selectedShopId=if(unavailable)-1L else state.selectedShopId,isShopLocked=state.isShopLocked&&!unavailable,
+       selectedProduct=if(unavailable)null else state.selectedProduct)}
+    }
+   }
+  }
   viewModelScope.launch {
    combine(products.getAllProducts(),products.getAllShopLinks(),products.observeAvailability(),
     _uiState.map{Query(it.searchQuery,it.selectedShopId,it.browseProducts)}.distinctUntilChanged()
      .mapLatest { q -> if(q.text.isNotBlank())delay(300);q }) { ps,links,availability,q ->
-     val result=addProductCandidates(ps,links,availability,q.shopId,preselectedBranchId,q.text,q.browse)
+     val result=addProductCandidates(ps,links,availability,q.shopId,preselectedBranchId.takeIf{q.shopId==preselectedShopId},q.text,q.browse)
      q to result
     }.flowOn(Dispatchers.Default).collect{(q,result)->
      _uiState.update { state ->
@@ -109,11 +118,11 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
   _uiState.update{it.copy(isLoading=true,error=null)}
   viewModelScope.launch{try{ProductEditorTransactions.inGeneration(sessionGeneration){
    val choice=when(state.selectedShopId){-1L->ShopChoice.AUTO;null->ShopChoice.NONE;else->ShopChoice.EXPLICIT}
-   if(state.selectedProduct!=null)basket.addProduct(state.selectedProduct.id,qty,state.unit,choice,state.selectedShopId,preselectedBranchId,targetListId)
+   if(state.selectedProduct!=null)basket.addProduct(state.selectedProduct.id,qty,state.unit,choice,state.selectedShopId,preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId},targetListId)
    else {
     val defaults=ProductCreationDefaults.read(prefs)
     val mode=state.selectedShopId?.takeIf{it>0}?.let{shopRepository.purchaseMode(it)}?:"inherit"
-    basket.addNewProduct(state.searchQuery,qty,state.unit.ifBlank{if(defaults.fillMissing)defaults.missingUnit else ""},state.saveToDatabase,choice,state.selectedShopId,preselectedBranchId,listId=targetListId,purchaseType=PurchaseModes.resolve(mode,defaults.purchaseType))
+    basket.addNewProduct(state.searchQuery,qty,state.unit.ifBlank{if(defaults.fillMissing)defaults.missingUnit else ""},state.saveToDatabase,choice,state.selectedShopId,preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId},listId=targetListId,purchaseType=PurchaseModes.resolve(mode,defaults.purchaseType))
    }
    if(keepBrowsing)_uiState.update{it.copy(isLoading=false,browseMessage="${state.selectedProduct?.name}: добавлено")}
    else _uiState.update{it.copy(isLoading=false,addedMessage="Добавлено в список")}}

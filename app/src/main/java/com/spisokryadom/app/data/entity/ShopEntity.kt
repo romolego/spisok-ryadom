@@ -8,7 +8,7 @@ import androidx.room.Index
 @Entity(tableName = "shops", foreignKeys=[
  ForeignKey(entity=CityEntity::class,parentColumns=["id"],childColumns=["cityId"],onDelete=ForeignKey.RESTRICT),
  ForeignKey(entity=RetailNetworkEntity::class,parentColumns=["id"],childColumns=["networkId"],onDelete=ForeignKey.SET_NULL)
-], indices = [Index("cityId"),Index("networkId")])
+], indices = [Index("cityId"),Index("networkId"),Index("cityGroupKey")])
 data class ShopEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -32,5 +32,7 @@ data class ShopEntity(
     @androidx.room.ColumnInfo(defaultValue="''") val purchaseBackground:String="",
     /** Browsing pins are independent of the shopping route in displayOrder. */
     @androidx.room.ColumnInfo(defaultValue="0") val isFavorite:Boolean=false,
-    @androidx.room.ColumnInfo(defaultValue="0") val favoriteOrder:Int=0
+    @androidx.room.ColumnInfo(defaultValue="0") val favoriteOrder:Int=0,
+    /** Explicit siblings in other cities; an empty legacy key never merges by name. */
+    @androidx.room.ColumnInfo(defaultValue="''") val cityGroupKey:String=""
 )

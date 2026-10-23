@@ -55,11 +55,11 @@ class Refine170UiTest {
   tab("Магазины");ui.onNodeWithContentDescription("Новый магазин").performClick();waitText("Название магазина");ui.onNodeWithText("Название магазина").performTextInput("Онлайн-витрина")
   ui.onNodeWithText("Тип покупок в магазине").performScrollTo().performClick();ui.onNodeWithText("Только онлайн").performClick();shot("01-shop-online-preset");ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   val id=runBlocking{db.shopDao().getAllSync().single{it.name=="Онлайн-витрина"}.id};assertEquals("online",runBlocking{db.creationPresetDao().shopMode(id)})
-  ui.onNodeWithText("Онлайн-витрина").performClick();ui.onNodeWithText("Создать новый товар").performClick();waitText("Название товара");ui.onNodeWithTag("product-name").performTextInput("Кабель");ui.onNodeWithText("Тип покупки").performScrollTo().performClick();ui.onNodeWithText("Офлайн").assertIsNotEnabled();ui.onAllNodesWithText("Онлайн").onLast().performClick();shot("02-product-online-default");ui.onNodeWithText("Сохранить").performClick();waitFor{runBlocking{db.productDao().getAllSync().any{it.name=="Кабель"}}};assertEquals("online",runBlocking{db.productDao().getAllSync().single().purchaseType})
+  ui.onNodeWithText("Онлайн-витрина").performClick();ui.onNodeWithText("Создать новый товар").performClick();waitText("Название товара");ui.onNodeWithTag("product-name").performTextInput("Кабель");ui.onNodeWithText("Тип покупки").performScrollTo().performClick();ui.onNodeWithText("Офлайн").assertIsEnabled();ui.onAllNodesWithText("Онлайн").onLast().performClick();shot("02-product-online-default");ui.onNodeWithText("Сохранить").performClick();waitFor{runBlocking{db.productDao().getAllSync().any{it.name=="Кабель"}}};assertEquals("online",runBlocking{db.productDao().getAllSync().single().purchaseType})
  }
  @Test fun groupDefaultRecipientAppliesAndManualChoiceOverridesIt(){
-  settings();ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("manager-edit-Товарные группы"));ui.onNodeWithTag("manager-edit-Товарные группы").performClick();ui.onNodeWithContentDescription("Преднастройка: Собачье").performScrollTo().performClick();waitText("Преднастройка группы")
-  ui.onNodeWithText("Получатель по умолчанию").performClick();ui.onAllNodesWithText("Злата").onLast().performClick();shot("03-group-recipient-preset");ui.onNodeWithText("Сохранить").performClick();waitFor{runBlocking{db.creationPresetDao().groups().singleOrNull()?.recipientId==pet}};waitFor{ui.onAllNodesWithText("Преднастройка группы").fetchSemanticsNodes().isEmpty()};back()
+  settings();ui.openSettingsDictionary("group");ui.onNodeWithTag("manager-edit-Товарные группы").performClick();ui.onNodeWithContentDescription("Преднастройка: Собачье").performScrollTo().performClick();waitText("Преднастройка группы")
+  ui.onNodeWithText("Получатель по умолчанию").performClick();ui.onAllNodesWithText("Злата").onLast().performClick();shot("03-group-recipient-preset");ui.onNodeWithText("Сохранить").performClick();waitFor{runBlocking{db.creationPresetDao().groups().singleOrNull()?.recipientId==pet}};waitFor{ui.onAllNodesWithText("Преднастройка группы").fetchSemanticsNodes().isEmpty()};ui.closeSettingsDictionary();back()
   newProduct("Корм");ui.onNodeWithText("Товарная группа").performClick();ui.onNodeWithText("Собачье").performClick();waitText("Злата");shot("04-recipient-filled");ui.onNodeWithText("Получатель").performClick();ui.onAllNodesWithText("Рома").onLast().performClick();ui.onNodeWithText("Сохранить").performClick();waitText("База товаров");assertEquals(person,runBlocking{db.productDao().getAllSync().single().recipientId})
  }
  @Test fun globalDefaultsStayOutOfUnitFieldUntilSaving(){
@@ -68,13 +68,26 @@ class Refine170UiTest {
   val p=runBlocking{db.productDao().getAllSync().single()};assertEquals("ед",p.defaultUnit);assertEquals(1.0,p.defaultQuantity!!,0.0);assertEquals("online",p.purchaseType)
  }
  @Test fun recipientIconPackAndDifferentBottomTabsAreAvailable(){
-  shot("06-distinct-bottom-tabs");settings();ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("manager-edit-Получатели"));ui.onNodeWithTag("manager-edit-Получатели").performClick();ui.onNodeWithTag("settings-list").performScrollToNode(hasContentDescription("Оформление: Злата"));ui.onNodeWithContentDescription("Оформление: Злата").performClick();waitText("Оформление группы")
+  shot("06-distinct-bottom-tabs");settings();ui.openSettingsDictionary("recipient");ui.onNodeWithTag("manager-edit-Получатели").performClick();ui.activeLazyList().performScrollToNode(hasContentDescription("Оформление: Злата"));ui.onNodeWithContentDescription("Оформление: Злата").performClick();waitText("Оформление группы")
   ui.onNodeWithTag("appearance-icon-search").performScrollTo().performTextInput("Кошка");ui.onNodeWithTag("appearance-icon-cat").performScrollTo().performClick();shot("07-recipient-cat-icon");ui.onNodeWithText("Применить оформление").performClick();waitFor{runBlocking{db.recipientDao().getById(pet)?.iconKey=="cat"}}
  }
  @Test fun standardCategoriesButtonIsIdempotentAndDoesNotPopulateShops(){
   settings()
-  repeat(2){ui.onNodeWithTag("settings-list").performScrollToNode(hasText("Сброс"));ui.onNodeWithText("Сброс").performClick();ui.onNodeWithText("Восстановить готовые группы").performClick();ui.onNodeWithText("Да").performClick();waitFor{runBlocking{db.shopDepartmentDao().types().size==30}}}
-  waitFor{runBlocking{db.productGroupDao().getAllSync().size==31}};assertTrue(runBlocking{db.shopDepartmentDao().getAllSync().isEmpty()});shot("08-standard-library-control")
+  repeat(2){iteration->
+   waitFor{ui.onAllNodesWithText("Выполняется сброс").fetchSemanticsNodes().isEmpty()}
+   ui.onNodeWithTag("settings-list").performScrollToNode(hasContentDescription("Открыть сброс"))
+   waitFor{runCatching{ui.onNodeWithTag("settings-reset").assertIsEnabled();ui.onNodeWithContentDescription("Открыть сброс").assertIsDisplayed()}.isSuccess}
+   shot("reset-before-open-$iteration")
+   ui.onNodeWithContentDescription("Открыть сброс").performClick()
+   waitText("Восстановить готовые группы")
+   ui.onNodeWithText("Восстановить готовые группы").performClick()
+   waitText("Да");ui.onNodeWithText("Да").performClick()
+   waitFor{runBlocking{db.shopDepartmentDao().types().size==30}&&ui.onAllNodesWithText("Выполняется сброс").fetchSemanticsNodes().isEmpty()}
+   waitText("Сброс выполнен")
+   waitFor{ui.onAllNodesWithText("Сброс выполнен").fetchSemanticsNodes().isEmpty()}
+  }
+  waitFor{runBlocking{db.productGroupDao().getAllSync().size==31}}
+  assertTrue(runBlocking{db.shopDepartmentDao().getAllSync().isEmpty()});shot("08-standard-library-control")
  }
  @Test fun quickAddFromSearchUsesStorePresetAndFallbackUnit(){
   runBlocking{db.creationPresetDao().setShop(ShopCreationPreset(shop,"online"))};ProductEditingPreferences.preferences(app).edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.UNIT,"ед").commit()

@@ -68,9 +68,10 @@ class StorePlaces242DataTest {
  @Test fun savingStoreInAnotherCityKeepsItsIdentityAndTheShoppingCity(){
   val id=runBlocking{db.cityDao().insert(CityEntity(2,"Томск"));db.shopDao().insert(ShopEntity(name="Магазин",cityId=1))}
   val vm=ShopCardViewModel(id,shops);models.put("card",vm);await{!vm.uiState.value.isLoading}
-  vm.updateCity(2);assertEquals(1L,runBlocking{locations.currentId()})
-  vm.save();await{vm.uiState.value.isSaved}
+  vm.updateCity(2);await{!vm.uiState.value.isLoading&&vm.uiState.value.cityId==2L};assertEquals(1L,runBlocking{locations.currentId()})
+  vm.updateBranches(listOf(ShopBranchEntity(shopId=0,address="Адрес в Томске")));vm.save();await{vm.uiState.value.isSaved}
   val result=runBlocking{db.shopDao().getById(id)!!}
-  assertEquals(id,result.id);assertEquals(2L,result.cityId);assertEquals(1L,runBlocking{locations.currentId()})
+  assertEquals(id,result.id);assertEquals(1L,result.cityId);assertEquals(1L,runBlocking{locations.currentId()})
+  val peer=runBlocking{shops.cityProfiles(id).single{it.cityId==2L}};assertNotEquals(id,peer.id);assertEquals("Адрес в Томске",runBlocking{shops.branches(peer.id).single().address})
  }
 }

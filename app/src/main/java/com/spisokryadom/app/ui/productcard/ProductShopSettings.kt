@@ -34,7 +34,7 @@ internal fun ProductOutletOptions(
     onPriority: (List<Long>) -> Unit,
     enabled: Boolean = true
 ) {
-    if (branches.isEmpty()) return
+    if (branches.size < 2) return
     val labels=LocalPlaceLabels.current
     val points = branches.sortedWith(compareBy<ShopBranchEntity> { it.displayOrder }.thenBy { it.id })
     val ranked = points.filter { selected == null || it.id in selected }.sortedWith(

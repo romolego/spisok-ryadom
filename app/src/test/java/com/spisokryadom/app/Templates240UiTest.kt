@@ -49,9 +49,9 @@ class Templates240UiTest {
  @After fun close(){ui.activityRule.scenario.close();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
  private fun openApply(id:Long){tab("Списки");waitTag("goal-lists");ui.onNodeWithTag("goal-lists").performScrollToNode(hasTestTag("goal-list-$id"));ui.onNodeWithContentDescription("Добавить позиции списка: На неделю").performClick();waitTag("list-copy-confirm")}
  @Test fun favoritesFilterHasExplicitBannerAndOneTapToShowAll(){
-  app.getSharedPreferences("product_db_prefs",0).edit().putBoolean("favorites_only",true).commit();tab("Товары");waitTag("favorites-filter-active")
-  ui.onNodeWithTag("favorites-filter-active").assertIsDisplayed();ui.onNodeWithText("Яблоко").assertDoesNotExist();shot("favorites-active")
-  ui.onNodeWithText("Показать все").performClick();waitText("Яблоко");ui.onNodeWithTag("favorites-filter-active").assertDoesNotExist()
+  app.getSharedPreferences("product_db_prefs",0).edit().putBoolean("favorites_only",true).commit();tab("Товары");waitText("База товаров · избранные")
+  ui.onNodeWithText("База товаров · избранные").assertIsDisplayed();ui.onNodeWithText("Яблоко").assertDoesNotExist();shot("favorites-active")
+  ui.onNodeWithContentDescription("Показать все товары").performClick();waitText("Яблоко");ui.onNodeWithText("База товаров · избранные").assertDoesNotExist()
   assertFalse(app.getSharedPreferences("product_db_prefs",0).getBoolean("favorites_only",true))
  }
  @Test fun quickFavoritesShowAddedQuantityInBothCopiesAndCanAddMore(){

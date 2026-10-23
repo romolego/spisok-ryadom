@@ -83,13 +83,17 @@ class StorePlaces242UiTest {
   val selected=runBlocking{db.shopDao().getById(shop)!!.networkId};assertNotEquals(network,selected)
   assertEquals("Местная сеть",runBlocking{db.retailStructureDao().networks().single{it.id==selected}.name})
  }
- @Test fun visibleShoppingCitySwitchesStoresEvenWhenTheCityHasNoStoresAndSurvivesRecreation(){
-  tab("Магазины");waitTag("shop-city-selector");ui.onNodeWithContentDescription("Подсказка: Город покупок").performClick();waitText("Понятно");shot("shopping-city-help");ui.onNodeWithText("Понятно").performClick()
-  ui.onNodeWithContentDescription("Изменить город").performClick();ui.onNodeWithText("Пустой город").performClick();waitText("Нет магазинов")
-  ui.onNodeWithTag("shop-city-selector").assertIsDisplayed();ui.onNodeWithContentDescription("Изменить город").performClick();ui.onNodeWithText("Томск").performClick();waitText("Томский магазин")
-  ui.onNodeWithText("Красный Яр").assertDoesNotExist();shot("stores-in-selected-city")
+ @Test fun shoppingCityInSettingsSwitchesStoresAndSurvivesRecreation(){
+  fun choose(name:String){
+   tab("Главная");ui.onNodeWithContentDescription("Настройки").performClick();waitTag("settings-list")
+   ui.onNodeWithContentDescription("Изменить город").performClick();ui.onNodeWithText(name).performClick();waitFor{ui.onAllNodesWithTag("editor-sheet").fetchSemanticsNodes().isEmpty()}
+   ui.onNodeWithContentDescription("Назад").performClick();tab("Магазины")
+  }
+  tab("Магазины");ui.onNodeWithContentDescription("Изменить город").assertDoesNotExist()
+  choose("Пустой город");waitText("Нет магазинов");ui.onNodeWithContentDescription("Изменить город").assertDoesNotExist()
+  choose("Томск");waitText("Томский магазин");ui.onNodeWithText("Красный Яр").assertDoesNotExist();shot("stores-in-selected-city")
   ui.activityRule.scenario.recreate();waitText("Томский магазин");assertEquals(2L,runBlocking{app.container.locations.currentId()})
-  ui.onNodeWithContentDescription("Изменить город").performClick();ui.onNodeWithText("Красноярск").performClick();waitTag("shop-order-$shop-0")
+  choose("Красноярск");waitTag("shop-order-$shop-0")
   assertEquals(1,runBlocking{db.shoppingListEntryDao().getAllSync().size});assertEquals(2,runBlocking{db.shopDao().getAllSync().size})
  }
  @Test fun creatingACardCityDoesNotSwitchTheAppOrSaveTheStoreOnBack(){
@@ -97,7 +101,7 @@ class StorePlaces242UiTest {
   ui.onNodeWithText("Название города").performTextInput("Дивногорск");ui.onNodeWithContentDescription("Создать: Название города").performClick()
   waitFor{ui.onAllNodesWithText("Название города").fetchSemanticsNodes().isEmpty()&&ui.onAllNodesWithText("Дивногорск").fetchSemanticsNodes().isNotEmpty()}
   assertTrue(runBlocking{db.cityDao().getAllSync().any{it.name=="Дивногорск"}});assertEquals(1L,runBlocking{app.container.locations.currentId()})
-  ui.onNodeWithContentDescription("Назад").performClick();waitTag("shop-city-selector")
+  ui.onNodeWithContentDescription("Назад").performClick();waitTag("shop-order-$shop-0")
   assertEquals(1L,runBlocking{db.shopDao().getById(shop)!!.cityId});assertEquals(1L,runBlocking{app.container.locations.currentId()})
  }
  @Test fun venueHasExplicitTypeAndCityAndMovingItRequiresConfirmation(){

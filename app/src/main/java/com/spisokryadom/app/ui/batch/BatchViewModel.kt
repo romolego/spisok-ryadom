@@ -34,7 +34,8 @@ class BatchViewModel(private val context:Context,
   viewModelScope.launch {try{withContext(Dispatchers.IO){ProductEditorTransactions.inGeneration(sessionGeneration,block)};notice.value="Изменения сохранены";done()}catch(e:Exception){if(e is CancellationException)throw e;error.value=e.message?:"Операция не выполнена"}finally{busy.value=false}}
  }
  fun products(ids:Set<Long>,change:ProductBatchChange,done:()->Unit)=run(done){ProductDraftStore.applyBatch(context,productRepository,ids,change){batchRepository.changeProducts(ids,change)}}
- fun shops(ids:Set<Long>,types:Set<Long>,done:()->Unit)=run(done){batchRepository.addDepartments(ids,types)}
+ fun shopSettings(ids:Set<Long>,change:ShopBatchChange,done:()->Unit)=run(done){shopRepository.changeSettings(ids,change)}
+ fun shops(ids:Set<Long>,types:Set<Long>,done:()->Unit)=run(done){batchRepository.addDepartments(ids,types,shopRepository.locations.currentId())}
  fun purchases(ids:Set<Long>,change:PurchaseBatchChange,done:()->Unit)=run(done){batchRepository.changePurchases(ids,change)}
  fun add(ids:Set<Long>,shop:Long?,done:()->Unit,branchId:Long?=null)=run(done){batchRepository.addToBasket(ids,shop,branchId)}
  fun create(kind:String,name:String,result:(Long)->Unit)=run({}){

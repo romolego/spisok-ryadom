@@ -168,11 +168,28 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
     suspend fun clearBoughtEntries()=db.withTransaction {entryDao.clearBought();db.productDao().deleteUnusedTemporary()}
     suspend fun clearBoughtByShop(shopId: Long)=db.withTransaction {entryDao.clearBoughtByShop(shopId);db.productDao().deleteUnusedTemporary()}
     suspend fun clearBoughtWithoutShop()=db.withTransaction {entryDao.clearBoughtWithoutShop();db.productDao().deleteUnusedTemporary()}
+    /** Changing the global shopping city reassigns regular pending shopping only. */
+    suspend fun changeShoppingCity(cityId:Long)=withCatalogueEdits(db,catalogueEdits){
+        val previous=locations.currentId()
+        if(previous!=cityId)try{
+            db.withTransaction{
+                require(db.cityDao().getById(cityId)!=null){"Город удалён"}
+                val shops=db.shopDao().getAllSync().associateBy{it.id};val catalogue=assignments()
+                entryDao.getAllSync().filter{!it.isBought&&it.listId==null&&!it.explicitNoShop&&it.customShopName.isNullOrBlank()&&
+                    ((it.assignedShopId!=null&&shops[it.assignedShopId]?.cityId!=cityId)||it.awaitingShopCityId!=null)}.forEach{entry->
+                    val target=catalogue.resolve(entry.productId,cityId,com.spisokryadom.app.domain.RetailerChoice.Automatic)
+                    entryDao.update(entry.copy(assignedShopId=target.shopId,assignedDepartmentId=target.departmentId,assignedBranchId=target.branchId,
+                        awaitingShopCityId=cityId.takeIf{target.shopId==null},updatedAt=System.currentTimeMillis()))
+                }
+            }
+            locations.select(cityId)
+        }catch(e:Exception){locations.select(previous);throw e}
+    }
     suspend fun movePendingToCurrentCity() {
         val city=locations.currentId()
         db.withTransaction {
             val shops=db.shopDao().getAllSync().associateBy{it.id};val catalogue=assignments()
-            entryDao.getVisibleSync().filter { !it.isBought && it.assignedShopId!=null && shops[it.assignedShopId]?.cityId!=city }.forEach { entry ->
+            entryDao.getVisibleSync().filter { !it.isBought && ((it.assignedShopId!=null && shops[it.assignedShopId]?.cityId!=city)||(it.assignedShopId==null&&!it.explicitNoShop&&it.awaitingShopCityId!=null)) }.forEach { entry ->
                 val target=catalogue.resolve(entry.productId,city,com.spisokryadom.app.domain.RetailerChoice.Automatic)
                 entryDao.update(entry.copy(explicitNoShop=false,awaitingShopCityId=city.takeIf{target.shopId==null},assignedShopId=target.shopId,assignedDepartmentId=target.departmentId,assignedBranchId=target.branchId,updatedAt=System.currentTimeMillis()))
             }

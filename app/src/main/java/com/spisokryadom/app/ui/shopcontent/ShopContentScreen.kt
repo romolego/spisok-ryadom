@@ -417,6 +417,7 @@ private fun PickProductItem(
                         add(unitStr)
                     }
                     if (product.purchaseType == "online") add("онлайн")
+                    if (product.purchaseType == "both") add("онлайн и офлайн")
                 }
                 if (details.isNotEmpty()) {
                     Text(
@@ -514,6 +515,7 @@ private fun ShopProductItem(
                         add(unitStr)
                     }
                     if (product.purchaseType == "online") add("онлайн")
+                    if (product.purchaseType == "both") add("онлайн и офлайн")
                 }
                 if (details.isNotEmpty()) {
                     Text(

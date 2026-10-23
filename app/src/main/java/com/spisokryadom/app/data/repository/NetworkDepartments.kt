@@ -8,8 +8,9 @@ import com.spisokryadom.app.data.db.AppDatabase
  */
 internal suspend fun synchronizeNetworkDepartments(db: AppDatabase, sourceId: Long, removedTypes: Set<Long> = emptySet()) {
     val source = db.shopDao().getById(sourceId) ?: return
-    val network = source.networkId ?: return
-    val members = db.shopDao().getAllSync().filter { it.networkId == network }
+    val network = source.networkId
+    if(network==null&&source.cityGroupKey.isEmpty())return
+    val members = db.shopDao().getAllSync().filter { if(network!=null)it.networkId==network else it.cityGroupKey==source.cityGroupKey }
         .sortedWith(compareBy<com.spisokryadom.app.data.entity.ShopEntity> { it.id != sourceId }.thenBy { it.id })
     val dao = db.shopDepartmentDao()
     val groups = members.flatMap { dao.getByShopIdSync(it.id).sortedWith(compareBy({ it.displayOrder }, { it.id })) }

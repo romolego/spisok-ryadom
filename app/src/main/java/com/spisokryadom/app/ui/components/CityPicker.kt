@@ -26,27 +26,20 @@ import com.spisokryadom.app.data.entity.CityEntity
 import kotlinx.coroutines.launch
 
 @Composable
-fun CityPicker(enabled:Boolean=true,compact:Boolean=false){
- val repo=(LocalContext.current.applicationContext as SpisokRyadomApp).container.locations
+fun CityPicker(enabled:Boolean=true){
+ val container=(LocalContext.current.applicationContext as SpisokRyadomApp).container
+ val repo=container.locations
  val generation=remember{com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()}
  val city by repo.activeCity.collectAsStateWithLifecycle();val cities by repo.cities.collectAsStateWithLifecycle()
  val scope=rememberCoroutineScope();var show by rememberSaveable{mutableStateOf(false)}
  var help by remember{mutableStateOf(false)}
+ var busy by remember{mutableStateOf(false)}
  var add by rememberSaveable{mutableStateOf(false)};var rename by remember{mutableStateOf<CityEntity?>(null)};var error by remember{mutableStateOf<String?>(null)}
- fun select(id:Long){scope.launch{try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){repo.select(id);show=false}}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message}}}
- if(compact){
-  Row(Modifier.fillMaxWidth().padding(horizontal=16.dp).testTag("shop-city-selector"),verticalAlignment=Alignment.CenterVertically){
-   Row(Modifier.weight(1f).heightIn(min=48.dp).clickable(enabled=enabled){show=true}.semantics{contentDescription="Изменить город"}.padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
-    Icon(Icons.Filled.LocationOn,null,tint=MaterialTheme.colorScheme.primary,modifier=Modifier.size(20.dp))
-    Column(Modifier.weight(1f)){
-     Text("Город покупок",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-     Text(city.name,style=MaterialTheme.typography.bodyMedium)
-    }
-    Icon(Icons.Filled.ArrowDropDown,null)
-   }
-   IconButton(onClick={help=true}){Icon(Icons.AutoMirrored.Outlined.HelpOutline,"Подсказка: Город покупок")}
-  }
- }else OutlinedCard(Modifier.fillMaxWidth().clickable(enabled=enabled){show=true}.semantics{contentDescription="Изменить город"},colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)) {
+ fun select(id:Long){if(busy)return;busy=true;scope.launch{try{
+  com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){container.shoppingListRepository.changeShoppingCity(id);show=false}
+ }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message}finally{busy=false}}}
+
+ OutlinedCard(Modifier.fillMaxWidth().testTag("city-settings-selector").clickable(enabled=enabled){show=true}.semantics{contentDescription="Изменить город"},colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)) {
   Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
    Icon(Icons.Filled.LocationOn,null,tint=MaterialTheme.colorScheme.primary)
    Column(Modifier.weight(1f)) {
@@ -57,23 +50,23 @@ fun CityPicker(enabled:Boolean=true,compact:Boolean=false){
    Icon(Icons.Filled.ChevronRight,null,tint=MaterialTheme.colorScheme.onSurfaceVariant)
   }
  }
- if(help)AlertDialog(onDismissRequest={help=false},title={Text("Город покупок")},text={Text("Это общий город приложения: для него показываются магазины и подбираются места покупки на Главной. Выберите другой город здесь или в настройках, чтобы посмотреть его магазины. Товары и покупки сохраняются.")},confirmButton={TextButton(onClick={help=false}){Text("Понятно")}})
- if(show)EditorSheet("Город покупок",{show=false},scrollContent=false,actions={
-  TextButton(onClick={add=true}){Text("Добавить город")}
-  TextButton(onClick={show=false}){Text("Готово")}
+ if(help)AlertDialog(onDismissRequest={help=false},title={Text("Город покупок")},text={Text("Город определяет магазины и адреса, доступные при добавлении товаров. При смене города некупленные регулярные покупки подбирают местные магазины; без подходящей привязки остаются без магазина. Купленное и отдельные списки сохраняют свои места. Адреса других городов и товары сохраняются.")},confirmButton={TextButton(onClick={help=false}){Text("Понятно")}})
+ if(show)EditorSheet("Город покупок",{show=false},busy=busy,scrollContent=false,actions={
+  TextButton(onClick={add=true},enabled=!busy){Text("Добавить город")}
+  TextButton(onClick={show=false},enabled=!busy){Text("Готово")}
  }){
   error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
   LazyColumn(Modifier.weight(1f,false)){items(com.spisokryadom.app.util.alphabetical(cities){it.name}.sortedBy{it.id!=city.id},key={it.id}){item->
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-    Row(Modifier.weight(1f).clickable{select(item.id)}.padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
-     RadioButton(item.id==city.id,onClick={select(item.id)})
+    Row(Modifier.weight(1f).clickable(enabled=!busy){select(item.id)}.padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
+     RadioButton(item.id==city.id,onClick={select(item.id)},enabled=!busy)
      Text(item.name,Modifier.weight(1f).padding(start=8.dp))
     }
-    IconButton(onClick={rename=item}){Icon(Icons.Filled.Edit,"Изменить ${item.name}")}
+    IconButton(onClick={rename=item},enabled=!busy){Icon(Icons.Filled.Edit,"Изменить ${item.name}")}
    }
   }}
  }
- if(add)InputDialog(title="Новый город",label="Название",onConfirm={name->scope.launch{try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){repo.add(name);add=false;show=false}}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message;add=false}}},onDismiss={add=false})
+ if(add)InputDialog(title="Новый город",label="Название",onConfirm={name->scope.launch{try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){val id=repo.add(name,selectAfterCreate=false);container.shoppingListRepository.changeShoppingCity(id);add=false;show=false}}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message;add=false}}},onDismiss={add=false})
  rename?.let{item->InputDialog(title="Название города",label="Город",initialValue=item.name,onConfirm={name->scope.launch{try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation){repo.rename(item,name);rename=null}}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;error=e.message;rename=null}}},onDismiss={rename=null})}
 }
 
