@@ -1,3 +1,7 @@
+## Публикация0.28 подтверждена
+
+Публикация завершена: [PR#5](https://github.com/romolego/spisok-ryadom/pull/5) слит обычным merge вmain; [v0.28.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.28.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC архивов совпали. Source commit `9933c85dd64da018e6900c42d652fc371b688ef1`, merge/tag `6aecc44a3ab42c855e48647369924e3975b79538`. Публичный source ZIP соответствует336 проверенным файлам с учётом CRLF/LF. Квитанция —`docs/publications/0.28.0.json`.
+
 # Публикация0.27.0
 
 Публикация завершена: [PR#4](https://github.com/romolego/spisok-ryadom/pull/4) слит обычным merge вmain, [v0.27.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.27.0) открыт. Все8 assets повторно скачаны без авторизации; размер/SHA256 и CRC архивов совпали. Source commit `5b162177f68bdb50d3af7956fb0ab13374df29ac`, merge/tag commit `76380634c7f583e67a3d4a4a23931520e055d217`. Публичный source ZIP совпадает с330 проверенными файлами с учётом текстового CRLF/LF; бинарные fixtures побайтны. Квитанция —`docs/publications/0.27.0.json`. Исторические APK0.21–0.26 включены в отдельный архив без пересборки.

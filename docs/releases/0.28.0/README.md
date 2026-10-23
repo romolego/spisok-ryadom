@@ -24,3 +24,9 @@ APK0.28.0(38), пакет `com.spisokryadom.app.next`, прежний серти
 Предварительные попытки с исправлениями UI-стенда не включены в494. Старые миграции и схемы сохранены, пакет и подпись прежние. Публичный JUnit содержит только разрешённые имена/время/статусы; личные базы, фото и ключи не публикуются.
 
 [Манифест](verification.json) · [JUnit](junit.xml) · [Хеши исходников](source-seal.json) · [Визуальный отчёт](report.html).
+
+## Публикация0.28
+
+Публикация завершена: [PR#5](https://github.com/romolego/spisok-ryadom/pull/5) слит обычным merge вmain; [v0.28.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.28.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC архивов совпали. Source commit `9933c85dd64da018e6900c42d652fc371b688ef1`, merge/tag `6aecc44a3ab42c855e48647369924e3975b79538`. Публичный source ZIP соответствует336 проверенным файлам с учётом CRLF/LF. Квитанция —`docs/publications/0.28.0.json`.
+
+APK —`.local/artifacts/0.28.0/SpisokRyadom-0.28.0.apk`, код0.28.0(38)/Room25/ZIP23, рабочая папка прежняя.
