@@ -69,12 +69,12 @@ class ProductFlowUiTest {
  }
  @Test fun groupOrderIsChangedInSettingsAndUsedByTheProductDropdown(){
   ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки")
-  ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Товарные группы"));ui.onNodeWithTag("manager-edit-Товарные группы").performClick()
-  ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("В избранное: Аптека"));ui.onNodeWithContentDescription("В избранное: Аптека").performClick()
-  ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("В избранное: Продукты"));ui.onNodeWithContentDescription("В избранное: Продукты").performClick()
-  ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Вверх: Продукты"));ui.onNodeWithContentDescription("Вверх: Продукты").performClick()
+  ui.openSettingsDictionary("group");ui.onNodeWithTag("manager-edit-Товарные группы").performClick()
+  ui.activeLazyList().performScrollToNode(hasContentDescription("В избранное: Аптека"));ui.onNodeWithContentDescription("В избранное: Аптека").performClick()
+  ui.activeLazyList().performScrollToNode(hasContentDescription("В избранное: Продукты"));ui.onNodeWithContentDescription("В избранное: Продукты").performClick()
+  ui.awaitDictionaryControl("Вверх: Продукты");ui.onNodeWithContentDescription("Вверх: Продукты").performClick()
   ui.waitUntil(20_000){runBlocking{db.productGroupDao().getAllSync().filter{it.isFavorite}.minByOrNull{it.favoriteOrder}?.id==food}}
-  shot("05-group-priority");ui.onNodeWithContentDescription("Назад").performClick();newProduct()
+  shot("05-group-priority");ui.closeSettingsDictionary();ui.onNodeWithContentDescription("Назад").performClick();newProduct()
   ui.onNodeWithContentDescription("Порядок товарных групп").assertDoesNotExist();ui.onNodeWithText("Товарная группа").performClick()
   assertTrue(ui.onAllNodes(hasText("Продукты") and hasAnyAncestor(isPopup()))[0].getUnclippedBoundsInRoot().top<ui.onAllNodes(hasText("Аптека") and hasAnyAncestor(isPopup()))[0].getUnclippedBoundsInRoot().top)
   ui.onAllNodes(hasText("Продукты") and hasAnyAncestor(isPopup()))[0].performClick();ui.onNodeWithContentDescription("Назад").performClick();ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Новый товар").fetchSemanticsNodes().isNotEmpty()};ui.onNodeWithContentDescription("Новый товар").performClick();waitText("Название товара")
@@ -107,7 +107,7 @@ class ProductFlowUiTest {
   val path=runBlocking{db.productDao().getAllSync().single().photoUri!!};assertTrue(path.contains("product_photos"));assertTrue(File(path).isFile)
  }
  @Test fun shopOrderMovesBothRowsAndKeepsTheViewport(){
-  ui.onNodeWithText("Магазины").performClick();waitText("Командор");ui.onNodeWithContentDescription("Изменить порядок").performClick()
+  ui.onNodeWithText("Магазины").performClick();waitText("Командор");ui.onNodeWithContentDescription("Управление магазинами").performClick();ui.onNodeWithText("Изменить порядок").performClick()
   fun y(n:String)=ui.onNodeWithText(n).fetchSemanticsNode().boundsInRoot.top
   val a=y("Командор");val b=y("Батон");ui.mainClock.autoAdvance=false
   try{

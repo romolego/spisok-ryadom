@@ -41,7 +41,7 @@ import com.spisokryadom.app.ui.components.*
 
 @Composable fun ResetSettingsCard(busy:Boolean,onReset:(ResetMode)->Unit){
  var open by rememberSaveable{mutableStateOf(false)};var selected by remember{mutableStateOf<ResetMode?>(null)}
- OutlinedCard(onClick={if(!busy)open=true},modifier=Modifier.fillMaxWidth()){
+ OutlinedCard(onClick={open=true},enabled=!busy,modifier=Modifier.fillMaxWidth().testTag("settings-reset")){
   ListItem(headlineContent={Text("Сброс")},leadingContent={Icon(Icons.Filled.RestartAlt,null)},trailingContent={Icon(Icons.Filled.ChevronRight,"Открыть сброс")})
  }
  if(open)EditorSheet("Сброс",{open=false},busy=busy,actions={TextButton(onClick={open=false},enabled=!busy){Text("Закрыть")}}){

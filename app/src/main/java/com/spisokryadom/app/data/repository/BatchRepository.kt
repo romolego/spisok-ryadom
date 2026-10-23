@@ -67,9 +67,9 @@ class BatchRepository(private val db:AppDatabase,private val products:ProductRep
   synchronizeNetworkDepartments(db,shopId)
   return id
  }
- suspend fun addDepartments(shopIds:Set<Long>,typeIds:Set<Long>)=withCatalogueEdits(db,catalogueEdits){db.withTransaction {
+ suspend fun addDepartments(shopIds:Set<Long>,typeIds:Set<Long>,cityId:Long?=null)=withCatalogueEdits(db,catalogueEdits){db.withTransaction {
   require(shopIds.isNotEmpty()&&typeIds.isNotEmpty()) { "Выберите магазины и группы" }
-  shopIds.forEach{require(db.shopDao().getById(it)!=null){"Магазин удалён"}}
+  shopIds.forEach{val shop=db.shopDao().getById(it)?:error("Магазин удалён");require(cityId==null||shop.cityId==cityId){"Город изменился. Обновите выбор магазинов"}}
   typeIds.forEach{require(db.shopDepartmentDao().type(it)!=null){"Группа удалена"}}
   val ordered=db.shopDepartmentDao().types().filter{it.id in typeIds}
   shopIds.sorted().forEach{s->ordered.forEach{ensurePlacement(s,it.id)}}

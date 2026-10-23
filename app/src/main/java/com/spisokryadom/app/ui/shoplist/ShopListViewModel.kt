@@ -22,6 +22,8 @@ data class ShopListUiState(
     val groups:List<ShopListGroup> = emptyList(),
     val isLoading: Boolean = true,
     val isEditing: Boolean = false,
+    val favoritesOnly:Boolean=false,
+    val cityId:Long=1,
     val error:String?=null
 )
 
@@ -29,6 +31,9 @@ class ShopListViewModel(
     private val shopRepository: ShopRepository
 ) : ViewModel() {
 
+    private val favorites=MutableStateFlow(false)
+    fun toggleFavorites(){favorites.value=!favorites.value}
+    fun startEditing(){favorites.value=false;_uiState.value=_uiState.value.copy(isEditing=true)}
     private val generation=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
     private val _uiState = MutableStateFlow(ShopListUiState())
     val uiState: StateFlow<ShopListUiState> = _uiState.asStateFlow()
@@ -38,9 +43,10 @@ class ShopListViewModel(
     private fun command(block:suspend()->Unit){viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(generation,block)}}
     init {
         viewModelScope.launch(errors) {
-            kotlinx.coroutines.flow.combine(shopRepository.getAllShops(),shopRepository.observeBranches(),shopRepository.venues(),shopRepository.locations.activeCity){allShops,branches,venues,city->
-                val shops=allShops.filter{it.cityId==city.id}
-                val currentVenues=venues.filter{it.cityId==city.id}
+            kotlinx.coroutines.flow.combine(shopRepository.getAllShops(),shopRepository.observeBranches(),shopRepository.venues(),shopRepository.locations.activeCity,favorites){allShops,branches,venues,city,only->
+                val shops=allShops.filter{it.cityId==city.id&&(!only||it.isFavorite)}
+                val shopIds=shops.map{it.id}.toSet()
+                val currentVenues=venues.filter{v->v.cityId==city.id&&(!only||branches.any{it.venueId==v.id&&it.shopId in shopIds})}
                 fun address(shop:ShopEntity,points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>)=shop.copy(address=points.minWithOrNull(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})?.let{point->com.spisokryadom.app.domain.PlaceLabels(branches,venues).detail(point).takeIf{it.isNotBlank()}})
                 val physical=shops.map{shop->address(shop,branches.filter{it.shopId==shop.id})}
                 val knownVenues=currentVenues.map{it.id}.toSet()
@@ -55,8 +61,8 @@ class ShopListViewModel(
                         add(ShopListGroup("venue_${venue.id}",venue,local))
                     }
                 }.sortedWith(compareBy<ShopListGroup>{it.shops.minOfOrNull{s->s.displayOrder}?:Int.MAX_VALUE}.thenBy{it.venue?.id?:0L}.thenBy{it.key})
-                Triple(physical,currentVenues,groups)
-            }.collect{(shops,venues,groups)->_uiState.value=_uiState.value.copy(shops=shops,venues=venues,groups=groups,isLoading=false)}
+                ShopListUiState(shops=physical,venues=currentVenues,groups=groups,isLoading=false,favoritesOnly=only,cityId=city.id)
+            }.collect{projection->_uiState.value=projection.copy(isEditing=_uiState.value.isEditing,error=_uiState.value.error)}
         }
     }
 

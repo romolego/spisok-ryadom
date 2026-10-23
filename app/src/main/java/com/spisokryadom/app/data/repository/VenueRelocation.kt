@@ -9,6 +9,13 @@ import com.spisokryadom.app.data.entity.*
  */
 internal suspend fun relocateVenue(db:AppDatabase,venue:VenueEntity,cityId:Long){
     val points=db.shopBranchDao().getAll().filter{it.venueId==venue.id}
+    val shops=db.shopDao().getAllSync()
+    points.map{it.shopId}.distinct().forEach{id->
+        val profile=shops.find{it.id==id}?:error("Магазин удалён")
+        require(profile.cityGroupKey.isEmpty()||shops.none{it.id!=id&&it.cityGroupKey==profile.cityGroupKey&&it.cityId==cityId}){
+            "У магазина уже есть адреса в выбранном городе. Измените адреса в его карточке."
+        }
+    }
     val token="venue-move:"+java.util.UUID.randomUUID()
     // Temporarily detach memberships so both city ownership triggers remain enabled.
     points.forEach{db.shopBranchDao().update(it.copy(venueId=null,label="$token:${it.id}"))}

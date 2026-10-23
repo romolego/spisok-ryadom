@@ -30,7 +30,7 @@ class Favorites200SettingsTest {
  private var food=0L;private var health=0L
  private fun waitFor(c:()->Boolean){ui.waitUntil(25_000){Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(25));ui.waitForIdle();c()}}
  private fun text(t:String)=waitFor{ui.onAllNodesWithText(t).fetchSemanticsNodes().isNotEmpty()}
- private fun scroll(m:SemanticsMatcher){ui.onNodeWithTag("settings-list").performScrollToNode(m)}
+ private fun scroll(m:SemanticsMatcher){ui.activeLazyList().performScrollToNode(m)}
  private fun shot(name:String){ui.waitForIdle();ui.runOnIdle{val v=org.robolectric.shadows.ShadowDialog.getLatestDialog()?.takeIf{it.isShowing}?.window?.decorView?:ui.activity.window.decorView;val b=Bitmap.createBitmap(v.width,v.height,Bitmap.Config.ARGB_8888);v.draw(Canvas(b));val f=File("../.local/refine200/screens/$name-api${android.os.Build.VERSION.SDK_INT}.png");f.parentFile!!.mkdirs();f.outputStream().use{b.compress(Bitmap.CompressFormat.PNG,100,it)};b.recycle()}}
  @Before fun seed(){runBlocking{
   app.getSharedPreferences("shopping_list_prefs",0).edit().clear().commit();db.shoppingListEntryDao().deleteAll();db.productDao().deleteAll();db.productGroupDao().deleteAll()
@@ -43,8 +43,8 @@ class Favorites200SettingsTest {
   scroll(hasText("Выпадающие списки"));ui.onNodeWithText("Добавить недостающие группы").assertDoesNotExist();shot("03-dictionaries-entry")
  }
  @Test fun fullGroupListCannotBeMovedButPinnedCopiesCan(){
-  scroll(hasText("Товарные группы"));ui.onNodeWithTag("manager-edit-Товарные группы").performClick();scroll(hasContentDescription("В избранное: Аптека"));ui.onNodeWithContentDescription("Вверх: Аптека").assertDoesNotExist();ui.onNodeWithContentDescription("В избранное: Аптека").performClick()
-  scroll(hasContentDescription("В избранное: Продукты"));ui.onNodeWithContentDescription("В избранное: Продукты").performClick();scroll(hasContentDescription("Вверх: Продукты"));ui.onNodeWithContentDescription("Вверх: Продукты").performClick();waitFor{runBlocking{db.productGroupDao().getAllSync().filter{it.isFavorite}.minByOrNull{it.favoriteOrder}?.id==food}}
+  ui.openSettingsDictionary("group");ui.onNodeWithTag("manager-edit-Товарные группы").performClick();scroll(hasContentDescription("В избранное: Аптека"));ui.onNodeWithContentDescription("Вверх: Аптека").assertDoesNotExist();ui.onNodeWithContentDescription("В избранное: Аптека").performClick()
+  scroll(hasContentDescription("В избранное: Продукты"));ui.onNodeWithContentDescription("В избранное: Продукты").performClick();ui.awaitDictionaryControl("Вверх: Продукты");ui.onNodeWithContentDescription("Вверх: Продукты").performClick();waitFor{runBlocking{db.productGroupDao().getAllSync().filter{it.isFavorite}.minByOrNull{it.favoriteOrder}?.id==food}}
   shot("04-favorite-groups");assertEquals(2,runBlocking{db.productGroupDao().getAllSync().size});assertEquals(0,runBlocking{db.productGroupDao().getById(food)!!.displayOrder})
  }
  @Test fun appearanceHasIndependentBlockAndFullListControls(){
@@ -68,8 +68,8 @@ class Favorites200SettingsTest {
    val product=db.productDao().insert(ProductEntity(name="Товар210",productGroupId=food,recipientId=recipient,defaultUnit="ед210"))
    db.productShopLinkDao().insert(ProductShopLinkEntity(productId=product,shopId=shop,departmentId=department))
   }
-  listOf("Получатель210","Продукты","ед210","Отдел210").forEach{label->
-   scroll(hasText(label));ui.onNodeWithText(label).performClick();text("Товар210");ui.onNodeWithText("Товар210").performClick();text("Название товара");ui.onNodeWithText("Название товара").assertExists()
+  listOf("recipient" to "Получатель210","group" to "Продукты","unit" to "ед210","dept" to "Отдел210").forEach{(kind,label)->
+   ui.openSettingsDictionary(kind);scroll(hasText(label));ui.onNodeWithText(label).performClick();text("Товар210");ui.onNodeWithText("Товар210").performClick();text("Название товара");ui.onNodeWithText("Название товара").assertExists()
    ui.onNodeWithContentDescription("Назад").performClick();text("Настройки")
   }
  }

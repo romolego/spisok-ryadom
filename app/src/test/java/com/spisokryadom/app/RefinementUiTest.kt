@@ -26,7 +26,7 @@ class RefinementUiTest {
  private var a=0L;private var b=0L;private var fruit=0L;private var milk=0L;private var carrot=0L;private var tomato=0L;private var cheese=0L;private var food=0L;private var med=0L
  private fun waitText(t:String){ui.waitUntil(20_000){ui.onAllNodesWithText(t).fetchSemanticsNodes().isNotEmpty()}}
  private fun waitTag(t:String){ui.waitUntil(20_000){ui.onAllNodesWithTag(t).fetchSemanticsNodes().isNotEmpty()}}
- private fun scrollTo(m:SemanticsMatcher){ui.onNode(hasScrollToIndexAction()).performScrollToNode(m)}
+ private fun scrollTo(m:SemanticsMatcher){ui.activeLazyList().performScrollToNode(m)}
  private fun shot(name:String,sheet:Boolean=false){ui.waitForIdle();ui.runOnIdle{val v=if(sheet)org.robolectric.shadows.ShadowDialog.getLatestDialog().window!!.decorView else ui.activity.window.decorView;val bitmap=Bitmap.createBitmap(v.width,v.height,Bitmap.Config.ARGB_8888);v.draw(Canvas(bitmap));val file=File("../.local/refinement-0.7.0/$name-api${android.os.Build.VERSION.SDK_INT}.png");file.parentFile!!.mkdirs();file.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()}}
  @Before fun setup()=runBlocking{
   listOf("drafts","shopping_list_prefs","product_db_prefs").forEach{app.getSharedPreferences(it,0).edit().clear().commit()}
@@ -75,7 +75,7 @@ class RefinementUiTest {
   runBlocking{val product=db.productDao().getAllSync().single{it.name=="Без привязки"};assertTrue(db.productShopLinkDao().getLinksForProductSync(product.id).isEmpty())}
  }
  @Test fun settingsHideMutationsUntilEditAndConfirmAlphabeticReset(){
-  ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");scrollTo(hasText("Товарные группы"));ui.onNodeWithText("Добавить группу товаров").assertDoesNotExist()
+  ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");ui.openSettingsDictionary("group");ui.onNodeWithText("Добавить группу товаров").assertDoesNotExist()
   ui.onNodeWithTag("manager-edit-Товарные группы").performClick();scrollTo(hasText("Добавить группу товаров"));ui.onNodeWithText("Добавить группу товаров").assertIsDisplayed()
   ui.onNodeWithContentDescription("По алфавиту: Товарные группы").assertDoesNotExist();ui.onNodeWithContentDescription("Вверх: Продукты").assertDoesNotExist()
   runBlocking{assertEquals(food,db.productGroupDao().getAllSync().first().id);assertEquals(listOf(med,food),app.container.classifierRepository.getAllGroups().first().map{it.id})}
@@ -88,12 +88,12 @@ class RefinementUiTest {
   runBlocking{val group=db.productGroupDao().getById(food)!!;assertEquals("yellow",group.accent);assertEquals("milk",group.iconKey)}
  }
  @Test fun departmentSettingsCanReorderAndCreateWithoutAttachingToStores(){
-  ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");scrollTo(hasText("Группы магазинов"));ui.onNodeWithText("Добавить группу магазина").assertDoesNotExist()
+  ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");ui.openSettingsDictionary("dept");ui.onNodeWithText("Добавить группу магазина").assertDoesNotExist()
   ui.onNodeWithTag("manager-edit-Группы магазинов").performClick();scrollTo(hasContentDescription("В избранное: Молочка"));ui.onNodeWithContentDescription("Вверх: Молочка").assertDoesNotExist()
   val before=runBlocking{db.shopDepartmentDao().getAllSync()}
   scrollTo(hasContentDescription("В избранное: Овощи/фрукты"));ui.onNodeWithContentDescription("В избранное: Овощи/фрукты").performClick()
   scrollTo(hasContentDescription("В избранное: Молочка"));ui.onNodeWithContentDescription("В избранное: Молочка").performClick()
-  scrollTo(hasContentDescription("Вверх: Молочка"));ui.onNodeWithContentDescription("Вверх: Молочка").performClick()
+  ui.awaitDictionaryControl("Вверх: Молочка");ui.onNodeWithContentDescription("Вверх: Молочка").performClick()
   ui.waitUntil(20_000){runBlocking{db.shopDepartmentDao().types().filter{it.isFavorite}.minByOrNull{it.favoriteOrder}?.name=="Молочка"}}
   runBlocking{assertEquals(before,db.shopDepartmentDao().getAllSync());assertEquals(listOf("Гастроном (готовая еда)","Молочка","Овощи/фрукты"),app.container.shopRepository.departmentTypes().first().map{it.name})}
   scrollTo(hasText("Добавить группу магазина"));ui.onNodeWithText("Добавить группу магазина").performClick();ui.onNode(hasSetTextAction() and hasText("Название")).performTextInput("Орехи");ui.onNode(hasText("Сохранить") and hasAnyAncestor(isDialog())).performClick()
@@ -101,7 +101,7 @@ class RefinementUiTest {
   runBlocking{assertTrue(db.shopDepartmentDao().getByShopIdSync(b).isEmpty());assertTrue(db.shopDepartmentDao().getAllSync().none{it.name=="Орехи"})}
  }
  @Test @Config(sdk=[35],qualifiers="w640dp-h360dp-xhdpi") fun appearanceActionsRemainReachableInLandscape(){
-  ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");scrollTo(hasText("Товарные группы"));ui.onNodeWithTag("manager-edit-Товарные группы").performClick();scrollTo(hasContentDescription("Оформление: Продукты"));ui.onNodeWithContentDescription("Оформление: Продукты").performClick();waitText("Оформление группы")
+  ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");ui.openSettingsDictionary("group");ui.onNodeWithTag("manager-edit-Товарные группы").performClick();scrollTo(hasContentDescription("Оформление: Продукты"));ui.onNodeWithContentDescription("Оформление: Продукты").performClick();waitText("Оформление группы")
   ui.onNodeWithContentDescription("Зелёный").assertIsDisplayed();ui.onNodeWithText("Применить оформление").assertIsDisplayed();shot("09-landscape-appearance",true);ui.onNodeWithText("Применить оформление").performClick()
  }
  @Test fun aMarketIsOneTripWithPavilionsAndCollapsesAsAWhole(){

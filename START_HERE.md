@@ -7,7 +7,7 @@
 3. Для понимания устройства приложения прочитайте `_agent_knowledge/41_ARCHITECTURE_ATLAS.md`; для изменений и сборки — `_agent_knowledge/42_MAINTENANCE_GUIDE.md`.
 4. Для использования приложения начните с `docs/USER_GUIDE.md`. Последний публичный APK — в GitHub Releases.
 
-Текущая итерация —0.27.0(37), Room24/ZIP22. Контракт аудита: [_agent_knowledge/56_INDEPENDENT_AUDIT_270.md](_agent_knowledge/56_INDEPENDENT_AUDIT_270.md). Полный аудит и APK0.27 завершены; фактические результаты и статус публикации —в01.
+Текущая итерация —0.28.0(38), Room25/ZIP23. Контракт —[_agent_knowledge/57_SETTINGS_CITIES_280.md](_agent_knowledge/57_SETTINGS_CITIES_280.md). Адресная проверка и APK готовы; фактическая публикация —в01.
 
 ## Что есть на этом ПК
 

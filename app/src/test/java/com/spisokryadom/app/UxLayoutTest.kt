@@ -180,7 +180,7 @@ class UxLayoutTest {
         shot("09-catalog")
         ui.onNode(hasText("Магазины") and SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.Role,androidx.compose.ui.semantics.Role.Tab)).performClick();waitText("Красный Яр")
         ui.onNodeWithText("Город:",substring=true).assertDoesNotExist()
-        ui.onNodeWithContentDescription("Изменить город").assertIsDisplayed().assertTextContains("Петропавловск-Камчатский")
+        ui.onNodeWithContentDescription("Изменить город").assertDoesNotExist()
         shot("10-shops")
         ui.onNodeWithText("Красный Яр").performClick();waitText("Яблоки Гала")
         shot("11-shop-content")

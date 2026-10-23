@@ -119,7 +119,7 @@ fun ShopCardScreen(
     if (showDeleteConfirm) {
         ConfirmDialog(
             title = "Удалить магазин",
-            message = "Вы уверены, что хотите удалить магазин «${state.name}»? Все группы магазина будут удалены.",
+            message = "Удалить магазин «${state.name}» в городе ${state.cities.find { it.id == state.cityId }?.name.orEmpty()} и его местные адреса? Товары каталога и адреса в других городах сохранятся.",
             onConfirm = {
                 viewModel.deleteShop()
                 showDeleteConfirm = false
@@ -132,7 +132,7 @@ fun ShopCardScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(if (state.isNew) "Новый магазин" else "Магазин",maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    Text(if (shopId<0) "Новый магазин" else "Магазин",maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -181,7 +181,8 @@ fun ShopCardScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             Row(Modifier.fillMaxWidth().testTag("shop-favorite-row"),verticalAlignment=Alignment.CenterVertically){
-            SelectionRow("Избранное",state.isFavorite,viewModel::updateFavorite,modifier=Modifier.weight(1f))
+            FavoriteToggle(state.isFavorite,viewModel::updateFavorite,enabled=!state.isSaving&&!state.isPhotoBusy)
+            Spacer(Modifier.weight(1f))
             ShopAppearance(state.shoppingBackground,state.name,state.iconKey,state.logoUri,
                 viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy,purchaseBackground=state.purchaseBackground,onPurchaseBackground=viewModel::updatePurchaseBackground)
             }
@@ -198,7 +199,6 @@ fun ShopCardScreen(
 
                     if(!state.isNew&&state.branches.isNotEmpty()&&state.branches.all{it.venueId==null}){
                         HorizontalDivider()
-                        Text("Рынок или ТЦ объединяет самостоятельные магазины и павильоны. При преобразовании каждая точка станет отдельным магазином внутри него.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                         TextButton(onClick={showConvertConfirm=true},enabled=validBranches&&!state.isSaving&&!state.isPhotoBusy){Text("Преобразовать в торговое место")}
                     }
                 }else ShopPlaceSummary(state.copy(venues=placeVenues))
@@ -218,7 +218,7 @@ fun ShopCardScreen(
             }
 
             val departments = if(state.isNew)state.pendingDepartments.map {
-                ShopDepartmentEntity(id=it.tempId,shopId=0,name=it.name,displayOrder=it.displayOrder)
+                ShopDepartmentEntity(id=it.tempId,shopId=0,name=it.name,displayOrder=it.displayOrder,typeId=it.typeId)
             }.sortedBy{it.displayOrder} else state.departments.sortedBy{it.displayOrder}
             androidx.compose.material3.OutlinedCard(Modifier.fillMaxWidth(),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface)){
             Column(Modifier.padding(16.dp)){

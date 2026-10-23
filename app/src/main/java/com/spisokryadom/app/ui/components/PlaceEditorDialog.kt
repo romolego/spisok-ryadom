@@ -59,7 +59,6 @@ import kotlinx.coroutines.launch
   }
   OutlinedTextField(name,{name=it},label={Text("Название")},modifier=Modifier.fillMaxWidth().testTag("venue-name"))
   OutlinedTextField(address,{address=it},label={Text("Общий адрес")},modifier=Modifier.fillMaxWidth().testTag("venue-address"))
-  Text("Один адрес для всех магазинов и павильонов внутри. Изменение применяется ко всем точкам этого рынка или ТЦ.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
   OutlinedTextField(note,{note=it},label={Text("Заметка")},maxLines=3,modifier=Modifier.fillMaxWidth())
   BranchPhotoEditor(photo.orEmpty(),{photo=it},{photoBusy=it},title="Рынок или ТЦ",directory="venue_photos",compact=true,showTitle=false,enabled=!saving)
   error?.let{Text(it,color=MaterialTheme.colorScheme.error)}

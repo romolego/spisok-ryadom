@@ -5,9 +5,15 @@ import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.ui.platform.testTag
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -53,5 +59,23 @@ val LocalFavoriteSurface=staticCompositionLocalOf{com.spisokryadom.app.util.Favo
  Row(modifier.favoriteSurface(favorite),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){
   ProvideTextStyle(LocalTextStyle.current.copy(fontWeight=favoriteWeight(favorite))){MarkedLabel(name,accent,iconKey,Modifier.weight(1f,fill=false),small,fontWeight=favoriteWeight(favorite))}
   if(favorite&&favoriteStyle().star){Spacer(Modifier.width(6.dp));FavoriteStar(true,"Избранное: $name")}
+ }
+}
+
+/** Editing affordance stays visible regardless of the user's display policy for favorite rows. */
+@Composable fun FavoriteToggle(checked:Boolean,onChange:(Boolean)->Unit,enabled:Boolean=true){
+ FilledTonalIconToggleButton(checked=checked,onCheckedChange=onChange,enabled=enabled,
+  modifier=Modifier.testTag("favorite-toggle").then(if(checked)Modifier.border(2.dp,MaterialTheme.colorScheme.primary,CircleShape)else Modifier)){
+  Icon(if(checked)Icons.Filled.Star else Icons.Filled.StarBorder,if(checked)"Убрать из избранного"else "Добавить в избранное",
+   tint=if(checked)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+ }
+}
+
+/** Reserve the filter suffix so a long heading cannot hide the active filter. */
+@Composable fun FavoriteListTitle(title:String,filtered:Boolean){
+ if(!filtered)Text(title,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+ else Row(Modifier.fillMaxWidth().then(Modifier.clearAndSetSemantics{text=androidx.compose.ui.text.AnnotatedString("$title · избранные")})){
+  Text(title,Modifier.weight(1f,fill=false),maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+  Text(" · избранные",style=MaterialTheme.typography.titleMedium,maxLines=1)
  }
 }

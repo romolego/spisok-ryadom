@@ -9,6 +9,12 @@ import kotlinx.coroutines.flow.Flow
 import androidx.room.withTransaction
 import com.spisokryadom.app.data.db.AppDatabase
 
+sealed interface ShopBatchChange {
+ data class Favorite(val value:Boolean):ShopBatchChange
+ data class PurchaseMode(val value:String):ShopBatchChange
+ data class Urgency(val show:Boolean?,val boost:Boolean?):ShopBatchChange
+}
+
 class ShopRepository(
     private val shopDao: ShopDao,
     private val departmentDao: ShopDepartmentDao,
@@ -32,7 +38,9 @@ class ShopRepository(
                 db.shopBranchDao().update(point.copy(venueId=null,label="$relocationKey:${point.id}"))
             }
         }
-        val ordered=if(appendToRoute&&shop.id==0L)shop.copy(displayOrder=nextShopDisplayOrder(db,shop.cityId))else shop
+        require(shop.cityGroupKey.isEmpty()||shop.cityGroupKey.matches(Regex("[a-zA-Z0-9_-]{1,80}"))){"Неверная связь городских адресов"}
+        val identified=if(oldShop?.cityGroupKey?.isNotEmpty()==true)shop.copy(cityGroupKey=oldShop.cityGroupKey)else shop
+        val ordered=if(appendToRoute&&shop.id==0L)identified.copy(displayOrder=nextShopDisplayOrder(db,shop.cityId))else identified
         val favorite=when {
             !shop.isFavorite -> ordered.copy(favoriteOrder=0)
             oldShop?.isFavorite==true -> ordered.copy(favoriteOrder=oldShop.favoriteOrder)
@@ -75,6 +83,47 @@ class ShopRepository(
         if(convertToVenue)this@ShopRepository.convertToVenue(id,venueKind)
         id
     } }
+    /** City selection never relocates a physical point. All visited city drafts commit together. */
+    suspend fun cityProfiles(shopId:Long):List<ShopEntity> {
+        val source=shopDao.getById(shopId)?:error("Магазин удалён")
+        return if(source.cityGroupKey.isEmpty())listOf(source)else shopDao.getAllSync().filter{it.cityGroupKey==source.cityGroupKey}
+    }
+    suspend fun saveCityProfiles(sourceId:Long?,key:String,drafts:List<ShopCityDraft>,selectedCity:Long,
+        convertSelected:Boolean=false,venueKind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED):Long =
+        withCatalogueEdits(db,catalogueEdits){db.withTransaction{
+        require(key.matches(Regex("[a-zA-Z0-9_-]{1,80}"))&&drafts.isNotEmpty()){"Проверьте адреса магазина"}
+        require(drafts.map{it.shop.cityId}.distinct().size==drafts.size){"Повторяющийся городской профиль"}
+        val source=sourceId?.let{shopDao.getById(it)?:error("Магазин удалён")}
+        require(source==null||source.cityGroupKey.isEmpty()||source.cityGroupKey==key){"Связь магазина изменилась. Откройте карточку заново"}
+        if(source!=null&&source.cityGroupKey.isEmpty())shopDao.update(source.copy(cityGroupKey=key))
+        val saved=linkedMapOf<Long,Long>();val created=mutableListOf<Long>()
+        drafts.forEach{draft->
+            val value=draft.shop
+            val previous=value.id.takeIf{it>0}?.let{shopDao.getById(it)?:error("Городской профиль удалён")}
+            require(previous==null||(previous.cityGroupKey==key&&previous.cityId==value.cityId)){"Городские адреса изменились. Откройте карточку заново"}
+            require(shopDao.getAllSync().none{it.id!=value.id&&it.cityGroupKey==key&&it.cityId==value.cityId}){"Городской профиль уже создан. Откройте карточку заново"}
+            val id=saveWithDepartments(value.copy(cityGroupKey=key),draft.departments,draft.branches,draft.networkName,
+                purchaseMode=draft.purchaseMode,venueEdits=draft.venueEdits,appendToRoute=previous==null)
+            saved[value.cityId]=id;if(previous==null)created+=id
+        }
+        // An explicitly added city gets this retailer's catalogue, never its foreign physical IDs.
+        if(source!=null){
+            val oldDepartments=departmentDao.getByShopIdSync(source.id).associateBy{it.id}
+            val sourceLinks=db.productShopLinkDao().getAllSync().filter{it.shopId==source.id}
+            val products=ProductRepository(db.productDao(),db.productShopLinkDao(),db)
+            created.forEach{id->
+                val localTypes=departmentDao.getByShopIdSync(id).associateBy{it.typeId}
+                sourceLinks.forEach{link->
+                    val product=db.productDao().getById(link.productId)?:error("Товар удалён")
+                    val department=oldDepartments[link.departmentId]?.typeId?.let{localTypes[it]?.id}
+                    products.ensureShopLinks(product.id,listOf(id),listOf(link.copy(id=0,shopId=id,departmentId=department,restrictBranches=false)))
+                }
+            }
+        }
+        val selected=saved[selectedCity]?:source?.id?:saved.values.first()
+        if(convertSelected)convertToVenue(selected,venueKind)
+        selected
+    }}
     private suspend fun refreshPendingDepartments(shopId:Long,before:List<com.spisokryadom.app.data.entity.ShoppingListEntryEntity>) {
         val previous=before.associateBy{it.id}
         val placements=departmentDao.getByShopIdSync(shopId).associateBy{it.typeId}
@@ -88,6 +137,19 @@ class ShopRepository(
             if(row.assignedDepartmentId!=department)db.shoppingListEntryDao().update(row.copy(assignedDepartmentId=department,updatedAt=System.currentTimeMillis()))
         }
     }
+    suspend fun changeSettings(ids:Set<Long>,change:ShopBatchChange)=withCatalogueEdits(db,catalogueEdits){db.withTransaction{
+        require(ids.isNotEmpty()){"Выберите магазины"}
+        val city=locations.currentId()
+        val rows=ids.sorted().map{shopDao.getById(it)?:error("Магазин удалён. Обновите выбор")}
+        require(rows.all{it.cityId==city}){"Город изменился. Обновите выбор магазинов"}
+        if(change is ShopBatchChange.PurchaseMode)require(change.value in com.spisokryadom.app.util.PurchaseModes.labels){"Выберите тип покупок"}
+        rows.forEach{old->when(change){
+            is ShopBatchChange.Favorite->shopDao.update(old.copy(isFavorite=change.value,favoriteOrder=if(!change.value)0 else if(old.isFavorite)old.favoriteOrder else nextShopFavoriteOrder()))
+            is ShopBatchChange.PurchaseMode->db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(old.id,change.value))
+            is ShopBatchChange.Urgency->shopDao.update(old.copy(showUrgentInCollapsed=change.show,boostUrgentShop=change.boost,
+                manualOrderOverride=if(old.boostUrgentShop==change.boost)old.manualOrderOverride else false))
+        }}
+    }}
     suspend fun createInCurrentCity(name:String):Long=db.withTransaction {
         val value=name.trim();require(value.isNotBlank()){"Укажите название магазина"};val city=locations.currentId()
         val current=shopDao.getAllSync().filter{it.cityId==city}

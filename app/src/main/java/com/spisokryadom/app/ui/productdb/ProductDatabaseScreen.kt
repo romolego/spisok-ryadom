@@ -115,7 +115,7 @@ fun ProductDatabaseScreen(
     Scaffold(
         snackbarHost={BatchFeedback(batchVM)},
         topBar = {
-            TopAppBar(title={Text(if(selection.active)"Выбрано: ${selection.ids.size}"else "База товаров",maxLines=1,overflow=TextOverflow.Ellipsis)},
+            TopAppBar(title={if(selection.active)Text("Выбрано: ${selection.ids.size}",maxLines=1)else com.spisokryadom.app.ui.components.FavoriteListTitle("База товаров",state.favoritesOnly)},
                 navigationIcon={if(selection.active)IconButton(onClick=selection::clear){Icon(Icons.Default.Close,"Отменить выбор")}},
                 actions={if(selection.active)BatchTopActions(selection,state.products.map{it.id}.toSet(),{batchIds=selection.ids})else{
                     IconButton(onClick={selection.active=true},enabled=state.products.isNotEmpty()){Icon(Icons.Default.Checklist,"Выбрать товары")}
@@ -133,13 +133,6 @@ fun ProductDatabaseScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if(state.favoritesOnly) androidx.compose.material3.Surface(color=MaterialTheme.colorScheme.secondaryContainer,modifier=Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=6.dp).testTag("favorites-filter-active"),shape=MaterialTheme.shapes.medium){
-                Row(Modifier.padding(start=12.dp,end=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                    Icon(Icons.Filled.Star,null,tint=MaterialTheme.colorScheme.onSecondaryContainer)
-                    Text("Только избранные",style=MaterialTheme.typography.labelLarge,modifier=Modifier.weight(1f))
-                    androidx.compose.material3.TextButton(onClick=viewModel::toggleFavorites){Text("Показать все")}
-                }
-            }
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = { viewModel.setSearchQuery(it) },
@@ -379,6 +372,7 @@ private fun ProductListItem(
                         add(unitStr)
                     }
                     if (product.purchaseType == "online") add("онлайн")
+                    if (product.purchaseType == "both") add("онлайн и офлайн")
                 }
                 if (details.isNotEmpty()) {
                     Text(

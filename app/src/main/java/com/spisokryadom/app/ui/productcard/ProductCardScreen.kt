@@ -17,6 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -290,10 +292,18 @@ fun ProductCardScreen(
             )
 
             if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name,{createRecipient=false},done)},{createRecipient=false})
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                com.spisokryadom.app.ui.components.SelectionRow("Избранное",state.isFavorite,{leaveName();viewModel.favorite(it)},modifier=Modifier.weight(1f))
-                IconButton(onClick={showAppearance=true}){Icon(Icons.Filled.Palette,"Цвет товара")}
-            }
+            com.spisokryadom.app.ui.components.BranchPhotoEditor(
+                path=state.photoUri,onChange={viewModel.updatePhotoUri(it.orEmpty())},onBusyChange=viewModel::photoBusy,
+                title="Фото товара",directory="product_photos",compact=true,showTitle=false,enabled=!state.isPhotoBusy,
+                toolbar={gallery,camera->
+                    com.spisokryadom.app.ui.components.FavoriteToggle(state.isFavorite,{leaveName();viewModel.favorite(it)},enabled=!state.isSaving&&!state.isPhotoBusy)
+                    Spacer(Modifier.weight(1f))
+                    IconButton(onClick=gallery,enabled=!state.isPhotoBusy&&!state.isSaving){Icon(Icons.Filled.PhotoLibrary,"Выбрать фото")}
+                    IconButton(onClick=camera,enabled=!state.isPhotoBusy&&!state.isSaving){Icon(Icons.Filled.PhotoCamera,"Камера")}
+                    Spacer(Modifier.weight(1f))
+                    IconButton(onClick={showAppearance=true},enabled=!state.isPhotoBusy&&!state.isSaving){Icon(Icons.Filled.Palette,"Цвет товара")}
+                })
+            PurchaseTypeSelector(selectedType=state.purchaseType,onTypeChange=viewModel::updatePurchaseType,allowedTypes=state.allowedPurchaseTypes)
             com.spisokryadom.app.ui.components.accentColor(state.accent)?.let{androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(2.dp).background(it))}
             QuantityUnitInputWithSuggestions(
                 quantity = state.defaultQuantity,
@@ -339,12 +349,7 @@ fun ProductCardScreen(
                 )
             }
 
-            PurchaseTypeSelector(
-                selectedType = state.purchaseType,allowedTypes=state.allowedPurchaseTypes,
-                onTypeChange = { viewModel.updatePurchaseType(it) }
-            )
-
-            if (state.purchaseType == "online") {
+            if (state.purchaseType != "offline") {
                 OutlinedTextField(
                     value = state.sellerUrl,
                     onValueChange = { viewModel.updateSellerUrl(it) },
@@ -360,11 +365,6 @@ fun ProductCardScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
-            com.spisokryadom.app.ui.components.BranchPhotoEditor(
-                path=state.photoUri,onChange={viewModel.updatePhotoUri(it.orEmpty())},onBusyChange=viewModel::photoBusy,
-                title="Фото товара",directory="product_photos",compact=true,enabled=!state.isPhotoBusy
-            )
 
             // --- Unified shop links section ---
             val sortedPendingLinks = if(state.preferCityShopOrder)state.pendingShopLinks.sortedWith(compareBy<PendingShopLink>{state.shopOrders[it.shopId]?:Int.MAX_VALUE}.thenBy{it.displayOrder})else state.pendingShopLinks.sortedBy { it.displayOrder }
@@ -582,7 +582,7 @@ private fun AddShopLinkDialog(
     LaunchedEffect(shopId){if(shopId>0)onLoadDepartments(shopId)}
     LaunchedEffect(suggestedDepartmentId,departmentsShopId){if(departmentsShopId==shopId&&!userSelected)departmentId=suggestedDepartmentId}
     val validDepartments=departmentsForShop.filter{it.shopId==shopId}
-    val selectedPoints=points?.toSet()
+    val selectedPoints=if(branches.count{it.shopId==shopId}>1)points?.toSet()else null
     ProductShopDialog("Добавить магазин","Добавить",{onConfirm(shopId,departmentId,selectedPoints,priority)},onDismiss,
         shopId>0&&(selectedPoints==null||selectedPoints.isNotEmpty()),creatingDepartment){
             DropdownSelector(label="Магазин",noneLabel="Без магазина",items=available,selectedItem=available.find{it.id==shopId},itemLabel={placeLabels.shop(it.id,it.name)},onSelect={if(!creatingDepartment)shopId=it?.id?:0L},allowCreate=true,onCreateNew={creatingShop=true},createLabel="Новый магазин…",itemFavorite={it.isFavorite},favoriteOrder={it.favoriteOrder})
@@ -605,8 +605,8 @@ internal fun ShopProductSettingsDialog(
     var selected by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(currentDepartmentId) }
     var points by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(currentPoints?.toList()) }
     var priority by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(currentPriority) }
-    ProductShopDialog("Товар в магазине","Применить",{onConfirm(selected,points?.toSet(),priority)},onDismiss,
-        points==null||points!!.isNotEmpty(),creatingDepartment){
+    ProductShopDialog("Товар в магазине","Применить",{onConfirm(selected,if(branches.size>1)points?.toSet()else null,if(branches.size>1)priority else emptyList())},onDismiss,
+        branches.size<2||points==null||points!!.isNotEmpty(),creatingDepartment){
         Text(shopName,style=MaterialTheme.typography.titleSmall)
         DepartmentChoice(departments,selected,{selected=it},onCreateDepartment,creatingDepartment,types)
         ProductOutletOptions(branches,points?.toSet(),{points=it?.toList()},priority,{priority=it},!creatingDepartment)

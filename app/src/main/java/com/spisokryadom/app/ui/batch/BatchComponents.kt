@@ -111,6 +111,9 @@ private val BatchSelectionSaver=mapSaver(
  val busy by vm.busy.collectAsStateWithLifecycle()
  val ready=!busy&&!options.isLoading
  var action by remember{mutableStateOf("")}
+ var purchaseMode by remember{mutableStateOf("inherit")}
+ var showUrgent by remember{mutableStateOf<com.spisokryadom.app.ui.shopcard.UrgencyOverride>(com.spisokryadom.app.ui.shopcard.UrgencyOverride.USE_GLOBAL)}
+ var boostUrgent by remember{mutableStateOf<com.spisokryadom.app.ui.shopcard.UrgencyOverride>(com.spisokryadom.app.ui.shopcard.UrgencyOverride.USE_GLOBAL)}
  var chosen by remember{mutableStateOf(emptySet<Long>())}
  var none by remember{mutableStateOf(false)}
  var targetShop by remember{mutableStateOf(shopId)}
@@ -128,26 +131,37 @@ private val BatchSelectionSaver=mapSaver(
   if(a=="basket")targetShop=shopId
   if(a=="department"&&!stores)targetShop=commonShops.find{it.id==shopId}?.id?:commonShops.singleOrNull()?.id
  }
- val title=when(action){"basket"->"Место покупки";"recipient"->"Назначить получателя";"group"->"Назначить товарную группу";"shop"->"Добавить магазины к товарам";"department"->if(stores)"Добавить группы в магазины"else "Назначить группу магазина";else->"Выбрано: ${ids.size}"}
+ val title=when(action){"store-mode"->"Тип покупок магазинов";"store-urgency"->"Срочность магазинов";"basket"->"Место покупки";"recipient"->"Назначить получателя";"group"->"Назначить товарную группу";"shop"->"Добавить магазины к товарам";"department"->if(stores)"Добавить группы в магазины"else "Назначить группу магазина";else->"Выбрано: ${ids.size}"}
  com.spisokryadom.app.ui.components.EditorSheet(title,onDismiss,busy=busy,scrollContent=false,actions={
    if(action.isNotEmpty()){
      TextButton(onClick={action=""},enabled=!busy){Text("Назад")}
      Spacer(Modifier.width(12.dp))
      Button(onClick={
       val id=chosen.singleOrNull()
-      if(action=="basket")vm.add(ids,shopId,onDone,if(none)null else id)
+      if(action=="store-mode")vm.shopSettings(ids,com.spisokryadom.app.data.repository.ShopBatchChange.PurchaseMode(purchaseMode),onDone)
+      else if(action=="store-urgency"){
+       fun value(v:com.spisokryadom.app.ui.shopcard.UrgencyOverride):Boolean?=when(v){com.spisokryadom.app.ui.shopcard.UrgencyOverride.USE_GLOBAL->null;com.spisokryadom.app.ui.shopcard.UrgencyOverride.YES->true;com.spisokryadom.app.ui.shopcard.UrgencyOverride.NO->false}
+       vm.shopSettings(ids,com.spisokryadom.app.data.repository.ShopBatchChange.Urgency(value(showUrgent),value(boostUrgent)),onDone)
+      }
+      else if(action=="basket")vm.add(ids,shopId,onDone,if(none)null else id)
       else if(stores)vm.shops(ids,chosen,onDone)
       else{
        val change=when(action){"recipient"->ProductBatchChange.Recipient(id);"group"->ProductBatchChange.Group(id);"shop"->ProductBatchChange.Shops(chosen);else->ProductBatchChange.Department(targetShop!!,id)}
        vm.products(ids,change,onDone)
       }
-     },enabled=ready&&(chosen.isNotEmpty()||none)&&(action!="department"||stores||targetShop!=null),modifier=Modifier.weight(1f)){Text(if(busy)"Сохранение…"else "Применить к ${ids.size}")}
+     },enabled=ready&&(chosen.isNotEmpty()||none||action.startsWith("store-"))&&(action!="department"||stores||targetShop!=null),modifier=Modifier.weight(1f)){Text(if(busy)"Сохранение…"else "Применить к ${ids.size}")}
    }else TextButton(onClick=onDismiss,enabled=!busy){Text("Закрыть")}
  }){
    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).testTag("batch-options")){
     if(options.isLoading)LinearProgressIndicator(Modifier.fillMaxWidth().testTag("batch-options-loading"))
     if(action.isEmpty()){
-     if(stores){TextButton(onClick={choose("department")},enabled=ready){Text("Добавить группы магазина")}}
+     if(stores){
+      TextButton(onClick={choose("department")},enabled=ready){Text("Добавить группы магазина")}
+      TextButton(onClick={choose("store-mode")},enabled=ready){Text("Тип покупок")}
+      TextButton(onClick={choose("store-urgency")},enabled=ready){Text("Настройки срочности")}
+      TextButton(onClick={vm.shopSettings(ids,com.spisokryadom.app.data.repository.ShopBatchChange.Favorite(true),onDone)},enabled=ready){Text("Добавить в избранное")}
+      TextButton(onClick={vm.shopSettings(ids,com.spisokryadom.app.data.repository.ShopBatchChange.Favorite(false),onDone)},enabled=ready){Text("Убрать из избранного")}
+     }
      else{
       TextButton(onClick={if(shopId!=null&&options.branches.count{it.shopId==shopId}>1)choose("basket")else vm.add(ids,shopId,onDone)},enabled=ready){Text("Добавить в список покупок")}
       TextButton(onClick={choose("recipient")},enabled=ready){Text("Назначить получателя")}
@@ -157,6 +171,12 @@ private val BatchSelectionSaver=mapSaver(
       TextButton(onClick={vm.products(ids,ProductBatchChange.Favorite(true),onDone)},enabled=ready){Text("Добавить в избранное")}
       TextButton(onClick={vm.products(ids,ProductBatchChange.Favorite(false),onDone)},enabled=ready){Text("Убрать из избранного")}
      }
+    }else if(!options.isLoading&&action=="store-mode"){
+     com.spisokryadom.app.ui.components.DropdownSelector("Тип покупок в магазине",com.spisokryadom.app.util.PurchaseModes.labels.keys.toList(),purchaseMode,
+      {com.spisokryadom.app.util.PurchaseModes.labels.getValue(it)},{it?.let{purchaseMode=it}},allowNone=false)
+    }else if(!options.isLoading&&action=="store-urgency"){
+     com.spisokryadom.app.ui.components.DropdownSelector("Срочные в свёрнутом магазине",com.spisokryadom.app.ui.shopcard.UrgencyOverride.entries,showUrgent,{it.label},{it?.let{showUrgent=it}},allowNone=false)
+     com.spisokryadom.app.ui.components.DropdownSelector("Поднимать магазин со срочными",com.spisokryadom.app.ui.shopcard.UrgencyOverride.entries,boostUrgent,{it.label},{it?.let{boostUrgent=it}},allowNone=false)
     }else if(!options.isLoading){
      if(action=="department"&&!stores){
       Text("Магазин",style=MaterialTheme.typography.labelLarge)

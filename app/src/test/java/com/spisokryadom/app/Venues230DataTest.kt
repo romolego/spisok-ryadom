@@ -86,7 +86,7 @@ class Venues230DataTest {
   shops.updateVenue(db.retailStructureDao().venue(venue)!!.copy(photoUri=venuePhoto));val points=db.shopBranchDao().forShop(shop)
   save(points.map{if(it.venueId==venue)it.copy(photoUri=pointPhoto)else it});MediaLifecycle.cleanup(app,db)
   assertTrue(File(venuePhoto).isFile);assertTrue(File(pointPhoto).isFile)
-  val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(22,manifest(file).getInt("version"))
+  val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(23,manifest(file).getInt("version"))
   ZipFile(file).use{assertNotNull(it.getEntry("venue_photos/$venue.jpg"));assertNotNull(it.getEntry("branch_photos/${points.single{p->p.venueId==venue}.id}.jpg"))}
   manager.importFile(file);val restoredVenue=db.retailStructureDao().venue(venue)!!.photoUri!!;val restoredPoint=db.shopBranchDao().forShop(shop).single{it.venueId==venue}.photoUri!!
   assertNotEquals(restoredVenue,restoredPoint);assertArrayEquals(byteArrayOf(1,2,3),File(restoredVenue).readBytes());assertArrayEquals(byteArrayOf(4,5,6),File(restoredPoint).readBytes());manager.discard(file)
@@ -116,8 +116,8 @@ class Venues230DataTest {
    old.execSQL("INSERT INTO cities(id,name) VALUES(1,'Город')");old.execSQL("INSERT INTO venues(id,cityId,name,address) VALUES(5,1,'ТЦ','Мира, 1')");old.execSQL("INSERT INTO shops(id,name,displayOrder,cityId,manualOrderOverride) VALUES(7,'Магазин',0,1,0)")
    old.execSQL("INSERT INTO shop_branches(id,shopId,address,displayOrder,venueId) VALUES(10,7,'Мира, 1',1,5),(11,7,'Павильон 29',0,5),(12,7,'Улица, 3',2,NULL)");old.version=19
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24).build()
-  try{val points=migrated.shopBranchDao().forShop(7);assertEquals(listOf(11L,10L,12L),points.map{it.id});assertEquals("Павильон 29",points[0].label);assertEquals("",points[0].address);assertEquals("",points[1].label);assertEquals("Улица, 3",points[2].address);assertNull(migrated.retailStructureDao().venue(5)!!.photoUri);assertEquals(24,migrated.openHelper.writableDatabase.version)}finally{migrated.close();app.deleteDatabase(name)}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25).build()
+  try{val points=migrated.shopBranchDao().forShop(7);assertEquals(listOf(11L,10L,12L),points.map{it.id});assertEquals("Павильон 29",points[0].label);assertEquals("",points[0].address);assertEquals("",points[1].label);assertEquals("Улица, 3",points[2].address);assertNull(migrated.retailStructureDao().venue(5)!!.photoUri);assertEquals(25,migrated.openHelper.writableDatabase.version)}finally{migrated.close();app.deleteDatabase(name)}
  }
  @Test fun ambiguousLegacyOutletsKeepBothIdsAndDistinctDescriptions(){
   val points=listOf(ShopBranchEntity(10,7,"Магазин",venueId=5),ShopBranchEntity(11,7,"Общий адрес",venueId=5))

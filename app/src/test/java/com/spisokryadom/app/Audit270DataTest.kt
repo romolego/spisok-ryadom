@@ -95,7 +95,7 @@ class Audit270DataTest {
         val id=db.shopDao().insert(ShopEntity(name="Не терять",isFavorite=true,favoriteOrder=17,displayOrder=9,shoppingBackground="rose"))
         val manager=BackupManager(app,db);val file=manager.exportFile()
         try {
-            val json=root(file);assertEquals(22,json.getInt("version"))
+            val json=root(file);assertEquals(23,json.getInt("version"))
             val encoded=json.getJSONObject("data").getJSONArray("shops").getJSONObject(0)
             assertTrue(encoded.getBoolean("isFavorite"));assertEquals(17,encoded.getInt("favoriteOrder"))
             val before=db.shopDao().getById(id);shops.saveFavoriteFixture(id,false);manager.importFile(file)
@@ -336,9 +336,9 @@ class Audit270DataTest {
             old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt,assignedShopId,explicitNoShop) VALUES(10,8,2.5,'кг',1,1,11,12,7,0)")
             old.version=23
         }
-        val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_23_24).build()
+        val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25).build()
         try {
-            val shop=migrated.shopDao().getById(7)!!;assertEquals(24,migrated.openHelper.writableDatabase.version)
+            val shop=migrated.shopDao().getById(7)!!;assertEquals(25,migrated.openHelper.writableDatabase.version)
             assertFalse(shop.isFavorite);assertEquals(0,shop.favoriteOrder);assertEquals(13,shop.displayOrder);assertTrue(shop.manualOrderOverride)
             assertEquals("rose",shop.shoppingBackground);assertEquals("auto",shop.purchaseBackground)
             val row=migrated.shoppingListEntryDao().getById(10)!!;assertEquals(2.5,row.quantity,0.0);assertTrue(row.isBought);assertTrue(row.isUrgent);assertEquals(12L,row.updatedAt)

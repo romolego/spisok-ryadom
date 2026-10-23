@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Remove
@@ -328,13 +329,13 @@ fun PurchaseTypeSelector(
     selectedType: String,
     onTypeChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    allowedTypes:Set<String> = setOf("offline","online")
+    allowedTypes:Set<String> = com.spisokryadom.app.util.ProductPurchaseTypes.labels.keys
 ) {
-    DropdownSelector("Тип покупки", listOf("offline", "online"), selectedType,
-        { if (it == "online") "Онлайн" else "Офлайн" },
+    DropdownSelector("Тип покупки", com.spisokryadom.app.util.ProductPurchaseTypes.labels.keys.toList(), selectedType,
+        { com.spisokryadom.app.util.ProductPurchaseTypes.labels.getValue(it) },
         { if (it != null && it in allowedTypes) onTypeChange(it) },
         modifier = modifier.fillMaxWidth(), allowNone = false,
-        itemVector = { if (it == "online") Icons.Filled.Language else Icons.Filled.Store },
+        itemVector = { when(it){"online"->Icons.Filled.Language;"both"->Icons.Filled.SwapHoriz;else->Icons.Filled.Store} },
         itemEnabled = { it in allowedTypes })
 }
 

@@ -53,7 +53,7 @@ data class PendingShopLink(
 data class ProductCardUiState(
     val isNew: Boolean = true,
     val recipientManuallySet:Boolean=false,val purchaseTypeManuallySet:Boolean=false,
-    val allowedPurchaseTypes:Set<String> = setOf("offline","online"),
+    val allowedPurchaseTypes:Set<String> = com.spisokryadom.app.util.ProductPurchaseTypes.labels.keys,
     val savedProductId:Long?=null,
     val autoSaveIssue:String?=null,
     val matchingProducts:List<ProductEntity> = emptyList(),
@@ -211,9 +211,9 @@ class ProductCardViewModel(
             if(!s.isNew||s.isLoading)s else {
                 val links=s.pendingShopLinks.sortedWith(if(s.preferCityShopOrder)compareBy<PendingShopLink>{s.shopOrders[it.shopId]?:Int.MAX_VALUE}.thenBy{it.displayOrder}else compareBy{it.displayOrder})
                 val mode=modes.find{it.shopId==links.firstOrNull()?.shopId}?.purchaseMode?:"inherit"
-                val allowed=com.spisokryadom.app.util.PurchaseModes.allowed(mode)
+                val allowed=com.spisokryadom.app.util.ProductPurchaseTypes.labels.keys
                 val global=editingPreferences?.let{com.spisokryadom.app.util.ProductCreationDefaults.read(it).purchaseType}?:"offline"
-                s.copy(allowedPurchaseTypes=allowed,purchaseType=if(allowed.size==1)allowed.single()else if(s.purchaseTypeManuallySet)s.purchaseType else global,
+                s.copy(allowedPurchaseTypes=allowed,purchaseType=if(s.purchaseTypeManuallySet)s.purchaseType else com.spisokryadom.app.util.PurchaseModes.resolve(mode,global),
                     recipientId=if(s.recipientManuallySet)s.recipientId else groups.find{it.groupId==s.productGroupId}?.recipientId)
             }
         }
@@ -248,7 +248,7 @@ class ProductCardViewModel(
 
                 // Auto-add preselected shop as first pending link for new products
                 if (_uiState.value.isNew && preselectedShopId > 0 && !preselectedShopAdded) {
-                    val shop = shops.find { it.id == preselectedShopId }
+                    val shop = shops.find { it.id == preselectedShopId && it.cityId==city.id }
                     if (shop != null) {
                         preselectedShopAdded = true
                         _uiState.update { latest->latest.copy(
@@ -342,15 +342,16 @@ class ProductCardViewModel(
         edit { s ->
             if(s.pendingShopLinks.none{it.shopId==shopId}&&s.shopLinks.none{it.link.shopId==shopId})return@edit s.copy(error="Магазин больше не привязан к товару")
             val branches=s.branches.filter{it.shopId==shopId}.map{it.id}.toSet()
-            if(points!=null&&(points.isEmpty()||!branches.containsAll(points)))return@edit s.copy(error="Выберите хотя бы одну доступную точку магазина")
+            val chosenPoints=points.takeIf{branches.size>1}
+            if(chosenPoints!=null&&(chosenPoints.isEmpty()||!branches.containsAll(chosenPoints)))return@edit s.copy(error="Выберите хотя бы одну доступную точку магазина")
             val departments=(s.allDepartments+s.pendingDepartments+s.departmentsForSelectedShop).filter{it.shopId==shopId}
             if(departmentId!=null&&departments.none{it.id==departmentId})return@edit s.copy(error="Группа магазина больше недоступна")
             val name=departments.find{it.id==departmentId}?.name
             s.copy(
                 pendingShopLinks=s.pendingShopLinks.map{if(it.shopId==shopId)it.copy(departmentId=departmentId,departmentName=name)else it},
                 shopLinks=s.shopLinks.map{if(it.link.shopId==shopId)it.copy(link=it.link.copy(departmentId=departmentId),departmentName=name)else it},
-                branchSelections=if(points==null)s.branchSelections-shopId else s.branchSelections+(shopId to points),
-                branchPriorities=if(priority.isEmpty())s.branchPriorities-shopId else s.branchPriorities+(shopId to priority.distinct().filter{it in branches}),
+                branchSelections=if(chosenPoints==null)s.branchSelections-shopId else s.branchSelections+(shopId to chosenPoints),
+                branchPriorities=if(branches.size<2||priority.isEmpty())s.branchPriorities-shopId else s.branchPriorities+(shopId to priority.distinct().filter{it in branches}),
                 // A confirmed shop group applies everywhere. Untouched legacy data stays backup-compatible.
                 branchDepartments=s.branchDepartments.filterKeys{id->s.branches.none{it.id==id&&it.shopId==shopId}}
             )

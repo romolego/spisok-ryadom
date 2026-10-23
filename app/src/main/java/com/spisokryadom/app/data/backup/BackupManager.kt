@@ -122,6 +122,8 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
    if(summary.full)require(!root.has("preferences")||root.get("preferences") is JSONObject){"Некорректный раздел настроек в копии"}
    if(root.getInt("version")>=14)listOf("productGroups","departmentTypes").forEach{key->val a=root.getJSONObject("data").getJSONArray(key);for(i in 0 until a.length()){val row=a.getJSONObject(i);require(row.has("isFavorite")&&row.has("favoriteOrder")){"Отсутствует оформление избранных групп"}}}
    val raw=BackupJson.read(root)
+   if(root.getInt("version")>=23){val rows=root.getJSONObject("data").getJSONArray("shops");for(i in 0 until rows.length())require(rows.getJSONObject(i).has("cityGroupKey")){"Отсутствует связь городских адресов"}}
+   if(root.getInt("version")<23)require(raw.shops.all{it.cityGroupKey.isEmpty()}&&raw.products.none{it.purchaseType=="both"}){"Городские профили и смешанный формат требуют копию новой версии"}
    if(root.getInt("version")>=22){val rows=root.getJSONObject("data").getJSONArray("shops");for(i in 0 until rows.length())require(rows.getJSONObject(i).has("isFavorite")&&rows.getJSONObject(i).has("favoriteOrder")){"Отсутствует настройка избранных магазинов"}}
    if(root.getInt("version")<22)require(raw.shops.none{it.isFavorite||it.favoriteOrder!=0}){"Избранные магазины требуют копию новой версии"}
   if(root.getInt("version")>=19){val venues=root.getJSONObject("data").getJSONArray("venues");for(i in 0 until venues.length())require(venues.getJSONObject(i).has("kind")){"Отсутствует тип торгового места"}}
@@ -337,6 +339,10 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   require(s.networks.all{it.name.isNotBlank()}&&s.venues.all{it.name.isNotBlank()&&it.cityId in cities&&com.spisokryadom.app.data.entity.VenueKinds.valid(it.kind)}){"Неверная сеть или торговый комплекс"}
   val shopMap=s.shops.associateBy{it.id}
   s.shops.forEach{require(it.cityId in cities){"Неизвестный город магазина"};require(it.networkId==null||it.networkId in networks){"Неизвестная сеть"};require(com.spisokryadom.app.util.PurchaseBackground.valid(it.purchaseBackground)){"Некорректный фон товаров магазина"};require(com.spisokryadom.app.util.AppearanceColors.validOptional(it.shoppingBackground)){"Некорректный цвет фона магазина"}}
+  require(s.products.all{it.purchaseType in com.spisokryadom.app.util.ProductPurchaseTypes.labels}){"Неверный формат покупки товара"}
+  require(s.shops.all{it.cityGroupKey.isEmpty()||it.cityGroupKey.matches(Regex("[a-zA-Z0-9_-]{1,80}"))}){"Неверная связь городских адресов"}
+  val cityProfiles=s.shops.filter{it.cityGroupKey.isNotEmpty()}
+  require(cityProfiles.map{it.cityGroupKey to it.cityId}.distinct().size==cityProfiles.size){"Повторяющийся городской профиль магазина"}
   val linkMap=s.links.associateBy{it.productId to it.shopId}
   val branches=s.branches.associateBy{it.id};ids(s.branches.map{it.id},"точки")
   s.branches.forEach{require(it.shopId in shops&&(it.venueId!=null||it.address.isNotBlank()||it.label.isNotBlank())){"Неверная точка магазина"};require(it.venueId==null||venues[it.venueId]?.cityId==shopMap[it.shopId]?.cityId){"Торговый комплекс относится к другому городу"}}
@@ -419,7 +425,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=22;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=23;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}
