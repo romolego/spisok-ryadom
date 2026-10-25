@@ -1,3 +1,7 @@
+## Публикация0.29 подтверждена
+
+Публикация завершена: [PR#6](https://github.com/romolego/spisok-ryadom/pull/6) слит обычным merge вmain; [v0.29.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.29.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC архивов совпали. Source commit `28fe1bbb8df78649e5671eb7b98d7077e25bfe73`, merge/tag `af57023f8bffcb018943986e115470b01486d14d`. Публичный source ZIP соответствует349 проверенным файлам с учётом CRLF/LF. Квитанция —`docs/publications/0.29.0.json`.
+
 ## Публикация0.28 подтверждена
 
 Публикация завершена: [PR#5](https://github.com/romolego/spisok-ryadom/pull/5) слит обычным merge вmain; [v0.28.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.28.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC архивов совпали. Source commit `9933c85dd64da018e6900c42d652fc371b688ef1`, merge/tag `6aecc44a3ab42c855e48647369924e3975b79538`. Публичный source ZIP соответствует336 проверенным файлам с учётом CRLF/LF. Квитанция —`docs/publications/0.28.0.json`.

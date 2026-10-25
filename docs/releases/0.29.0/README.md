@@ -31,3 +31,9 @@ Native Robolectric, API28/35 там, где указано в Config. Физич
 Публичный JUnit содержит только имена, длительности и статусы. Личные базы/фото/ключи и служебные потоки JUnit не публикуются.
 
 [Манифест](verification.json) · [JUnit](junit.xml) · [Хеши исходников](source-seal.json) · [Визуальный отчёт](report.html).
+
+## Публикация0.29
+
+Публикация завершена: [PR#6](https://github.com/romolego/spisok-ryadom/pull/6) слит обычным merge вmain; [v0.29.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.29.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC архивов совпали. Source commit `28fe1bbb8df78649e5671eb7b98d7077e25bfe73`, merge/tag `af57023f8bffcb018943986e115470b01486d14d`. Публичный source ZIP соответствует349 проверенным файлам с учётом CRLF/LF. Квитанция —`docs/publications/0.29.0.json`.
+
+APK —`.local/artifacts/0.29.0/SpisokRyadom-0.29.0.apk`, код0.29.0(39)/Room26/ZIP24, рабочая папка прежняя.
