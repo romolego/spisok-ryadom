@@ -51,6 +51,9 @@ data class PendingShopLink(
 )
 
 data class ProductCardUiState(
+    val photos:List<com.spisokryadom.app.data.entity.ProductPhotoEntity> = emptyList(),
+    val variantOptions:List<com.spisokryadom.app.data.repository.ProductVariantOption> = emptyList(),
+    val activeVariantId:Long?=null,
     val isNew: Boolean = true,
     val recipientManuallySet:Boolean=false,val purchaseTypeManuallySet:Boolean=false,
     val allowedPurchaseTypes:Set<String> = com.spisokryadom.app.util.ProductPurchaseTypes.labels.keys,
@@ -104,14 +107,14 @@ data class ProductCardUiState(
 
 @OptIn(kotlinx.coroutines.FlowPreview::class)
 class ProductCardViewModel(
-    private val productId: Long,
+    private var productId: Long,
     private val preselectedShopId: Long = -1L,
     private val productRepository: ProductRepository,
     private val shopRepository: ShopRepository,
     private val classifierRepository: ClassifierRepository,
     private val draftPreferences:android.content.SharedPreferences?=null,
     private val editingPreferences:android.content.SharedPreferences?=null,
-    initialName:String=""
+    private val initialName:String=""
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductCardUiState(name=if(productId<0)initialName.trim()else "",isNew = productId == -1L,recipientManuallySet=productId>0,purchaseTypeManuallySet=productId>0,isLoading=productId != -1L||preselectedShopId>0))
@@ -126,10 +129,11 @@ class ProductCardViewModel(
     private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.update { latest->latest.copy(error=e.message?:"Операция не выполнена",isLoading=false,isSaving=false) }}
 
     private fun autoSaveEnabled()=com.spisokryadom.app.util.ProductEditingPreferences.enabled(editingPreferences)
-    private val draftKey=if(productId<0)"new_$preselectedShopId"+(if(initialName.isBlank())""else "_search_"+java.util.UUID.nameUUIDFromBytes(initialName.trim().toByteArray(Charsets.UTF_8)))else "product_$productId"
+    private val draftKey get()=if(productId<0)"new_$preselectedShopId"+(if(initialName.isBlank())""else "_search_"+java.util.UUID.nameUUIDFromBytes(initialName.trim().toByteArray(Charsets.UTF_8)))else "product_$productId"
     private val restoredDraft=if(autoSaveEnabled())draftPreferences?.getString(draftKey,null)?.let{runCatching{ProductEditDraft.decode(it)}.getOrNull()}?.takeIf{it.autoPersist}else null
     private var editorStableId=restoredDraft?.stableId?:java.util.UUID.randomUUID().toString()
     private var duplicateAllowed=restoredDraft?.allowDuplicate?:false
+    private val visitedVariants=mutableMapOf<Long,ProductEditDraft>()
     private var closed=false
     private val editorGeneration=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
     private val editSignals=kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
@@ -220,6 +224,11 @@ class ProductCardViewModel(
     }
     private val nameQuery=MutableStateFlow(if(productId<0)initialName.trim()else "")
     init {
+        viewModelScope.launch(errors){
+            combine(_uiState.map{it.activeVariantId?:it.savedProductId}.distinctUntilChanged(),shopRepository.locations.activeCity,productRepository.variants.observeMetadata()){id,city,_->id to city.id}.collectLatest{(id,city)->
+                if(id!=null)_uiState.update{it.copy(variantOptions=productRepository.variants.options(id,city))}
+            }
+        }
         viewModelScope.launch(errors){combine(shopRepository.creationPresets(),classifierRepository.creationPresets(),_uiState.map{listOf(it.isNew,it.isLoading,it.productGroupId,it.pendingShopLinks,it.shopOrders,it.preferCityShopOrder,it.recipientManuallySet,it.purchaseTypeManuallySet)}.distinctUntilChanged()){a,b,_->a to b}.collect{(a,b)->shopCreationRules=a;groupCreationRules=b;applyCreationDefaults(a,b)}}
         viewModelScope.launch(errors){shopRepository.departmentTypes().collect{_uiState.update { latest->latest.copy(departmentTypes=it) }}}
         viewModelScope.launch(errors){
@@ -294,6 +303,7 @@ class ProductCardViewModel(
                     sellerUrl = product.sellerUrl ?: "",
                     productUrl = product.productUrl ?: "",
                     photoUri = product.photoUri ?: "",
+                    activeVariantId=product.id,photos=productRepository.variants.photos(product.id),
                     priceValue = product.priceValue?.let { v ->
                         if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
                     } ?: "",
@@ -423,9 +433,67 @@ class ProductCardViewModel(
 
     fun photoBusy(value:Boolean){edit { latest->latest.copy(isPhotoBusy=value) }}
     fun updatePhotoUri(uri: String) {
-        edit { latest->latest.copy(photoUri = uri) }
+        edit { latest->val photos=latest.photos.toMutableList();if(uri.isBlank()){if(photos.isNotEmpty())photos.removeAt(0)}else if(photos.isEmpty())photos.add(com.spisokryadom.app.data.entity.ProductPhotoEntity(0,0,uri))else photos[0]=photos[0].copy(uri=uri);latest.copy(photoUri=photos.firstOrNull()?.uri.orEmpty(),photos=photos) }
     }
 
+    fun updatePhotos(photos:List<com.spisokryadom.app.data.entity.ProductPhotoEntity>){
+        require(photos.size<=5)
+        edit{it.copy(photos=photos.mapIndexed{i,p->p.copy(position=i)},photoUri=photos.firstOrNull()?.uri.orEmpty())}
+    }
+    fun switchVariant(id:Long,onReady:()->Unit={}){
+        if(id==productId||_uiState.value.isSaving||_uiState.value.isPhotoBusy)return
+        viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+            require(keepDraftLocked()){"Товар удалён"}
+            val common=_uiState.value
+            if(autoSaveEnabled()){persistCurrent();ProductDraftStore.remove(draftPreferences,editorStableId)}
+            visitedVariants[productId]=snapshot()
+            val p=productRepository.getProductById(id)?:error("Вариант удалён")
+            require(productRepository.variants.familyId(id)==productRepository.variants.familyId(productId)){"Другой товар"}
+            val links=productRepository.getShopLinksForProductSync(id)
+            val shops=productRepository.editorShops().associateBy{it.id};val departments=productRepository.editorDepartments().associateBy{it.id}
+            val branches=productRepository.editorBranches().associateBy{it.id}
+            val available=productRepository.branchAvailability(id).map{it.branchId}.toSet()
+            val raw=visitedVariants[id]?:ProductDraftStore.find(draftPreferences,p.stableId)
+            val next=raw?.applyTo(common)?:common.copy(defaultUnit=p.defaultUnit.orEmpty(),defaultQuantity=p.defaultQuantity?.let{java.math.BigDecimal.valueOf(it).stripTrailingZeros().toPlainString()}.orEmpty(),
+                note=p.note.orEmpty(),purchaseType=p.purchaseType,sellerUrl=p.sellerUrl.orEmpty(),productUrl=p.productUrl.orEmpty(),photoUri=p.photoUri.orEmpty(),photos=productRepository.variants.photos(id),priceValue=p.priceValue?.toString().orEmpty(),priceDate=p.priceDate.orEmpty(),preferCityShopOrder=p.preferCityShopOrder,
+                shopLinks=links.map{ShopLinkUi(it,shops[it.shopId]?.name.orEmpty(),departments[it.departmentId]?.name)},pendingShopLinks=emptyList(),pendingDepartments=emptyList(),
+                branchSelections=links.filter{it.restrictBranches}.associate{l->l.shopId to available.filter{branches[it]?.shopId==l.shopId}.toSet()},
+                branchPriorities=productRepository.branchPriorities(id).groupBy{it.shopId}.mapValues{(_,v)->v.sortedBy{it.displayOrder}.map{it.branchId}},branchDepartments=emptyMap())
+            productId=id;editorStableId=p.stableId;lastCommitted=null;draftBase=raw
+            _uiState.value=next.copy(name=common.name,productGroupId=common.productGroupId,recipientId=common.recipientId,isFavorite=common.isFavorite,accent=common.accent,
+                activeVariantId=id,savedProductId=id,isNew=false,isSaved=false,isLoading=false,isSaving=false,error=null,autoSaveIssue=null)
+            keepDraftLocked();onReady()
+        }}
+    }
+    fun createVariant(label:String){
+        if(_uiState.value.isSaving||_uiState.value.isPhotoBusy)return
+        viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+            require(!_uiState.value.isTemporary){"Сначала сохраните разовую позицию в базе товаров"}
+            val id=persistCurrent()
+            if(productId<0){
+                productId=id
+                val links=productRepository.getShopLinksForProductSync(id)
+                val shops=productRepository.editorShops().associateBy{it.id};val departments=productRepository.editorDepartments().associateBy{it.id}
+                _uiState.update{it.copy(isNew=false,activeVariantId=id,savedProductId=id,pendingShopLinks=emptyList(),shopLinks=links.map{l->ShopLinkUi(l,shops[l.shopId]?.name.orEmpty(),departments[l.departmentId]?.name)})}
+            }
+            val next=productRepository.variants.create(id,label)
+            switchVariant(next)
+        }}
+    }
+    fun renameVariant(id:Long,label:String){viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){productRepository.variants.rename(id,label)}}}
+    fun configureVariantCities(values:Map<Long,List<Pair<Long,Boolean>>>,onResult:(String?)->Unit){viewModelScope.launch{
+        try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){productRepository.variants.configureCities(productId,values)};onResult(null)}
+        catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;onResult(e.message?:"Не удалось сохранить приоритеты")}
+    }}
+    val variantCities=shopRepository.locations.cities
+    fun variantCityId()=shopRepository.locations.activeCity.value.id
+    fun variantOptionsForCity(city:Long)=productRepository.variants.observeOptions(productId,city)
+    fun removeVariant(id:Long){viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
+        val family=productRepository.variants.familyId(id)
+        if(id==productId){switchVariant(family){removeVariant(id)};return@inGeneration}
+        productRepository.variants.remove(id)
+        visitedVariants.remove(id)?.let{ProductDraftStore.remove(draftPreferences,it.stableId)}
+    }}}
     fun updatePriceValue(value: String) {
         edit { latest->latest.copy(priceValue = value) }
     }
@@ -618,7 +686,7 @@ class ProductCardViewModel(
             require(productRepository.getProductById(id)!=null){"Товар удалён"}
             productRepository.adoptEditorProduct(id,editorStableId,state.pendingShopLinks.sortedBy{it.displayOrder}.map{it.shopId}.distinct(),
                 state.pendingShopLinks.map{ProductShopLinkEntity(productId=id,shopId=it.shopId,departmentId=it.departmentId)},state.branchSelections,state.pendingDepartments,state.branchDepartments)
-            closed=true;ProductDraftStore.remove(draftPreferences,editorStableId)
+            closed=true;visitedVariants.values.forEach{ProductDraftStore.remove(draftPreferences,it.stableId)};ProductDraftStore.remove(draftPreferences,editorStableId)
             edit { latest->latest.copy(isSaving=false,usedExistingId=id) }
         }}
     }
@@ -644,16 +712,20 @@ class ProductCardViewModel(
                     return@locked
                 }
                 if(leaving&&!autoSaveEnabled()){
-                    closed=true;ProductDraftStore.remove(draftPreferences,editorStableId)
+                    closed=true;visitedVariants.values.forEach{ProductDraftStore.remove(draftPreferences,it.stableId)};ProductDraftStore.remove(draftPreferences,editorStableId)
                     _uiState.update{it.copy(isSaving=false,isSaved=true)}
                     return@locked
                 }
                 require(keepDraftLocked()){"Товар удалён или заменён"}
-                if(_uiState.value.name.isNotBlank())persistCurrent()else {
+                if(_uiState.value.name.isNotBlank())productRepository.variants.transaction{
+                    val common=_uiState.value
+                    visitedVariants.values.filter{it.productId!=productId}.forEach{d->d.copy(state=d.state.copy(name=common.name,productGroupId=common.productGroupId,recipientId=common.recipientId,isFavorite=common.isFavorite,accent=common.accent)).persist(productRepository)}
+                    persistCurrent()
+                }else {
                     if(!leaving||productId>=0)error("Введите название товара")
                     withdrawUnnamedNewProduct()
                 }
-                closed=true;ProductDraftStore.remove(draftPreferences,editorStableId)
+                closed=true;visitedVariants.values.forEach{ProductDraftStore.remove(draftPreferences,it.stableId)};ProductDraftStore.remove(draftPreferences,editorStableId)
                 // Only unnamed new drafts keep their remaining raw fields for the next visit.
                 if(_uiState.value.name.isBlank()){closed=false;keepDraftLocked();closed=true}
                 edit { latest->latest.copy(isSaving=false,isSaved=true) }
@@ -684,8 +756,8 @@ class ProductCardViewModel(
         viewModelScope.launch(errors){com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(editorGeneration){
             require(keepDraftLocked()){"Товар удалён или заменён"}
             val product=productRepository.getProductByStableId(editorStableId)
-            if(product!=null)productRepository.deleteProduct(product)
-            closed=true;ProductDraftStore.remove(draftPreferences,editorStableId)
+            if(product!=null)productRepository.getProductById(productRepository.variants.familyId(product.id))?.let{productRepository.deleteProduct(it)}
+            closed=true;visitedVariants.values.forEach{ProductDraftStore.remove(draftPreferences,it.stableId)};ProductDraftStore.remove(draftPreferences,editorStableId)
             edit { latest->latest.copy(isSaving=false,isDeleted=true) }
         }}
     }
@@ -700,7 +772,7 @@ class ProductCardViewModel(
             if(editorGeneration==com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()){
                 val remote=ProductDraftStore.find(draftPreferences,draft.stableId)
                 val deleted=base!=null&&remote==null&&(productId>0||draft.state.savedProductId!=null)&&productRepository.getProductByStableId(draft.stableId)==null
-                if(!autoSaveEnabled())ProductDraftStore.remove(draftPreferences,draft.stableId)
+                if(!autoSaveEnabled()){visitedVariants.values.forEach{ProductDraftStore.remove(draftPreferences,it.stableId)};ProductDraftStore.remove(draftPreferences,draft.stableId)}
                 else if(!deleted){
                     val merged=draft.rebaseExternal(base,remote)
                     if(productId<0&&merged.state.name.isBlank()){

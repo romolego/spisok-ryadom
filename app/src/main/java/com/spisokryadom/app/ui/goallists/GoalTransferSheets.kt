@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.goallists
+import com.spisokryadom.app.ui.components.AppTextField
 
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,7 +29,7 @@ internal fun GoalTextSheet(title: String, text: String, onText: (String) -> Unit
         Column(Modifier.fillMaxWidth().fillMaxHeight(.94f).imePadding().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Поделиться списком", style = MaterialTheme.typography.headlineSmall)
             Text("Правки сообщения не меняют список.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            OutlinedTextField(text, onText, label = { Text("Текст списка") }, modifier = Modifier.fillMaxWidth().weight(1f).testTag("goal-share-editor"), shape = MaterialTheme.shapes.large)
+            AppTextField(text, onText, label = { Text("Текст списка") }, modifier = Modifier.fillMaxWidth().weight(1f).testTag("goal-share-editor"), shape = MaterialTheme.shapes.large)
             if (goalShareUsesFile(text)) Text("Большой список будет отправлен текстовым файлом. Его можно импортировать в приложении.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Button(onClick = {
@@ -64,7 +65,7 @@ internal fun GoalImportSheet(session: String, onDismiss: () -> Unit, onImported:
                 item(key = "file") { OutlinedButton(onClick = { file.launch(arrayOf("application/json", "text/*", "application/octet-stream")) }, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.Download, null); Spacer(Modifier.width(8.dp)); Text("Выбрать файл")
                 } }
-                item(key = "text") { OutlinedTextField(state.text, viewModel::text, enabled = !state.busy, label = { Text("Вставьте текст списка") }, minLines = 5, maxLines = 10, modifier = Modifier.fillMaxWidth().testTag("goal-import-editor"), shape = MaterialTheme.shapes.large) }
+                item(key = "text") { AppTextField(state.text, viewModel::text, enabled = !state.busy, label = { Text("Вставьте текст списка") }, minLines = 5, maxLines = 10, modifier = Modifier.fillMaxWidth().testTag("goal-import-editor"), shape = MaterialTheme.shapes.large) }
                 state.error?.let { item(key = "error") { Text(it, color = MaterialTheme.colorScheme.error) } }
                 state.preview?.let { preview ->
                     item(key = "problems") { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

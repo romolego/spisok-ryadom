@@ -55,8 +55,8 @@ class ShoppingUiFlowTest {
   ui.onNodeWithText("Город: Красноярск").assertDoesNotExist()
   ui.onNodeWithContentDescription("Настройки").performClick();waitText("Красноярск")
   ui.onNodeWithContentDescription("Изменить город").performClick();ui.onNodeWithText("Иркутск",substring=true).performClick()
-  waitText("Иркутск");ui.onNodeWithContentDescription("Назад").performClick();ui.onNodeWithText("Подобрать магазины этого города").performClick()
-  // The move is an explicit user action; already bought rows are left unchanged.
+  waitText("Иркутск");ui.onNodeWithContentDescription("Назад").performClick()
+  // Changing the settings city reassigns pending automatic rows; bought facts stay unchanged.
   waitText("Слата")
   runBlocking{assertTrue(c.database.shoppingListEntryDao().getAllSync().filter{it.assignedShopId!=null&&!it.isBought}.all{e->c.database.shopDao().getById(e.assignedShopId!!)!!.cityId==2L})}
   runBlocking{val bought=c.database.shoppingListEntryDao().getAllSync().single{it.isBought};assertEquals(1L,c.database.shopDao().getById(bought.assignedShopId!!)!!.cityId)}

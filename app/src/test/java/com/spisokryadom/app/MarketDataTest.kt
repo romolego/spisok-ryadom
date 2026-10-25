@@ -39,8 +39,8 @@ class MarketDataTest {
    old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt,assignedShopId,assignedBranchId)VALUES(4,2,0.5,'кг',0,1,10,20,1,8)")
    old.version=9
   }
-  val db=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_9_10,AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19,AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25).build()
-  try{assertEquals(25,db.openHelper.writableDatabase.version);val b=db.shopBranchDao().get(8)!!;assertNull(b.note);assertNull(b.photoUri);assertEquals(8L,db.shopBranchDao().availability(2).single().branchId);assertEquals(8L,db.shoppingListEntryDao().getById(4)!!.assignedBranchId);db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
+  val db=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_9_10,AppDatabase.MIGRATION_10_11,AppDatabase.MIGRATION_11_12,AppDatabase.MIGRATION_12_13,AppDatabase.MIGRATION_13_14,AppDatabase.MIGRATION_14_15,AppDatabase.MIGRATION_15_16,AppDatabase.MIGRATION_16_17,AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19,AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25,AppDatabase.MIGRATION_25_26).build()
+  try{assertEquals(26,db.openHelper.writableDatabase.version);val b=db.shopBranchDao().get(8)!!;assertNull(b.note);assertNull(b.photoUri);assertEquals(8L,db.shopBranchDao().availability(2).single().branchId);assertEquals(8L,db.shoppingListEntryDao().getById(4)!!.assignedBranchId);db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
   finally{db.close();app.deleteDatabase(name)}
  }
  @Test fun pointNoteAndPhotoRoundTripAndUnrelatedProductLinkIsPreserved()=runBlocking{
@@ -56,7 +56,7 @@ class MarketDataTest {
    repo.ensureShopLink(p,shop);repo.ensureShopLink(p,shop)
    assertEquals(1,db.productDao().getAllSync().size);assertEquals(2,db.productShopLinkDao().getLinksForProductSync(p).size);assertEquals("Старые данные",db.productDao().getById(p)!!.note)
    val manager=BackupManager(app,db);val file=manager.exportFile()
-   ZipFile(file).use{z->assertNotNull(z.getEntry("branch_photos/$branch.jpg"));assertEquals(23,JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText()).getInt("version"))}
+   ZipFile(file).use{z->assertNotNull(z.getEntry("branch_photos/$branch.jpg"));assertEquals(24,JSONObject(z.getInputStream(z.getEntry("manifest.json")).reader().readText()).getInt("version"))}
    db.shopBranchDao().update(db.shopBranchDao().get(branch)!!.copy(note="Изменено",photoUri=null))
    manager.importFile(file)
    val restored=db.shopBranchDao().get(branch)!!;assertEquals("Беру здесь сыр",restored.note);assertNotNull(PhotoStore.load(restored.photoUri!!));assertTrue(File(restored.photoUri!!).isFile)

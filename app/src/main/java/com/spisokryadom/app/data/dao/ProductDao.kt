@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductDao {
-    @Query("SELECT * FROM products WHERE isTemporary = 0 ORDER BY name ASC")
+    @Query("SELECT * FROM products WHERE isTemporary = 0 AND id NOT IN (SELECT productId FROM product_variants WHERE productId!=familyId) ORDER BY name ASC")
     fun getAll(): Flow<List<ProductEntity>>
 
     @Query("SELECT * FROM products ORDER BY name ASC")
@@ -20,10 +20,10 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE id = :id")
     suspend fun getById(id: Long): ProductEntity?
 
-    @Query("SELECT * FROM products WHERE recipientId = :recipientId ORDER BY name ASC")
+    @Query("SELECT * FROM products WHERE recipientId = :recipientId AND id NOT IN (SELECT productId FROM product_variants WHERE productId!=familyId) ORDER BY name ASC")
     fun getByRecipientId(recipientId: Long): Flow<List<ProductEntity>>
 
-    @Query("SELECT * FROM products WHERE productGroupId = :groupId ORDER BY name ASC")
+    @Query("SELECT * FROM products WHERE productGroupId = :groupId AND id NOT IN (SELECT productId FROM product_variants WHERE productId!=familyId) ORDER BY name ASC")
     fun getByGroupId(groupId: Long): Flow<List<ProductEntity>>
 
     @Query("UPDATE products SET defaultUnit = :newUnit WHERE defaultUnit = :oldUnit")

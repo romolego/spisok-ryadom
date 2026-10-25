@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.shoppinglist
+import com.spisokryadom.app.ui.components.AppTextField
 
 import com.spisokryadom.app.ui.batch.*
 import com.spisokryadom.app.data.repository.PurchaseBatchChange
@@ -67,7 +68,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -199,6 +199,8 @@ private fun ShoppingListContent(
     var showContextMenuFor by remember { mutableStateOf<ShoppingListEntryUi?>(null) }
     var showDeleteConfirmFor by remember { mutableStateOf<ShoppingListEntryUi?>(null) }
 
+    var variantFor by remember{mutableStateOf<com.spisokryadom.app.data.entity.ShoppingListEntryEntity?>(null)}
+    variantFor?.let{com.spisokryadom.app.ui.components.PurchaseVariantSheet(it){variantFor=null}}
     state.error?.let{message->androidx.compose.material3.AlertDialog(onDismissRequest=viewModel::clearError,title={Text("Не удалось выполнить действие")},text={Text(message)},confirmButton={TextButton(onClick=viewModel::clearError){Text("Понятно")}})}
     showEditEntryFor?.let { entryUi ->
         EditEntryDialog(
@@ -222,6 +224,7 @@ private fun ShoppingListContent(
                 showContextMenuFor = null
                 moveIds = setOf(entryUi.entry.id)
             },
+            onVariant={showContextMenuFor=null;variantFor=entryUi.entry},
             onCopy={showContextMenuFor=null;copyFor=entryUi},
             onEditPurchase={showContextMenuFor=null;showEditEntryFor=entryUi},
             onToggleUrgent = {
@@ -910,7 +913,7 @@ private fun EditEntryDialog(
             },enabled=com.spisokryadom.app.util.Quantities.parse(quantity)!=null){Text("Сохранить")}
         }
     ) {
-                OutlinedTextField(
+                AppTextField(
                     value=quantity,
                     onValueChange={value->if(value.isEmpty()||value.matches(Regex("^\\d*[.,]?\\d*$")))quantity=value},
                     label={Text("Количество")},
@@ -921,7 +924,7 @@ private fun EditEntryDialog(
                 )
 
                 // Note
-                OutlinedTextField(
+                AppTextField(
                     value = note,
                     onValueChange = { note = it },
                     label = { Text("Заметка") },
@@ -930,7 +933,7 @@ private fun EditEntryDialog(
                 )
 
                 // One-time comment for this specific purchase
-                OutlinedTextField(
+                AppTextField(
                     value = comment,
                     onValueChange = { comment = it },
                     label = { Text("Комментарий к покупке") },
@@ -944,7 +947,7 @@ private fun EditEntryDialog(
 @Composable
 private fun EntryContextMenuDialog(
     entryUi:ShoppingListEntryUi,onOpenProductCard:()->Unit,onChangeShop:()->Unit,
-    onCopy:()->Unit,onEditPurchase:()->Unit,onToggleUrgent:()->Unit,onRemove:()->Unit,onDismiss:()->Unit,onMoveList:()->Unit,onOpenList:(()->Unit)?=null
+    onVariant:()->Unit,onCopy:()->Unit,onEditPurchase:()->Unit,onToggleUrgent:()->Unit,onRemove:()->Unit,onDismiss:()->Unit,onMoveList:()->Unit,onOpenList:(()->Unit)?=null
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest=onDismiss,
         sheetState=androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded=true),
@@ -954,6 +957,7 @@ private fun EntryContextMenuDialog(
             if(!entryUi.entry.isBought)MenuAction(Icons.Filled.PriorityHigh,if(entryUi.entry.isUrgent)"Снять срочность"else "Сделать срочным",onToggleUrgent)
             if(!entryUi.entry.isBought)MenuAction(Icons.Filled.SwapHoriz,"Сменить место покупки",onChangeShop)
             MenuAction(Icons.Filled.AddShoppingCart,"Добавить магазин к товару",onCopy)
+            if(!entryUi.entry.isBought)com.spisokryadom.app.ui.components.HasProductVariants(entryUi.entry.productId){MenuAction(Icons.Filled.SwapHoriz,"Заменить вариант",onVariant)}
             MenuAction(Icons.Filled.Edit,"Параметры покупки",onEditPurchase)
             onOpenList?.let{MenuAction(Icons.Filled.FormatListBulleted,"Открыть список «${entryUi.listName.orEmpty()}»",it)}
             MenuAction(Icons.Filled.FormatListBulleted,"Перенести в другой список",onMoveList)

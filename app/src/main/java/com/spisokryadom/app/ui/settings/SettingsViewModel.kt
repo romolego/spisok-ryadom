@@ -73,6 +73,7 @@ data class AddToListDefaultsState(
     val rememberShopPriorityOnMove:Boolean=false,
     val browseProductsOnAdd:Boolean=true,
     val autoSaveProductCards:Boolean=true,
+    val rememberVariantChoice:Boolean=false,
     val defaultPurchaseType:String="offline",val missingUnit:String="шт",val missingQuantity:Double=1.0,val fillMissing:Boolean=false
 )
 
@@ -186,6 +187,7 @@ class SettingsViewModel(
             rememberShopPriorityOnMove=prefs.getBoolean("remember_shop_priority_on_move",false),
             browseProductsOnAdd=prefs.getBoolean("browse_products_on_add",true),
             autoSaveProductCards=com.spisokryadom.app.util.ProductEditingPreferences.enabled(prefs),
+            rememberVariantChoice=prefs.getBoolean("remember_variant_choice",false),
             defaultPurchaseType=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).purchaseType,
             missingUnit=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingUnit,
             missingQuantity=com.spisokryadom.app.util.ProductCreationDefaults.read(prefs).missingQuantity,
@@ -197,6 +199,7 @@ class SettingsViewModel(
     fun setGroupDefaultRecipient(groupId:Long,recipientId:Long?,done:(Boolean)->Unit={}){viewModelScope.launch{
         try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(sessionGeneration){classifierRepository.defaultRecipient(groupId,recipientId)};done(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(message=e.message?:"Преднастройка не сохранена");done(false)}
     }}
+    fun setRememberVariantChoice(value:Boolean){prefs.edit().putBoolean("remember_variant_choice",value).apply()}
     fun setDefaultPurchaseType(value:String){if(value in setOf("offline","online"))prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.TYPE,value).apply()}
     fun setMissingQuantity(value:String){com.spisokryadom.app.util.Quantities.parse(value)?.let{prefs.edit().putString(com.spisokryadom.app.util.ProductCreationDefaults.QUANTITY,value.trim()).apply()}}
     fun setFillMissing(value:Boolean){prefs.edit().putBoolean(com.spisokryadom.app.util.ProductCreationDefaults.ENABLED,value).apply()}
@@ -426,7 +429,7 @@ class SettingsViewModel(
     val selectedDepartmentGroup: StateFlow<Long?> = _selectedDepartmentGroup.asStateFlow()
 
     data class DepartmentUsage(val shop:ShopEntity,val products:List<ProductEntity>)
-    val selectedDepartmentProducts=combine(_selectedDepartmentGroup,productRepository.getAllProducts(),combine(productRepository.getAllShopLinks(),productRepository.observeBranchDepartments()){links,overrides->links to overrides},allDepartments,shopRepository.getShopsForDisplay()){type,products,relations,departments,shops->
+    val selectedDepartmentProducts=combine(_selectedDepartmentGroup,productRepository.getAllProductsIncludingTemporary(),combine(productRepository.getAllShopLinks(),productRepository.observeBranchDepartments()){links,overrides->links to overrides},allDepartments,shopRepository.getShopsForDisplay()){type,products,relations,departments,shops->
         val (links,overrides)=relations
         val ids=departments.filter{it.typeId==type}.map{it.id}.toSet()
         shops.filter{s->departments.any{it.shopId==s.id&&it.typeId==type}}.map{s->

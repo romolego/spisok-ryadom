@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.productdb
+import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -39,7 +40,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -133,17 +133,11 @@ fun ProductDatabaseScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            OutlinedTextField(
-                value = state.searchQuery,
+            AppTextField(
+                value = state.searchQuery,voiceDescription="Голосовой поиск",
                 onValueChange = { viewModel.setSearchQuery(it) },
                 placeholder = { Text("Поиск по названию...") },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                trailingIcon = { Row {
-                    if (state.searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.setSearchQuery("") }) { Icon(Icons.Filled.Clear, contentDescription = "Очистить") }
-                    }
-                    com.spisokryadom.app.ui.components.VoiceSearchButton(viewModel::setSearchQuery)
-                } },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()

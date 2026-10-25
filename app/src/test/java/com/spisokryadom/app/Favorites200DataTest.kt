@@ -59,7 +59,7 @@ class Favorites200DataTest {
  @Test fun fullBackupRestoresPinOrdersAppearanceAndQuantity():Unit=runBlocking{
   val g=groups.insertGroup(ProductGroupEntity(name="Продукты"));val t=shops.createDepartmentType("Молочка");groups.favoriteGroup(g,true);shops.favoriteDepartmentType(t,true)
   FavoriteAppearance(FavoriteStyle(false,"#EEDD44",false,false),FavoriteStyle(true,"#AACCEE",true,true)).save(prefs);prefs.edit().putString(ProductCreationDefaults.QUANTITY,"2,5").commit()
-  val before=FavoriteAppearance.read(prefs);val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(23,manifest(file).getInt("version"))
+  val before=FavoriteAppearance.read(prefs);val manager=BackupManager(app,db);val file=manager.exportFile();assertEquals(24,manifest(file).getInt("version"))
   groups.favoriteGroup(g,false);shops.favoriteDepartmentType(t,false);prefs.edit().clear().commit();manager.importFile(file)
   assertTrue(groups.getGroupById(g)!!.isFavorite);assertTrue(db.shopDepartmentDao().type(t)!!.isFavorite);assertEquals(before,FavoriteAppearance.read(prefs));assertEquals(2.5,ProductCreationDefaults.read(prefs).missingQuantity,0.0);manager.discard(file)
  }
@@ -93,8 +93,8 @@ class Favorites200DataTest {
   app.openOrCreateDatabase(name,0,null).use{old->val a=JSONObject(schema.readText()).getJSONObject("database").getJSONArray("entities");for(i in 0 until a.length()){val e=a.getJSONObject(i);old.execSQL(e.getString("createSql").replace("\${TABLE_NAME}",e.getString("tableName")));val ix=e.getJSONArray("indices");for(j in 0 until ix.length())old.execSQL(ix.getJSONObject(j).getString("createSql").replace("\${TABLE_NAME}",e.getString("tableName")))}
    old.execSQL("INSERT INTO product_groups(id,name,displayOrder,accent,iconKey)VALUES(11,'Продукты',42,'green','food')");old.execSQL("INSERT INTO department_types(id,name,normalizedName,displayOrder,accent,iconKey)VALUES(12,'Отдел','отдел',9,'blue','milk')");old.version=17
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19,AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25).build()
-  try{val g=migrated.productGroupDao().getById(11)!!;assertEquals(25,migrated.openHelper.writableDatabase.version);assertEquals(42,g.displayOrder);assertEquals("green",g.accent);assertFalse(g.isFavorite);assertEquals(0,g.favoriteOrder);val t=migrated.shopDepartmentDao().type(12)!!;assertEquals(9,t.displayOrder);assertFalse(t.isFavorite);assertEquals("milk",t.iconKey);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_17_18,AppDatabase.MIGRATION_18_19,AppDatabase.MIGRATION_19_20,AppDatabase.MIGRATION_20_21,AppDatabase.MIGRATION_21_22,AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25,AppDatabase.MIGRATION_25_26).build()
+  try{val g=migrated.productGroupDao().getById(11)!!;assertEquals(26,migrated.openHelper.writableDatabase.version);assertEquals(42,g.displayOrder);assertEquals("green",g.accent);assertFalse(g.isFavorite);assertEquals(0,g.favoriteOrder);val t=migrated.shopDepartmentDao().type(12)!!;assertEquals(9,t.displayOrder);assertFalse(t.isFavorite);assertEquals("milk",t.iconKey);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}
   finally{migrated.close();app.deleteDatabase(name)}
  }
 }

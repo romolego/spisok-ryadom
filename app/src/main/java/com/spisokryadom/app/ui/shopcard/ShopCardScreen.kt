@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.shopcard
+import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.testTag
 import com.spisokryadom.app.ui.components.*
@@ -173,7 +173,7 @@ fun ShopCardScreen(
                 .verticalScroll(scrollState).testTag("shop-card-scroll"),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedTextField(
+            AppTextField(
                 value = state.name,
                 onValueChange = { viewModel.updateName(it) },
                 label = { Text("Название магазина") },
@@ -209,7 +209,7 @@ fun ShopCardScreen(
                     selectedItem=state.purchaseMode,itemLabel={com.spisokryadom.app.util.PurchaseModes.labels.getValue(it)},
                     itemVector={when(it){"online"->Icons.Filled.Language;"offline"->Icons.Filled.Store;"both"->Icons.Filled.SwapHoriz;else->Icons.Filled.Settings}},
                     onSelect={it?.let(viewModel::updatePurchaseMode)},allowNone=false,modifier=Modifier.fillMaxWidth())
-                OutlinedTextField(value=state.note,onValueChange=viewModel::updateNote,label={Text("Короткая заметка")},
+                AppTextField(value=state.note,onValueChange=viewModel::updateNote,label={Text("Короткая заметка")},
                     modifier=Modifier.fillMaxWidth(),minLines=1,maxLines=3)
                 DropdownSelector("Срочные в свёрнутом магазине",UrgencyOverride.entries,state.showUrgentInCollapsed,{it.label},
                     {it?.let(viewModel::updateShowUrgentInCollapsed)},allowNone=false)
@@ -235,7 +235,7 @@ fun ShopCardScreen(
                     com.spisokryadom.app.ui.components.AnimatedOrderColumn(departments,{it.id}){index,dept->
                         Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){
                             Column(Modifier.padding(12.dp)){
-                                OutlinedTextField(dept.name,{value->
+                                AppTextField(dept.name,{value->
                                     if(state.isNew)viewModel.renamePendingDepartment(dept.id,value)
                                     else viewModel.updateDepartment(dept.copy(name=value))
                                 },label={Text("Название группы")},singleLine=true,isError=dept.name.isBlank(),modifier=Modifier.fillMaxWidth())

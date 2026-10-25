@@ -80,7 +80,7 @@ fun CityField(selectedId:Long,onSelected:(Long)->Unit,label:String="Город �
  var creating by remember{mutableStateOf(false)};var error by remember{mutableStateOf<String?>(null)};val scope=rememberCoroutineScope()
  Column{
   ExposedDropdownMenuBox(expanded=expanded,onExpandedChange={expanded=it}){
-   OutlinedTextField(value=cities.find{it.id==selectedId}?.name?:"Выберите город",onValueChange={},readOnly=true,label={Text(label)},modifier=Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),trailingIcon={ExposedDropdownMenuDefaults.TrailingIcon(expanded)})
+   AppTextField(value=cities.find{it.id==selectedId}?.name?:"Выберите город",onValueChange={},readOnly=true,label={Text(label)},modifier=Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),trailingIcon={ExposedDropdownMenuDefaults.TrailingIcon(expanded)})
    ExposedDropdownMenu(expanded,onDismissRequest={expanded=false}){
     com.spisokryadom.app.util.alphabetical(cities){it.name}.sortedBy{it.id!=activeCity.id}.forEach{c->
      DropdownMenuItem(text={Column{Text(c.name);if(c.id==activeCity.id)Text("Город покупок",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)}},

@@ -147,7 +147,7 @@ class Audit121UiTest {
     @Test fun shopListAndShopCatalogueKeepTheirLogicalSelectionAfterRecreation() {
         tab("Магазины")
         waitText("Батон")
-        ui.onNodeWithContentDescription("Выбрать магазины").performClick()
+        ui.onNodeWithContentDescription("Управление магазинами").performClick();ui.onNodeWithText("Выбрать магазины").performClick()
         waitFor { ui.onAllNodesWithContentDescription("Выбрать все").fetchSemanticsNodes().isNotEmpty() }
         ui.onNodeWithContentDescription("Выбрать все").performClick()
         waitText("Выбрано: 1")
@@ -156,7 +156,7 @@ class Audit121UiTest {
         waitFor { ui.onAllNodesWithTag("batch-row-$shop").fetchSemanticsNodes().isNotEmpty() }
         ui.onNodeWithTag("batch-row-$shop").assertIsOn()
         ui.onNodeWithContentDescription("Отменить выбор").performClick()
-        waitFor { ui.onAllNodesWithContentDescription("Выбрать магазины").fetchSemanticsNodes().isNotEmpty() }
+        waitFor { ui.onAllNodesWithContentDescription("Управление магазинами").fetchSemanticsNodes().isNotEmpty() }
         ui.onNodeWithText("Батон").performClick()
         waitFor { runCatching { ui.onNodeWithContentDescription("Выбрать товары").assertIsEnabled() }.isSuccess }
         ui.onNodeWithContentDescription("Выбрать товары").performClick()
@@ -331,8 +331,8 @@ class Audit121UiTest {
                 tab(if (products) "Товары" else "Магазины")
                 waitText(if (products) "Подмена Б" else "Магазин Б")
                 val choose = if (products) "Выбрать товары" else "Выбрать магазины"
-                waitFor { runCatching { ui.onNodeWithContentDescription(choose).assertIsEnabled() }.isSuccess }
-                ui.onNodeWithContentDescription(choose).performClick()
+                waitFor { runCatching { ui.onNodeWithContentDescription(if(products)choose else "Управление магазинами").assertIsEnabled() }.isSuccess }
+                ui.onNodeWithContentDescription(if(products)choose else "Управление магазинами").performClick();if(!products)ui.onNodeWithText(choose).performClick()
                 val row = if (products) "catalogue-all-$first" else "batch-row-$shop"
                 waitFor { ui.onAllNodesWithTag(row).fetchSemanticsNodes().isNotEmpty() }
                 ui.onNodeWithTag(row).performClick()
@@ -352,10 +352,11 @@ class Audit121UiTest {
                 assertNotEquals(before, after)
                 assertEquals(after, app.getSharedPreferences("local_database_revision", 0).getString("revision", null))
                 UUID.fromString(after)
+                // Direct repository import has no Settings completion callback; leave this old screen explicitly.
                 ui.onNodeWithContentDescription("Назад").performClick()
                 waitText("Список покупок")
                 tab(if (products) "Товары" else "Магазины")
-                waitFor { runCatching { ui.onNodeWithContentDescription(choose).assertIsEnabled() }.isSuccess }
+                waitFor { runCatching { ui.onNodeWithContentDescription(if(products)choose else "Управление магазинами").assertIsEnabled() }.isSuccess }
                 ui.onAllNodesWithContentDescription("Отменить выбор").assertCountEquals(0)
                 ui.onAllNodesWithContentDescription("Действия с выбранными").assertCountEquals(0)
                 runBlocking {

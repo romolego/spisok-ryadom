@@ -59,8 +59,8 @@ class AuditUi071Test {
   shop=db.shopDao().insert(ShopEntity(name="Батон"));point=db.shopBranchDao().insert(ShopBranchEntity(shopId=shop,address="Весны, 7"))
   Unit
  }
- @After fun close(){store.clear();locations.closeForTest();db.close()}
- private fun productCard()=ProductCardViewModel(-1,shop,products,shops,classifiers).also{store.put("product-card",it);await{it.uiState.value.pendingShopLinks.size==1}}
+ @After fun close(){store.clear();await{!com.spisokryadom.app.data.repository.ProductEditorTransactions.mutex.isLocked};locations.closeForTest();db.close()}
+ private fun productCard()=ProductCardViewModel(-1,shop,products,shops,classifiers).also{store.put("product-card",it);await{it.uiState.value.pendingShopLinks.size==1&&!it.uiState.value.isLoading}}
 
  @Test fun deletingPreselectedShopInNewCardIsRespectedOnSave()=runBlocking{
   val vm=productCard();vm.updateName("Без привязки");vm.removePendingShopLink(vm.uiState.value.pendingShopLinks.single().tempId)
@@ -85,7 +85,7 @@ class AuditUi071Test {
   vm.updateName("Батон обновлённый");vm.save();await{vm.uiState.value.isSaved||vm.uiState.value.error!=null};assertNull(vm.uiState.value.error)
   assertEquals(venue,db.shopBranchDao().forShop(shop).single().venueId)
   val other=ShopCardViewModel(shop,shops);store.put("other-card",other);await{!other.uiState.value.isLoading};other.updateCity(2)
-  assertNull(other.uiState.value.branches.single().venueId)
+  await{other.uiState.value.cityId==2L&&!other.uiState.value.isLoading};assertTrue(other.uiState.value.branches.isEmpty());assertEquals(venue,db.shopBranchDao().forShop(shop).single().venueId)
  }
  @Test fun conversionUsesCurrentCardDraftIncludingAddedPavilionAndNotes()=runBlocking{
   val vm=ShopCardViewModel(shop,shops);store.put("shop-card",vm);await{!vm.uiState.value.isLoading}

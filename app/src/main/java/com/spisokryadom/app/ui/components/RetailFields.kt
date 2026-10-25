@@ -26,7 +26,7 @@ fun RetailRelationSelector(label:String,options:List<Pair<Long,String>>,selected
                     TextButton(onClick={editor=null}){Text("Отмена")}
                     TextButton(onClick={if(mode=="new")onSelect(null);onNewName(draft.trim());editor=null},enabled=draft.isNotBlank()){Text("Сохранить")}
         }){
-            OutlinedTextField(draft,{draft=it},label={Text("Название сети")},singleLine=true,modifier=Modifier.fillMaxWidth())
+            AppTextField(draft,{draft=it},label={Text("Название сети")},singleLine=true,modifier=Modifier.fillMaxWidth())
         }
     }
 }

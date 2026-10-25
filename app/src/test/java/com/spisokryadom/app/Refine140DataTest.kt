@@ -79,7 +79,7 @@ class Refine140DataTest {
  }
  @Test fun selectingWithoutTypingCanSetQuantityAndAdd()=runBlocking{
   val vm=model();await{vm.uiState.value.searchResults.size==3}
-  vm.selectProduct(vm.uiState.value.searchResults.first{it.id==banana});vm.quantity("2,5");vm.add();await{vm.uiState.value.addedMessage!=null}
+  vm.selectProduct(vm.uiState.value.searchResults.first{it.id==banana});await{!vm.uiState.value.isLoading&&vm.uiState.value.selectedProduct?.id==banana};vm.quantity("2,5");vm.add();await{vm.uiState.value.addedMessage!=null}
   assertEquals(2.5,db.shoppingListEntryDao().getAllSync().single().quantity,0.0)
  }
  @Test fun typingNewProductStillCreatesAndAssignsIt()=runBlocking{

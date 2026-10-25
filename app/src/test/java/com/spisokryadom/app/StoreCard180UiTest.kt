@@ -78,7 +78,11 @@ class StoreCard180UiTest {
   val f=File(app.cacheDir,"synthetic-logo.png");val b=Bitmap.createBitmap(80,80,Bitmap.Config.ARGB_8888);b.eraseColor(0xFF2E7D6B.toInt());val c=Canvas(b);val p=android.graphics.Paint().apply{color=android.graphics.Color.WHITE;textSize=48f;isAntiAlias=true};c.drawText("Я",21f,57f,p);f.outputStream().use{b.compress(Bitmap.CompressFormat.PNG,100,it)};b.recycle()
   ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-symbol-edit").performScrollTo().performClick();ui.onNodeWithContentDescription("Загрузить логотип магазина").performScrollTo().performClick();val shadow=Shadows.shadowOf(ui.activity);val request=shadow.nextStartedActivityForResult;assertEquals(android.content.Intent.ACTION_GET_CONTENT,request.intent.action)
   ui.runOnUiThread{shadow.receiveResult(request.intent,android.app.Activity.RESULT_OK,android.content.Intent().setData(android.net.Uri.fromFile(f)))}
-  waitFor{runCatching{ui.onNodeWithTag("shop-symbol-apply").assertIsEnabled()}.isSuccess};ui.onNodeWithTag("shop-symbol-apply").performClick();ui.onNodeWithTag("shop-appearance-preview");shot("10-logo-preview");ui.onNodeWithTag("shop-appearance-apply").performClick();ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
+  waitFor{runCatching{ui.onNodeWithContentDescription("Заменить логотип магазина").assertIsEnabled()}.isSuccess}
+  ui.onNodeWithTag("shop-symbol-apply").performClick();waitFor{ui.onAllNodesWithTag("shop-symbol-apply").fetchSemanticsNodes().isEmpty()}
+  ui.onNodeWithTag("shop-appearance-preview").assertExists();shot("10-logo-preview");ui.onNodeWithTag("shop-appearance-apply").performClick()
+  waitFor{ui.onAllNodesWithTag("shop-appearance-apply").fetchSemanticsNodes().isEmpty()&&runCatching{ui.onNodeWithText("Сохранить").assertIsEnabled()}.isSuccess}
+  ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   assertNotNull(runBlocking{db.shopDao().getById(shop)!!.logoUri});shot("11-logo-store-list")
   runBlocking{val id=app.container.productRepository.saveWithLinks(ProductEntity(name="Пример покупки"),listOf(ProductShopLinkEntity(productId=0,shopId=shop)));app.container.shoppingListRepository.addProduct(id,choice=com.spisokryadom.app.data.repository.ShopChoice.EXPLICIT,shopId=shop)}
   ui.onNodeWithText("Главная").performClick();waitText("Пример покупки");shot("12-logo-purchases")

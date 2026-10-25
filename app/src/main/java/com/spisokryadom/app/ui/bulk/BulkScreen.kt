@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.bulk
+import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -36,7 +37,7 @@ fun BulkScreen(onBack:()->Unit,viewModel:ShoppingTextViewModel=viewModel(factory
             shareError?.let { Text(it,color=MaterialTheme.colorScheme.error) }
             if(state.loading)LinearProgressIndicator(Modifier.fillMaxWidth())
             state.error?.let { Text(it,color=MaterialTheme.colorScheme.error) }
-            OutlinedTextField(state.text,viewModel::text,label={Text("Ваш список")},enabled=!state.loading,minLines=2,
+            AppTextField(state.text,viewModel::text,label={Text("Ваш список")},enabled=!state.loading,minLines=2,
                 shape=MaterialTheme.shapes.large,modifier=Modifier.fillMaxWidth().weight(1f).testTag("bulk-editor"))
             Spacer(Modifier.height(8.dp))
         }

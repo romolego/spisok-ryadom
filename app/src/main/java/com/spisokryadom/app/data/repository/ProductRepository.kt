@@ -30,6 +30,7 @@ class ProductRepository(
     private val linkDao: ProductShopLinkDao,
     private val db: com.spisokryadom.app.data.db.AppDatabase, private val catalogueEdits:CatalogueEdits?=null
 ) {
+    val variants=ProductVariantsRepository(db,catalogueEdits)
     class DuplicateName:IllegalArgumentException("Товар с таким названием уже есть")
     suspend fun getProductByStableId(stableId:String)=productDao.getByStableId(stableId)
     suspend fun editorShops()=db.shopDao().getAllSync()
@@ -53,28 +54,55 @@ class ProductRepository(
         ensureShopLinks(productId,shopIds,draftLinks,availability,departments,branchDepartments)
     } }
     fun getAllProducts(): Flow<List<ProductEntity>> = productDao.getAll()
-    fun getAllProductsIncludingTemporary(): Flow<List<ProductEntity>> = productDao.getAllIncludingTemporary()
+    fun getAllProductsIncludingTemporary(): Flow<List<ProductEntity>> = kotlinx.coroutines.flow.combine(productDao.getAllIncludingTemporary(),db.productVariantDao().observeVariants()){ps,vs->com.spisokryadom.app.domain.variantNames(ps,vs)}
     fun getProductsByRecipientId(recipientId: Long): Flow<List<ProductEntity>> =
         productDao.getByRecipientId(recipientId)
     fun getProductsByGroupId(groupId: Long): Flow<List<ProductEntity>> =
         productDao.getByGroupId(groupId)
-    fun getProductsByUnit(unit: String): Flow<List<ProductEntity>> = productDao.getAllIncludingTemporary().map { products ->
+    fun getProductsByUnit(unit: String): Flow<List<ProductEntity>> = getAllProductsIncludingTemporary().map { products ->
         val canonical=com.spisokryadom.app.util.Quantities.unit(unit)
         products.filter{com.spisokryadom.app.util.Quantities.unit(it.defaultUnit.orEmpty())==canonical}
     }
     suspend fun getProductById(id: Long): ProductEntity? = productDao.getById(id)
     suspend fun deleteProduct(product: ProductEntity) = withCatalogueEdits(db,catalogueEdits){db.withTransaction{
         val actual=productDao.getById(product.id)?:return@withTransaction
-        val goalRows=db.shoppingListEntryDao().getAllSync().filter{it.productId==actual.id&&it.listId!=null}
-        if(goalRows.isNotEmpty()) {
-            val copy=productDao.insert(actual.copy(id=0,stableId=java.util.UUID.randomUUID().toString(),isTemporary=true))
-            goalRows.forEach{db.shoppingListEntryDao().update(it.copy(productId=copy,updatedAt=System.currentTimeMillis()))}
+        val familyIds=variants.options(actual.id,db.cityDao().getAllSync().firstOrNull()?.id?:1).map{it.product.id}.toSet().takeIf{variants.familyId(actual.id)==actual.id}?:setOf(actual.id)
+        familyIds.forEach{member->
+            val p=productDao.getById(member)?:return@forEach
+            val goalRows=db.shoppingListEntryDao().getAllSync().filter{it.productId==member&&it.listId!=null}
+            if(goalRows.isNotEmpty()){
+                val name=com.spisokryadom.app.domain.variantNames(listOf(p),db.productVariantDao().variants()).single().name
+                val copy=productDao.insert(p.copy(id=0,stableId=java.util.UUID.randomUUID().toString(),isTemporary=true,name=name))
+                variants.savePhotos(copy,variants.photos(member))
+                goalRows.forEach{db.shoppingListEntryDao().update(it.copy(productId=copy,updatedAt=System.currentTimeMillis()))}
+            }
         }
         productDao.delete(actual)
     }}
 
     fun observeAvailability() = db.shopBranchDao().observeAvailability()
 
+    fun getCatalogueShopLinks()=kotlinx.coroutines.flow.combine(linkDao.getAll(),variants.observeMetadata(),db.shopDao().getAllOrdered()){links,metadata,shops->
+        val families=metadata.first.associate{it.productId to it.familyId}
+        val cities=shops.associate{it.id to it.cityId}
+        val disabled=metadata.second.filter{!it.enabled}.map{it.productId to it.cityId}.toSet()
+        val visible=links.filter{link->cities[link.shopId]?.let{(link.productId to it) !in disabled}==true}
+        visible.groupBy{(families[it.productId]?:it.productId) to it.shopId}.map{(key,rows)->rows.minBy{it.priority}.copy(productId=key.first,restrictBranches=rows.all{it.restrictBranches})}
+    }
+    fun getCatalogueLinksForShop(shopId:Long)=getCatalogueShopLinks().map{links->links.filter{it.shopId==shopId}}
+    suspend fun toggleFamilyShopLink(productId:Long,shopId:Long)=withCatalogueEdits(db,catalogueEdits){db.withTransaction{
+        val members=variants.options(productId,db.shopDao().getById(shopId)?.cityId?:error("Магазин удалён"))
+        val linked=members.filter{linkDao.getLinksForProductSync(it.product.id).any{l->l.shopId==shopId}}
+        if(linked.isEmpty())members.forEach{ensureShopLink(it.product.id,shopId)}
+        else linked.forEach{toggleShopLink(it.product.id,shopId)}
+    }}
+    fun observeCatalogueAvailability()=kotlinx.coroutines.flow.combine(db.shopBranchDao().observeAvailability(),variants.observeMetadata(),db.shopDao().getAllOrdered()){rows,metadata,shops->
+        val families=metadata.first.associate{it.productId to it.familyId}
+        val cities=shops.associate{it.id to it.cityId}
+        val disabled=metadata.second.filter{!it.enabled}.map{it.productId to it.cityId}.toSet()
+        rows.filter{row->cities[row.shopId]?.let{(row.productId to it) !in disabled}==true}
+            .map{it.copy(productId=families[it.productId]?:it.productId)}.distinctBy{it.productId to it.branchId}
+    }
     fun getAllShopLinks(): Flow<List<ProductShopLinkEntity>> = linkDao.getAll()
 
     fun getShopLinksForProduct(productId: Long): Flow<List<ProductShopLinkEntity>> =

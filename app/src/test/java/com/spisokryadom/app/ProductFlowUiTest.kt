@@ -102,8 +102,8 @@ class ProductFlowUiTest {
   val bitmap=Bitmap.createBitmap(600,300,Bitmap.Config.ARGB_8888);bitmap.eraseColor(android.graphics.Color.rgb(34,110,95));Canvas(bitmap).drawText("Чай",30f,160f,android.graphics.Paint().apply{color=android.graphics.Color.WHITE;textSize=44f;isAntiAlias=true});app.contentResolver.openOutputStream(uri)!!.use{bitmap.compress(Bitmap.CompressFormat.JPEG,90,it)};bitmap.recycle()
   org.robolectric.Shadows.shadowOf(ui.activity).receiveResult(started.intent,android.app.Activity.RESULT_OK,null)
   ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Фото товара").fetchSemanticsNodes().isNotEmpty()};ui.onNodeWithContentDescription("Фото товара").performScrollTo();shot("04-product-camera")
-  ui.onNodeWithContentDescription("Изменить фото").performScrollTo().performClick();ui.onNodeWithText("Камера").performClick();val cancelled=org.robolectric.Shadows.shadowOf(ui.activity).nextStartedActivityForResult;org.robolectric.Shadows.shadowOf(ui.activity).receiveResult(cancelled.intent,android.app.Activity.RESULT_CANCELED,null)
-  ui.onNodeWithContentDescription("Фото товара").assertExists();ui.onNodeWithText("Сохранить").performClick();waitText("База товаров")
+  ui.onNodeWithTag("product-photo-0").performScrollTo().performClick();ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Изменить фото").fetchSemanticsNodes().isNotEmpty()};ui.onNodeWithContentDescription("Изменить фото").performClick();ui.onNodeWithText("Камера").performClick();val cancelled=org.robolectric.Shadows.shadowOf(ui.activity).nextStartedActivityForResult;org.robolectric.Shadows.shadowOf(ui.activity).receiveResult(cancelled.intent,android.app.Activity.RESULT_CANCELED,null)
+  ui.onAllNodesWithContentDescription("Фото товара").onLast().assertExists();ui.onNodeWithText("Применить",substring=false).performClick();ui.onNodeWithText("Сохранить").performClick();waitText("База товаров")
   val path=runBlocking{db.productDao().getAllSync().single().photoUri!!};assertTrue(path.contains("product_photos"));assertTrue(File(path).isFile)
  }
  @Test fun shopOrderMovesBothRowsAndKeepsTheViewport(){

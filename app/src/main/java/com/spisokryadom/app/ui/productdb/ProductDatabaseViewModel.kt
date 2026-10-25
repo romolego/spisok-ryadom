@@ -29,8 +29,9 @@ class ProductDatabaseViewModel(private val products:ProductRepository,private va
  }
  init{prefs.registerOnSharedPreferenceChangeListener(preferenceListener)}
  override fun onCleared(){prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener);super.onCleared()}
- private data class Data(val products:List<ProductEntity>,val shops:List<ShopEntity>,val links:List<ProductShopLinkEntity>,val entries:List<ShoppingListEntryEntity>,val groups:List<ProductGroupEntity> = emptyList(),val recipients:List<RecipientEntity> = emptyList(),val branches:List<ShopBranchEntity> = emptyList(),val departments:List<ShopDepartmentEntity> = emptyList(),val types:List<DepartmentTypeEntity> = emptyList(),val favoritesOnly:Boolean=false)
- private val data=combine(products.getAllProducts(),shops.getCityShops(),products.getAllShopLinks(),basket.getAllEntries()){p,s,l,e->Data(p,s,l,e)}
+ private data class Data(val products:List<ProductEntity>,val shops:List<ShopEntity>,val links:List<ProductShopLinkEntity>,val entries:List<ShoppingListEntryEntity>,val groups:List<ProductGroupEntity> = emptyList(),val recipients:List<RecipientEntity> = emptyList(),val branches:List<ShopBranchEntity> = emptyList(),val departments:List<ShopDepartmentEntity> = emptyList(),val types:List<DepartmentTypeEntity> = emptyList(),val favoritesOnly:Boolean=false,val families:Map<Long,Long> = emptyMap())
+ private val data=combine(products.getAllProducts(),shops.getCityShops(),products.getCatalogueShopLinks(),basket.getAllEntries()){p,s,l,e->Data(p,s,l,e)}
+  .combine(products.variants.observeMetadata()){d,m->d.copy(families=m.first.associate{it.productId to it.familyId})}
   .combine(classifiers.getAllGroups()){d,g->d.copy(groups=g)}.combine(classifiers.getAllRecipients()){d,r->d.copy(recipients=r)}.combine(shops.observeBranches()){d,b->d.copy(branches=b)}.combine(shops.getAllDepartments()){d,deps->d.copy(departments=deps)}.combine(shops.departmentTypes()){d,t->d.copy(types=t)}.combine(favorites){d,f->d.copy(favoritesOnly=f)}
  private val results:StateFlow<ProductDatabaseUiState> = combine(data,query.debounce(120),mode,classifiers.getOrderedUnitNames(),error){d,q,m,u,err->
   val available=if(d.favoritesOnly)d.products.filter{it.isFavorite}else d.products
@@ -58,7 +59,7 @@ class ProductDatabaseViewModel(private val products:ProductRepository,private va
    ProductViewMode.BY_GROUPS->{val grouped=list.groupBy{it.productGroupId};buildList{com.spisokryadom.app.util.alphabetical(d.groups){it.name}.forEach{g->grouped[g.id]?.let{add(ProductSection(g.name,it,"group_${g.id}",accent=g.accent,iconKey=g.iconKey))}};grouped[null]?.let{add(ProductSection("Без группы",it,"no_group"))}}}
    ProductViewMode.BY_RECIPIENTS->{val grouped=list.groupBy{it.recipientId};buildList{d.recipients.sortedBy{it.displayOrder}.forEach{g->grouped[g.id]?.let{add(ProductSection(g.name,it,"recipient_${g.id}",accent=g.accent,iconKey=g.iconKey))}};grouped[null]?.let{add(ProductSection("Без получателя",it,"no_recipient"))}}}
   }
-  fun info(rows:List<ShoppingListEntryEntity>)=rows.groupBy{it.productId}.mapValues{(_,purchases)->val first=purchases.minBy{it.id};ShoppingListInfo(first.id,first.quantity,first.unit,shopMap[first.assignedShopId]?.name,com.spisokryadom.app.ui.components.pendingPurchases(purchases,shopMap,branchMap))}
+  fun info(rows:List<ShoppingListEntryEntity>)=rows.groupBy{d.families[it.productId]?:it.productId}.mapValues{(_,purchases)->val first=purchases.minBy{it.id};ShoppingListInfo(first.id,first.quantity,first.unit,shopMap[first.assignedShopId]?.name,com.spisokryadom.app.ui.components.pendingPurchases(purchases,shopMap,branchMap))}
   val pending=d.entries.filter{it.listId==null&&!it.isBought&&(it.assignedShopId==null||it.assignedShopId in shopMap)}
   val entries=info(pending)
   ProductDatabaseUiState(searchedQuery=q,exactNameExists=d.products.any{FuzzySearch.normalize(it.name)==FuzzySearch.normalize(q)},products=list,sections=(if(!d.favoritesOnly&&list.any{it.isFavorite})listOf(ProductSection("Избранное",list.filter{it.isFavorite},"favorites"))else emptyList())+sections,viewMode=m,searchQuery=q,unitSuggestions=u,shoppingListMap=entries,isLoading=false,error=err,

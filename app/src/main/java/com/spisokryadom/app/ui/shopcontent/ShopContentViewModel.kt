@@ -100,9 +100,9 @@ class ShopContentViewModel(
             }
         }
         viewModelScope.launch(errors) {
-            shoppingListRepository.getAllEntries().collect { entries ->
+            combine(shoppingListRepository.getAllEntries(),productRepository.variants.observeMetadata()){entries,metadata->entries to metadata.first.associate{it.productId to it.familyId}}.collect { (entries,families) ->
                 _shoppingListEntries.value = entries
-                    .filter { it.listId==null&&!it.isBought && it.assignedShopId==shopId }.sortedBy{it.id}.groupBy{it.productId}
+                    .filter { it.listId==null&&!it.isBought && it.assignedShopId==shopId }.sortedBy{it.id}.groupBy{families[it.productId]?:it.productId}
             }
         }
         viewModelScope.launch(errors) {
@@ -118,7 +118,7 @@ class ShopContentViewModel(
         }
         viewModelScope.launch(errors) {
             combine(
-                productRepository.getShopLinksForShop(shopId),
+                productRepository.getCatalogueLinksForShop(shopId),
                 _allProducts,
                 _departments,
                 _shoppingListEntries,
@@ -147,7 +147,7 @@ class ShopContentViewModel(
 
     init {
         viewModelScope.launch(errors){
-            combine(_uiState.map{it.products}.distinctUntilChanged(),shopRepository.observeBranches(),productRepository.observeBranchAvailability(),shoppingListRepository.getAllEntries()){products,allPoints,availability,entries->PointData(products,allPoints,availability,entries.filter{it.listId==null})}
+            combine(_uiState.map{it.products}.distinctUntilChanged(),shopRepository.observeBranches(),productRepository.observeCatalogueAvailability(),shoppingListRepository.getAllEntries()){products,allPoints,availability,entries->PointData(products,allPoints,availability,entries.filter{it.listId==null})}
                 .combine(_departments){data,departments->data.copy(departments=departments)}
                 .combine(_shops){data,shops->data.copy(shops=shops)}
                 .combine(productRepository.observeBranchDepartments()){data,overrides->data to overrides}
@@ -200,7 +200,7 @@ class ShopContentViewModel(
     init {
         // Track which product IDs are linked to this shop (updates reactively)
         viewModelScope.launch(errors) {
-            productRepository.getShopLinksForShop(shopId).collect { links ->
+            productRepository.getCatalogueLinksForShop(shopId).collect { links ->
                 _linkedProductIds.value = links.map { it.productId }.toSet()
                 if(_uiState.value.showPickProducts)refreshPickList()
             }
@@ -233,7 +233,7 @@ class ShopContentViewModel(
             _uiState.value=_uiState.value.copy(pickProducts=result)
         }
     }
-    fun toggleProductLink(productId:Long){purchaseCommand{productRepository.toggleShopLink(productId,shopId)}}
+    fun toggleProductLink(productId:Long){purchaseCommand{productRepository.toggleFamilyShopLink(productId,shopId)}}
 
     companion object {
         fun factory(shopId: Long): ViewModelProvider.Factory = viewModelFactory {

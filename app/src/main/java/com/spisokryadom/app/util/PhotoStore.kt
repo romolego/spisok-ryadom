@@ -36,7 +36,7 @@ object PhotoStore {
         return BitmapFactory.decodeFile(path,BitmapFactory.Options().apply{inSampleSize=sample})
     }
     fun cleanup(context:Context,retained:Set<String>){
-        val editorPhotos=context.getSharedPreferences("product_card_drafts",0).all.values.mapNotNull{raw->runCatching{org.json.JSONObject(raw as String).optString("photoUri").takeIf{it.isNotBlank()}}.getOrNull()}.toSet()
+        val editorPhotos=com.spisokryadom.app.ui.productcard.ProductDraftStore.photos(context)+context.getSharedPreferences("product_card_drafts",0).all.values.mapNotNull{raw->runCatching{org.json.JSONObject(raw as String).optString("photoUri").takeIf{it.isNotBlank()}}.getOrNull()}.toSet()
         val now=System.currentTimeMillis()
         listOf("product_photos","branch_photos","shop_logos","venue_photos").forEach{name->
             val dir=File(context.filesDir,name)

@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.productcard
+import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,7 +31,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -240,12 +240,13 @@ fun ProductCardScreen(
                 .consumeWindowInsets(padding)
                 .imePadding()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(scrollState),
+                .verticalScroll(scrollState)
+                .then(productVariantSwipe(state,viewModel)),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if(state.isTemporary)TextButton(onClick=viewModel::keepInCatalog){Text("Сохранить разовую позицию в базе")}
             state.autoSaveIssue?.let{Text("$it",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.error)}
-            OutlinedTextField(
+            AppTextField(
                 value = state.name,
                 onValueChange = { viewModel.updateName(it) },
                 label = { Text("Название товара") },
@@ -292,14 +293,13 @@ fun ProductCardScreen(
             )
 
             if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name,{createRecipient=false},done)},{createRecipient=false})
-            com.spisokryadom.app.ui.components.BranchPhotoEditor(
-                path=state.photoUri,onChange={viewModel.updatePhotoUri(it.orEmpty())},onBusyChange=viewModel::photoBusy,
-                title="Фото товара",directory="product_photos",compact=true,showTitle=false,enabled=!state.isPhotoBusy,
+            if(!state.isTemporary)ProductVariantsBar(state,viewModel)
+            com.spisokryadom.app.ui.components.ProductPhotos(state.photos,!state.isPhotoBusy&&!state.isSaving,viewModel::updatePhotos,viewModel::photoBusy,
                 toolbar={gallery,camera->
                     com.spisokryadom.app.ui.components.FavoriteToggle(state.isFavorite,{leaveName();viewModel.favorite(it)},enabled=!state.isSaving&&!state.isPhotoBusy)
                     Spacer(Modifier.weight(1f))
-                    IconButton(onClick=gallery,enabled=!state.isPhotoBusy&&!state.isSaving){Icon(Icons.Filled.PhotoLibrary,"Выбрать фото")}
-                    IconButton(onClick=camera,enabled=!state.isPhotoBusy&&!state.isSaving){Icon(Icons.Filled.PhotoCamera,"Камера")}
+                    IconButton(onClick=gallery,enabled=!state.isPhotoBusy&&!state.isSaving&&state.photos.size<5){Icon(Icons.Filled.PhotoLibrary,"Выбрать фото")}
+                    IconButton(onClick=camera,enabled=!state.isPhotoBusy&&!state.isSaving&&state.photos.size<5){Icon(Icons.Filled.PhotoCamera,"Камера")}
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick={showAppearance=true},enabled=!state.isPhotoBusy&&!state.isSaving){Icon(Icons.Filled.Palette,"Цвет товара")}
                 })
@@ -315,7 +315,7 @@ fun ProductCardScreen(
                 unitLabel = "Ед. изм."
             )
 
-            OutlinedTextField(
+            AppTextField(
                 value = state.note,
                 onValueChange = { viewModel.updateNote(it) },
                 label = { Text("Заметка") },
@@ -328,7 +328,7 @@ fun ProductCardScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedTextField(
+                AppTextField(
                     value = state.priceValue,
                     onValueChange = { value ->
                         if (value.isEmpty() || value.matches(Regex("^\\d*[.,]?\\d*$"))) {
@@ -339,7 +339,7 @@ fun ProductCardScreen(
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
-                OutlinedTextField(
+                AppTextField(
                     value = state.priceDate,
                     onValueChange = { viewModel.updatePriceDate(it) },
                     label = { Text("Дата цены") },
@@ -350,14 +350,14 @@ fun ProductCardScreen(
             }
 
             if (state.purchaseType != "offline") {
-                OutlinedTextField(
+                AppTextField(
                     value = state.sellerUrl,
                     onValueChange = { viewModel.updateSellerUrl(it) },
                     label = { Text("Ссылка на продавца") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
+                AppTextField(
                     value = state.productUrl,
                     onValueChange = { viewModel.updateProductUrl(it) },
                     label = { Text("Ссылка на товар") },

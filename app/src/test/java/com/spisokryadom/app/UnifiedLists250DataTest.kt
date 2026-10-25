@@ -72,8 +72,8 @@ class UnifiedLists250DataTest {
    old.execSQL("INSERT INTO products(id,name,stableId,purchaseType,isTemporary)VALUES(9,'Сыр','product-a','offline',0)")
    old.execSQL("INSERT INTO shopping_list_entries(id,productId,listId,quantity,unit,isBought,isUrgent,createdAt,updatedAt)VALUES(10,9,7,2,'кг',0,1,1,2),(11,9,8,3,'кг',1,0,1,2)");old.version=22
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25).build()
-  try{assertEquals(25,migrated.openHelper.writableDatabase.version);assertEquals(listOf(7L,8L),migrated.goalListDao().getAllSync().sortedBy{it.id}.map{it.id});assertTrue(migrated.goalListDao().getAllSync().none{it.isTemplate});assertEquals(2.0,migrated.shoppingListEntryDao().getById(10)!!.quantity,0.0);assertTrue(migrated.shoppingListEntryDao().getById(11)!!.isBought);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}finally{migrated.close();app.deleteDatabase(name)}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_22_23,AppDatabase.MIGRATION_23_24,AppDatabase.MIGRATION_24_25,AppDatabase.MIGRATION_25_26).build()
+  try{assertEquals(26,migrated.openHelper.writableDatabase.version);assertEquals(listOf(7L,8L),migrated.goalListDao().getAllSync().sortedBy{it.id}.map{it.id});assertTrue(migrated.goalListDao().getAllSync().none{it.isTemplate});assertEquals(2.0,migrated.shoppingListEntryDao().getById(10)!!.quantity,0.0);assertTrue(migrated.shoppingListEntryDao().getById(11)!!.isBought);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}finally{migrated.close();app.deleteDatabase(name)}
  }
  @Test fun fullLegacyBackupConvertsOnlyTheOldTypeAndKeepsIdentityAndPurchases():Unit=runBlocking{
   val goals=GoalListRepository(db,ShoppingListRepository(db.shoppingListEntryDao(),db,locations));val id=goals.create("Прежний шаблон");goals.addQuick(id,"Сыр",2.0,"кг",100.0)

@@ -130,6 +130,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
             val shared = entries.getAllSync().any { it.id != entryId && it.productId == product.id }
             if (shared) {
                 val clone = db.productDao().insert(product.copy(id = 0, stableId = java.util.UUID.randomUUID().toString(), name = safeName))
+                ProductVariantsRepository(db).savePhotos(clone,ProductVariantsRepository(db).photos(product.id))
                 entry = entry.copy(productId = clone)
             } else db.productDao().update(product.copy(name = safeName))
         }
@@ -224,7 +225,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
             val product = products[entry.productId] ?: error("Товар удалён")
             val place = snapshot.place(entry)
             val assigned = snapshot.shops.any { it.id == entry.assignedShopId }
-            GoalListItemDraft(name = product.name, quantity = entry.quantity, unit = entry.unit,
+            GoalListItemDraft(name = com.spisokryadom.app.domain.variantNames(listOf(product),db.productVariantDao().variants()).single().name, quantity = entry.quantity, unit = entry.unit,
                 unitPrice = entry.plannedUnitPrice,
                 note = entry.note.orEmpty(), comment = entry.comment.orEmpty(),
                 shopName = if (assigned) place?.title.orEmpty() else entry.customShopName.orEmpty(),
@@ -284,7 +285,10 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
 
     private suspend fun copyPlannedRow(row: ShoppingListEntryEntity, owner: Long?): ShoppingListEntryEntity {
         val product = db.productDao().getById(row.productId) ?: error("Товар удалён")
-        val productId = if (product.isTemporary) db.productDao().insert(product.copy(id = 0, stableId = java.util.UUID.randomUUID().toString())) else product.id
+        val productId = if (product.isTemporary) {
+            val clone=db.productDao().insert(product.copy(id = 0, stableId = java.util.UUID.randomUUID().toString()))
+            ProductVariantsRepository(db).savePhotos(clone,ProductVariantsRepository(db).photos(product.id));clone
+        } else product.id
         val now = System.currentTimeMillis()
         return row.copy(id = 0, productId = productId, listId = owner, isBought = false, createdAt = now, updatedAt = now)
     }

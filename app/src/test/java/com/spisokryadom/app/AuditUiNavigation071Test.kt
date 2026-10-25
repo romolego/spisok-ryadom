@@ -53,6 +53,7 @@ class AuditUiNavigation071Test {
   // until the new result is ready. Mere existence does not mean this row is actionable.
   ui.waitUntil(20_000){runCatching{ui.onNodeWithTag("candidate-all-$product").assertIsEnabled()}.isSuccess}
   ui.onNodeWithTag("candidate-all-$product").performClick();waitText("Выбран")
+  ui.waitUntil(20_000){runCatching{ui.onNodeWithText("Добавить в список").assertIsEnabled()}.isSuccess}
   ui.onNodeWithText("Добавить в список").performScrollTo().assertIsEnabled().performClick();waitText("Список покупок")
   ui.waitUntil(20_000){runBlocking{db.shoppingListEntryDao().getAllSync().filter{it.productId==product}.sumOf{it.quantity}==2.0}}
   runBlocking{

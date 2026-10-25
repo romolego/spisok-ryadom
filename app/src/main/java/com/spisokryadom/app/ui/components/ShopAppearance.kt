@@ -97,16 +97,10 @@ private fun ShopAppearanceEditor(initialBackground:String,name:String,initialIco
                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
                     Icon(Icons.Filled.ViewAgenda,null,tint=MaterialTheme.colorScheme.primary)
                     Text("Выделение товаров",Modifier.weight(1f).padding(horizontal=10.dp),style=MaterialTheme.typography.titleSmall)
-                    Checkbox(items.isNotBlank(),{checked->if(checked)items=lastItems else{lastItems=items;items=""}},enabled=!locked,modifier=Modifier.testTag("shop-items-switch"))
-                }
-                if(items.isNotBlank()){
-                    DropdownSelector("Фон товаров",listOf("auto","custom"),if(items=="auto")"auto"else "custom",
-                        {if(it=="auto")"В тон подложки"else "Свой цвет"},
-                        {mode->if(!locked)when(mode){"auto"->items="auto";"custom"->picker="items"}},allowNone=false)
-                    if(items!="auto")Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                        Text("Цвет товаров",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
-                        IconButton(onClick={picker="items"},enabled=!locked){Icon(Icons.Filled.Circle,"Цвет фона товаров",tint=accentColor(items)?:MaterialTheme.colorScheme.primary)}
+                    if(items.isNotBlank())IconButton(onClick={picker="items"},enabled=!locked,modifier=Modifier.testTag("shop-items-color")){
+                        Icon(Icons.Filled.Circle,"Цвет фона товаров",tint=accentColor(if(items=="auto")background else items)?:MaterialTheme.colorScheme.surfaceVariant)
                     }
+                    Checkbox(items.isNotBlank(),{checked->if(checked)items=lastItems else{lastItems=items;items=""}},enabled=!locked,modifier=Modifier.testTag("shop-items-switch"))
                 }
                 HorizontalDivider()
                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
@@ -121,7 +115,7 @@ private fun ShopAppearanceEditor(initialBackground:String,name:String,initialIco
     }
     when(picker){
         "block"->AppearanceSheet("Цвет подложки",background,withIcons=false,onSave={c,_->background=c;if(c.isNotBlank())lastColor=c;picker=""},onDismiss={picker=""},preview={c,_->ShopBlockPreview(c,name,icon,logo,compact=true,purchaseBackground=items)})
-        "items"->AppearanceSheet("Цвет товаров",items.takeUnless{it=="auto"}.orEmpty(),withIcons=false,onSave={c,_->items=c;picker=""},onDismiss={picker=""},preview={c,_->ShopBlockPreview(background,name,icon,logo,compact=true,purchaseBackground=c)})
+        "items"->AppearanceSheet("Цвет товаров",items,withIcons=false,onSave={c,_->items=c;if(c.isNotBlank())lastItems=c;picker=""},onDismiss={picker=""},matchingBackground=background,preview={c,_->ShopBlockPreview(background,name,icon,logo,compact=true,purchaseBackground=c)})
         "icon"->ShopSymbolPicker(icon,logo,name,onDismiss={picker=""},onBusy={busy=it;busyCallback(it)},onApply={i,l->icon=i;logo=l;picker=""})
     }
 }

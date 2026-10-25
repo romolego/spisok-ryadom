@@ -156,7 +156,7 @@ class SettingsCities280DataTest {
   val p=products.saveWithLinks(ProductEntity(name="Смешанный",purchaseType="both"),emptyList())
   val manager=BackupManager(app,db);val file=manager.exportFile();val expected=db.shopDao().getAllSync()
   try{
-   assertEquals(23,root(file).getInt("version"));manager.importFile(file);assertEquals(expected,db.shopDao().getAllSync());assertEquals("both",db.productDao().getById(p)!!.purchaseType)
+   assertEquals(24,root(file).getInt("version"));manager.importFile(file);assertEquals(expected,db.shopDao().getAllSync());assertEquals("both",db.productDao().getById(p)!!.purchaseType)
    val old=root(file).put("version",22);val data=old.getJSONObject("data");val rows=data.getJSONArray("shops");for(i in 0 until rows.length())rows.getJSONObject(i).remove("cityGroupKey")
    data.getJSONArray("products").getJSONObject(0).put("purchaseType","offline");val legacy=zip(old)
    try{manager.importFile(legacy);assertTrue(db.shopDao().getAllSync().all{it.cityGroupKey.isEmpty()});assertEquals("offline",db.productDao().getById(p)!!.purchaseType)}finally{manager.discard(legacy)}
@@ -237,7 +237,7 @@ class SettingsCities280DataTest {
    old.execSQL("INSERT INTO shops(id,name,cityId,displayOrder,manualOrderOverride,shoppingBackground,iconKey,purchaseBackground,isFavorite,favoriteOrder) VALUES(7,'Лента',1,13,1,'rose','store','auto',1,3),(8,'Лента',2,4,0,'','','',0,0)")
    old.execSQL("INSERT INTO shop_branches(id,shopId,address,displayOrder,label) VALUES(9,7,'Мира 1',1,'')");old.version=24
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_24_25).build()
-  try{assertEquals(25,migrated.openHelper.writableDatabase.version);assertEquals(setOf(7L,8L),migrated.shopDao().getAllSync().map{it.id}.toSet());assertTrue(migrated.shopDao().getAllSync().all{it.cityGroupKey.isEmpty()});assertEquals(3,migrated.shopDao().getById(7)!!.favoriteOrder);assertEquals(7L,migrated.shopBranchDao().get(9)!!.shopId);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}finally{migrated.close();app.deleteDatabase(name)}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_24_25,AppDatabase.MIGRATION_25_26).build()
+  try{assertEquals(26,migrated.openHelper.writableDatabase.version);assertEquals(setOf(7L,8L),migrated.shopDao().getAllSync().map{it.id}.toSet());assertTrue(migrated.shopDao().getAllSync().all{it.cityGroupKey.isEmpty()});assertEquals(3,migrated.shopDao().getById(7)!!.favoriteOrder);assertEquals(7L,migrated.shopBranchDao().get(9)!!.shopId);migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}}finally{migrated.close();app.deleteDatabase(name)}
  }
 }

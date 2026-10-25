@@ -48,13 +48,14 @@ class Refine130UiTest {
   add("Хлеб с изюмом",a,bakery);add("Молоко",a,dairy);add("Банан",b);Unit
  };waitFor{ui.onAllNodesWithTag("purchase-place-$a:$branch").fetchSemanticsNodes().isNotEmpty()}}
  @After fun close(){ui.activityRule.scenario.close();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
- private fun settings(){ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("widget-settings"))}
- private fun font(size:Int){ui.onNodeWithTag("widget-font-size").performScrollTo().performSemanticsAction(SemanticsActions.SetProgress){it(size.toFloat())};waitText("Размер текста: $size")}
+ private fun settings(){ui.onNodeWithContentDescription("Настройки").performClick();waitText("Настройки");ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("widget-settings"));ui.onNodeWithTag("widget-settings").performClick();waitFor{ui.onAllNodesWithTag("widget-grouping").fetchSemanticsNodes().isNotEmpty()}}
+ private fun font(size:Int){ui.onNodeWithTag("widget-font-size").performScrollTo().performClick();ui.onAllNodesWithText(size.toString()).onLast().performScrollTo().performClick();waitFor{WidgetSettings.load(prefs).textSize==size}}
+
  private fun grouping(mode:ViewMode){ui.onNodeWithText("Группировка в виджете").performScrollTo().performClick();val label=when(mode){ViewMode.BY_SHOPS->"По магазинам";ViewMode.BY_GROUPS->"По товарным группам";ViewMode.BY_RECIPIENTS->"По получателям";ViewMode.FLAT->"Общий список"};ui.onAllNodesWithText(label).onLast().performClick();waitFor{WidgetSettings.load(prefs).mode==mode}}
  @Test fun widgetSettingsAreIndependentAndSurviveActivityRecreation(){
   val original=prefs.all["shopping_list_view_mode"];settings();grouping(ViewMode.BY_RECIPIENTS);font(12);shot("01-widget-settings-small")
   assertEquals(original,prefs.all["shopping_list_view_mode"])
-  ui.activityRule.scenario.recreate();waitText("Настройки");ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("widget-settings"));waitText("Размер текста: 12");ui.onNode(hasText("По получателям") and hasAnyAncestor(hasTestTag("widget-settings"))).assertExists()
+  ui.activityRule.scenario.recreate();waitFor{ui.onAllNodesWithTag("widget-grouping").fetchSemanticsNodes().isNotEmpty()};ui.onNode(hasText("По получателям") and hasAnyAncestor(hasTestTag("widget-grouping"))).assertExists();ui.onNodeWithTag("widget-font-size").performScrollTo();ui.onNode(hasText("12") and hasAnyAncestor(hasTestTag("widget-font-size"))).assertExists()
   assertEquals(WidgetSettings(ViewMode.BY_RECIPIENTS,true,12),WidgetSettings.load(prefs))
  }
  @Test fun allWidgetGroupingsAreReachableWithoutAnUnassignedMode(){
@@ -106,9 +107,9 @@ class Refine130UiTest {
  }
  @Test fun restoredWidgetPreferencesRefreshAlreadyOpenSettings(){
   WidgetSettings(ViewMode.BY_GROUPS,false,12).save(prefs);val file=runBlocking{app.container.backupManager.exportFile()}
-  WidgetSettings(ViewMode.BY_RECIPIENTS,true,22).save(prefs);settings();waitText("Размер текста: 22")
+  WidgetSettings(ViewMode.BY_RECIPIENTS,true,22).save(prefs);settings();ui.onNodeWithTag("widget-font-size").performScrollTo();ui.onNode(hasText("22") and hasAnyAncestor(hasTestTag("widget-font-size"))).assertExists()
   runBlocking{app.container.backupManager.importFile(file);app.container.backupManager.discard(file)}
-  waitText("Размер текста: 12");assertEquals(WidgetSettings(ViewMode.BY_GROUPS,false,12),WidgetSettings.load(prefs))
+  ui.onNodeWithTag("widget-font-size").performScrollTo();ui.onNode(hasText("12") and hasAnyAncestor(hasTestTag("widget-font-size"))).assertExists();assertEquals(WidgetSettings(ViewMode.BY_GROUPS,false,12),WidgetSettings.load(prefs))
   ui.onNodeWithText("По товарным группам").assertExists()
  }
 }
