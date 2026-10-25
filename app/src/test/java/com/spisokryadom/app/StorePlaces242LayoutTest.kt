@@ -70,7 +70,7 @@ class StorePlaces242LayoutTest {
   ui.onNodeWithContentDescription("Оформление магазина").performClick()
   ui.onNodeWithTag("shop-background-color").assertDoesNotExist();ui.onNodeWithText("Фон товаров").assertDoesNotExist()
   ui.onNodeWithTag("shop-background-switch").performClick();ui.onNodeWithTag("shop-background-color").assertExists()
-  ui.onNodeWithTag("shop-items-switch").performScrollTo().performClick();ui.onNodeWithText("В тон подложки").assertExists()
+  ui.onNodeWithTag("shop-items-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-items-color").assertExists().performClick();ui.onNodeWithTag("appearance-match-background").assertIsOn();ui.onNodeWithText("Применить оформление").performClick()
   ui.onNodeWithText("Отмена").performClick();assertEquals("",block);assertEquals("",items)
   ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-items-switch").performScrollTo().performClick();ui.onNodeWithTag("shop-appearance-apply").performClick();assertEquals("auto",items)
   ui.onNodeWithContentDescription("Оформление магазина").performClick();ui.onNodeWithTag("shop-items-switch").performScrollTo().performClick();ui.onNodeWithText("Фон товаров").assertDoesNotExist();shot("appearance-disabled-controls");ui.onNodeWithTag("shop-appearance-apply").performClick();assertEquals("",items)

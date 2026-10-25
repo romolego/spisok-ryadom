@@ -89,8 +89,9 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
  }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun AppearanceSheet(title:String,accent:String,iconKey:String="",withIcons:Boolean=true,onSave:(String,String)->Unit,onDismiss:()->Unit,preview:(@Composable (String,String)->Unit)?=null,withColors:Boolean=true,noneIconLabel:String="Без значка"){
- var color by remember{mutableStateOf(accent)};var icon by remember{mutableStateOf(iconKey)}
+@Composable fun AppearanceSheet(title:String,accent:String,iconKey:String="",withIcons:Boolean=true,onSave:(String,String)->Unit,onDismiss:()->Unit,preview:(@Composable (String,String)->Unit)?=null,withColors:Boolean=true,noneIconLabel:String="Без значка",matchingBackground:String?=null){
+ var automatic by remember{mutableStateOf(matchingBackground!=null&&accent=="auto")}
+ var color by remember{mutableStateOf(if(accent=="auto")matchingBackground.orEmpty() else accent)};var icon by remember{mutableStateOf(iconKey)}
  var custom by remember{mutableStateOf(false)};var hex by remember{mutableStateOf(colorHex(accentColor(accent)?:Color(0xFF4B81A5)))}
  var hue by remember{mutableStateOf(0f)};var saturation by remember{mutableStateOf(1f)};var brightness by remember{mutableStateOf(1f)}
  var query by remember{mutableStateOf("")}
@@ -100,11 +101,15 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
  val valid=!custom||accentColor(hex)!=null
  val filtered=remember(query){if(query.isBlank())symbols else com.spisokryadom.app.util.FuzzySearch.rank(symbols,query,{it.second.first})}
  EditorSheet(title,onDismiss,scrollContent=false,actions={
-  Button(onClick={onSave(color,icon)},enabled=valid,modifier=Modifier.fillMaxWidth()){Text("Применить оформление")}
+  Button(onClick={onSave(if(automatic)"auto"else color,icon)},enabled=automatic||valid,modifier=Modifier.fillMaxWidth()){Text("Применить оформление")}
  }){
    LazyColumn(Modifier.testTag("appearance-options").fillMaxWidth()){
-    preview?.let{item{it(color,icon)}}
-    if(withColors){
+    preview?.let{item{it(if(automatic)"auto"else color,icon)}}
+    if(matchingBackground!=null)item{Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+     Text("В тон подложки",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
+     Switch(automatic,{automatic=it},modifier=Modifier.testTag("appearance-match-background"))
+    }}
+    if(withColors&&!automatic){
     if(!custom||preview==null)item{Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
      listOf("" to "Без цвета","green" to "Зелёный","yellow" to "Жёлтый","blue" to "Синий","rose" to "Розовый","violet" to "Фиолетовый").forEach{(key,name)->
       IconButton(onClick={select(key);if(key.isBlank())custom=false}){Icon(if(key==color)Icons.Filled.CheckCircle else Icons.Filled.Circle,name,tint=accentColor(key)?:MaterialTheme.colorScheme.outline)}
@@ -116,13 +121,13 @@ fun colorHex(color:Color):String="#%06X".format(java.util.Locale.ROOT,color.toAr
      TextButton(modifier=Modifier.testTag("appearance-custom-toggle"),enabled=valid,onClick={custom=!custom;if(custom){val c=accentColor(color)?:Color(0xFF4B81A5);hex=colorHex(c);channels(c)}}){Text(if(custom)"Палитра"else "Свой цвет")}
     }}
     if(custom){
-     item{OutlinedTextField(hex,{raw->hex=raw.trim();accentColor(hex)?.let{color=colorHex(it);channels(it)}},label={Text("HEX")},singleLine=true,isError=accentColor(hex)==null,modifier=Modifier.testTag("appearance-hex").fillMaxWidth())}
+     item{AppTextField(hex,{raw->hex=raw.trim();accentColor(hex)?.let{color=colorHex(it);channels(it)}},label={Text("HEX")},singleLine=true,isError=accentColor(hex)==null,modifier=Modifier.testTag("appearance-hex").fillMaxWidth())}
      item{ColorChannel("Тон",hue,0f..360f,"appearance-hue",listOf(Color.Red,Color.Yellow,Color.Green,Color.Cyan,Color.Blue,Color.Magenta,Color.Red)){slide(h=it)}}
      item{ColorField(hue,saturation,brightness){s,v->slide(s=s,v=v)}}
     }
     }
     if(withIcons){
-     item{OutlinedTextField(query,{query=it},label={Text("Найти значок")},singleLine=true,modifier=Modifier.testTag("appearance-icon-search").fillMaxWidth())}
+     item{AppTextField(query,{query=it},label={Text("Найти значок")},singleLine=true,modifier=Modifier.testTag("appearance-icon-search").fillMaxWidth())}
      item{ListItem(headlineContent={Text(noneIconLabel)},leadingContent={RadioButton(icon.isBlank(),null)},modifier=Modifier.clickable{icon=""})}
      items(filtered.chunked(2)){pair->Row(Modifier.fillMaxWidth()){pair.forEach{(key,value)->
       ListItem(headlineContent={Text(value.first,style=MaterialTheme.typography.bodySmall)},leadingContent={Icon(value.second,null,tint=if(key==icon)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)},modifier=Modifier.testTag("appearance-icon-$key").weight(1f).clickable{icon=key},colors=ListItemDefaults.colors(containerColor=if(key==icon)MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface))

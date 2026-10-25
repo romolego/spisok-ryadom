@@ -67,7 +67,7 @@ class Refine120UiTest {
   runBlocking{assertNotNull(db.shoppingListEntryDao().getById(entry)!!.assignedDepartmentId)}
  }
  @Test fun twoSelectedStoresGainGroupAndThirdDoesNot(){
-  click("Магазины");ui.onNodeWithContentDescription("Выбрать магазины").performClick();ui.onNodeWithTag("batch-row-$a").performClick();ui.onNodeWithTag("batch-row-$b").performClick();waitText("Выбрано: 2");actions();click("Добавить группы магазина");click("Напитки");shot("04-stores-groups");click("Применить к 2");waitFor{runBlocking{db.shopDepartmentDao().getAllSync().size==2}}
+  click("Магазины");ui.onNodeWithContentDescription("Управление магазинами").performClick();ui.onNodeWithText("Выбрать магазины").performClick();ui.onNodeWithTag("batch-row-$a").performClick();ui.onNodeWithTag("batch-row-$b").performClick();waitText("Выбрано: 2");actions();click("Добавить группы магазина");click("Напитки");shot("04-stores-groups");click("Применить к 2");waitFor{runBlocking{db.shopDepartmentDao().getAllSync().size==2}}
   runBlocking{assertEquals(setOf(a,b),db.shopDepartmentDao().getAllSync().map{it.shopId}.toSet());assertTrue(db.shopDepartmentDao().getByShopIdSync(c).isEmpty())}
  }
  @Test fun shoppingBatchUrgencyBuyReturnAndConfirmedDelete(){

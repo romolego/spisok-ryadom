@@ -45,7 +45,7 @@ class CatalogUiTest {
   ui.onNode(hasScrollToIndexAction()).performScrollToIndex(2600)
   ui.onNodeWithText("Главная").performClick();ui.onNodeWithContentDescription("Добавить в список").performClick()
   ui.onNode(hasSetTextAction() and hasText("Название товара")).performTextReplacement("яблыки")
-  waitText("Яблоки Гала");ui.onNodeWithText("Яблоки Гала").performScrollTo().performClick()
+  waitText("Яблоки Гала");ui.onNodeWithText("Яблоки Гала").performScrollTo().performClick();ui.waitUntil(20_000){runCatching{ui.onNode(hasSetTextAction() and hasText("Количество")).assertIsEnabled()}.isSuccess}
   ui.onNode(hasSetTextAction() and hasText("Количество")).performTextReplacement("0,75")
   ui.onNodeWithText("Добавить в список").performScrollTo().performClick()
   waitText("Список покупок")

@@ -150,6 +150,7 @@ if(managerKind=="dept"){
     SettingSwitch("Сохранять приоритет магазина при переносе товара",defaults.rememberShopPriorityOnMove,viewModel::setRememberShopPriorityOnMove)
     SettingSwitch("Новые товары по умолчанию сохранять в базе",defaults.saveNewProductToDatabase,viewModel::setGlobalSaveNewProductToDatabase)
     SettingSwitch("Показывать товары до ввода названия",defaults.browseProductsOnAdd,viewModel::setBrowseProductsOnAdd)
+    SettingSwitch("Запоминать выбранный вариант товара",defaults.rememberVariantChoice,viewModel::setRememberVariantChoice,help="Выбранный при добавлении покупки вариант становится первым для текущего города. Если выключено, выбор действует только для этой покупки.")
     SettingSwitch("Автосохранение карточек товаров",defaults.autoSaveProductCards,viewModel::setAutoSaveProductCards,help="Если выключено, изменения карточки сохраняются только кнопкой «Сохранить». Если включено, незавершённый ввод сохраняется при выходе.")
     }}
    }

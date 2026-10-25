@@ -20,7 +20,14 @@ class BatchRepository(private val db:AppDatabase,private val products:ProductRep
   return ids.sorted().map{db.productDao().getById(it)?:error("Один из товаров удалён. Обновите выбор")}
  }
  suspend fun changeProducts(ids:Set<Long>,change:ProductBatchChange)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
-  val rows=products(ids)
+  val selected=products(ids)
+  val all=db.productDao().getAllSync().associateBy{it.id}
+  val families=db.productVariantDao().variants()
+  val expanded=selected.flatMap{p->val family=families.find{it.productId==p.id}?.familyId?:p.id;families.filter{it.familyId==family}.mapNotNull{all[it.productId]}.ifEmpty{listOf(p)}}.distinctBy{it.id}
+  val rows=if(change is ProductBatchChange.Department){
+   selected.forEach{p->val family=families.find{it.productId==p.id}?.familyId?:p.id;require(expanded.any{member->(families.find{it.productId==member.id}?.familyId?:member.id)==family&&db.productShopLinkDao().getLinksForProductSync(member.id).any{it.shopId==change.shopId}}){"Не все товары привязаны к этому магазину"}}
+   expanded.filter{p->db.productShopLinkDao().getLinksForProductSync(p.id).any{it.shopId==change.shopId}}
+  }else expanded
   when(change){
    is ProductBatchChange.Recipient->change.id?.let{require(db.recipientDao().getById(it)!=null){"Получатель удалён"}}
    is ProductBatchChange.Group->change.id?.let{require(db.productGroupDao().getById(it)!=null){"Товарная группа удалена"}}

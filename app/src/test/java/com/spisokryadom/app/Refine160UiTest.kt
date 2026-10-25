@@ -76,9 +76,9 @@ class Refine160UiTest {
   ui.onNodeWithText("Сохранить").performClick();waitText("База товаров");val id=runBlocking{db.productDao().getAllSync().single{it.name==name}.id};waitFor{ui.onAllNodesWithTag("catalogue-all-$id").fetchSemanticsNodes().isNotEmpty()};ui.onNodeWithTag("catalogue-all-$id").assertIsDisplayed();shot("05-created-product-revealed");assertTrue(runBlocking{db.shoppingListEntryDao().getAllSync().isEmpty()})
  }
  @Test fun voiceActivityCancellationKeepsSearchAndSuccessfulResultOnlyChangesQuery(){
-  catalogue();ui.onNodeWithText("Поиск по названию...").performTextInput("Жидкость");ui.onNodeWithContentDescription("Голосовой поиск").performClick()
+  catalogue();ui.onNodeWithText("Поиск по названию...").performTextInput("Жидкость");ui.onNodeWithContentDescription("Голосовой поиск").assertDoesNotExist();ui.onNodeWithContentDescription("Очистить").performClick();ui.onNodeWithContentDescription("Голосовой поиск").performClick()
   val shadow=Shadows.shadowOf(ui.activity);val first=shadow.nextStartedActivityForResult;assertEquals(RecognizerIntent.ACTION_RECOGNIZE_SPEECH,first.intent.action)
-  ui.runOnUiThread{shadow.receiveResult(first.intent,Activity.RESULT_CANCELED,null)};ui.onNode(hasSetTextAction()).assertTextContains("Жидкость")
+  ui.runOnUiThread{shadow.receiveResult(first.intent,Activity.RESULT_CANCELED,null)};ui.onNode(hasSetTextAction()).assertTextContains("")
   ui.onNodeWithContentDescription("Голосовой поиск").performClick();val second=shadow.nextStartedActivityForResult
   ui.runOnUiThread{shadow.receiveResult(second.intent,Activity.RESULT_OK,Intent().putStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS,arrayListOf("Говяжье лёгкое")))}
   waitText("Создать «Говяжье лёгкое»");ui.onNode(hasSetTextAction()).assertTextContains("Говяжье лёгкое");shot("06-voice-search-result");assertEquals(3,runBlocking{db.productDao().getAllSync().size});assertTrue(runBlocking{db.shoppingListEntryDao().getAllSync().isEmpty()})

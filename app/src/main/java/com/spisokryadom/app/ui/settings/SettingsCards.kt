@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.settings
+import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
@@ -27,7 +28,7 @@ import com.spisokryadom.app.ui.components.*
     var quantity by rememberSaveable{mutableStateOf(java.math.BigDecimal.valueOf(value.missingQuantity).stripTrailingZeros().toPlainString())};var focused by remember{mutableStateOf(false)}
     LaunchedEffect(value.missingQuantity){if(!focused)quantity=java.math.BigDecimal.valueOf(value.missingQuantity).stripTrailingZeros().toPlainString()}
     Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
-     OutlinedTextField(quantity,{quantity=it;onQuantity(it)},label={Text("Количество")},singleLine=true,isError=com.spisokryadom.app.util.Quantities.parse(quantity)==null,keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),modifier=Modifier.weight(1f).onFocusChanged{focused=it.isFocused})
+     AppTextField(quantity,{quantity=it;onQuantity(it)},label={Text("Количество")},singleLine=true,isError=com.spisokryadom.app.util.Quantities.parse(quantity)==null,keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),modifier=Modifier.weight(1f).onFocusChanged{focused=it.isFocused})
      DropdownSelector("Единица",(units.map{com.spisokryadom.app.util.Quantities.unit(it.name)}+value.missingUnit).filter{it.isNotBlank()}.distinct(),value.missingUnit.ifBlank{null},{it},{onUnit(it.orEmpty())},modifier=Modifier.weight(1f),noneLabel="Не подставлять")
     }
    }

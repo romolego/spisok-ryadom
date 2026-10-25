@@ -1,3 +1,18 @@
+Итерация0.29 —[58_PRODUCT_VARIANTS_290.md](58_PRODUCT_VARIANTS_290.md), Room26/ZIP24. Общий текстовый ввод с mic/clear, минус в подборе с тем же owner/shop/point scope, до5 фото с порядком/подписями и варианты одного товара. Общие поля семейства синхронны; параметры/фото/магазины независимы, доступность/порядок отдельны по городам. Главная/списки/виджет/копии используют настоящий вариант. Цветовые кнопки магазина единообразны. Проверка/публикация —01/58; прежние итоги ниже исторические.
+
+## Карта текущих изменений0.29
+
+| Область | Основной код | Контракт |
+| --- | --- | --- |
+| Семейство и городские правила | [ProductVariantEntity](../app/src/main/java/com/spisokryadom/app/data/entity/ProductVariantEntity.kt), [ProductVariantsRepository](../app/src/main/java/com/spisokryadom/app/data/repository/ProductVariantsRepository.kt) | Реальные Product ID сохраняют покупки/связи; каталог показывает корень. Приоритет вариантов независим от маршрута магазинов. |
+| Миграция/общие поля | [ProductVariantSchema](../app/src/main/java/com/spisokryadom/app/data/db/ProductVariantSchema.kt) |25→26 без изменения старых ID; триггер общих полей, отдельные параметры вариантов. |
+| Каталог и факты | [ProductRepository](../app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt) | Проекции учитывают доступность в городе магазина; проекционные Root ID не записывают обратно как сырые привязки. |
+| Добавление/замена | [ShoppingListRepository](../app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt), [AddToListViewModel](../app/src/main/java/com/spisokryadom/app/ui/addtolist/AddToListViewModel.kt) | Выбор по явной точке; единый owner/shop/point scope минуса; CAS замены, сохранение допустимого адреса, no-op того же варианта. |
+| Карточка/фото/ввод | [ProductCardViewModel](../app/src/main/java/com/spisokryadom/app/ui/productcard/ProductCardViewModel.kt), [ProductPhotos](../app/src/main/java/com/spisokryadom/app/ui/components/ProductPhotos.kt), [AppTextField](../app/src/main/java/com/spisokryadom/app/ui/components/AppTextField.kt) | Раздельные страницы черновиков, общий Save, до5 фото; общий mic/clear без автоматического добавления голосом. |
+| ZIP/медиа | [BackupManager](../app/src/main/java/com/spisokryadom/app/data/backup/BackupManager.kt) | ZIP24 переносит граф и все фото; строгая проверка до замены базы, старые читатели сохраняются. |
+
+Исторические разделы и результаты ниже относятся к своим версиям; текущие факты —01/58.
+
 Текущие настройки/городские профили0.28 —[57](57_SETTINGS_CITIES_280.md). Room25/ZIP23, ShopEntity.cityGroupKey связывает независимые профили адресов одного магазина. Пользовательская смена города —ShoppingListRepository.changeShoppingCity; прежние read/select для restore сохраняют снимок.
 
 Аудит0.27 —[56](56_INDEPENDENT_AUDIT_270.md). Исторические Room24/ZIP22: избранные магазины, общий EditorSheet, согласованные контексты списков/виджета и свежая навигация после полного восстановления. Ссылки с версиями ниже описывают происхождение контрактов; результаты текущей проверки/публикации —01/57.

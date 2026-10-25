@@ -137,10 +137,10 @@ class Settings280UiTest {
  }
  @Test fun shopBatchConfiguresModeAndBothUrgencyOverrides(){
   tab("Магазины");text("Местный");selectShops();ui.onNodeWithText("Тип покупок").performClick()
-  ui.onNodeWithText("Тип покупок в магазине").performClick();ui.onNodeWithText("Только онлайн").performClick();ui.onNodeWithText("Применить к 2").performClick()
+  text("Тип покупок в магазине");ui.onNodeWithText("Тип покупок в магазине").performScrollTo().performClick();ui.onNodeWithText("Только онлайн").performClick();ui.onNodeWithText("Применить к 2").performClick()
   waitFor{runBlocking{app.container.shopRepository.purchaseMode(shop)=="online"&&app.container.shopRepository.purchaseMode(second)=="online"}}
   selectShops();ui.onNodeWithText("Настройки срочности").performClick()
-  ui.onNodeWithText("Срочные в свёрнутом магазине").performClick();ui.onNode(hasText("Да") and hasAnyAncestor(isPopup())).performClick()
+  text("Срочные в свёрнутом магазине");ui.onNodeWithText("Срочные в свёрнутом магазине").performScrollTo().performClick();ui.onNode(hasText("Да") and hasAnyAncestor(isPopup())).performClick()
   ui.onNodeWithText("Поднимать магазин со срочными").performClick();ui.onNode(hasText("Да") and hasAnyAncestor(isPopup())).performClick();shot("shop-batch-urgency")
   ui.onNodeWithText("Применить к 2").performClick()
   waitFor{runBlocking{listOf(shop,second).all{db.shopDao().getById(it)!!.let{s->s.showUrgentInCollapsed==true&&s.boostUrgentShop==true}}}}

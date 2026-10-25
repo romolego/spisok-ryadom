@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.goallists
+import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
@@ -164,6 +165,8 @@ private fun GoalListContent(listId: Long, onBack: () -> Unit, viewModel: GoalLis
 
 @Composable
 private fun GoalPurchaseCard(row: GoalPurchaseRow, busy: Boolean, bought: (Boolean) -> Unit, edit: () -> Unit, editPurchase:()->Unit, delete: () -> Unit, quantity: (Double) -> Unit, urgent: () -> Unit, selected: Boolean?, select: () -> Unit) {
+    var variant by remember{mutableStateOf(false)}
+    if(variant)com.spisokryadom.app.ui.components.PurchaseVariantSheet(row.entry){variant=false}
     var menu by remember { mutableStateOf(false) }
     val step = Quantities.step(row.entry.unit, row.product.defaultUnit, row.product.defaultQuantity)
     val cardColor = when {
@@ -190,6 +193,7 @@ private fun GoalPurchaseCard(row: GoalPurchaseRow, busy: Boolean, bought: (Boole
             if (selected == null) Box {
                 IconButton(onClick = { menu = true },enabled=!busy) { Icon(Icons.Filled.MoreVert, "Действия: ${row.product.name}") }
                 DropdownMenu(menu, { menu = false }) {
+                    if(!row.entry.isBought)com.spisokryadom.app.ui.components.HasProductVariants(row.entry.productId){DropdownMenuItem(text={Text("Заменить вариант")},onClick={menu=false;variant=true})}
                     DropdownMenuItem(text = { Text("Карточка товара") }, onClick = { menu = false; edit() })
                     DropdownMenuItem(text = { Text("Количество, цена и заметка") }, onClick = { menu = false; editPurchase() })
                     if (!row.entry.isBought) DropdownMenuItem(text = { Text(if (row.entry.isUrgent) "Убрать срочность" else "Сделать срочным") }, onClick = { menu = false; urgent() })
@@ -210,7 +214,7 @@ private fun GoalMetadataDialog(list: GoalListEntity, onSave: (String, Boolean) -
         TextButton(onClick=onDismiss){Text("Отмена")}
         Button(onClick={onSave(name,visible)},enabled=name.isNotBlank()){Text("Готово")}
     }) {
-            OutlinedTextField(name, { name = it }, label = { Text("Название списка") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            AppTextField(name, { name = it }, label = { Text("Название списка") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             Row(Modifier.fillMaxWidth().clickable { visible = !visible }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Отображать на Главной", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
                 Switch(visible, { visible = it })
@@ -232,21 +236,21 @@ private fun GoalItemEditorSheet(editor: GoalItemEditor, shops: List<String>, uni
             Text(if (editor.entryId == null) "Новая позиция" else "Позиция списка", style = MaterialTheme.typography.headlineSmall)
             editor.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(editor.name, { value -> update { it.copy(name = value) } }, readOnly = !editor.editableName, label = { Text("Название") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-name"), maxLines = 3)
+                AppTextField(editor.name, { value -> update { it.copy(name = value) } }, readOnly = !editor.editableName, label = { Text("Название") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-name"), maxLines = 3)
                 com.spisokryadom.app.ui.components.QuantityUnitInputWithSuggestions(editor.quantity,editor.unit,
                     {value->update{it.copy(quantity=value)}},{value->update{it.copy(unit=value)}},units,
                     quantityModifier=Modifier.testTag("goal-item-quantity"),unitModifier=Modifier.testTag("goal-item-unit"))
-                OutlinedTextField(editor.price, { value -> update { it.copy(price = value) } }, label = { Text("Цена за единицу, ₽") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth().testTag("goal-item-price"), singleLine = true)
+                AppTextField(editor.price, { value -> update { it.copy(price = value) } }, label = { Text("Цена за единицу, ₽") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth().testTag("goal-item-price"), singleLine = true)
                 ExposedDropdownMenuBox(expanded = suggestions && shops.isNotEmpty(), onExpandedChange = { suggestions = it }) {
-                    OutlinedTextField(editor.shop, { value -> update { it.copy(shop = value) }; suggestions = false }, label = { Text("Магазин (необязательно)") }, modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable).testTag("goal-item-shop"), singleLine = true, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(suggestions) })
+                    AppTextField(editor.shop, { value -> update { it.copy(shop = value) }; suggestions = false }, label = { Text("Магазин (необязательно)") }, modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable).testTag("goal-item-shop"), singleLine = true, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(suggestions) })
                     ExposedDropdownMenu(suggestions && shops.isNotEmpty(), { suggestions = false }) {
                         shops.filter { editor.shop.isBlank() || it.contains(editor.shop, true) }.forEach { name -> DropdownMenuItem(text = { Text(name) }, onClick = { update { it.copy(shop = name) }; suggestions = false }) }
                         DropdownMenuItem(text = { Text("Без магазина") }, onClick = { update { it.copy(shop = "", address = "") }; suggestions = false })
                     }
                 }
-                OutlinedTextField(editor.address, { value -> update { it.copy(address = value) } }, label = { Text("Адрес (необязательно)") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-address"), maxLines = 3)
-                OutlinedTextField(editor.note, { value -> update { it.copy(note = value) } }, label = { Text("Заметка") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-note"), minLines = 2, maxLines = 5)
-                OutlinedTextField(editor.comment, { value -> update { it.copy(comment = value) } }, label = { Text("Комментарий к покупке") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-comment"), minLines = 2, maxLines = 5)
+                AppTextField(editor.address, { value -> update { it.copy(address = value) } }, label = { Text("Адрес (необязательно)") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-address"), maxLines = 3)
+                AppTextField(editor.note, { value -> update { it.copy(note = value) } }, label = { Text("Заметка") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-note"), minLines = 2, maxLines = 5)
+                AppTextField(editor.comment, { value -> update { it.copy(comment = value) } }, label = { Text("Комментарий к покупке") }, modifier = Modifier.fillMaxWidth().testTag("goal-item-comment"), minLines = 2, maxLines = 5)
                 if (editor.saving) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("goal-item-saving"))
             }
             Button(onClick = finish, modifier = Modifier.fillMaxWidth().testTag("goal-item-done")) { Text("Готово") }

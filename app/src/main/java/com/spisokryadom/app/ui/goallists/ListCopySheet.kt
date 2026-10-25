@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.goallists
+import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -73,7 +74,7 @@ internal fun ListCopySheet(sourceListId:Long,session:String,onDismiss:()->Unit,m
     Text("Куда добавить позиции",style=MaterialTheme.typography.titleSmall)
     GoalDestinationRow("Главная",target==null){if(!state.busy)target=null}
     GoalDestinationRow("Новый список",target==-1L){if(!state.busy)target=-1L}
-    if(target==-1L)OutlinedTextField(name,{name=it},enabled=!state.busy,label={Text("Название нового списка")},singleLine=true,modifier=Modifier.fillMaxWidth().testTag("list-copy-target-name"))
+    if(target==-1L)AppTextField(name,{name=it},enabled=!state.busy,label={Text("Название нового списка")},singleLine=true,modifier=Modifier.fillMaxWidth().testTag("list-copy-target-name"))
     state.lists.forEach{list->GoalDestinationRow(list.name,target==list.id){if(!state.busy)target=list.id}}
     Surface(color=MaterialTheme.colorScheme.secondaryContainer,shape=MaterialTheme.shapes.medium){
      Text(if(target==null)"Все позиции списка (${state.count}) будут добавлены на «Главную» и появятся в виджете. Исходный список сохранится."

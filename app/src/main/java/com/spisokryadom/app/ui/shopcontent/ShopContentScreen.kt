@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.shopcontent
+import com.spisokryadom.app.ui.components.AppTextField
 
 import com.spisokryadom.app.ui.batch.*
 import androidx.compose.material.icons.filled.Checklist
@@ -43,7 +44,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -274,7 +274,7 @@ private fun PickProductsDialog(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            OutlinedTextField(
+            AppTextField(
                 value = searchQuery,
                 onValueChange = onSearchQueryChange,
                 placeholder = { Text("Поиск по названию...") },

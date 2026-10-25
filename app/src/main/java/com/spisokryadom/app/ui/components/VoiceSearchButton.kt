@@ -14,7 +14,7 @@ import java.util.Locale
 internal fun voiceSearchIntent(): Intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
     .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
     .putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
-    .putExtra(RecognizerIntent.EXTRA_PROMPT, "Название для поиска")
+    .putExtra(RecognizerIntent.EXTRA_PROMPT, "Скажите текст")
     .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
 
 internal fun voiceSearchResult(resultCode: Int, data: Intent?): String? =
@@ -23,7 +23,7 @@ internal fun voiceSearchResult(resultCode: Int, data: Intent?): String? =
 
 /** Uses the installed system speech activity. A result only changes the search query. */
 @Composable
-fun VoiceSearchButton(onQuery: (String) -> Unit, enabled: Boolean = true) {
+fun VoiceSearchButton(onQuery: (String) -> Unit, enabled: Boolean = true, description:String="Голосовой поиск") {
     var error by remember { mutableStateOf<String?>(null) }
     val query by rememberUpdatedState(onQuery)
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -33,7 +33,7 @@ fun VoiceSearchButton(onQuery: (String) -> Unit, enabled: Boolean = true) {
         try { launcher.launch(voiceSearchIntent()) }
         catch (_: android.content.ActivityNotFoundException) { error = "На телефоне не найден голосовой ввод. Можно использовать микрофон клавиатуры." }
         catch (_: SecurityException) { error = "Не удалось открыть голосовой ввод. Можно использовать микрофон клавиатуры." }
-    }, enabled = enabled) { Icon(Icons.Filled.Mic, "Голосовой поиск") }
+    }, enabled = enabled) { Icon(Icons.Filled.Mic, description) }
     error?.let { AlertDialog(onDismissRequest = { error = null }, text = { Text(it) }, confirmButton = {
         TextButton(onClick = { error = null }) { Text("Понятно") }
     }) }

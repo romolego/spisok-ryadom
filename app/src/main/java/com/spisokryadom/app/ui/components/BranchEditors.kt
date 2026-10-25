@@ -65,13 +65,13 @@ private val OutletDraftSaver=androidx.compose.runtime.saveable.listSaver<ShopBra
      IconButton(onClick={venueEditingId=venue.id}){Icon(Icons.Filled.Edit,"Изменить рынок или ТЦ")}
     }
     venue.photoUri?.let{BranchPhotoPreview(it,"Рынок или ТЦ")}
-    OutlinedTextField(draft.label,{draft=draft.copy(label=it)},label={Text("Павильон, этаж или место внутри")},modifier=Modifier.fillMaxWidth().testTag("branch-label-${point.id}"))
+    AppTextField(draft.label,{draft=draft.copy(label=it)},label={Text("Павильон, этаж или место внутри")},modifier=Modifier.fillMaxWidth().testTag("branch-label-${point.id}"))
    }else {
-    OutlinedTextField(draft.label,{draft=draft.copy(label=it)},label={Text("Название точки (необязательно)")},modifier=Modifier.fillMaxWidth())
-    OutlinedTextField(draft.address,{draft=draft.copy(address=it)},label={Text("Адрес")},modifier=Modifier.fillMaxWidth().testTag("branch-address-${point.id}"))
+    AppTextField(draft.label,{draft=draft.copy(label=it)},label={Text("Название точки (необязательно)")},modifier=Modifier.fillMaxWidth())
+    AppTextField(draft.address,{draft=draft.copy(address=it)},label={Text("Адрес")},modifier=Modifier.fillMaxWidth().testTag("branch-address-${point.id}"))
    }
    if(duplicate)Text("Эта точка уже добавлена",color=MaterialTheme.colorScheme.error)
-   OutlinedTextField(draft.note.orEmpty(),{draft=draft.copy(note=it)},label={Text("Заметка точки")},maxLines=3,modifier=Modifier.fillMaxWidth().testTag("branch-note-${point.id}"))
+   AppTextField(draft.note.orEmpty(),{draft=draft.copy(note=it)},label={Text("Заметка точки")},maxLines=3,modifier=Modifier.fillMaxWidth().testTag("branch-note-${point.id}"))
    BranchPhotoEditor(draft.photoUri.orEmpty(),{draft=draft.copy(photoUri=it)},{photoBusy=it;onBusyChange(it)},compact=true,showTitle=false,enabled=!externalPhotoBusy||photoBusy)
    if(!adding)IconButton(onClick={deleting=true}){Icon(Icons.Filled.Delete,"Удалить точку")}
   }

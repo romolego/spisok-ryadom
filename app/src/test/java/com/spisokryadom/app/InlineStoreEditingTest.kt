@@ -62,7 +62,7 @@ class InlineStoreEditingTest {
   ui.onNodeWithContentDescription("Удалить точку: Молокова, 19 (около старой квартиры)").assertDoesNotExist()
   ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
   runBlocking{val rows=db.shopBranchDao().forShop(shop);assertEquals(listOf(second,first),rows.map{it.id});assertEquals("Молокова, 19 (около старой квартиры)",rows.first().address);assertEquals(rows.first().address,db.shopDao().getById(shop)!!.address)}
-  ui.onNodeWithContentDescription("Изменить порядок").performClick()
+  ui.onNodeWithContentDescription("Управление магазинами").performClick();ui.onNodeWithText("Изменить порядок").performClick()
   ui.onAllNodesWithContentDescription("Переместить вверх").onFirst().assertIsNotEnabled()
   ui.onAllNodesWithContentDescription("Переместить вниз").onFirst().performClick()
   ui.waitUntil(20_000){runBlocking{db.shopDao().getAllSync().sortedBy{it.displayOrder}.first().name=="Батон"}}

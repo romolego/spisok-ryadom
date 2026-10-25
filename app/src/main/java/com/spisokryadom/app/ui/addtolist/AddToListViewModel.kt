@@ -20,6 +20,7 @@ data class AddToListUiState(
  val isNewProduct:Boolean=false,val addedMessage:String?=null,val isLoading:Boolean=false,val isSearching:Boolean=false,
  val browseProducts:Boolean=true,val browseMessage:String?=null,val pendingProductLabels:Map<Long,String> = emptyMap(),
  val favoriteResults:List<ProductEntity> = emptyList(),val selectedProduct:ProductEntity?=null,val quantity:String="1",val unit:String="",val unitSuggestions:List<String> = emptyList(),val error:String?=null,
+ val variantOptions:List<ProductVariantOption> = emptyList(),
  val shopCreationError:String?=null
 )
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -42,8 +43,13 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
   }}
   viewModelScope.launch {
    val source=if(targetListId==null)basket.getAllEntries()else basket.getEntriesForList(targetListId)
-   combine(source,products.getAllProductsIncludingTemporary()){entries,ps->entries to ps.associateBy{it.id}}.collect { (entries,ps) ->
-    val labels=entries.filter{targetListId!=null||!it.isBought}.groupBy{it.productId}.mapValues{(_,rows)->
+   combine(source,products.getAllProductsIncludingTemporary(),_uiState.map{it.selectedShopId}.distinctUntilChanged()){entries,ps,shop->Triple(entries,ps.associateBy{it.id},shop)}.collect { (entries,ps,selectedShop) ->
+    val variantMap=products.variants.observeMetadata().first().first.associate{it.productId to it.familyId}
+    val labels=entries.filter{row->row.listId==targetListId&&!row.isBought&&when(selectedShop){
+     -1L->true
+     null->row.assignedShopId==null&&row.explicitNoShop
+     else->row.assignedShopId==selectedShop&&(preselectedShopId!=selectedShop||preselectedBranchId==null||preselectedBranchId<0||row.assignedBranchId==preselectedBranchId.takeIf{it>0})
+    }}.groupBy{variantMap[it.productId]?:it.productId}.mapValues{(_,rows)->
      rows.groupBy{Quantities.unit(it.unit)}.map{(unit,values)->
       val total=values.fold(java.math.BigDecimal.ZERO){sum,row->sum+java.math.BigDecimal.valueOf(row.quantity)}
       "${total.stripTrailingZeros().toPlainString().replace('.',',')} $unit".trim()
@@ -54,7 +60,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
    }
   }
   viewModelScope.launch {
-   combine(products.getAllProducts(),products.getAllShopLinks(),shopRepository.getShopsForDisplay()){ps,ls,ss->
+   combine(products.getAllProducts(),products.getCatalogueShopLinks(),shopRepository.getShopsForDisplay()){ps,ls,ss->
     val index=com.spisokryadom.app.ui.components.ProductContextIndex(ls,ss)
     ps.associate{it.id to index.context(it)} to ps.associate{it.id to index.context(it,includeQuantity=false)}
    }.flowOn(Dispatchers.Default).collect{(contexts,withoutQuantity)->_uiState.update{it.copy(productContexts=contexts,productContextsWithoutQuantity=withoutQuantity)}}
@@ -70,7 +76,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
    }
   }
   viewModelScope.launch {
-   combine(products.getAllProducts(),products.getAllShopLinks(),products.observeAvailability(),
+   combine(products.getAllProducts(),products.getCatalogueShopLinks(),products.observeCatalogueAvailability(),
     _uiState.map{Query(it.searchQuery,it.selectedShopId,it.browseProducts)}.distinctUntilChanged()
      .mapLatest { q -> if(q.text.isNotBlank())delay(300);q }) { ps,links,availability,q ->
      val result=addProductCandidates(ps,links,availability,q.shopId,preselectedBranchId.takeIf{q.shopId==preselectedShopId},q.text,q.browse)
@@ -88,7 +94,18 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
   _uiState.update{it.copy(searchQuery=query,selectedProduct=null,error=null,isSearching=it.isSearching||query!=it.searchQuery)}
  }
  override fun onCleared(){prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener);super.onCleared()}
- fun selectProduct(p:ProductEntity){_uiState.value=_uiState.value.copy(selectedProduct=p,quantity=(p.defaultQuantity?.takeIf{it>0}?:1.0).let{if(it%1.0==0.0)it.toLong().toString()else it.toString()},unit=p.defaultUnit.orEmpty(),error=null)}
+ fun selectProduct(p:ProductEntity){
+  if(_uiState.value.isLoading)return
+  selectVariant(p)
+  _uiState.update{it.copy(isLoading=true,variantOptions=emptyList())}
+  viewModelScope.launch{try{ProductEditorTransactions.inGeneration(sessionGeneration){
+   val city=shopRepository.locations.currentId();val options=products.variants.options(p.id,city)
+   val chosen=products.variants.resolve(p.id,city,_uiState.value.selectedShopId?.takeIf{it>0},preselectedBranchId.takeIf{_uiState.value.selectedShopId==preselectedShopId})
+   selectVariant(chosen);_uiState.update{it.copy(variantOptions=options.filter{v->v.enabled})}
+  }}catch(e:Exception){if(e is CancellationException)throw e;_uiState.update{it.copy(error=e.message)}}
+  finally{_uiState.update{it.copy(isLoading=false)}}}
+ }
+ fun selectVariant(p:ProductEntity){_uiState.update{it.copy(selectedProduct=p,quantity=(p.defaultQuantity?.takeIf{q->q>0}?:1.0).let{q->java.math.BigDecimal.valueOf(q).stripTrailingZeros().toPlainString()},unit=p.defaultUnit.orEmpty(),error=null)}}
  fun quantity(value:String){_uiState.value=_uiState.value.copy(quantity=value,error=null)}
  fun unit(value:String){_uiState.value=_uiState.value.copy(unit=value)}
  fun createShop(name:String,done:(Long)->Unit)=createShop(name,done,{})
@@ -104,11 +121,25 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
  }
  fun onShopSelected(id:Long?){_uiState.update{it.copy(selectedShopId=id,selectedProduct=null,error=null,isSearching=it.isSearching||id!=it.selectedShopId)}}
  fun onSaveToDatabaseChanged(value:Boolean){_uiState.value=_uiState.value.copy(saveToDatabase=value)}
- fun add()=addPurchase(_uiState.value,false)
+ fun add(){
+  if(sessionGeneration!=ProductEditorTransactions.generation.get()){
+   _uiState.update{it.copy(error="База восстановлена. Откройте экран заново")};return
+  }
+  addPurchase(_uiState.value,false)
+ }
  fun quickAdd(product:ProductEntity){
   val current=_uiState.value
   if(current.isLoading||current.isSearching||current.searchResults.none{it.id==product.id})return
   addPurchase(current.copy(selectedProduct=product,quantity=(product.defaultQuantity?.takeIf{it>0}?:1.0).toString(),unit=product.defaultUnit.orEmpty()),true)
+ }
+ fun quickDecrease(product:ProductEntity){
+  if(_uiState.value.isLoading||_uiState.value.isSearching)return
+  _uiState.update{it.copy(isLoading=true,error=null)}
+  viewModelScope.launch{try{ProductEditorTransactions.inGeneration(sessionGeneration){
+   val shop=_uiState.value.selectedShopId
+   basket.decreaseFromPicker(product.id,targetListId,when(shop){-1L->ShopChoice.AUTO;null->ShopChoice.NONE;else->ShopChoice.EXPLICIT},shop,preselectedBranchId.takeIf{shop==preselectedShopId})
+  }}catch(e:Exception){if(e is CancellationException)throw e;_uiState.update{it.copy(error=e.message?:"Не удалось уменьшить количество")}}
+  finally{_uiState.update{it.copy(isLoading=false)}}}
  }
  private fun addPurchase(state:AddToListUiState,keepBrowsing:Boolean){
   if(state.isLoading||state.isSearching||!state.targetAvailable)return
@@ -118,7 +149,11 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
   _uiState.update{it.copy(isLoading=true,error=null)}
   viewModelScope.launch{try{ProductEditorTransactions.inGeneration(sessionGeneration){
    val choice=when(state.selectedShopId){-1L->ShopChoice.AUTO;null->ShopChoice.NONE;else->ShopChoice.EXPLICIT}
-   if(state.selectedProduct!=null)basket.addProduct(state.selectedProduct.id,qty,state.unit,choice,state.selectedShopId,preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId},targetListId)
+   if(state.selectedProduct!=null){
+    val p=if(keepBrowsing)products.variants.resolve(state.selectedProduct.id,shopRepository.locations.currentId(),state.selectedShopId?.takeIf{it>0},preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId})else state.selectedProduct
+    basket.addProduct(p.id,if(keepBrowsing)p.defaultQuantity?.takeIf{it>0}?:1.0 else qty,if(keepBrowsing)p.defaultUnit.orEmpty()else state.unit,choice,state.selectedShopId,preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId},targetListId,exactVariant=true)
+    if(!keepBrowsing&&prefs.getBoolean("remember_variant_choice",false))products.variants.rememberChoice(p.id,shopRepository.locations.currentId())
+   }
    else {
     val defaults=ProductCreationDefaults.read(prefs)
     val mode=state.selectedShopId?.takeIf{it>0}?.let{shopRepository.purchaseMode(it)}?:"inherit"
@@ -128,7 +163,16 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
    else _uiState.update{it.copy(isLoading=false,addedMessage="Добавлено в список")}}
   }catch(e:Exception){if(e is CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,error=e.message?:"Не удалось добавить покупку")}}
  }
- fun selectSavedProduct(id:Long){viewModelScope.launch{products.getProductById(id)?.let{p->val before=_uiState.value;selectProduct(p);_uiState.update{it.copy(quantity=before.quantity.ifBlank{it.quantity},unit=before.unit.ifBlank{it.unit})}}}}
+ fun selectSavedProduct(id:Long){
+  val before=_uiState.value
+  _uiState.update{it.copy(isLoading=true)}
+  viewModelScope.launch{try{ProductEditorTransactions.inGeneration(sessionGeneration){
+   val p=products.getProductById(id)?:error("Товар удалён")
+   val options=products.variants.options(id,shopRepository.locations.currentId())
+   selectVariant(p);_uiState.update{it.copy(variantOptions=options.filter{v->v.enabled},quantity=before.quantity.ifBlank{it.quantity},unit=before.unit.ifBlank{it.unit})}
+  }}catch(e:Exception){if(e is CancellationException)throw e;_uiState.update{it.copy(error=e.message)}}
+  finally{_uiState.update{it.copy(isLoading=false)}}}
+ }
  fun clearBrowseMessage(){_uiState.update{it.copy(browseMessage=null)}}
  fun clearMessage(){_uiState.value=_uiState.value.copy(addedMessage=null)}
  companion object{const val PREF_BROWSE_PRODUCTS="browse_products_on_add"

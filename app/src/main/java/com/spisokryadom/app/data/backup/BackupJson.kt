@@ -23,7 +23,10 @@ internal data class BackupSnapshot(
  val branchPriorities:List<ProductBranchPriorityEntity> = emptyList(),
  val goalLists:List<GoalListEntity> = emptyList(),
  val shopPresets:List<ShopCreationPreset> = emptyList(),
- val groupPresets:List<GroupCreationPreset> = emptyList()
+ val groupPresets:List<GroupCreationPreset> = emptyList(),
+ val variants:List<ProductVariantEntity> = emptyList(),
+ val variantCities:List<ProductVariantCityEntity> = emptyList(),
+ val photos:List<ProductPhotoEntity> = emptyList()
 )
 internal object BackupJson {
  private fun favorite(o:JSONObject):Boolean {if(!o.has("isFavorite"))return false;require(o.get("isFavorite") is Boolean){"Неверная отметка избранного"};return o.getBoolean("isFavorite")}
@@ -255,6 +258,9 @@ internal object BackupJson {
   put("departmentTypes",JSONArray().also{a->s.departmentTypes.forEach{a.put(encode(it))}})
   put("shopBranches",JSONArray().also{a->s.branches.forEach{a.put(encode(it))}})
   put("productBranchAvailability",JSONArray().also{a->s.availability.forEach{a.put(encode(it))}})
+  put("productVariants",JSONArray(s.variants.map{JSONObject().put("productId",it.productId).put("familyId",it.familyId).put("label",it.label).put("displayOrder",it.displayOrder)}))
+  put("productVariantCities",JSONArray(s.variantCities.map{JSONObject().put("productId",it.productId).put("cityId",it.cityId).put("enabled",it.enabled).put("displayOrder",it.displayOrder)}))
+  put("productPhotos",JSONArray(s.photos.map{JSONObject().put("productId",it.productId).put("position",it.position).put("caption",it.caption)}))
   put("products",JSONArray().also{a->s.products.forEach{a.put(encode(it))}})
   put("productGroups",JSONArray().also{a->s.groups.forEach{a.put(encode(it))}})
   put("recipients",JSONArray().also{a->s.recipients.forEach{a.put(encode(it))}})
@@ -282,6 +288,10 @@ internal object BackupJson {
    listOf("listId","plannedUnitPrice","customShopName","customShopAddress").forEach{key->require(row.has(key)){"В копии отсутствует поле покупки $key"}}
   }
  }
+ fun integer(o:JSONObject,k:String):Long {require(o.get(k) is Int||o.get(k) is Long){"Неверное целое поле $k"};return o.getLong(k)}
+ fun order(o:JSONObject,k:String):Int {val n=integer(o,k);require(n in 0..Int.MAX_VALUE.toLong());return n.toInt()}
+ if(root.getInt("version")>=24)listOf("productVariants","productVariantCities","productPhotos").forEach{require(d.get(it) is JSONArray){"Отсутствует раздел вариантов $it"}}
+ if(root.getInt("version")<24)listOf("productVariants","productVariantCities","productPhotos").forEach{require((d.optJSONArray(it)?.length()?:0)==0){"Варианты требуют копию новой версии"}}
  val snapshot=BackupSnapshot(
   products=d.optJSONArray("products")?.let{a->(0 until a.length()).map{products(a.getJSONObject(it))}} ?: emptyList(),
   groups=d.optJSONArray("productGroups")?.let{a->(0 until a.length()).map{groups(a.getJSONObject(it))}} ?: emptyList(),
@@ -303,6 +313,9 @@ internal object BackupJson {
   goalLists=d.optJSONArray("goalLists")?.let{a->(0 until a.length()).map{goalList(a.getJSONObject(it))}}?:emptyList(),
   shopPresets=d.optJSONArray("shopCreationPresets")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require((o.get("shopId") is Int||o.get("shopId") is Long)&&o.get("purchaseMode") is String);ShopCreationPreset(o.getLong("shopId"),o.getString("purchaseMode"))}}}?:emptyList(),
   groupPresets=d.optJSONArray("groupCreationPresets")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require((o.get("groupId") is Int||o.get("groupId") is Long)&&o.has("recipientId")&&(o.isNull("recipientId")||(o.get("recipientId") is Int||o.get("recipientId") is Long)));GroupCreationPreset(o.getLong("groupId"),if(o.isNull("recipientId"))null else o.getLong("recipientId"))}}}?:emptyList(),
+  variants=d.optJSONArray("productVariants")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductVariantEntity(integer(o,"productId"),integer(o,"familyId"),strictString(o,"label"),order(o,"displayOrder"))}}}.orEmpty(),
+  variantCities=d.optJSONArray("productVariantCities")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require(o.get("enabled") is Boolean);ProductVariantCityEntity(integer(o,"productId"),integer(o,"cityId"),o.getBoolean("enabled"),order(o,"displayOrder"))}}}.orEmpty(),
+  photos=d.optJSONArray("productPhotos")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductPhotoEntity(integer(o,"productId"),order(o,"position"),"unavailable",strictString(o,"caption"))}}}.orEmpty(),
   preferences=root.optJSONObject("preferences") ?: JSONObject()
  )
  if(root.getInt("version")>=17){

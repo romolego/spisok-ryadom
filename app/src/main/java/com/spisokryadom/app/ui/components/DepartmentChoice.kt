@@ -31,7 +31,7 @@ import com.spisokryadom.app.data.entity.*
  if(adding){
   LaunchedEffect(Unit){requester.requestFocus();bring.bringIntoView()}
   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-   OutlinedTextField(name,{name=it},label={Text("Новая группа")},singleLine=true,enabled=!busy,modifier=Modifier.weight(1f).focusRequester(requester).bringIntoViewRequester(bring))
+   AppTextField(name,{name=it},label={Text("Новая группа")},singleLine=true,enabled=!busy,modifier=Modifier.weight(1f).focusRequester(requester).bringIntoViewRequester(bring))
    IconButton(onClick={add(name.trim())},enabled=name.isNotBlank()&&!busy){Icon(Icons.Filled.Add,"Создать группу магазина")}
    IconButton(onClick={adding=false;name="";focus.clearFocus()},enabled=!busy){Icon(Icons.Filled.Close,"Отменить новую группу")}
   }

@@ -25,13 +25,18 @@ data class ProductEditDraft(val stableId:String,val productId:Long,val newSessio
    isTemporary=s.isTemporary,preferCityShopOrder=s.preferCityShopOrder,isFavorite=s.isFavorite,accent=s.accent)
   val links=if(newSession)s.pendingShopLinks.map{ProductShopLinkEntity(productId=0,shopId=it.shopId,priority=it.displayOrder,departmentId=it.departmentId)}else s.shopLinks.map{it.link}
   val points=repository.editorBranches()
-  return repository.saveEditorProduct(p,links,s.branchSelections.filterKeys{id->links.any{it.shopId==id}},s.pendingDepartments,
+  return repository.variants.transaction {
+  val id=repository.saveEditorProduct(p,links,s.branchSelections.filterKeys{id->links.any{it.shopId==id}},s.pendingDepartments,
    s.branchDepartments.filterKeys{id->points.any{it.id==id&&links.any{l->l.shopId==it.shopId}}},newSession,allowDuplicate,s.branchPriorities.filterKeys{id->links.any{it.shopId==id}})
+  repository.variants.savePhotos(id,s.photos.ifEmpty{p.photoUri?.let{listOf(ProductPhotoEntity(id,0,it))}.orEmpty()})
+  id
+  }
  }
  fun encode():String=JSONObject().apply {
   put("autoPersist",autoPersist);put("stableId",stableId);put("productId",productId);put("newSession",newSession);put("allowDuplicate",allowDuplicate)
   val s=state
   listOf("name" to s.name,"defaultUnit" to s.defaultUnit,"defaultQuantity" to s.defaultQuantity,"note" to s.note,"purchaseType" to s.purchaseType,"sellerUrl" to s.sellerUrl,"productUrl" to s.productUrl,"photoUri" to s.photoUri,"priceValue" to s.priceValue,"priceDate" to s.priceDate,"accent" to s.accent).forEach{(k,v)->put(k,v)}
+  put("photos",JSONArray(s.photos.map{JSONObject().put("uri",it.uri).put("caption",it.caption)}))
   put("productGroupId",s.productGroupId?:JSONObject.NULL);put("recipientId",s.recipientId?:JSONObject.NULL)
   put("recipientManuallySet",s.recipientManuallySet);put("purchaseTypeManuallySet",s.purchaseTypeManuallySet);put("isFavorite",s.isFavorite);put("isTemporary",s.isTemporary);put("preferCityShopOrder",s.preferCityShopOrder)
   put("pendingLinks",JSONArray(s.pendingShopLinks.map{JSONObject().put("tempId",it.tempId).put("shopId",it.shopId).put("shopName",it.shopName).put("departmentId",it.departmentId?:JSONObject.NULL).put("departmentName",it.departmentName?:JSONObject.NULL).put("order",it.displayOrder)}))
@@ -47,7 +52,7 @@ data class ProductEditDraft(val stableId:String,val productId:Long,val newSessio
    fun objects(k:String)=j.getJSONArray(k).let{a->(0 until a.length()).map{a.getJSONObject(it)}}
    val productId=j.getLong("productId");val fresh=j.getBoolean("newSession")
    val points=j.getJSONObject("points");val overrides=j.getJSONObject("pointDepartments")
-   val s=ProductCardUiState(recipientManuallySet=j.optBoolean("recipientManuallySet",!fresh||!j.isNull("recipientId")),purchaseTypeManuallySet=j.optBoolean("purchaseTypeManuallySet",true),isNew=fresh,isLoading=false,name=j.getString("name"),defaultUnit=j.getString("defaultUnit"),defaultQuantity=j.getString("defaultQuantity"),note=j.getString("note"),purchaseType=j.getString("purchaseType"),sellerUrl=j.getString("sellerUrl"),productUrl=j.getString("productUrl"),photoUri=j.getString("photoUri"),priceValue=j.getString("priceValue"),priceDate=j.getString("priceDate"),accent=j.getString("accent"),productGroupId=nullable(j,"productGroupId"),recipientId=nullable(j,"recipientId"),isFavorite=j.getBoolean("isFavorite"),isTemporary=j.getBoolean("isTemporary"),preferCityShopOrder=j.getBoolean("preferCityShopOrder"),
+   val s=ProductCardUiState(photos=j.optJSONArray("photos")?.let{a->(0 until a.length()).map{i->a.getJSONObject(i).let{ProductPhotoEntity(productId,i,it.getString("uri"),it.optString("caption"))}}}.orEmpty(),activeVariantId=productId.takeIf{it>0},recipientManuallySet=j.optBoolean("recipientManuallySet",!fresh||!j.isNull("recipientId")),purchaseTypeManuallySet=j.optBoolean("purchaseTypeManuallySet",true),isNew=fresh,isLoading=false,name=j.getString("name"),defaultUnit=j.getString("defaultUnit"),defaultQuantity=j.getString("defaultQuantity"),note=j.getString("note"),purchaseType=j.getString("purchaseType"),sellerUrl=j.getString("sellerUrl"),productUrl=j.getString("productUrl"),photoUri=j.getString("photoUri"),priceValue=j.getString("priceValue"),priceDate=j.getString("priceDate"),accent=j.getString("accent"),productGroupId=nullable(j,"productGroupId"),recipientId=nullable(j,"recipientId"),isFavorite=j.getBoolean("isFavorite"),isTemporary=j.getBoolean("isTemporary"),preferCityShopOrder=j.getBoolean("preferCityShopOrder"),
     pendingShopLinks=objects("pendingLinks").map{PendingShopLink(it.getLong("tempId"),it.getLong("shopId"),it.getString("shopName"),nullable(it,"departmentId"),if(it.isNull("departmentName"))null else it.getString("departmentName"),it.getInt("order"))},
     shopLinks=objects("links").map{ShopLinkUi(ProductShopLinkEntity(id=it.getLong("id"),productId=productId,shopId=it.getLong("shopId"),departmentId=nullable(it,"departmentId"),priority=it.getInt("order"),restrictBranches=it.getBoolean("restrict")),it.getString("shopName"),if(it.isNull("departmentName"))null else it.getString("departmentName"))},
     pendingDepartments=objects("departments").map{ShopDepartmentEntity(id=it.getLong("id"),shopId=it.getLong("shopId"),name=it.getString("name"),displayOrder=it.getInt("order"),typeId=it.getLong("typeId"))},
@@ -121,7 +126,8 @@ object ProductDraftStore {
    write(prefs,key,draft.copy(productId=product.id,state=next))
   }
  }
- fun photos(context:Context):Set<String> = preferences(context).all.values.mapNotNull{raw->runCatching{ProductEditDraft.decode(raw as String).state.photoUri.takeIf{it.isNotBlank()}}.getOrNull()}.toSet()
+ fun photos(context:Context):Set<String> = preferences(context).all.values.flatMap{raw->runCatching{ProductEditDraft.decode(raw as String).state.let{it.photos.map{p->p.uri}+listOfNotNull(it.photoUri.takeIf{v->v.isNotBlank()})}}.getOrDefault(emptyList())}.toSet()
+
  suspend fun recover(context:Context,repository:ProductRepository,shops:com.spisokryadom.app.data.repository.ShopRepository){
   val preferences=preferences(context)
   preferences.all.forEach{(key,raw)->try{com.spisokryadom.app.data.repository.ProductEditorTransactions.locked{

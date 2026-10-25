@@ -28,7 +28,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
     private fun revision(entry:com.spisokryadom.app.data.entity.ShoppingListEntryEntity)=java.security.MessageDigest.getInstance("SHA-256").digest(entry.toString().toByteArray(Charsets.UTF_8)).joinToString(""){"%02x".format(it)}
     constructor(container:AppContainer):this(container.database,container.shoppingListRepository,container.locations)
     suspend fun rows():List<WidgetPurchase> = db.withTransaction {
-        val products=db.productDao().getAllSync().associateBy{it.id}
+        val products=com.spisokryadom.app.domain.variantNames(db.productDao().getAllSync(),db.productVariantDao().variants()).associateBy{it.id}
         val shops=db.shopDao().getAllSync().associateBy{it.id}
         val branches=db.shopBranchDao().getAll().associateBy{it.id}
         val labels=PlaceLabels(branches.values.toList(),db.retailStructureDao().venues())
@@ -43,7 +43,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
     /** One coherent Room snapshot; presentation does not depend on collapsed app sections. */
     suspend fun presentation(settings:WidgetSettings,boostUrgentShops:Boolean=true):List<WidgetItem> = db.withTransaction {
         val entries=db.shoppingListEntryDao().getAllSync().associateBy{it.id}
-        val products=db.productDao().getAllSync().associateBy{it.id}
+        val products=com.spisokryadom.app.domain.variantNames(db.productDao().getAllSync(),db.productVariantDao().variants()).associateBy{it.id}
         val shops=db.shopDao().getAllSync().associateBy{it.id}
         val branches=db.shopBranchDao().getAll().associateBy{it.id}
         val departments=db.shopDepartmentDao().getAllSync().associateBy{it.id}

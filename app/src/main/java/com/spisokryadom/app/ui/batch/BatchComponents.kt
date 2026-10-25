@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.batch
+import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
@@ -210,7 +211,7 @@ private val BatchSelectionSaver=mapSaver(
      if(action=="recipient"||action=="group"||(action=="department"&&!stores))OptionRow("Не задано",none,!busy){none=true;chosen=emptySet()}
      if(action!="basket"){if(!creating)TextButton(onClick={creating=true},enabled=!busy){Text(when(action){"recipient"->"Новый получатель…";"group"->"Новая товарная группа…";"shop"->"Новый магазин…";else->"Новая группа магазина…"})}
      else{
-      OutlinedTextField(name,{name=it},label={Text("Название")},enabled=!busy,modifier=Modifier.fillMaxWidth())
+      AppTextField(name,{name=it},label={Text("Название")},enabled=!busy,modifier=Modifier.fillMaxWidth())
       TextButton(onClick={vm.create(action,name){id->chosen=if(multiple)chosen+id else setOf(id);none=false;creating=false;name=""}},enabled=!busy&&name.isNotBlank()){Text("Создать")}
      }}
     }

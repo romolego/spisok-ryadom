@@ -75,7 +75,7 @@ class Audit201UiTest {
         shot("01-market-candidates")
     }
     @Test fun oldAddScreenShowsRestoreErrorAndDoesNotReportSuccess(){
-        show();ui.onNodeWithTag("candidate-all-$product").performClick()
+        show();ui.onNodeWithTag("candidate-all-$product").performClick();waitState{vm.uiState.value.selectedProduct?.id==product&&!vm.uiState.value.isLoading}
         ui.runOnIdle{runBlocking{val backup=BackupManager(app,db);val file=backup.exportFile();try{backup.importFile(file)}finally{backup.discard(file)}}}
         ui.onNodeWithText("Добавить в список").performScrollTo().performClick()
         waitState{vm.uiState.value.error!=null}

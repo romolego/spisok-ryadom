@@ -1,4 +1,5 @@
 package com.spisokryadom.app.ui.addtolist
+import com.spisokryadom.app.ui.components.AppTextField
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.animation.animateContentSize
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.CheckCircle
 import com.spisokryadom.app.ui.components.favoriteSurface
 import com.spisokryadom.app.ui.components.favoriteWeight
@@ -56,16 +58,16 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
      }
     }
     item(key="shop"){ShopChoiceField(state.shops,state.selectedShopId,viewModel::onShopSelected,enabled=!state.isLoading&&!state.isShopLocked,onCreate=viewModel::createShop,creationError=state.shopCreationError,onCreationOpenChanged={shopCreationOpen=it})}
-    item(key="query"){OutlinedTextField(state.searchQuery,viewModel::onSearchQueryChanged,label={Text("Название товара")},singleLine=true,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth())}
+    item(key="query"){AppTextField(state.searchQuery,viewModel::onSearchQueryChanged,label={Text("Название товара")},singleLine=true,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth())}
     if(state.selectedProduct==null&&(state.searchResults.isNotEmpty()||state.searchQuery.isBlank()&&state.browseProducts))item(key="candidates"){
      OutlinedCard(Modifier.fillMaxWidth()) {
       LazyColumn(Modifier.fillMaxWidth().heightIn(max=listHeight).testTag("add-candidates")) {
        if(state.favoriteResults.isNotEmpty()) {
         item(key="favorites-title"){com.spisokryadom.app.ui.components.FavoriteBlock(Modifier.fillMaxWidth()){Text("Избранные",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary)}}
-        items(state.favoriteResults,key={"favorite_${it.id}"}){p->com.spisokryadom.app.ui.components.FavoriteBlock(Modifier.fillMaxWidth()){AddCandidate(p,state,"favorite",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)})}}
+        items(state.favoriteResults,key={"favorite_${it.id}"}){p->com.spisokryadom.app.ui.components.FavoriteBlock(Modifier.fillMaxWidth()){AddCandidate(p,state,"favorite",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)},{viewModel.quickDecrease(p)})}}
        }
        if(state.searchQuery.isBlank()&&state.searchResults.isNotEmpty())item(key="all-title"){Text("Все товары",Modifier.padding(horizontal=12.dp,vertical=8.dp),style=MaterialTheme.typography.titleSmall)}
-       items(state.searchResults,key={"product_${it.id}"}){p->AddCandidate(p,state,"all",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)})}
+       items(state.searchResults,key={"product_${it.id}"}){p->AddCandidate(p,state,"all",{focus.clearFocus();viewModel.selectProduct(p)},{viewModel.quickAdd(p)},{viewModel.quickDecrease(p)})}
        if(state.searchResults.isEmpty()&&!state.isSearching)item(key="empty"){Text("Пока нет подходящих товаров. Введите название, чтобы добавить новый.",Modifier.padding(12.dp),style=MaterialTheme.typography.bodyMedium)}
       }
      }
@@ -74,6 +76,8 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
      OutlinedCard(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp)){
       com.spisokryadom.app.ui.components.ProductCandidateTitle(p,style=MaterialTheme.typography.titleMedium)
       Text("Выбран",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
+      if(state.variantOptions.size>1)com.spisokryadom.app.ui.components.DropdownSelector("Вариант",state.variantOptions,state.variantOptions.find{it.product.id==p.id},{it.label},{it?.let{viewModel.selectVariant(it.product)}},allowNone=false)
+
       TextButton(onClick={viewModel.onSearchQueryChanged(state.searchQuery)}){Text("Выбрать другой товар")}
      }}
     }}
@@ -99,7 +103,7 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
  }
 }
 @Composable
-private fun AddCandidate(p:ProductEntity,state:AddToListUiState,section:String,onSelect:()->Unit,onAdd:()->Unit) {
+private fun AddCandidate(p:ProductEntity,state:AddToListUiState,section:String,onSelect:()->Unit,onAdd:()->Unit,onDecrease:()->Unit) {
  val pending=state.pendingProductLabels[p.id]
  val background by animateColorAsState(if(pending!=null)MaterialTheme.colorScheme.primary.copy(alpha=.08f)else androidx.compose.ui.graphics.Color.Transparent,label="purchase-added")
  Row(Modifier.fillMaxWidth().background(background).animateContentSize().testTag("candidate-$section-${p.id}").clickable(enabled=!state.isLoading&&!state.isSearching,onClick=onSelect).padding(start=12.dp,top=6.dp,bottom=6.dp),verticalAlignment=Alignment.CenterVertically) {
@@ -113,6 +117,7 @@ private fun AddCandidate(p:ProductEntity,state:AddToListUiState,section:String,o
    }
    (if(pending==null)state.productContexts else state.productContextsWithoutQuantity)[p.id]?.takeIf{it.isNotBlank()}?.let{Text(it,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)}
   }
+  if(pending!=null)IconButton(onClick=onDecrease,enabled=!state.isLoading&&!state.isSearching){Icon(androidx.compose.material.icons.Icons.Filled.Remove,"Уменьшить: ${p.name}")}
   IconButton(onClick=onAdd,enabled=!state.isLoading&&!state.isSearching){Icon(if(pending!=null)Icons.Filled.Add else Icons.Filled.AddShoppingCart,if(pending!=null)"Добавить ещё: ${p.name}"else "Добавить: ${p.name}")}
  }
 }
@@ -132,7 +137,7 @@ fun ShopChoiceField(shops:List<ShopEntity>,selectedId:Long?,onSelected:(Long?)->
  }
  val label=when(selectedId){-1L->"Подобрать автоматически";null->"Без магазина";else->shops.find{it.id==selectedId}?.let{com.spisokryadom.app.ui.components.LocalPlaceLabels.current.shop(it.id,it.name)}?:"Выберите магазин"}
  ExposedDropdownMenuBox(expanded=expanded,onExpandedChange={if(enabled)expanded=it}){
-  OutlinedTextField(label,{},readOnly=true,enabled=enabled,label={Text("Магазин")},trailingIcon={ExposedDropdownMenuDefaults.TrailingIcon(expanded)},modifier=Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth())
+  AppTextField(label,{},readOnly=true,enabled=enabled,label={Text("Магазин")},trailingIcon={ExposedDropdownMenuDefaults.TrailingIcon(expanded)},modifier=Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth())
   ExposedDropdownMenu(expanded,onDismissRequest={expanded=false}){
    CompositionLocalProvider(com.spisokryadom.app.ui.components.LocalFavoriteSurface provides com.spisokryadom.app.util.FavoriteSurface.DROPDOWNS){
     val favorites=shops.filter{it.isFavorite}.sortedWith(compareBy<ShopEntity>{it.favoriteOrder}.thenBy{it.id})

@@ -43,7 +43,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.key
@@ -104,7 +103,7 @@ fun InputDialog(
         TextButton(onClick = { if (text.isNotBlank()) onConfirm(text.trim()) },
             enabled = text.isNotBlank()) { Text("Сохранить") }
     }) {
-            OutlinedTextField(
+            AppTextField(
                 value = text,
                 onValueChange = { text = it },
                 label = { Text(label) },
@@ -146,7 +145,7 @@ fun MultiSelectDialog(title:String,availableItems:List<String>,alreadyAddedItems
    }}
    Spacer(Modifier.height(8.dp))
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-    OutlinedTextField(input,{input=it},label={Text(newItemLabel)},singleLine=true,keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={add()}),modifier=Modifier.weight(1f))
+    AppTextField(input,{input=it},label={Text(newItemLabel)},singleLine=true,keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={add()}),modifier=Modifier.weight(1f))
     IconButton(onClick={add()},enabled=input.isNotBlank()){Icon(Icons.Filled.Add,"Добавить название")}
    }
  }
@@ -178,7 +177,7 @@ fun <T> DropdownSelector(
         onExpandedChange = { if(it)onOpen();expanded=it },
         modifier = modifier
     ) {
-        OutlinedTextField(
+        AppTextField(
             value = selectedItem?.let { itemLabel(it) } ?: noneLabel,
             leadingIcon=selectedItem?.let { item -> (itemVector(item)?:appearanceIcon(itemIcon(item)))?.let{vector->{Icon(vector,null,tint=accentColor(itemAccent(item))?:MaterialTheme.colorScheme.primary)}}},
             onValueChange = {},
@@ -271,12 +270,12 @@ fun QuantityUnitInputWithSuggestions(
     }
 
     Row(modifier = modifier.fillMaxWidth()) {
-        OutlinedTextField(
+        AppTextField(
             value = quantity,
             // Keep the raw draft, including incomplete/invalid input. The owning editor
             // validates before writing; silently rejecting text would restore an old value.
             onValueChange = onQuantityChange,
-            label = { Text(quantityLabel) },
+            label = { Text(quantityLabel,style=MaterialTheme.typography.bodySmall) },
             enabled = enabled,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),
             singleLine = true,
@@ -289,13 +288,13 @@ fun QuantityUnitInputWithSuggestions(
             onExpandedChange = { if(enabled)unitExpanded = it },
             modifier = Modifier.weight(1f)
         ) {
-            OutlinedTextField(
+            AppTextField(
                 value = unit,
                 onValueChange = { value ->
                     onUnitChange(value)
                     unitExpanded = true
                 },
-                label = { Text(unitLabel) },
+                label = { Text(unitLabel,style=MaterialTheme.typography.bodySmall) },
                 enabled = enabled,
                 singleLine = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(unitExpanded) },

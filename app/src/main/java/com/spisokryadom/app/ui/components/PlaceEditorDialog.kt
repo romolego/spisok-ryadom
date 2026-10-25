@@ -55,11 +55,11 @@ import kotlinx.coroutines.launch
   else {
    val locations=(androidx.compose.ui.platform.LocalContext.current.applicationContext as com.spisokryadom.app.SpisokRyadomApp).container.locations
    val cities by locations.cities.collectAsState()
-   OutlinedTextField(cities.find{it.id==cityId}?.name.orEmpty(),{},readOnly=true,label={Text("Город места")},modifier=Modifier.fillMaxWidth())
+   AppTextField(cities.find{it.id==cityId}?.name.orEmpty(),{},readOnly=true,label={Text("Город места")},modifier=Modifier.fillMaxWidth())
   }
-  OutlinedTextField(name,{name=it},label={Text("Название")},modifier=Modifier.fillMaxWidth().testTag("venue-name"))
-  OutlinedTextField(address,{address=it},label={Text("Общий адрес")},modifier=Modifier.fillMaxWidth().testTag("venue-address"))
-  OutlinedTextField(note,{note=it},label={Text("Заметка")},maxLines=3,modifier=Modifier.fillMaxWidth())
+  AppTextField(name,{name=it},label={Text("Название")},modifier=Modifier.fillMaxWidth().testTag("venue-name"))
+  AppTextField(address,{address=it},label={Text("Общий адрес")},modifier=Modifier.fillMaxWidth().testTag("venue-address"))
+  AppTextField(note,{note=it},label={Text("Заметка")},maxLines=3,modifier=Modifier.fillMaxWidth())
   BranchPhotoEditor(photo.orEmpty(),{photo=it},{photoBusy=it},title="Рынок или ТЦ",directory="venue_photos",compact=true,showTitle=false,enabled=!saving)
   error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
   if(onDelete!=null)TextButton(onClick={deleting=true},enabled=!photoBusy&&!saving){Text("Удалить торговое место",color=MaterialTheme.colorScheme.error)}

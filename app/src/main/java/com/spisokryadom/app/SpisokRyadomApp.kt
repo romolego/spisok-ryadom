@@ -28,7 +28,7 @@ class SpisokRyadomApp : Application() {
         getSharedPreferences("location_prefs",MODE_PRIVATE).registerOnSharedPreferenceChangeListener(widgetPreferencesListener)
         applicationScope.launch {
             container.database.invalidationTracker.addObserver(object:androidx.room.InvalidationTracker.Observer(
-                "goal_lists","shopping_list_entries","products","shops","shop_branches","venues","cities",
+                "goal_lists","shopping_list_entries","products","product_variants","product_variant_cities","product_photos","shops","shop_branches","venues","cities",
                 "product_groups","recipients","shop_departments","department_types","branch_department_order") {
                 override fun onInvalidated(tables:Set<String>) {
                     com.spisokryadom.app.widget.ShoppingWidgetProvider.refresh(this@SpisokRyadomApp)

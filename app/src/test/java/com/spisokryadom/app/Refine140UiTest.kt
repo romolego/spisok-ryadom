@@ -62,7 +62,7 @@ class Refine140UiTest {
   add();ui.onNodeWithText("Магазин").performScrollTo().performClick();ui.onAllNodesWithText("Красный Яр").onLast().performClick()
   waitText("Вода");ui.onNodeWithTag("candidate-all-$water").assertIsDisplayed()
   ui.onNodeWithTag("candidate-all-$banana").assertDoesNotExist();ui.onNodeWithText("Избранные").assertDoesNotExist();shot("02-shop-browse")
-  ui.onNodeWithTag("candidate-all-$water").performClick();ui.onNodeWithText("Количество").performScrollTo().performTextReplacement("3")
+  ui.onNodeWithTag("candidate-all-$water").performClick();waitFor{runCatching{ui.onNodeWithText("Количество").assertIsEnabled()}.isSuccess};ui.onNodeWithText("Количество").performScrollTo().performTextReplacement("3")
   ui.onNodeWithText("Добавить в список").performScrollTo().performClick();waitText("Список покупок")
   waitFor{runBlocking{db.shoppingListEntryDao().getAllSync().singleOrNull()?.quantity==3.0}}
  }

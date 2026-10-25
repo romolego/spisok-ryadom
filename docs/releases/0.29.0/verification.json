@@ -1,0 +1,342 @@
+{
+  "version": "0.29.0",
+  "roomSchema": 26,
+  "backupFormat": 24,
+  "verificationStartedUtc": "2026-10-25T09:32:02.528959+00:00",
+  "evidenceCollectedUtc": "2026-10-25T10:57:35.918645+00:00",
+  "testRun": {
+    "kind": "full application suite plus expanded 32-class regression after exact-outlet/city-projection repairs; not a single full run on final code",
+    "classes": 118,
+    "totals": {
+      "cases": 1473,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "newCases": 54,
+    "newClasses": [
+      {
+        "class": "ProductVariants290DataTest",
+        "cases": 34
+      },
+      {
+        "class": "ProductVariants290FlowsUiTest",
+        "cases": 8
+      },
+      {
+        "class": "ProductVariants290UiTest",
+        "cases": 12
+      }
+    ],
+    "classNames": [
+      "com.spisokryadom.app.ArchitectureDataTest",
+      "com.spisokryadom.app.ArchitectureMigrationTest",
+      "com.spisokryadom.app.ArchitecturePolicyTest",
+      "com.spisokryadom.app.ArchitectureUiTest",
+      "com.spisokryadom.app.Audit121ActiveEditorTest",
+      "com.spisokryadom.app.Audit121DomainTest",
+      "com.spisokryadom.app.Audit121StorageTest",
+      "com.spisokryadom.app.Audit121SynchronizationTest",
+      "com.spisokryadom.app.Audit121UiTest",
+      "com.spisokryadom.app.Audit151BackupTest",
+      "com.spisokryadom.app.Audit151CrosscutTest",
+      "com.spisokryadom.app.Audit151DomainTest",
+      "com.spisokryadom.app.Audit151MoneyTest",
+      "com.spisokryadom.app.Audit151ShareTest",
+      "com.spisokryadom.app.Audit151TransferTest",
+      "com.spisokryadom.app.Audit151UiTest",
+      "com.spisokryadom.app.Audit201DataTest",
+      "com.spisokryadom.app.Audit201UiTest",
+      "com.spisokryadom.app.Audit270DataTest",
+      "com.spisokryadom.app.Audit270FlowsUiTest",
+      "com.spisokryadom.app.Audit270SessionTest",
+      "com.spisokryadom.app.Audit270StoreSessionsTest",
+      "com.spisokryadom.app.Audit270StoresUiTest",
+      "com.spisokryadom.app.Audit270UiTest",
+      "com.spisokryadom.app.AuditDomain071Test",
+      "com.spisokryadom.app.AuditIntegrity071Test",
+      "com.spisokryadom.app.AuditStorage071Test",
+      "com.spisokryadom.app.AuditUi071Test",
+      "com.spisokryadom.app.AuditUiNavigation071Test",
+      "com.spisokryadom.app.BranchMigrationTest",
+      "com.spisokryadom.app.CardDraftTest",
+      "com.spisokryadom.app.CatalogUiTest",
+      "com.spisokryadom.app.DatabaseSmokeTest",
+      "com.spisokryadom.app.DraftDepartmentTest",
+      "com.spisokryadom.app.Favorites200DataTest",
+      "com.spisokryadom.app.Favorites200SettingsTest",
+      "com.spisokryadom.app.Favorites200UiTest",
+      "com.spisokryadom.app.FuzzySearchRegressionTest",
+      "com.spisokryadom.app.GoalImportFileTest",
+      "com.spisokryadom.app.GoalListIntegrationTest",
+      "com.spisokryadom.app.GoalListStorageTest",
+      "com.spisokryadom.app.GoalListTransferTest",
+      "com.spisokryadom.app.GoalListWidgetTest",
+      "com.spisokryadom.app.GoalListsUiTest",
+      "com.spisokryadom.app.GoalMessageDraftsTest",
+      "com.spisokryadom.app.IndependentDataAuditTest",
+      "com.spisokryadom.app.IndependentDomainAuditTest",
+      "com.spisokryadom.app.IndependentInlineFocusAuditTest",
+      "com.spisokryadom.app.IndependentShopPickerAuditTest",
+      "com.spisokryadom.app.IndependentUiAuditTest",
+      "com.spisokryadom.app.IndependentUnitMigrationAuditTest",
+      "com.spisokryadom.app.InlineStoreEditingTest",
+      "com.spisokryadom.app.MarketDataTest",
+      "com.spisokryadom.app.MarketUiTest",
+      "com.spisokryadom.app.MigrationRegressionTest",
+      "com.spisokryadom.app.OrderMotionTest",
+      "com.spisokryadom.app.PhotoStoreTest",
+      "com.spisokryadom.app.ProductCard190DataTest",
+      "com.spisokryadom.app.ProductCard190LandscapeTest",
+      "com.spisokryadom.app.ProductCard190UiTest",
+      "com.spisokryadom.app.ProductFlowUiTest",
+      "com.spisokryadom.app.ProductSessions270DataTest",
+      "com.spisokryadom.app.ProductSessions270UiTest",
+      "com.spisokryadom.app.ProductVariants290DataTest",
+      "com.spisokryadom.app.ProductVariants290FlowsUiTest",
+      "com.spisokryadom.app.ProductVariants290UiTest",
+      "com.spisokryadom.app.PurchasePlacesUiTest",
+      "com.spisokryadom.app.QuickAdd241DataTest",
+      "com.spisokryadom.app.QuickAdd241UiTest",
+      "com.spisokryadom.app.Refine080DataTest",
+      "com.spisokryadom.app.Refine080UiTest",
+      "com.spisokryadom.app.Refine090DataTest",
+      "com.spisokryadom.app.Refine090UiTest",
+      "com.spisokryadom.app.Refine100DataTest",
+      "com.spisokryadom.app.Refine100UiTest",
+      "com.spisokryadom.app.Refine110DataTest",
+      "com.spisokryadom.app.Refine110UiTest",
+      "com.spisokryadom.app.Refine120DataTest",
+      "com.spisokryadom.app.Refine120UiTest",
+      "com.spisokryadom.app.Refine130DataTest",
+      "com.spisokryadom.app.Refine130UiTest",
+      "com.spisokryadom.app.Refine140DataTest",
+      "com.spisokryadom.app.Refine140UiTest",
+      "com.spisokryadom.app.Refine160DataTest",
+      "com.spisokryadom.app.Refine160UiTest",
+      "com.spisokryadom.app.Refine170DataTest",
+      "com.spisokryadom.app.Refine170UiTest",
+      "com.spisokryadom.app.RefinementDataTest",
+      "com.spisokryadom.app.RefinementUiTest",
+      "com.spisokryadom.app.RepositoryRegressionTest",
+      "com.spisokryadom.app.Reset210NavigationTest",
+      "com.spisokryadom.app.SearchTest",
+      "com.spisokryadom.app.Settings210DataTest",
+      "com.spisokryadom.app.Settings210UiTest",
+      "com.spisokryadom.app.Settings280ComponentsUiTest",
+      "com.spisokryadom.app.Settings280UiTest",
+      "com.spisokryadom.app.SettingsCities280DataTest",
+      "com.spisokryadom.app.ShoppingRepresentationsTest",
+      "com.spisokryadom.app.ShoppingUiFlowTest",
+      "com.spisokryadom.app.ShoppingWorkflowUiTest",
+      "com.spisokryadom.app.StoreCard180DataTest",
+      "com.spisokryadom.app.StoreCard180UiTest",
+      "com.spisokryadom.app.StorePlaces242DataTest",
+      "com.spisokryadom.app.StorePlaces242LayoutTest",
+      "com.spisokryadom.app.StorePlaces242UiTest",
+      "com.spisokryadom.app.Stores220DataTest",
+      "com.spisokryadom.app.Stores220UiTest",
+      "com.spisokryadom.app.Templates240DataTest",
+      "com.spisokryadom.app.Templates240LandscapeUiTest",
+      "com.spisokryadom.app.Templates240UiTest",
+      "com.spisokryadom.app.UnifiedLists250DataTest",
+      "com.spisokryadom.app.UnifiedLists250UiTest",
+      "com.spisokryadom.app.UxLayoutTest",
+      "com.spisokryadom.app.Venues230DataTest",
+      "com.spisokryadom.app.Venues230UiTest",
+      "com.spisokryadom.app.Venues242DataTest",
+      "com.spisokryadom.app.Widget260DataTest",
+      "com.spisokryadom.app.Widget260UiTest"
+    ],
+    "recheck": {
+      "startedUtc": "2026-10-25T10:32:10.098131+00:00",
+      "totals": {
+        "cases": 473,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "classes": [
+        "com.spisokryadom.app.Audit201DataTest",
+        "com.spisokryadom.app.Audit201UiTest",
+        "com.spisokryadom.app.Audit270FlowsUiTest",
+        "com.spisokryadom.app.AuditUi071Test",
+        "com.spisokryadom.app.AuditUiNavigation071Test",
+        "com.spisokryadom.app.CatalogUiTest",
+        "com.spisokryadom.app.Favorites200DataTest",
+        "com.spisokryadom.app.Favorites200UiTest",
+        "com.spisokryadom.app.GoalListIntegrationTest",
+        "com.spisokryadom.app.GoalListsUiTest",
+        "com.spisokryadom.app.ProductVariants290DataTest",
+        "com.spisokryadom.app.ProductVariants290FlowsUiTest",
+        "com.spisokryadom.app.ProductVariants290UiTest",
+        "com.spisokryadom.app.QuickAdd241DataTest",
+        "com.spisokryadom.app.QuickAdd241UiTest",
+        "com.spisokryadom.app.Refine090DataTest",
+        "com.spisokryadom.app.Refine090UiTest",
+        "com.spisokryadom.app.Refine100DataTest",
+        "com.spisokryadom.app.Refine100UiTest",
+        "com.spisokryadom.app.Refine120DataTest",
+        "com.spisokryadom.app.Refine120UiTest",
+        "com.spisokryadom.app.Refine140DataTest",
+        "com.spisokryadom.app.Refine140UiTest",
+        "com.spisokryadom.app.RepositoryRegressionTest",
+        "com.spisokryadom.app.Settings280UiTest",
+        "com.spisokryadom.app.SettingsCities280DataTest",
+        "com.spisokryadom.app.ShoppingRepresentationsTest",
+        "com.spisokryadom.app.ShoppingUiFlowTest",
+        "com.spisokryadom.app.ShoppingWorkflowUiTest",
+        "com.spisokryadom.app.StoreCard180UiTest",
+        "com.spisokryadom.app.UnifiedLists250DataTest",
+        "com.spisokryadom.app.UnifiedLists250UiTest"
+      ],
+      "existingCaseIdentitiesPreserved": true,
+      "reviewedChangedPaths": [
+        "app/src/main/java/com/spisokryadom/app/data/repository/ProductRepository.kt",
+        "app/src/main/java/com/spisokryadom/app/data/repository/ProductVariantsRepository.kt",
+        "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+        "app/src/main/java/com/spisokryadom/app/ui/addtolist/AddToListViewModel.kt",
+        "app/src/test/java/com/spisokryadom/app/AuditUiNavigation071Test.kt",
+        "app/src/test/java/com/spisokryadom/app/ProductVariants290DataTest.kt",
+        "app/src/test/java/com/spisokryadom/app/Settings280UiTest.kt",
+        "app/src/test/java/com/spisokryadom/app/StoreCard180UiTest.kt"
+      ],
+      "initialFullTotals": {
+        "cases": 1471,
+        "failure": 3,
+        "error": 0,
+        "skipped": 0
+      },
+      "initialFullFailures": [
+        {
+          "class": "com.spisokryadom.app.AuditUiNavigation071Test",
+          "name": "addingFromNoAddressBlockKeepsThatExactBlockAcrossNavigation"
+        },
+        {
+          "class": "com.spisokryadom.app.Settings280UiTest",
+          "name": "shopBatchConfiguresModeAndBothUrgencyOverrides[28]"
+        },
+        {
+          "class": "com.spisokryadom.app.StoreCard180UiTest",
+          "name": "galleryLogoCanBeImportedSavedAndDisplayedInPurchases[28]"
+        }
+      ],
+      "addedCases": [
+        {
+          "class": "com.spisokryadom.app.ProductVariants290DataTest",
+          "name": "exactOutletAndCityVisibilityUseOnlyEligibleVariant[28]"
+        },
+        {
+          "class": "com.spisokryadom.app.ProductVariants290DataTest",
+          "name": "exactOutletAndCityVisibilityUseOnlyEligibleVariant"
+        }
+      ],
+      "description": "Four production files repair exact-outlet variant choice, city-aware catalogue projections, no-op replacement and retention of an eligible current outlet. Thirty-two complete related classes repeat catalogue, shops, picker, lists, assignments, city/defaults and recovery; release and lint run on the same sealed code. Three UI fixtures wait for enabled actions, the loaded batch panel and completed logo import. Two new API28/35 integration cases preserve raw links and existing purchase facts."
+    }
+  },
+  "sourceFiles": 349,
+  "sourceChangedAfterFinalStart": true,
+  "apk": {
+    "version": "0.29.0",
+    "versionCode": 39,
+    "package": "com.spisokryadom.app.next",
+    "bytes": 2169198,
+    "sha256": "5a1b06c37d2c95b563fdd92dd0909cbd5807f8aea4052178e2d069145ed0ba8c",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "roomSchema": 26,
+    "backupFormat": 24
+  },
+  "lint": {
+    "Warning": 85,
+    "Hint": 7
+  },
+  "screens": [
+    {
+      "file": "screens/input-clear-api28.png",
+      "sha256": "a534b9828e781cc5e96085fbd6d3e935837846f653605f2a6754422833ff8105",
+      "bytes": 69992
+    },
+    {
+      "file": "screens/input-clear-api35.png",
+      "sha256": "8ca032cf775f85839149d9698041062925c62d679e6b8aff1197522d42e74d4b",
+      "bytes": 70977
+    },
+    {
+      "file": "screens/matching-color-picker-api28.png",
+      "sha256": "95b0e11a961225d53897f887e69a4d3c97bba74513fff9695d83d5973345b636",
+      "bytes": 45904
+    },
+    {
+      "file": "screens/matching-color-picker-api35.png",
+      "sha256": "ca0c394bf2d973779f5b3e973052094b671780fea555a59dadd4927636a144fd",
+      "bytes": 46879
+    },
+    {
+      "file": "screens/photo-caption-order-api28.png",
+      "sha256": "532389edace0e49564dbee63fbbbf0fda1c7d6a3a0290db955a85cb7bead0dce",
+      "bytes": 34668
+    },
+    {
+      "file": "screens/photo-caption-order-api35.png",
+      "sha256": "fd4ddc4d70f446d4af1e79565bb235f639b0994c2aab5479cbf438fdce812f6c",
+      "bytes": 36516
+    },
+    {
+      "file": "screens/picker-added-minus-api28.png",
+      "sha256": "501a564086418a63dcac07fd670925aedeb5316121345e5fb824f83833aa719c",
+      "bytes": 61359
+    },
+    {
+      "file": "screens/picker-added-minus-api35.png",
+      "sha256": "63e150e091e6efb52818b00b19adb21f5506d8b6ba7ebd03b9216e44f4afaaed",
+      "bytes": 62092
+    },
+    {
+      "file": "screens/purchase-variant-choice-api28.png",
+      "sha256": "72e0c9b939128c1e409e893c9e0cb3aa156a7e0f3e16020281c285bc804bab54",
+      "bytes": 26924
+    },
+    {
+      "file": "screens/purchase-variant-choice-api35.png",
+      "sha256": "f1eccf84cf9c52855bd170860a9048334c2a3e75628c91c3be1c32909d610f78",
+      "bytes": 26916
+    },
+    {
+      "file": "screens/variant-card-photos-api28.png",
+      "sha256": "58d40bdbcd6b3f1ba66914abce203cb35bccbf545e1ed103fb4bc882971df05c",
+      "bytes": 75228
+    },
+    {
+      "file": "screens/variant-card-photos-api35.png",
+      "sha256": "1aaec3c980b969ce672431c10195a59e809e605d34cef67d9c6cfda793dd39f5",
+      "bytes": 77423
+    },
+    {
+      "file": "screens/variant-city-drafts-api28.png",
+      "sha256": "a96c63ae5bc134a9318933e3f5959a5db57a6caa026e4c3f100c3ae72d3076ba",
+      "bytes": 38188
+    },
+    {
+      "file": "screens/variant-city-drafts-api35.png",
+      "sha256": "1d8b14bc6db703b0e6c59af21bf7e9deea9c47cb12be6e53a937318249b7b103",
+      "bytes": 39794
+    }
+  ],
+  "preservedPrivateAndApks": 41,
+  "physicalDeviceTested": false,
+  "limitations": [
+    "Robolectric native graphics on API28/35 where configured; no physical phone, real speech/Gboard provider, OEM widget host or external gallery provider tested.",
+    "Primary family member retains the original product ID and cannot be deleted independently; it can be renamed or disabled for a city.",
+    "Temporary purchases must be explicitly kept in the catalogue before adding variants.",
+    "Cancelled manual card drafts do not revert separately confirmed creation/removal or city configuration of variants."
+  ],
+  "excludedPreliminaryRuns": [
+    "Earlier baseline full run, the interrupted attempt before duplicate-label protection, and focused repair attempts are private diagnostics, excluded from final totals."
+  ],
+  "applicationSchemaBuildUnchangedBetweenRuns": false,
+  "schemaBuildUnchangedBetweenRuns": true,
+  "initialFullAuxiliaryBuildCancelledAfterCompletedTests": true,
+  "sourceChangedAfterRecheckStart": false,
+  "finalSourceVerificationStartedUtc": "2026-10-25T10:32:10.098131+00:00",
+  "screensCapturedIn": "expanded final regression"
+}

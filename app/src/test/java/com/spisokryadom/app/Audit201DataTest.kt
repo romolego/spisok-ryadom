@@ -91,11 +91,11 @@ class Audit201DataTest {
         val id=groups.insertGroup(ProductGroupEntity(name="Гигиена",isFavorite=true,favoriteOrder=Int.MAX_VALUE))
         restore();assertEquals(Int.MAX_VALUE,groups.getGroupById(id)!!.favoriteOrder)
         val next=groups.insertGroup(ProductGroupEntity(name="Быт"));groups.favoriteGroup(next,true)
-        assertEquals(1,groups.getGroupById(next)!!.favoriteOrder);assertEquals(25,db.openHelper.writableDatabase.version)
+        assertEquals(1,groups.getGroupById(next)!!.favoriteOrder);assertEquals(26,db.openHelper.writableDatabase.version)
         db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}
     }
     @Test fun catalogueSelectionFromBeforeRestoreCannotAddToReplacementDatabase():Unit=runBlocking {
-        val vm=addModel();vm.selectProduct(products.getProductById(product)!!);restore();vm.add();pump{vm.uiState.value.error!=null}
+        val vm=addModel();vm.selectProduct(products.getProductById(product)!!);pump{!vm.uiState.value.isLoading&&vm.uiState.value.selectedProduct?.id==product};restore();vm.add();pump{vm.uiState.value.error!=null}
         assertTrue(vm.uiState.value.error!!.contains("База восстановлена"));assertTrue(db.shoppingListEntryDao().getAllSync().isEmpty());assertNull(vm.uiState.value.addedMessage)
     }
     @Test fun newPurchaseFromBeforeRestoreCannotCreateAProduct():Unit=runBlocking {

@@ -23,24 +23,47 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         ShopChoice.EXPLICIT->com.spisokryadom.app.domain.RetailerChoice.Exact(requireNotNull(id){"Выберите магазин"})
     }
     private fun outletChoice(id:Long?)=when(id){null,-1L->com.spisokryadom.app.domain.OutletChoice.Preferred;0L->com.spisokryadom.app.domain.OutletChoice.Unassigned;else->com.spisokryadom.app.domain.OutletChoice.Exact(id)}
-    suspend fun addProduct(productId: Long, quantity: Double?=null, unit: String?=null, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null,listId:Long?=null,plannedUnitPrice:Double?=null): Long {
+    suspend fun addProduct(productId: Long, quantity: Double?=null, unit: String?=null, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null,listId:Long?=null,plannedUnitPrice:Double?=null,exactVariant:Boolean=false): Long {
         val cityId=locations.currentId()
         return db.withTransaction {
             validateListPrice(listId,plannedUnitPrice)
-            val product=db.productDao().getById(productId) ?: error("Товар удалён")
-            val resolved=assignments(productId).resolve(productId,cityId,retailerChoice(choice,shopId),outletChoice(branchId))
-            val row=ShoppingListEntryEntity(productId=productId,listId=listId,plannedUnitPrice=plannedUnitPrice,
+            val variants=ProductVariantsRepository(db)
+            val product=if(exactVariant||variants.familyId(productId)!=productId)db.productDao().getById(productId)?:error("Товар удалён") else variants.resolve(productId,cityId,shopId.takeIf{choice==ShopChoice.EXPLICIT},branchId.takeIf{choice==ShopChoice.EXPLICIT})
+            require(variants.options(product.id,cityId).any{it.product.id==product.id&&it.enabled}){"Вариант недоступен в этом городе"}
+            val resolved=assignments(product.id).resolve(product.id,cityId,retailerChoice(choice,shopId),outletChoice(branchId))
+            val row=ShoppingListEntryEntity(productId=product.id,listId=listId,plannedUnitPrice=plannedUnitPrice,
                 quantity=Quantities.valid(quantity ?: product.defaultQuantity?.takeIf { it>0 && it.isFinite() } ?: 1.0),
                 explicitNoShop=choice==ShopChoice.NONE,awaitingShopCityId=cityId.takeIf{choice==ShopChoice.AUTO&&resolved.shopId==null},unit=Quantities.unit(unit ?: product.defaultUnit.orEmpty()),assignedShopId=resolved.shopId,assignedDepartmentId=resolved.departmentId,assignedBranchId=resolved.branchId)
             validateTarget(row)
             entryDao.addOrMerge(row)
         }
     }
+    suspend fun replaceVariant(entryId:Long,variantId:Long,expectedUpdatedAt:Long,listId:Long?,remember:Boolean=false)=db.withTransaction{
+        val row=entryDao.getById(entryId)?:error("Покупка удалена")
+        require(row.updatedAt==expectedUpdatedAt&&row.listId==listId&&!row.isBought){"Покупка изменилась. Откройте её заново"}
+        val variants=ProductVariantsRepository(db);val city=locations.currentId()
+        require(variants.familyId(row.productId)==variants.familyId(variantId)){"Выбран вариант другого товара"}
+        require(variants.options(variantId,city).any{it.product.id==variantId&&it.enabled}){"Вариант недоступен в этом городе"}
+        if(variantId==row.productId){
+            if(remember)variants.rememberChoice(variantId,city)
+            return@withTransaction
+        }
+        val linked=db.productShopLinkDao().getLinksForProductSync(variantId)
+        val choice=if(row.explicitNoShop)ShopChoice.NONE else if(linked.any{it.shopId==row.assignedShopId}&&db.shopDao().getById(row.assignedShopId?:-1)?.cityId==city)ShopChoice.EXPLICIT else ShopChoice.AUTO
+        val currentLink=linked.find{it.shopId==row.assignedShopId}
+        val currentPoint=row.assignedBranchId?.let{db.shopBranchDao().get(it)}
+        val keepPoint=choice==ShopChoice.EXPLICIT&&(row.assignedBranchId==null||
+            (currentPoint?.shopId==row.assignedShopId&&(currentLink?.restrictBranches!=true||db.shopBranchDao().availability(variantId).any{it.branchId==row.assignedBranchId})))
+        val place=assignments(variantId).resolve(variantId,city,retailerChoice(choice,row.assignedShopId),outletChoice(if(keepPoint)row.assignedBranchId?:0L else null))
+        val next=row.copy(productId=variantId,assignedShopId=place.shopId,assignedDepartmentId=place.departmentId,assignedBranchId=place.branchId,awaitingShopCityId=city.takeIf{choice==ShopChoice.AUTO&&place.shopId==null},updatedAt=maxOf(System.currentTimeMillis(),row.updatedAt+1))
+        validateTarget(next);entryDao.update(next)
+        if(remember)variants.rememberChoice(variantId,city)
+    }
     suspend fun addNewProduct(name: String, quantity: Double, unit: String, permanent: Boolean, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null,listId:Long?=null,plannedUnitPrice:Double?=null,purchaseType:String="offline"): Long {
         val cityId=locations.currentId(); require(name.isNotBlank()) { "Введите название товара" }
         return db.withTransaction {
             validateListPrice(listId,plannedUnitPrice)
-            require(purchaseType in setOf("offline","online"))
+            require(purchaseType in setOf("offline","online","both"))
             val product=ProductEntity(purchaseType=purchaseType,name=name.trim(), defaultUnit=Quantities.unit(unit).ifBlank { null },isTemporary=!permanent,preferCityShopOrder=true)
             val id=db.productDao().insert(product)
             if (choice==ShopChoice.EXPLICIT) {
@@ -86,6 +109,21 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
                 shopAddress=if(shop!=null)place?.subtitle.orEmpty()else entry.customShopAddress.orEmpty())))
             val errors=com.spisokryadom.app.domain.GoalListTransfer.validate(document)
             require(errors.isEmpty()){errors.joinToString("\n")}
+    }
+    /** Picker decrement is scoped to this list; bought rows are never changed. */
+    suspend fun decreaseFromPicker(productId:Long,listId:Long?,choice:ShopChoice=ShopChoice.AUTO,shopId:Long?=null,branchId:Long?=null)=db.withTransaction {
+        val product=db.productDao().getById(productId)?:return@withTransaction
+        val ids=ProductVariantsRepository(db).options(productId,locations.currentId()).map{it.product.id}.toSet()
+        val row=entryDao.getAllSync().filter{it.productId in ids&&it.listId==listId&&!it.isBought&&when(choice){
+            ShopChoice.AUTO->true
+            ShopChoice.NONE->it.assignedShopId==null&&it.explicitNoShop
+            ShopChoice.EXPLICIT->it.assignedShopId==shopId&&(branchId==null||branchId<0||it.assignedBranchId==branchId.takeIf{v->v>0})
+        }}.maxWithOrNull(compareBy<ShoppingListEntryEntity>{it.updatedAt}.thenBy{it.id})?:return@withTransaction
+        val actual=db.productDao().getById(row.productId)?:product
+        val next=row.quantity-Quantities.step(row.unit,actual.defaultUnit,actual.defaultQuantity)
+        if(next<=0.0000001)entryDao.deleteById(row.id)
+        else entryDao.update(row.copy(quantity=Quantities.valid(next),updatedAt=System.currentTimeMillis()))
+        db.productDao().deleteUnusedTemporary()
     }
     suspend fun adjustQuantity(id: Long, delta: Double, strictVisible: Boolean = false) = db.withTransaction {
         requireVisibleEntry(id, strictVisible)
@@ -177,8 +215,9 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
                 val shops=db.shopDao().getAllSync().associateBy{it.id};val catalogue=assignments()
                 entryDao.getAllSync().filter{!it.isBought&&it.listId==null&&!it.explicitNoShop&&it.customShopName.isNullOrBlank()&&
                     ((it.assignedShopId!=null&&shops[it.assignedShopId]?.cityId!=cityId)||it.awaitingShopCityId!=null)}.forEach{entry->
-                    val target=catalogue.resolve(entry.productId,cityId,com.spisokryadom.app.domain.RetailerChoice.Automatic)
-                    entryDao.update(entry.copy(assignedShopId=target.shopId,assignedDepartmentId=target.departmentId,assignedBranchId=target.branchId,
+                    val preferred=ProductVariantsRepository(db).resolve(entry.productId,cityId)
+                    val target=catalogue.resolve(preferred.id,cityId,com.spisokryadom.app.domain.RetailerChoice.Automatic)
+                    entryDao.update(entry.copy(productId=preferred.id,assignedShopId=target.shopId,assignedDepartmentId=target.departmentId,assignedBranchId=target.branchId,
                         awaitingShopCityId=cityId.takeIf{target.shopId==null},updatedAt=System.currentTimeMillis()))
                 }
             }

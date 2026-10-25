@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 @Composable fun InlineCreateValue(label:String,onCreate:(String,()->Unit)->Unit,onCancel:()->Unit){
  var name by remember{mutableStateOf("")};var busy by remember{mutableStateOf(false)}
  Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-  OutlinedTextField(name,{name=it},label={Text(label)},singleLine=true,enabled=!busy,modifier=Modifier.weight(1f))
+  AppTextField(name,{name=it},label={Text(label)},singleLine=true,enabled=!busy,modifier=Modifier.weight(1f))
   IconButton(onClick={busy=true;onCreate(name.trim()){busy=false}},enabled=name.isNotBlank()&&!busy){Icon(Icons.Filled.Add,"Создать: $label")}
   IconButton(onClick=onCancel,enabled=!busy){Icon(Icons.Filled.Close,"Отмена: $label")}
  }
