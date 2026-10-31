@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Audit291BackupTest" tests="8" failures="0" errors="0" skipped="0" time="19.712">
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="fullBackupRejectsCoercedIdentifiersBeforeReplacingAnyData[28]" time="9.129" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="legacyMergeWithoutPhotoRetainsAllCurrentPhotos[28]" time="0.252" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="missingPointPrioritiesRejectsModernBackupButRemainsReadableBeforeVersionNine[28]" time="0.282" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="legacyPhotoReplacementUpdatesTheVisiblePrimaryAndKeepsOtherPhotos[28]" time="0.297" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="fullBackupRejectsCoercedIdentifiersBeforeReplacingAnyData" time="8.951" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="legacyMergeWithoutPhotoRetainsAllCurrentPhotos" time="0.185" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="missingPointPrioritiesRejectsModernBackupButRemainsReadableBeforeVersionNine" time="0.331" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="legacyPhotoReplacementUpdatesTheVisiblePrimaryAndKeepsOtherPhotos" time="0.273" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit291CompatibilityTest" tests="2" failures="0" errors="0" skipped="0" time="23.493">
+    <testcase classname="com.spisokryadom.app.Audit291CompatibilityTest" name="currentDatabaseAndRestoredCopyRetainGraphAfterCloseAndReopen[28]" time="12.322" />
+    <testcase classname="com.spisokryadom.app.Audit291CompatibilityTest" name="currentDatabaseAndRestoredCopyRetainGraphAfterCloseAndReopen" time="11.158" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Reliability291ProductCardTest" tests="6" failures="0" errors="0" skipped="0" time="18.57">
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="rawRecoveryKeepsAlreadyLoadedVariantControls[28]" time="8.853" />
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="manualSaveAfterVisitingVariantPreservesLegacyPointDepartment[28]" time="0.584" />
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="autosaveWhenLeavingVariantPreservesLegacyPointDepartment[28]" time="0.689" />
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="rawRecoveryKeepsAlreadyLoadedVariantControls" time="7.263" />
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="manualSaveAfterVisitingVariantPreservesLegacyPointDepartment" time="0.453" />
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="autosaveWhenLeavingVariantPreservesLegacyPointDepartment" time="0.711" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Reliability291ScenariosDataTest" tests="8" failures="0" errors="0" skipped="0" time="15.835">
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="physicalPointSectionKeepsTheVariantPurchaseAndChangesItsActualRow[28]" time="7.44" />
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="generalShopSectionRetainsSeparatePurchasesOfAllVariants[28]" time="0.212" />
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="familyLinkToggleFollowsVisibleCityAvailabilityAndRetainsHiddenLinks[28]" time="0.304" />
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="shoppingTextPreservesTheActualVariantWithoutChangingStoredNames[28]" time="0.179" />
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="physicalPointSectionKeepsTheVariantPurchaseAndChangesItsActualRow" time="7.112" />
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="generalShopSectionRetainsSeparatePurchasesOfAllVariants" time="0.174" />
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="familyLinkToggleFollowsVisibleCityAvailabilityAndRetainsHiddenLinks" time="0.226" />
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="shoppingTextPreservesTheActualVariantWithoutChangingStoredNames" time="0.167" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Reliability291SettingsTest" tests="8" failures="0" errors="0" skipped="0" time="20.518">
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="cancelledDocumentResultAfterProcessRecreationDiscardsOnlyTemporaryExport[28]" time="9.351" />
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="importPreviewSurvivesProcessRecreationAndCancelPreservesDatabase[28]" time="0.507" />
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="missingPreparedFileAfterProcessRecreationReportsFailureInsteadOfSuccess[28]" time="0.349" />
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="documentResultAfterProcessRecreationWritesThePreparedBackup[28]" time="0.353" />
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="cancelledDocumentResultAfterProcessRecreationDiscardsOnlyTemporaryExport" time="9.037" />
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="importPreviewSurvivesProcessRecreationAndCancelPreservesDatabase" time="0.31" />
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="missingPreparedFileAfterProcessRecreationReportsFailureInsteadOfSuccess" time="0.294" />
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="documentResultAfterProcessRecreationWritesThePreparedBackup" time="0.301" />
+  </testsuite>
+</testsuites>

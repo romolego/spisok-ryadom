@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Reliability291SettingsTest" tests="10" failures="9" errors="0" skipped="0" time="20.999">
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="cancelledDocumentResultAfterProcessRecreationDiscardsOnlyTemporaryExport[28]" time="9.782">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="missingPreparedFileDoesNotTruncateTheSelectedDocument[28]" time="0.295">
+      <failure type="org.junit.internal.ArrayComparisonFailure" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="importPreviewSurvivesProcessRecreationAndCancelPreservesDatabase[28]" time="0.31">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="missingPreparedFileAfterProcessRecreationReportsFailureInsteadOfSuccess[28]" time="0.322">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="documentResultAfterProcessRecreationWritesThePreparedBackup[28]" time="0.394">
+      <failure type="org.junit.internal.ArrayComparisonFailure" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="cancelledDocumentResultAfterProcessRecreationDiscardsOnlyTemporaryExport" time="8.753">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="missingPreparedFileDoesNotTruncateTheSelectedDocument" time="0.284" />
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="importPreviewSurvivesProcessRecreationAndCancelPreservesDatabase" time="0.305">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="missingPreparedFileAfterProcessRecreationReportsFailureInsteadOfSuccess" time="0.248">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="documentResultAfterProcessRecreationWritesThePreparedBackup" time="0.275">
+      <failure type="org.junit.internal.ArrayComparisonFailure" />
+    </testcase>
+  </testsuite>
+</testsuites>
