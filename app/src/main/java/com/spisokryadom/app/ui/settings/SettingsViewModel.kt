@@ -8,6 +8,8 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -34,6 +36,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // ── Backup state ─────────────────────────────────────────────────────────────
 
@@ -85,13 +88,22 @@ class SettingsViewModel(
     private val shopRepository: ShopRepository,
     private val prefs: SharedPreferences,
     private val context:Context,
-    private val resetRepository:com.spisokryadom.app.data.repository.ResetRepository?=null
+    private val resetRepository:com.spisokryadom.app.data.repository.ResetRepository?=null,
+    private val savedState:SavedStateHandle=SavedStateHandle()
 ) : ViewModel() {
 
     // ── Backup ───────────────────────────────────────────────────────────────
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
+    private val _uiState = MutableStateFlow(SettingsUiState(
+        pendingExportPath=savedState["pending_export_path"],exportLaunched=savedState["export_launched"]?:false,
+        pendingImportPath=savedState["pending_import_path"],importSummary=savedState["import_summary"]))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    // Activity results may return to a new process. Keep only small file references in its Bundle.
+    private fun rememberPendingState(state:SettingsUiState){
+        savedState["pending_export_path"]=state.pendingExportPath;savedState["export_launched"]=state.exportLaunched
+        savedState["pending_import_path"]=state.pendingImportPath;savedState["import_summary"]=state.importSummary
+        _uiState.value=state
+    }
     private val errors=kotlinx.coroutines.CoroutineExceptionHandler{_,e->_uiState.value=_uiState.value.copy(isLoading=false,message=e.message?:"Операция не выполнена")}
     private val sessionGeneration=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
     private fun editCatalogue(block:suspend()->Unit){viewModelScope.launch(Dispatchers.IO+errors){
@@ -103,15 +115,15 @@ class SettingsViewModel(
         _uiState.value=_uiState.value.copy(isLoading=true,message=null)
         viewModelScope.launch(Dispatchers.IO+errors){try{
             val file=backupManager.exportFile()
-            _uiState.value=_uiState.value.copy(isLoading=false,pendingExportPath=file.absolutePath,exportLaunched=false)
+            withContext(Dispatchers.Main.immediate){rememberPendingState(_uiState.value.copy(isLoading=false,pendingExportPath=file.absolutePath,exportLaunched=false))}
         }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,message="Ошибка резервной копии: ${e.message}")}}
     }
-    fun exportLaunched(){_uiState.value=_uiState.value.copy(exportLaunched=true)}
+    fun exportLaunched(){rememberPendingState(_uiState.value.copy(exportLaunched=true))}
     fun saveExport(uri:Uri?){
         val file=_uiState.value.pendingExportPath?.let{File(it)}?:return
-        _uiState.value=_uiState.value.copy(pendingExportPath=null,isLoading=uri!=null)
+        rememberPendingState(_uiState.value.copy(pendingExportPath=null,exportLaunched=false,isLoading=uri!=null))
         viewModelScope.launch(Dispatchers.IO+errors){try{
-            if(uri!=null){val output=context.contentResolver.openOutputStream(uri)?:error("Не удалось открыть файл для записи");output.use{out->file.inputStream().use{it.copyTo(out)}}}
+            if(uri!=null)file.inputStream().use{input->val output=context.contentResolver.openOutputStream(uri)?:error("Не удалось открыть файл для записи");output.use{out->input.copyTo(out)}}
             _uiState.value=_uiState.value.copy(isLoading=false,message=if(uri!=null){val missing=backupManager.inspect(file).missingPhotos;"Полная резервная копия сохранена"+(if(missing>0)". Не найдены фото: $missing"else "")}else null)
         }catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,message="Не удалось записать копию: ${e.message}")}
         finally{backupManager.discard(file)}}
@@ -124,15 +136,15 @@ class SettingsViewModel(
                 val input=context.contentResolver.openInputStream(uri)?:error("Не удалось прочитать файл")
                 input.use{source->file.outputStream().use{out->val buffer=ByteArray(16384);var total=0L;while(true){val n=source.read(buffer);if(n<0)break;total+=n;require(total<=512L*1024*1024){"Копия слишком большая"};out.write(buffer,0,n)}}}
                 val info=backupManager.inspect(file)
-                _uiState.value=_uiState.value.copy(isLoading=false,pendingImportPath=file.absolutePath,importSummary=info.description)
+                withContext(Dispatchers.Main.immediate){rememberPendingState(_uiState.value.copy(isLoading=false,pendingImportPath=file.absolutePath,importSummary=info.description))}
             }catch(e:Exception){file.delete();if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(isLoading=false,message="Не удалось прочитать копию: ${e.message}")}
         }
     }
-    fun cancelImport(){_uiState.value.pendingImportPath?.let{backupManager.discard(File(it))};_uiState.value=_uiState.value.copy(pendingImportPath=null,importSummary=null)}
+    fun cancelImport(){_uiState.value.pendingImportPath?.let{backupManager.discard(File(it))};rememberPendingState(_uiState.value.copy(pendingImportPath=null,importSummary=null))}
     fun importSelected(){
         val path=_uiState.value.pendingImportPath?:return
         if(_uiState.value.isLoading)return
-        _uiState.value=_uiState.value.copy(pendingImportPath=null,importSummary=null,isLoading=true)
+        rememberPendingState(_uiState.value.copy(pendingImportPath=null,importSummary=null,isLoading=true))
         viewModelScope.launch(Dispatchers.IO+errors){try{
             val info=backupManager.importFile(File(path))
             _uiState.value=_uiState.value.copy(isLoading=false,resetCompleted=info.full,message=if(info.full)"Полная копия восстановлена"else "Каталог перенесён. Текущие покупки сохранены")
@@ -468,7 +480,7 @@ class SettingsViewModel(
                     productRepository = app.container.productRepository,
                     shopRepository = app.container.shopRepository,
                     prefs = prefs,
-                    context=app,resetRepository=app.container.resetRepository
+                    context=app,resetRepository=app.container.resetRepository,savedState=createSavedStateHandle()
                 )
             }
         }

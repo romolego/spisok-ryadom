@@ -13,7 +13,7 @@ data class ProductEditDraft(val stableId:String,val productId:Long,val newSessio
  fun applyTo(base:ProductCardUiState):ProductCardUiState=state.copy(
   groups=base.groups,recipients=base.recipients,shops=base.shops,shopOrders=base.shopOrders,
   branches=base.branches,unitSuggestions=base.unitSuggestions,allDepartments=base.allDepartments,
-  departmentTypes=base.departmentTypes,productContexts=base.productContexts,isLoading=false)
+  departmentTypes=base.departmentTypes,productContexts=base.productContexts,variantOptions=base.variantOptions,isLoading=false)
  suspend fun persist(repository:ProductRepository,defaults:com.spisokryadom.app.util.ProductCreationDefaults?=null):Long {
   val s=state
   val fallback=defaults?.takeIf{newSession&&it.fillMissing}

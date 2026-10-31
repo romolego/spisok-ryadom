@@ -341,6 +341,6 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
     } }
     data class TextSnapshot(val entries:List<ShoppingListEntryEntity>,val products:List<ProductEntity>,val shops:List<ShopEntity>,val branches:List<ShopBranchEntity>,val venues:List<VenueEntity> = emptyList(),val goalLists:List<GoalListEntity> = emptyList())
     suspend fun textSnapshot():TextSnapshot=db.withTransaction {
-        TextSnapshot(entryDao.getVisibleSync().filter{!it.isBought},db.productDao().getAllSync(),db.shopDao().getAllSync(),db.shopBranchDao().getAll(),db.retailStructureDao().venues(),db.goalListDao().getAllSync())
+        TextSnapshot(entryDao.getVisibleSync().filter{!it.isBought},com.spisokryadom.app.domain.variantNames(db.productDao().getAllSync(),db.productVariantDao().variants()),db.shopDao().getAllSync(),db.shopBranchDao().getAll(),db.retailStructureDao().venues(),db.goalListDao().getAllSync())
     }
 }
