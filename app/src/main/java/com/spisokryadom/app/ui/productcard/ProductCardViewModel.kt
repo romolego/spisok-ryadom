@@ -451,6 +451,8 @@ class ProductCardViewModel(
             require(productRepository.variants.familyId(id)==productRepository.variants.familyId(productId)){"Другой товар"}
             val links=productRepository.getShopLinksForProductSync(id)
             val shops=productRepository.editorShops().associateBy{it.id};val departments=productRepository.editorDepartments().associateBy{it.id}
+            val departmentsByType=departments.values.associateBy{it.shopId to it.typeId}
+            val overrides=productRepository.branchDepartments(id).mapNotNull{d->departmentsByType[d.shopId to d.typeId]?.let{d.branchId to it.id}}.toMap()
             val branches=productRepository.editorBranches().associateBy{it.id}
             val available=productRepository.branchAvailability(id).map{it.branchId}.toSet()
             val raw=visitedVariants[id]?:ProductDraftStore.find(draftPreferences,p.stableId)
@@ -458,7 +460,7 @@ class ProductCardViewModel(
                 note=p.note.orEmpty(),purchaseType=p.purchaseType,sellerUrl=p.sellerUrl.orEmpty(),productUrl=p.productUrl.orEmpty(),photoUri=p.photoUri.orEmpty(),photos=productRepository.variants.photos(id),priceValue=p.priceValue?.toString().orEmpty(),priceDate=p.priceDate.orEmpty(),preferCityShopOrder=p.preferCityShopOrder,
                 shopLinks=links.map{ShopLinkUi(it,shops[it.shopId]?.name.orEmpty(),departments[it.departmentId]?.name)},pendingShopLinks=emptyList(),pendingDepartments=emptyList(),
                 branchSelections=links.filter{it.restrictBranches}.associate{l->l.shopId to available.filter{branches[it]?.shopId==l.shopId}.toSet()},
-                branchPriorities=productRepository.branchPriorities(id).groupBy{it.shopId}.mapValues{(_,v)->v.sortedBy{it.displayOrder}.map{it.branchId}},branchDepartments=emptyMap())
+                branchPriorities=productRepository.branchPriorities(id).groupBy{it.shopId}.mapValues{(_,v)->v.sortedBy{it.displayOrder}.map{it.branchId}},branchDepartments=overrides)
             productId=id;editorStableId=p.stableId;lastCommitted=null;draftBase=raw
             _uiState.value=next.copy(name=common.name,productGroupId=common.productGroupId,recipientId=common.recipientId,isFavorite=common.isFavorite,accent=common.accent,
                 activeVariantId=id,savedProductId=id,isNew=false,isSaved=false,isLoading=false,isSaving=false,error=null,autoSaveIssue=null)

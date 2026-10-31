@@ -1,0 +1,18 @@
+{
+  "totals": {
+    "classes": 1,
+    "tests": 10,
+    "failures": 9,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": [
+    {
+      "name": "com.spisokryadom.app.Reliability291SettingsTest",
+      "tests": 10,
+      "failures": 9,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "totals": {
+    "classes": 5,
+    "tests": 32,
+    "failures": 28,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": [
+    {
+      "name": "com.spisokryadom.app.Audit291BackupTest",
+      "tests": 8,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit291CompatibilityTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Reliability291ProductCardTest",
+      "tests": 6,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Reliability291ScenariosDataTest",
+      "tests": 8,
+      "failures": 8,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Reliability291SettingsTest",
+      "tests": 8,
+      "failures": 8,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

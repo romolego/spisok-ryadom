@@ -43,7 +43,7 @@ class IndependentShopPickerAuditTest {
             val view=ui.activity.window.decorView
             val bitmap=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888)
             view.draw(Canvas(bitmap))
-            val file=File("C:/Users/Роман/Documents/Codex/2026-10-16/new-chat/work/independent-audit/ui/shop-picker-$name-api${Build.VERSION.SDK_INT}.png")
+            val file=File("build/reports/independent-audit/ui/shop-picker-$name-api${Build.VERSION.SDK_INT}.png")
             file.parentFile!!.mkdirs()
             file.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
             bitmap.recycle()

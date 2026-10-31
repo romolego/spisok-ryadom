@@ -91,7 +91,7 @@ class ProductRepository(
     }
     fun getCatalogueLinksForShop(shopId:Long)=getCatalogueShopLinks().map{links->links.filter{it.shopId==shopId}}
     suspend fun toggleFamilyShopLink(productId:Long,shopId:Long)=withCatalogueEdits(db,catalogueEdits){db.withTransaction{
-        val members=variants.options(productId,db.shopDao().getById(shopId)?.cityId?:error("Магазин удалён"))
+        val members=variants.options(productId,db.shopDao().getById(shopId)?.cityId?:error("Магазин удалён")).filter{it.enabled}
         val linked=members.filter{linkDao.getLinksForProductSync(it.product.id).any{l->l.shopId==shopId}}
         if(linked.isEmpty())members.forEach{ensureShopLink(it.product.id,shopId)}
         else linked.forEach{toggleShopLink(it.product.id,shopId)}

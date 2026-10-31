@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Audit291BackupTest" tests="8" failures="6" errors="0" skipped="0" time="16.662">
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="fullBackupRejectsCoercedIdentifiersBeforeReplacingAnyData[28]" time="8.139">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="legacyMergeWithoutPhotoRetainsAllCurrentPhotos[28]" time="0.237" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="missingPointPrioritiesRejectsModernBackupButRemainsReadableBeforeVersionNine[28]" time="0.223">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="legacyPhotoReplacementUpdatesTheVisiblePrimaryAndKeepsOtherPhotos[28]" time="0.163">
+      <failure type="org.junit.internal.ArrayComparisonFailure" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="fullBackupRejectsCoercedIdentifiersBeforeReplacingAnyData" time="7.299">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="legacyMergeWithoutPhotoRetainsAllCurrentPhotos" time="0.201" />
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="missingPointPrioritiesRejectsModernBackupButRemainsReadableBeforeVersionNine" time="0.224">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Audit291BackupTest" name="legacyPhotoReplacementUpdatesTheVisiblePrimaryAndKeepsOtherPhotos" time="0.16">
+      <failure type="org.junit.internal.ArrayComparisonFailure" />
+    </testcase>
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit291CompatibilityTest" tests="2" failures="0" errors="0" skipped="0" time="15.81">
+    <testcase classname="com.spisokryadom.app.Audit291CompatibilityTest" name="currentDatabaseAndRestoredCopyRetainGraphAfterCloseAndReopen[28]" time="7.908" />
+    <testcase classname="com.spisokryadom.app.Audit291CompatibilityTest" name="currentDatabaseAndRestoredCopyRetainGraphAfterCloseAndReopen" time="7.893" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Reliability291ProductCardTest" tests="6" failures="6" errors="0" skipped="0" time="17.903">
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="rawRecoveryKeepsAlreadyLoadedVariantControls[28]" time="7.811">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="manualSaveAfterVisitingVariantPreservesLegacyPointDepartment[28]" time="0.51">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="autosaveWhenLeavingVariantPreservesLegacyPointDepartment[28]" time="0.601">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="rawRecoveryKeepsAlreadyLoadedVariantControls" time="7.563">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="manualSaveAfterVisitingVariantPreservesLegacyPointDepartment" time="0.465">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ProductCardTest" name="autosaveWhenLeavingVariantPreservesLegacyPointDepartment" time="0.925">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Reliability291ScenariosDataTest" tests="8" failures="8" errors="0" skipped="0" time="16.456">
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="physicalPointSectionKeepsTheVariantPurchaseAndChangesItsActualRow[28]" time="7.879">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="generalShopSectionRetainsSeparatePurchasesOfAllVariants[28]" time="0.192">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="familyLinkToggleFollowsVisibleCityAvailabilityAndRetainsHiddenLinks[28]" time="0.201">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="shoppingTextPreservesTheActualVariantWithoutChangingStoredNames[28]" time="0.178">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="physicalPointSectionKeepsTheVariantPurchaseAndChangesItsActualRow" time="7.428">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="generalShopSectionRetainsSeparatePurchasesOfAllVariants" time="0.175">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="familyLinkToggleFollowsVisibleCityAvailabilityAndRetainsHiddenLinks" time="0.229">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291ScenariosDataTest" name="shoppingTextPreservesTheActualVariantWithoutChangingStoredNames" time="0.155">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Reliability291SettingsTest" tests="8" failures="8" errors="0" skipped="0" time="20.733">
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="cancelledDocumentResultAfterProcessRecreationDiscardsOnlyTemporaryExport[28]" time="8.102">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="importPreviewSurvivesProcessRecreationAndCancelPreservesDatabase[28]" time="0.416">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="missingPreparedFileAfterProcessRecreationReportsFailureInsteadOfSuccess[28]" time="0.32">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="documentResultAfterProcessRecreationWritesThePreparedBackup[28]" time="0.399">
+      <failure type="org.junit.internal.ArrayComparisonFailure" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="cancelledDocumentResultAfterProcessRecreationDiscardsOnlyTemporaryExport" time="9.602">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="importPreviewSurvivesProcessRecreationAndCancelPreservesDatabase" time="0.664">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="missingPreparedFileAfterProcessRecreationReportsFailureInsteadOfSuccess" time="0.943">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Reliability291SettingsTest" name="documentResultAfterProcessRecreationWritesThePreparedBackup" time="0.262">
+      <failure type="org.junit.internal.ArrayComparisonFailure" />
+    </testcase>
+  </testsuite>
+</testsuites>

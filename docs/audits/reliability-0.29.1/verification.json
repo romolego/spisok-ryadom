@@ -1,0 +1,177 @@
+{
+  "auditDate": "2026-10-31",
+  "version": "0.29.1",
+  "versionCode": 40,
+  "branch": "codex/reliability-audit-2026-10-31",
+  "sourceCommit": "25c8ca456924b3dee2183de6dfe8d1132e974e75",
+  "baselineCommit": "53cfd03494d133877c98dbf5cae0fd874cb6f5d1",
+  "baselineWorkingTreeClean": true,
+  "confirmedDefects": 10,
+  "roomVersion": 26,
+  "backupVersion": 24,
+  "finalRun": {
+    "classes": 123,
+    "tests": 1507,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "uniqueTestIdentities": 1507,
+    "singleCompleteRun": true,
+    "newTestCases": 34,
+    "newClasses": [
+      {
+        "name": "com.spisokryadom.app.Audit291BackupTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Audit291CompatibilityTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Reliability291ProductCardTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Reliability291ScenariosDataTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.spisokryadom.app.Reliability291SettingsTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "exitCode": 0,
+    "elapsed": "1h 6m 31s",
+    "tasks": [
+      ":app:testStandardDebugUnitTest",
+      ":app:assembleParallelRelease",
+      ":app:lintParallelRelease"
+    ],
+    "environment": {
+      "gradle": "8.13",
+      "offline": true,
+      "nativeSQLite": true
+    },
+    "rawLog": ".local/audit291/final-full.log"
+  },
+  "baselineRun": {
+    "classes": 8,
+    "tests": 113,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "regressions": {
+    "regression-before": {
+      "classes": 5,
+      "tests": 32,
+      "failures": 28,
+      "errors": 0,
+      "skipped": 0
+    },
+    "regression-after-first-fixes": {
+      "classes": 5,
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "settings-before": {
+      "classes": 1,
+      "tests": 10,
+      "failures": 9,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 71,
+    "hints": 7,
+    "baselineSameCounts": true
+  },
+  "sourceSeal": {
+    "fileCount": 356,
+    "unchangedAfterFinalRun": true,
+    "rootAndIsolatedCheckoutMatch": true,
+    "hashScope": "Windows working-tree bytes; not normalized Git blobs"
+  },
+  "screenshots": {
+    "count": 14,
+    "byteIdenticalTo0290": 14,
+    "visuallyInspected": 2,
+    "scope": "Synthetic native Robolectric API28/35 states only"
+  },
+  "apk": {
+    "path": ".local/artifacts/0.29.1/SpisokRyadom-0.29.1.apk",
+    "package": "com.spisokryadom.app.next",
+    "versionName": "0.29.1",
+    "versionCode": 40,
+    "minSdk": 26,
+    "targetSdk": 35,
+    "debuggable": false,
+    "applicationLabel": "application-label:'Список рядом · новая'",
+    "bytes": 2185582,
+    "sha256": "5c8a353e1b4d1ca72259c9c32bf14e36e8b96a724306a421f5f928bb01a0430c",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "matchesPreviousCertificate": true,
+    "previousApkSha256": "5a1b06c37d2c95b563fdd92dd0909cbd5807f8aea4052178e2d069145ed0ba8c",
+    "deviceInstallationTested": false
+  },
+  "deviceChecks": {
+    "physicalAndroid": false,
+    "apkUpgradeInstallation": false,
+    "emulator": "Isolated API35 AVD stayed offline without usable hypervisor; stopped",
+    "realOsProcessKill": false,
+    "physicalRotation": false,
+    "ordinaryBackgroundForegroundCycle": false,
+    "externalGalleryCameraVoiceGboardAndOemWidget": false,
+    "realPermissionGrantAndDenial": false
+  },
+  "dataSafety": {
+    "userDatabaseUsed": false,
+    "userSettingsChanged": false,
+    "syntheticTestDatabasesOnly": true,
+    "previousApkHashUnchanged": true,
+    "schemasMigrationsAndReadersPreserved": true
+  },
+  "published": false,
+  "pushed": false,
+  "rollback": {
+    "command": "git switch main",
+    "condition": "Clean working tree",
+    "baselineArchive": ".local/audit291/baseline-source.zip",
+    "codePatch": ".local/audit291/reliability-code.patch",
+    "scope": "Code only; does not downgrade installed APK or alter data"
+  },
+  "evidenceSha256": {
+    "evidence/baseline/junit.xml": "9e1f733acec5a8342ce2d4eaf2a440429f9bf37cdaf55722d198a7c5172f66d6",
+    "evidence/baseline/test-summary.json": "588626274134afbf04020a8738c846b0acec957d000e72bea5b7e0370badc25f",
+    "evidence/regression-after-first-fixes/junit.xml": "a4c6c538b1431bcc5cbc2625cac28e7b5616dc3b063149adec7f874ac87fcea1",
+    "evidence/regression-after-first-fixes/test-summary.json": "102254d9200eb84288bd497265e2eccc88e6c9f8857e064b91945a0e51d4dd32",
+    "evidence/regression-before/junit.xml": "f43fbd6b89ac26b619ddf4ba449dd0dbfc3d55073793461234d7e37a25ec1e6e",
+    "evidence/regression-before/test-summary.json": "052dc986f9cfcdca176a3c34fb4e706a6f6a901fb95eb35d97fc80f05e0d7820",
+    "evidence/settings-before/junit.xml": "0f7a15888e36b33b6152169d01b4769bdb9280185bd5751b3f42d5a2c88ea7b6",
+    "evidence/settings-before/test-summary.json": "0672491a9d015168bb338c69d3786e5de870d93c5a2b04c242331813fc959ac2",
+    "junit.xml": "174a958189dfa869d1df8b585d35d2fd3bb4f03d8ca46f1f333791d996fcda18",
+    "screenshot-comparison.json": "092579c3617fe1e9ea177321e5e80e54fa6f7a90d25a4b0be7da3ea3e5a2a9d2",
+    "source-seal.json": "55c131f2022c60f10d2224fbe44d97c11d73ec55f321c8a17387a9505e7b9069",
+    "test-summary.json": "93f6f566dff1ae355e1d97bcec26c257125d7afb12b6963de339b4a2f9119cfd"
+  },
+  "evidenceHashScope": "UTF-8 bytes normalized to LF line endings"
+}

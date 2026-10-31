@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.spisokryadom.app.data.repository.ProductEditorTransactions
+import com.spisokryadom.app.data.repository.ProductVariantsRepository
 import com.spisokryadom.app.data.repository.MediaLifecycle
 import com.spisokryadom.app.util.PhotoStore
 
@@ -114,6 +115,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   val d=root.getJSONObject("data")
   if(version>=4){require(root.optString("kind")=="full"){"Неизвестный вид копии"};listOf("products","productGroups","recipients","shops","shopDepartments","productShopLinks","shoppingListEntries","units","cities").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствует раздел $it"}}}
   if(version>=7)listOf("retailNetworks","venues","departmentTypes","branchDepartmentOrder","productBranchDepartments").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствует раздел $it"}}
+  if(version>=9)require(d.optJSONArray("productBranchPriorities")!=null){"В копии отсутствует раздел productBranchPriorities"}
   if(version>=12)listOf("shopCreationPresets","groupCreationPresets").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствуют преднастройки $it"}}
   if(version>=11)require(d.optJSONArray("goalLists")!=null){"В копии отсутствуют целевые списки"}
   if(version>=5)listOf("shopBranches","productBranchAvailability").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствует раздел $it"}}
@@ -318,6 +320,12 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
      db.productDao().update(mapped.copy(id=old.id,stableId=old.stableId,photoUri=mapped.photoUri?:old.photoUri));old.id
     }
     else->old.id // Exact metadata match: keep the existing record verbatim.
+   }
+   mapped.photoUri?.let{uri->
+    // Old catalogues replace only the primary photo; additional photos and captions
+    // are newer local data. Keep both primary-photo representations in sync.
+    val photos=db.productVariantDao().photos(id)
+    ProductVariantsRepository(db).savePhotos(id,listOf(ProductPhotoEntity(id,0,uri,photos.firstOrNull()?.caption.orEmpty()))+photos.drop(1))
    }
    productMap[product.id]=id
    mapped.defaultUnit?.let{ensureUnit(it)}

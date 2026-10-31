@@ -45,7 +45,7 @@ data class ShopProductUi(
     val purchases:List<com.spisokryadom.app.ui.components.PendingPurchase> = emptyList()
 )
 
-private data class PointData(val products:List<ShopProductUi>,val points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>,val availability:List<com.spisokryadom.app.data.entity.ProductBranchAvailabilityEntity>,val entries:List<ShoppingListEntryEntity>,val departments:Map<Long,ShopDepartmentEntity> = emptyMap(),val shops:Map<Long,ShopEntity> = emptyMap())
+private data class PointData(val products:List<ShopProductUi>,val points:List<com.spisokryadom.app.data.entity.ShopBranchEntity>,val availability:List<com.spisokryadom.app.data.entity.ProductBranchAvailabilityEntity>,val entries:List<ShoppingListEntryEntity>,val departments:Map<Long,ShopDepartmentEntity> = emptyMap(),val shops:Map<Long,ShopEntity> = emptyMap(),val families:Map<Long,Long> = emptyMap())
 data class ShopPointSection(val id:Long?,val name:String,val note:String?,val photoUri:String?,val products:List<ShopProductUi>)
 
 data class PickProductUi(
@@ -148,6 +148,7 @@ class ShopContentViewModel(
     init {
         viewModelScope.launch(errors){
             combine(_uiState.map{it.products}.distinctUntilChanged(),shopRepository.observeBranches(),productRepository.observeCatalogueAvailability(),shoppingListRepository.getAllEntries()){products,allPoints,availability,entries->PointData(products,allPoints,availability,entries.filter{it.listId==null})}
+                .combine(productRepository.variants.observeMetadata()){data,metadata->data.copy(families=metadata.first.associate{it.productId to it.familyId})}
                 .combine(_departments){data,departments->data.copy(departments=departments)}
                 .combine(_shops){data,shops->data.copy(shops=shops)}
                 .combine(productRepository.observeBranchDepartments()){data,overrides->data to overrides}
@@ -157,10 +158,10 @@ class ShopContentViewModel(
                 val pointRoutes=overrides.any{it.shopId==shopId}
                 val branchMap=allPoints.associateBy{it.id}
                 val departmentByType=data.departments.values.filter{it.shopId==shopId}.associateBy{it.typeId}
-                val pendingByProduct=entries.filter{!it.isBought&&it.assignedShopId==shopId}.groupBy{it.productId}
+                val pendingByProduct=entries.filter{!it.isBought&&it.assignedShopId==shopId}.groupBy{data.families[it.productId]?:it.productId}
                 val points=allPoints.filter{it.shopId==shopId}.sortedWith(compareBy<com.spisokryadom.app.data.entity.ShopBranchEntity>{it.displayOrder}.thenBy{it.id})
                 val idsByPoint=availability.groupBy{it.branchId}.mapValues{(_,rows)->rows.map{it.productId}.toSet()}
-                val pendingByPoint=entries.filter{!it.isBought&&it.assignedShopId==shopId}.groupBy{it.assignedBranchId to it.productId}
+                val pendingByPoint=entries.filter{!it.isBought&&it.assignedShopId==shopId}.groupBy{it.assignedBranchId to (data.families[it.productId]?:it.productId)}
                 if(points.isEmpty())listOf(ShopPointSection(null,"Все товары",null,null,products)) else {
                     val result=points.map{point->
                         val rows=products.filter{(pointRoutes&&!it.link.restrictBranches)||(it.link.restrictBranches&&it.product.id in idsByPoint[point.id].orEmpty())}.map{row->

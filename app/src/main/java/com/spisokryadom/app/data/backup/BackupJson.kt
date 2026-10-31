@@ -283,6 +283,18 @@ internal object BackupJson {
  }
  fun read(root:JSONObject):BackupSnapshot {
  val d=root.getJSONObject("data")
+ if(root.getInt("version")>=4){
+  // JSONObject.getLong coerces strings and truncates fractions. Validate identities
+  // before decoding, so a damaged full snapshot cannot redirect a saved relation.
+  val identifiers=setOf("id","productId","productGroupId","recipientId","shopId","departmentId","cityId","networkId","assignedShopId","assignedDepartmentId","assignedBranchId","awaitingShopCityId","branchId","venueId","typeId","listId","groupId","familyId")
+  val nullable=setOf("productGroupId","recipientId","departmentId","networkId","assignedShopId","assignedDepartmentId","assignedBranchId","awaitingShopCityId","venueId","listId")
+  listOf("products","productGroups","recipients","shops","shopDepartments","productShopLinks","shoppingListEntries","units","cities","shopBranches","productBranchAvailability","branchDepartmentOrder","productBranchDepartments","retailNetworks","venues","departmentTypes","productBranchPriorities","goalLists","shopCreationPresets","groupCreationPresets","productVariants","productVariantCities","productPhotos").forEach{table->
+   d.optJSONArray(table)?.let{rows->for(i in 0 until rows.length()){
+    val row=rows.getJSONObject(i)
+    identifiers.forEach{key->if(row.has(key)&&!(key in nullable&&row.isNull(key)))strictLong(row,key)}
+   }}
+  }
+ }
  if(root.getInt("version")>=11)d.optJSONArray("shoppingListEntries")?.let{a->
   (0 until a.length()).forEach{i->val row=a.getJSONObject(i)
    listOf("listId","plannedUnitPrice","customShopName","customShopAddress").forEach{key->require(row.has(key)){"В копии отсутствует поле покупки $key"}}
