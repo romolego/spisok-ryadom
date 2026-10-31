@@ -6,7 +6,7 @@ Release-сборка и Android lint успешны:0 ошибок, 71 пред�
 
 APK —`.local/artifacts/0.29.2/SpisokPokupok-0.29.2.apk`, 2185538 байт, SHA256 `97782256e08ef3c21af340f75a53d812142874608f4c719f9a2b857612a7b176`. aapt подтвердил имя «Список покупок», пакет и41/0.29.2; apksigner/zipalign успешны. SHA256 сертификата `25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668` совпал с0.29.1. Старые текстовые заголовки форматов обмена сохраняются ради совместимости.
 
-Новый запрос разрешает публикацию в GitHub; проверка публикации фиксируется отдельно в43 и docs/publications/0.29.2.json после скачивания assets. Ветка `codex/shopping-list-name-0.29.2`. Предыдущий блок0.29.1 ниже —история. Подробности —[60](60_APP_NAME_292.md).
+Публикация завершена: [PR#7](https://github.com/romolego/spisok-ryadom/pull/7) слит обычным merge вmain; [v0.29.2](https://github.com/romolego/spisok-ryadom/releases/tag/v0.29.2) опубликован под именем «Список покупок». Все7 файлов повторно скачаны без авторизации, размеры/SHA256 и CRC ZIP совпали. Source commit `feb6e60407e170e26a53a0ca975a084ebe5e8ea5`, merge/tag `92af3037e86340834313127ba0067f0b27085f14`. Исходный ZIP соответствует356 файлам seal с учётом CRLF/LF. Квитанция —`docs/publications/0.29.2.json`. Рабочая веткаmain; ветка `codex/shopping-list-name-0.29.2` сохранена. Предыдущий блок0.29.1 ниже —история. Подробности —[60](60_APP_NAME_292.md).
 
 # Текущее состояние ·0.29.1
 

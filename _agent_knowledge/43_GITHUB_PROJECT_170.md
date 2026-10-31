@@ -1,3 +1,7 @@
+## Публикация0.29.2 ·Список покупок
+
+Публикация завершена: [PR#7](https://github.com/romolego/spisok-ryadom/pull/7) слит обычным merge вmain; [v0.29.2](https://github.com/romolego/spisok-ryadom/releases/tag/v0.29.2) опубликован под именем «Список покупок». Все7 файлов повторно скачаны без авторизации, размеры/SHA256 и CRC ZIP совпали. Source commit `feb6e60407e170e26a53a0ca975a084ebe5e8ea5`, merge/tag `92af3037e86340834313127ba0067f0b27085f14`. Исходный ZIP соответствует356 файлам seal с учётом CRLF/LF. Квитанция —`docs/publications/0.29.2.json`.
+
 ## Публикация0.29 подтверждена
 
 Публикация завершена: [PR#6](https://github.com/romolego/spisok-ryadom/pull/6) слит обычным merge вmain; [v0.29.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.29.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC архивов совпали. Source commit `28fe1bbb8df78649e5671eb7b98d7077e25bfe73`, merge/tag `af57023f8bffcb018943986e115470b01486d14d`. Публичный source ZIP соответствует349 проверенным файлам с учётом CRLF/LF. Квитанция —`docs/publications/0.29.0.json`.
