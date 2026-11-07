@@ -1,0 +1,15 @@
+{
+  "path": ".local/artifacts/0.30.0/SpisokPokupok-0.30.0.apk",
+  "package": "com.spisokryadom.app.next",
+  "versionName": "0.30.0",
+  "versionCode": 42,
+  "label": "Список покупок",
+  "minSdk": 26,
+  "targetSdk": 35,
+  "debuggable": false,
+  "bytes": 2234690,
+  "sha256": "d9fb7e2194cdaf348cc74a67db68bd41e4e1c9deb154f8920ab988b5f443130f",
+  "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+  "matchesPreviousCertificate": true,
+  "physicalAndroidTested": false
+}

@@ -1,0 +1,146 @@
+{
+  "version": "0.30.0",
+  "sourceCommit": "fe08d73738808e7481c12f4ec5d1b645c6547688",
+  "baselineCommit": "0cfa0c94790e66a6681ba7339bbb01244b632b02",
+  "branch": "codex/product-prefill-bulk-0.30.0",
+  "verification": "complete run plus related-class recheck after bulk-entry layout fix and fixture clarification",
+  "tests": {
+    "classes": 127,
+    "tests": 1573,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "fullRun": {
+    "classes": 127,
+    "tests": 1573,
+    "failures": 7,
+    "errors": 0,
+    "skipped": 0
+  },
+  "recheck": {
+    "classes": 23,
+    "tests": 284,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "fullSourceCommit": "ecd928789436fa55605618311efd9830c86a3d61",
+  "changedAfterFullRun": [
+    "app/src/main/java/com/spisokryadom/app/ui/addtolist/AddToListScreen.kt",
+    "app/src/test/java/com/spisokryadom/app/Favorites200DataTest.kt",
+    "app/src/test/java/com/spisokryadom/app/ProductInput300EditorTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Refine080UiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/UnifiedLists250UiTest.kt"
+  ],
+  "newTests": 66,
+  "newClasses": 4,
+  "releaseBuild": "success",
+  "lint": {
+    "errors": 0,
+    "warnings": 72,
+    "information": 7,
+    "byIssue": {
+      "ApplySharedPref": 5,
+      "ExifInterface": 2,
+      "OldTargetApi": 1,
+      "UnusedAttribute": 3,
+      "GradleDependency": 1,
+      "ModifierFactoryExtensionFunction": 1,
+      "ModifierParameter": 8,
+      "ObsoleteSdkInt": 1,
+      "StaticFieldLeak": 2,
+      "AutoboxingStateCreation": 7,
+      "UselessParent": 1,
+      "IconLauncherShape": 5,
+      "MonochromeLauncherIcon": 1,
+      "UseKtx": 37,
+      "ContentDescription": 1,
+      "HardcodedText": 2,
+      "RtlSymmetry": 1
+    },
+    "hints": 7,
+    "severityCounts": {
+      "Warning": 72,
+      "Hint": 7
+    }
+  },
+  "sealedFiles": 375,
+  "productionChangesAfterFullStart": [
+    "app/src/main/java/com/spisokryadom/app/ui/addtolist/AddToListScreen.kt (entry moved below existing controls)"
+  ],
+  "dataLayerAndSchemaUnchangedAfterFullStart": true,
+  "allSourcesUnchangedSinceRecheckStart": true,
+  "isolatedCheckoutMatches": true,
+  "gitSourceMatchesWithLineEndingNormalization": true,
+  "schema": 27,
+  "tables": 26,
+  "backup": 25,
+  "hints": {
+    "products": 283,
+    "namesAndAliases": 386,
+    "sections": 26,
+    "language": "ru",
+    "hiddenFromCatalogAndSearch": true
+  },
+  "apk": {
+    "path": ".local/artifacts/0.30.0/SpisokPokupok-0.30.0.apk",
+    "package": "com.spisokryadom.app.next",
+    "versionName": "0.30.0",
+    "versionCode": 42,
+    "label": "Список покупок",
+    "minSdk": 26,
+    "targetSdk": 35,
+    "debuggable": false,
+    "bytes": 2234690,
+    "sha256": "d9fb7e2194cdaf348cc74a67db68bd41e4e1c9deb154f8920ab988b5f443130f",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "matchesPreviousCertificate": true,
+    "physicalAndroidTested": false
+  },
+  "oldApkUnchanged": true,
+  "physicalAndroidTested": false,
+  "emulatorTested": false,
+  "deviceInventory": "adb empty; AVD list empty; hypervisor driver absent",
+  "notTested": [
+    "real Android process kill/background/rotation",
+    "external voice service and Gboard",
+    "external gallery/camera and real permissions",
+    "OEM widget host",
+    "install APK over existing Android app"
+  ],
+  "dataUsed": "synthetic test databases only",
+  "publication": false,
+  "start": "2026-11-07T13:39:30.3537322+07:00",
+  "fullEnd": "2026-11-07T14:51:37.6238879+07:00",
+  "end": "2026-11-07T15:19:08.9847531+07:00",
+  "screens": {
+    "bulk-preview-api28.png": "a7db090ead1402740f2b67557c8d971653d708163af641100668d010a2b53718",
+    "bulk-preview-api35.png": "eb9437cf5662b0e731ba6278a00df1121562b2de970d752135c9e6f0dadbb8ce",
+    "bulk-restored-api28.png": "575e63719ac934308bbb7aedd5a57177d68c81b48db1a2b702d71d71a33c2f18",
+    "bulk-restored-api35.png": "8a6b65c860318e117383081ad2ab5ef70c7879a1557d8215a3ac25e908e35488",
+    "card-prefill-api28.png": "f83169e506335ba8ec7f445fd3f07ffd6d938ed7cf4c83a7a838947a1c47cbf6",
+    "card-prefill-api35.png": "b586367a9c14be62cf60e64e0614162c5730c050199274239dc28c2f387e91bf",
+    "link-read-mode-api28.png": "2f557b6ac91d172462c0d198558d648183f76196f9f1854809395c8fe83a12cb",
+    "link-read-mode-api35.png": "f6939c504e6d87a5bb637237cbb40327c2e03db08d29f5c47948d5fb51a60653",
+    "photo-zoom-api28.png": "214371f9f18cfea8e5c666646c05c708551266abc6c922b5e6434a9da049fe19",
+    "photo-zoom-api35.png": "298c856d723dbad2919a9f013219f149eeaea0f3af3ffcd1c6ff30b3d35f7652",
+    "settings-landscape-api28.png": "e2d02ead6602c2c44011e8a5cbf73ca35886c7ebd677ec3ae7720d72be16f049",
+    "settings-landscape-api35.png": "832c7ccac62f08e0e248316454f5bd3217880f0584537e32d8bb06c14a755da2"
+  },
+  "preliminaryRunsIncludedInTotals": false,
+  "abortedPreliminaryFullRun": {
+    "sourceCommit": "cbd965891dc759ccbcf2749d87a3c64302290840",
+    "reason": "raw classifier choice regression, Audit121SynchronizationTest two failures; cancelled before completion",
+    "includedInTotals": false
+  },
+  "visualReview": {
+    "screens": 12,
+    "identicalToPreviouslyReviewed": 11,
+    "additionallyReviewed": [
+      "settings-landscape-api35.png"
+    ],
+    "settingsFrames": "API28 off; API35 expanded on; switch persistence checked on both APIs"
+  },
+  "preliminaryRecheckIncludedInTotals": false
+}

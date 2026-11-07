@@ -1,0 +1,24 @@
+{
+  "baseline": {
+    "version": "0.29.2",
+    "warnings": 71,
+    "hints": 7
+  },
+  "current": {
+    "version": "0.30.0",
+    "errors": 0,
+    "warnings": 72,
+    "hints": 7
+  },
+  "added": [
+    {
+      "id": "UseKtx",
+      "severity": "Warning",
+      "file": "app/src/main/java/com/spisokryadom/app/ui/components/EditableProductLink.kt",
+      "line": 36,
+      "meaning": "Replace Uri.parse with the String.toUri KTX extension",
+      "functionalDefect": false,
+      "implemented": false
+    }
+  ]
+}

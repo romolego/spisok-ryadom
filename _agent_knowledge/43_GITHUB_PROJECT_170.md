@@ -1,3 +1,5 @@
+Итерация0.30 —[61](61_PRODUCT_INPUT_300.md): локальные исходники/проверки/APK в ветке `codex/product-prefill-bulk-0.30.0`. Новый push/PR/tag/release автоматически не выполняется. Публикация0.29.2 ниже —завершённая история; прежний main0cfa0c9 сохранён для отката кода. Фактические результаты —01.
+
 ## Публикация0.29.2 ·Список покупок
 
 Публикация завершена: [PR#7](https://github.com/romolego/spisok-ryadom/pull/7) слит обычным merge вmain; [v0.29.2](https://github.com/romolego/spisok-ryadom/releases/tag/v0.29.2) опубликован под именем «Список покупок». Все7 файлов повторно скачаны без авторизации, размеры/SHA256 и CRC ZIP совпали. Source commit `feb6e60407e170e26a53a0ca975a084ebe5e8ea5`, merge/tag `92af3037e86340834313127ba0067f0b27085f14`. Исходный ZIP соответствует356 файлам seal с учётом CRLF/LF. Квитанция —`docs/publications/0.29.2.json`.
