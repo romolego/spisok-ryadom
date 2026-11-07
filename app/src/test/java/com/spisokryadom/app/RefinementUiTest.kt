@@ -65,6 +65,8 @@ class RefinementUiTest {
   runBlocking{val product=db.productDao().getAllSync().single{it.name=="Таблетка для собаки"};val entry=db.shoppingListEntryDao().getAllSync().single{it.productId==product.id};assertEquals("Зоомагазин",db.shopDao().getById(entry.assignedShopId!!)!!.name)}
  }
  @Test fun productCardCanChooseNoStoreAndReuseGlobalDepartmentWithoutBroadcast(){
+  // Exercise manual department reuse; automatic hints are covered separately.
+  runBlocking{app.container.productRepository.input.updateSettings{it.copy(prefillDepartment=false)}}
   newProduct();ui.onNodeWithContentDescription("Порядок товарных групп").assertDoesNotExist();ui.onNodeWithText("Название товара").performTextInput("Готовый салат")
   ui.onNodeWithText("Добавить магазин").performScrollTo().performClick();waitText("Без магазина");ui.onNodeWithText("Магазин",useUnmergedTree=true).performClick();ui.onNodeWithText("Батон").performClick()
   waitText("Группа магазина");ui.onNodeWithText("Группа магазина").performClick();ui.onNodeWithText("Гастроном (готовая еда)").assertDoesNotExist();ui.onNodeWithText("Добавить группу…").performClick();ui.onNodeWithText("Общая группа").performClick();ui.onNodeWithText("Гастроном (готовая еда)").performClick();shot("04-global-group-choice",true)

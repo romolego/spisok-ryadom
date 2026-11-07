@@ -82,7 +82,8 @@ class Reliability291SettingsTest {
         assertNotSame(before, restored)
         val target = File(app.cacheDir, "291-selected-export.zip").apply { writeBytes(byteArrayOf()) }
         restored.saveExport(Uri.fromFile(target))
-        await { !restored.uiState.value.isLoading }
+        // The IO coroutine publishes success before its finally block removes the cache file.
+        await { !restored.uiState.value.isLoading && !source.exists() }
         assertArrayEquals(bytes, target.readBytes())
         assertTrue(restored.uiState.value.message.orEmpty().startsWith("Полная резервная копия сохранена"))
         assertNull(restored.uiState.value.pendingExportPath)
