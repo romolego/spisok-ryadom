@@ -25,9 +25,13 @@ fun BulkProductSheet(shopId:Long?,branchId:Long?,onDismiss:()->Unit,onAdded:()->
     val focus=androidx.compose.ui.platform.LocalFocusManager.current
     LaunchedEffect(state.completed){if(state.completed){viewModel.consumeCompletion();onAdded()}}
     val choosing=state.choosing!=null
-    EditorSheet(if(choosing)"Выбрать товар"else if(state.preview)"Проверить товары"else "Добавить несколько товаров",onDismiss,
-        busy=state.busy,scrollContent=!state.preview&&!choosing,actions={
-            TextButton(onClick=onDismiss,enabled=!state.busy){Text("Отмена")}
+    var closing by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
+    val close={if(state.text.isNotBlank()||state.rows.isNotEmpty())closing=true else onDismiss()}
+    if(closing)AlertDialog(onDismissRequest={closing=false},title={Text("Закрыть ввод?")},text={Text("Черновик сохранён. К нему можно вернуться через «Добавить несколько товаров».")},
+        dismissButton={TextButton(onClick={closing=false}){Text("Продолжить")}},confirmButton={TextButton(onClick={closing=false;onDismiss()}){Text("Закрыть")}})
+    EditorSheet(if(choosing)"Выбрать товар"else if(state.preview)"Проверить товары"else "Добавить несколько товаров",close,
+        busy=state.busy,scrollContent=!state.preview&&!choosing,onBack={if(state.preview||choosing)viewModel.back()else close()},actions={
+            TextButton(onClick=close,enabled=!state.busy){Text("Отмена")}
             if(state.preview||choosing)TextButton(onClick={focus.clearFocus();viewModel.back()},enabled=!state.busy){Text("Назад")}
             if(!choosing)Button(onClick={focus.clearFocus();if(state.preview)viewModel.add(shopId,branchId)else viewModel.prepare()},
                 enabled=!state.busy&&(!state.preview||state.rows.isNotEmpty()&&state.rows.all{it.resolved&&Quantities.parse(it.quantity)!=null}),
@@ -56,7 +60,7 @@ fun BulkProductSheet(shopId:Long?,branchId:Long?,onDismiss:()->Unit,onAdded:()->
                 }
             }
             state.preview->{
-                Text("Выберите соответствие для каждой позиции. Количество можно изменить до добавления.",style=MaterialTheme.typography.bodySmall)
+                HelpLabel("Товары","Для каждой строки выберите подходящий товар из каталога или создание нового. «Другой товар» открывает поиск по всему каталогу. Проверьте количество, затем нажмите «Добавить все».")
                 LazyColumn(Modifier.fillMaxWidth().heightIn(max=460.dp).testTag("bulk-preview"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                     items(state.rows,key={it.key}){row->
                         OutlinedCard(Modifier.fillMaxWidth().testTag("bulk-row-${row.key}")){
@@ -72,12 +76,29 @@ fun BulkProductSheet(shopId:Long?,branchId:Long?,onDismiss:()->Unit,onAdded:()->
                                         Text(if(!row.resolved)"Нужен выбор"else if(row.productId==null)"Новый товар"else "Из каталога",style=MaterialTheme.typography.labelSmall)
                                     }
                                 }
+                                val options=state.matches[row.key].orEmpty().let{matches->
+                                    val selected=matches.find{it.id==row.productId}
+                                    (listOfNotNull(selected)+matches).distinctBy{it.id}.take(5)
+                                }
+                                options.forEach{product->
+                                    Row(Modifier.fillMaxWidth().heightIn(min=48.dp).clickable(enabled=!state.busy){viewModel.selectFor(row.key,product)}.testTag("bulk-option-${row.key}-${product.id}"),verticalAlignment=Alignment.CenterVertically){
+                                        RadioButton(selected=row.resolved&&row.productId==product.id,onClick=null)
+                                        Spacer(Modifier.width(12.dp))
+                                        ProductCandidateTitle(product)
+                                    }
+                                }
+                                Row(Modifier.fillMaxWidth().heightIn(min=48.dp).clickable(enabled=!state.busy){viewModel.selectFor(row.key,null)}.testTag("bulk-new-${row.key}"),verticalAlignment=Alignment.CenterVertically){
+                                    RadioButton(selected=row.resolved&&row.productId==null,onClick=null)
+                                    Spacer(Modifier.width(12.dp))
+                                    Text("Создать новый товар")
+                                }
+                                if(row.resolved&&row.productId==null)AppTextField(row.name,{viewModel.newName(row.key,it)},label={Text("Название нового товара")},enabled=!state.busy,singleLine=true,modifier=Modifier.fillMaxWidth().testTag("bulk-new-name-${row.key}"))
                                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                                     AppTextField(row.quantity,{viewModel.quantity(row.key,it)},label={Text("Количество")},singleLine=true,
                                         enabled=!state.busy,isError=Quantities.parse(row.quantity)==null,
                                         keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=KeyboardType.Decimal),
                                         modifier=Modifier.width(116.dp).testTag("bulk-quantity-${row.key}"))
-                                    TextButton(onClick={focus.clearFocus();viewModel.choose(row.key)},enabled=!state.busy){Text("Выбрать")}
+                                    TextButton(onClick={focus.clearFocus();viewModel.choose(row.key)},enabled=!state.busy){Text("Другой товар")}
                                     Spacer(Modifier.weight(1f))
                                     IconButton(onClick={viewModel.remove(row.key)},enabled=!state.busy){Icon(Icons.Filled.Close,"Убрать: ${row.source}")}
                                 }
@@ -88,10 +109,9 @@ fun BulkProductSheet(shopId:Long?,branchId:Long?,onDismiss:()->Unit,onAdded:()->
                 }
             }
             else->{
-                Text("Напишите или надиктуйте названия. Разделители: запятая, точка, точка с запятой и новая строка.",style=MaterialTheme.typography.bodyMedium)
-                AppTextField(state.text,viewModel::text,label={Text("Товары")},minLines=4,maxLines=9,
-                    modifier=Modifier.fillMaxWidth().testTag("bulk-input"),enabled=!state.busy)
-                Text("Единицы и количество в тексте указывать не нужно. Перед добавлением появится предпросмотр.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                HelpLabel("Товары","Напишите или надиктуйте названия. Разделители: запятая, точка, точка с запятой и новая строка. Единицы и количество в тексте указывать не нужно. Перед добавлением появится предпросмотр.")
+                AppTextField(state.text,viewModel::text,minLines=4,maxLines=9,
+                    modifier=Modifier.fillMaxWidth(),inputModifier=Modifier.testTag("bulk-input"),enabled=!state.busy,topActions=true)
             }
         }
     }

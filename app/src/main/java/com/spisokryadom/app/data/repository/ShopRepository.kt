@@ -22,6 +22,7 @@ class ShopRepository(
     private val db: AppDatabase, private val catalogueEdits:CatalogueEdits?=null
 ) {
     suspend fun saveWithDepartments(shop:ShopEntity, departments:List<ShopDepartmentEntity>, branches:List<com.spisokryadom.app.data.entity.ShopBranchEntity>?=null,networkName:String?=null,convertToVenue:Boolean=false,purchaseMode:String?=null,venueEdits:Map<Long,com.spisokryadom.app.data.entity.VenueEntity> = emptyMap(),venueKind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED,appendToRoute:Boolean=false):Long = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+        com.spisokryadom.app.util.ShopPhotos.decode(shop.photosJson)
         require(com.spisokryadom.app.util.PurchaseBackground.valid(shop.purchaseBackground)){"Выберите фон товаров магазина"}
         require(shop.name.isNotBlank()) { "Укажите название магазина" }
         require(com.spisokryadom.app.util.AppearanceColors.validOptional(shop.shoppingBackground)){"Выберите цвет фона магазина"}
@@ -345,7 +346,7 @@ class ShopRepository(
         links.forEach{db.productShopLinkDao().delete(it)}
         val owners=mutableMapOf<Long,Long>();val deptMap=mutableMapOf<Pair<Long,Long>,Long>()
         points.forEachIndexed{index,point->
-            val owner=shopDao.insert(ShopEntity(name=point.label.ifBlank{point.address},cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,iconKey=shop.iconKey,logoUri=shop.logoUri,isFavorite=shop.isFavorite,favoriteOrder=if(shop.isFavorite)nextShopFavoriteOrder()else 0))
+            val owner=shopDao.insert(ShopEntity(name=point.label.ifBlank{point.address},cityId=shop.cityId,displayOrder=shop.displayOrder+index,note=point.note,showUrgentInCollapsed=shop.showUrgentInCollapsed,boostUrgentShop=shop.boostUrgentShop,shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,iconKey=shop.iconKey,logoUri=shop.logoUri,photosJson=shop.photosJson,isFavorite=shop.isFavorite,favoriteOrder=if(shop.isFavorite)nextShopFavoriteOrder()else 0))
             purchaseMode?.let{db.creationPresetDao().setShop(com.spisokryadom.app.data.entity.ShopCreationPreset(owner,it))}
             owners[point.id]=owner
             db.shopBranchDao().update(point.copy(shopId=owner,venueId=venueId,address="",label="",displayOrder=0))

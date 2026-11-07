@@ -24,7 +24,7 @@ class Audit311RecoveryTest {
     private var opened:AppDatabase?=null
     @Before fun reset(){org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
     @After fun close(){opened?.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null);app.deleteDatabase("spisok_ryadom.db")}
-    @Test fun productionOpenPreservesSchema27MediaAndPreferencesBeforeMigration28():Unit=runBlocking {
+    @Test fun productionOpenPreservesSchema27MediaAndPreferencesBeforeMigration29():Unit=runBlocking {
         val photo=File(app.filesDir,"product_photos/audit311.jpg").also{it.parentFile!!.mkdirs();it.writeBytes(byteArrayOf(7,3,1,1))}
         app.getSharedPreferences("shopping_list_prefs",0).edit().putBoolean("widget_show_bought",false).commit()
         app.openOrCreateDatabase("spisok_ryadom.db",0,null).use{old->
@@ -41,17 +41,17 @@ class Audit311RecoveryTest {
             old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt)VALUES(41,31,3,'шт',0,0,100,200)")
             old.version=27
         }
-        val recovery=File(app.filesDir,"recovery/schema-27-before-28")
+        val recovery=File(app.filesDir,"recovery/schema-27-before-29")
         val db=AppDatabase.getInstance(app).also{opened=it}
         assertFalse("Construction must not copy data on the main thread",recovery.exists())
         withContext(Dispatchers.IO){
-            assertEquals(28,db.openHelper.writableDatabase.version)
+            assertEquals(29,db.openHelper.writableDatabase.version)
             assertFalse(db.productDao().getById(31)!!.isWidgetPrivate)
             assertEquals("audit311-original",db.productDao().getById(31)!!.stableId)
             assertEquals(3.0,db.shoppingListEntryDao().getById(41)!!.quantity,0.0)
             assertNotNull(db.productInputDao().department(31))
         }
-        assertTrue("The production 27→28 upgrade must preserve its recovery checkpoint",File(recovery,"READY").isFile)
+        assertTrue("The production 27→29 upgrade must preserve its recovery checkpoint",File(recovery,"READY").isFile)
         assertArrayEquals(photo.readBytes(),File(recovery,"product_photos/audit311.jpg").readBytes())
         assertTrue(File(recovery,"shared_prefs/shopping_list_prefs.xml").isFile)
         SQLiteDatabase.openDatabase(File(recovery,"spisok_ryadom.db").path,null,SQLiteDatabase.OPEN_READONLY).use{old->

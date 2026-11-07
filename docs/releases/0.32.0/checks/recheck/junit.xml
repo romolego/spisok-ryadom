@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.ProductInput300UiTest" tests="14" failures="0" errors="0" skipped="0" time="109.796">
+    <testcase name="linkPencilExtractsSharedTextAndManualCardSaveRemainsExplicit[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="35.228" />
+    <testcase name="newSettingsUseExistingScrollableLayoutInLandscape[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.769" />
+    <testcase name="previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="3.886" />
+    <testcase name="selectedLinkFromSharedTextSurvivesActivityRecreation[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="4.146" />
+    <testcase name="packagePreviewShowsSourceAndChoicesAndAddsOnlyAfterConfirmation[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="4.553" />
+    <testcase name="photoViewerSupportsPinchAndEditingStillUsesThePencil[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="2.163" />
+    <testcase name="newCardPrefillsInExistingDropdownsAndTheUnitHasNoMicrophone[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="7.924" />
+    <testcase name="linkPencilExtractsSharedTextAndManualCardSaveRemainsExplicit" classname="com.spisokryadom.app.ProductInput300UiTest" time="28.348" />
+    <testcase name="newSettingsUseExistingScrollableLayoutInLandscape" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.563" />
+    <testcase name="previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases" classname="com.spisokryadom.app.ProductInput300UiTest" time="3.145" />
+    <testcase name="selectedLinkFromSharedTextSurvivesActivityRecreation" classname="com.spisokryadom.app.ProductInput300UiTest" time="3.124" />
+    <testcase name="packagePreviewShowsSourceAndChoicesAndAddsOnlyAfterConfirmation" classname="com.spisokryadom.app.ProductInput300UiTest" time="2.583" />
+    <testcase name="photoViewerSupportsPinchAndEditingStillUsesThePencil" classname="com.spisokryadom.app.ProductInput300UiTest" time="3.143" />
+    <testcase name="newCardPrefillsInExistingDropdownsAndTheUnitHasNoMicrophone" classname="com.spisokryadom.app.ProductInput300UiTest" time="8.18" />
+  </testsuite>
+</testsuites>

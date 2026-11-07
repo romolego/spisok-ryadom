@@ -30,9 +30,7 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
             container.database.withTransaction {
             val revision=com.spisokryadom.app.util.DatabaseRevision.current(context)
             val canonical=data.presentation(settings,boost)
-            val all=if(!settings.showBought&&WidgetInteractionState.moving(widgetId))data.presentation(settings.copy(showBought=true),boost)else canonical
-            val (items,departing)=WidgetInteractionState.present(widgetId,revision,settings,canonical,all)
-            WidgetFrame(settings,items,departing,com.spisokryadom.app.util.FavoriteAppearance.read(prefs).purchaseRow,revision)
+            WidgetFrame(settings,canonical,emptySet(),com.spisokryadom.app.util.FavoriteAppearance.read(prefs).purchaseRow,revision)
             }
             }
         }
@@ -61,8 +59,7 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
         }
         val purchase=item as WidgetItem.Purchase
         val row=purchase.row
-        val peek=WidgetInteractionState.peekToken(widgetId,row)
-        val hidden=row.isPrivate&&peek==null
+        val hidden=row.isPrivate
         return RemoteViews(context.packageName,R.layout.widget_purchase).apply {
             setInt(R.id.widget_purchase_root,"setBackgroundColor",WidgetAppearance.shopBackground(purchase,snapshot.settings))
             // Tint the rounded drawable itself: XML clipToOutline is unavailable below API31.
@@ -70,7 +67,7 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
             setInt(R.id.widget_purchase_background,"setColorFilter",WidgetAppearance.productBackground(purchase,snapshot.settings,snapshot.favoriteStyle))
             setTextViewText(R.id.widget_item_title,if(hidden)"● ● ● ● ● ●" else (if(row.urgent&&!row.bought)"! "else "")+
                 (if(purchase.isFavorite&&snapshot.favoriteStyle.star)"★ "else "")+row.title)
-            setTextViewText(R.id.widget_item_detail,if(hidden)"Нажмите, чтобы показать" else row.detail)
+            setTextViewText(R.id.widget_item_detail,if(hidden)"" else row.detail)
             setTextViewTextSize(R.id.widget_item_title,TypedValue.COMPLEX_UNIT_SP,size.toFloat())
             setTextViewTextSize(R.id.widget_item_detail,TypedValue.COMPLEX_UNIT_SP,(size-3).coerceAtLeast(10).toFloat())
             val bold=purchase.isFavorite&&snapshot.favoriteStyle.bold||row.urgent&&!row.bought
@@ -79,11 +76,12 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
             setImageViewResource(R.id.widget_check,if(row.bought)R.drawable.widget_checked else R.drawable.widget_unchecked)
             setContentDescription(R.id.widget_check,(if(row.bought)"Вернуть: "else "Отметить купленным: ")+if(hidden)"скрытый товар"else row.title)
             setOnClickFillInIntent(R.id.widget_check,ShoppingWidgetProvider.checkIntent(row).putExtra("database",snapshot.databaseRevision))
-            setContentDescription(R.id.widget_item_text,if(hidden)"Скрытый товар. Нажмите, чтобы показать на 5 секунд"else if(row.isPrivate)"${row.title}. ${row.detail}. Нажмите, чтобы скрыть"else null)
-            setOnClickFillInIntent(R.id.widget_item_text,if(row.isPrivate)ShoppingWidgetProvider.peekIntent(row,peek.orEmpty())
-                .putExtra("database",snapshot.databaseRevision)else Intent().putExtra("open",true))
-            // ViewFlipper is supported by RemoteViews, including Android 8. No per-frame IPC.
-            setInt(R.id.widget_purchase_motion,"setDisplayedChild",if(row.id in snapshot.departing)1 else 0)
+            setContentDescription(R.id.widget_item_text,if(hidden)"Скрытый товар"else null)
+            setOnClickFillInIntent(R.id.widget_item_text,Intent().putExtra("open",true))
+            setImageViewResource(R.id.widget_privacy,if(hidden)R.drawable.widget_visibility_off else R.drawable.widget_visibility)
+            setContentDescription(R.id.widget_privacy,if(hidden)"Показать товар"else "Скрыть товар")
+            setOnClickFillInIntent(R.id.widget_privacy,ShoppingWidgetProvider.privacyIntent(row).putExtra("database",snapshot.databaseRevision))
+            setInt(R.id.widget_purchase_motion,"setDisplayedChild",0)
         }
     }
     override fun getLoadingView():RemoteViews?=null

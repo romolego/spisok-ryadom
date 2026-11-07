@@ -12,7 +12,7 @@ object MediaLifecycle {
  val mutex=Mutex()
  suspend fun cleanup(context:Context,db:AppDatabase)=mutex.withLock {
   val retained=db.withTransaction {
-   (db.productVariantDao().photos().map{it.uri}+db.productDao().getAllSync().mapNotNull{it.photoUri}+db.shopBranchDao().getAll().mapNotNull{it.photoUri}+db.shopDao().getAllSync().mapNotNull{it.logoUri}+db.retailStructureDao().venues().mapNotNull{it.photoUri}).toSet()
+   (db.productVariantDao().photos().map{it.uri}+db.productDao().getAllSync().mapNotNull{it.photoUri}+db.shopBranchDao().getAll().mapNotNull{it.photoUri}+db.shopDao().getAllSync().mapNotNull{it.logoUri}+db.shopDao().getAllSync().flatMap{com.spisokryadom.app.util.ShopPhotos.decode(it.photosJson).map{p->p.uri}}+db.retailStructureDao().venues().mapNotNull{it.photoUri}).toSet()
   }
   PhotoStore.cleanup(context,retained)
  }

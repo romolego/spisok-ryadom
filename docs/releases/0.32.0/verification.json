@@ -1,0 +1,45 @@
+{
+  "version": "0.32.0",
+  "versionCode": 45,
+  "baseline": "1bf68d7a8bded348ee5c5a3417fe7ee37131e7ff",
+  "codeCommit": "c8bd15995dbb7f134d1b3352a204b9df249515dc",
+  "tests": {
+    "classes": 46,
+    "tests": 543,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "newCases": 24,
+  "verification": "focused regression plus recheck; not a full application rerun",
+  "productionCodeUnchangedAfterRegression": true,
+  "changesAfterRegression": [
+    "app/src/test/java/com/spisokryadom/app/ProductInput300UiTest.kt"
+  ],
+  "sourceFiles": 396,
+  "room": 29,
+  "zip": 27,
+  "lint": {
+    "errors": 0,
+    "warnings": 76,
+    "hints": 7
+  },
+  "apk": {
+    "path": ".local/artifacts/0.32.0/SpisokPokupok-0.32.0.apk",
+    "package": "com.spisokryadom.app.next",
+    "versionName": "0.32.0",
+    "versionCode": 45,
+    "label": "Список покупок",
+    "minSdk": 26,
+    "targetSdk": 35,
+    "debuggable": false,
+    "bytes": 2251306,
+    "sha256": "0d074a58d9f22820423427ecc9679eccddac40bc4beccf265fc6ab194c657ebd",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "matchesPreviousCertificate": true,
+    "physicalAndroidTested": false
+  },
+  "physicalAndroidTested": false,
+  "emulatorTested": false,
+  "publication": "pending"
+}

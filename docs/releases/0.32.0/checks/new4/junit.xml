@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Usability320DataTest" tests="14" failures="0" errors="0" skipped="0" time="21.066">
+    <testcase name="orderedShopGalleryRoundTripsFilesCaptionsAndMissingMedia[28]" classname="com.spisokryadom.app.Usability320DataTest" time="8.443" />
+    <testcase name="migration28KeepsExistingProductsPurchasesLogoAndPointPhotos[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.317" />
+    <testcase name="invalidShopPhotoArchiveFailsBeforeReplacingAnyData[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.2" />
+    <testcase name="tenCachedChecksCommitWithoutUndoingAnotherItem[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.394" />
+    <testcase name="widgetEyePersistsForTheFamilyAndNeverChangesPurchases[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.13" />
+    <testcase name="shopPhotoEditorSaveCancelAndCityProfilesStayIndependent[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.351" />
+    <testcase name="bulkDraftKeepsMixedChoicesAndNewNameAcrossBackAndNewViewModel[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.853" />
+    <testcase name="orderedShopGalleryRoundTripsFilesCaptionsAndMissingMedia" classname="com.spisokryadom.app.Usability320DataTest" time="8.189" />
+    <testcase name="migration28KeepsExistingProductsPurchasesLogoAndPointPhotos" classname="com.spisokryadom.app.Usability320DataTest" time="0.329" />
+    <testcase name="invalidShopPhotoArchiveFailsBeforeReplacingAnyData" classname="com.spisokryadom.app.Usability320DataTest" time="0.221" />
+    <testcase name="tenCachedChecksCommitWithoutUndoingAnotherItem" classname="com.spisokryadom.app.Usability320DataTest" time="0.389" />
+    <testcase name="widgetEyePersistsForTheFamilyAndNeverChangesPurchases" classname="com.spisokryadom.app.Usability320DataTest" time="0.143" />
+    <testcase name="shopPhotoEditorSaveCancelAndCityProfilesStayIndependent" classname="com.spisokryadom.app.Usability320DataTest" time="0.324" />
+    <testcase name="bulkDraftKeepsMixedChoicesAndNewNameAcrossBackAndNewViewModel" classname="com.spisokryadom.app.Usability320DataTest" time="0.765" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Usability320UiTest" tests="8" failures="0" errors="0" skipped="0" time="33.069">
+    <testcase name="bulkHelpIsOnDemandAndMicrophoneIsAtTheTop[28]" classname="com.spisokryadom.app.Usability320UiTest" time="13.141" />
+    <testcase name="bulkShowsInlineOptionsAndBackKeepsEveryChoiceAndTheSource[28]" classname="com.spisokryadom.app.Usability320UiTest" time="2.069" />
+    <testcase name="linkHasOneValuePlusOrPencilAndClipboardPasteWithoutDuplicatePreview[28]" classname="com.spisokryadom.app.Usability320UiTest" time="0.737" />
+    <testcase name="photoViewerUsesOnlyTopRightCloseAndKeepsPinchZoom[28]" classname="com.spisokryadom.app.Usability320UiTest" time="0.53" />
+    <testcase name="bulkHelpIsOnDemandAndMicrophoneIsAtTheTop" classname="com.spisokryadom.app.Usability320UiTest" time="13.766" />
+    <testcase name="bulkShowsInlineOptionsAndBackKeepsEveryChoiceAndTheSource" classname="com.spisokryadom.app.Usability320UiTest" time="1.719" />
+    <testcase name="linkHasOneValuePlusOrPencilAndClipboardPasteWithoutDuplicatePreview" classname="com.spisokryadom.app.Usability320UiTest" time="0.706" />
+    <testcase name="photoViewerUsesOnlyTopRightCloseAndKeepsPinchZoom" classname="com.spisokryadom.app.Usability320UiTest" time="0.378" />
+  </testsuite>
+</testsuites>

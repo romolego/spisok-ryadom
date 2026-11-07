@@ -1,3 +1,5 @@
+Итерация0.32 —[64_USABILITY_320.md](64_USABILITY_320.md). ShopEntity.photosJson хранит упорядоченную галерею, первые фото —основные; ShopPhotos валидирует метаданные. ProductPhotos переиспользуется с отдельным shop_photos. Новая таблица не вводилась; прежние сущности/связи сохранены.
+
 Дополнение0.31 —[62](62_WIDGET_PRIVACY_310.md), Room28/ZIP26. ProductEntity.isWidgetPrivate —общее поле семейства, raw/backup совместимы. WidgetInteractionState хранит только временные раскрытия/переходы экземпляров; Repository/CAS прежние, RemoteViews остаётся текущим виджетом.
 
 Актуальное дополнение0.30 —[61](61_PRODUCT_INPUT_300.md), Room27/ZIP25. Три новые таблицы настроек/общей группы/квитанций пакетов; ProductInputRepository и BulkPurchaseRepository используют прежние Repository/транзакции. ProductHints отделён от каталога. UI продолжает прежние компоненты; архитектурные слои не переписаны. Карта текущего кода —41.

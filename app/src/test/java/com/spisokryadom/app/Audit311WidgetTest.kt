@@ -113,19 +113,17 @@ class Audit311WidgetTest {
         assertEquals("● ● ● ● ● ●",fresh.findViewById<TextView>(R.id.widget_item_title).text.toString())
     }
 
-    @Test fun cachedRevealAndLostProcessStateRespectDatabaseIdentity():Unit=runBlocking {
+    @Test fun cachedVisibilityAndLostProcessStateRespectDatabaseIdentity():Unit=runBlocking {
         val f=factory();val cached=host(f);val manager=BackupManager(app,db);val backup=manager.exportFile()
         manager.importFile(backup)
-        val row=data.rows().single()
-        click(cached,R.id.widget_item_text)
-        await{finished()||WidgetInteractionState.peekToken(widgetId,row)!=null}
-        assertNull(WidgetInteractionState.peekToken(widgetId,row));awaitFinished()
+        val id=db.shoppingListEntryDao().getById(purchase)!!.productId
+        click(cached,R.id.widget_privacy);awaitFinished()
+        assertTrue(db.productDao().getById(id)!!.isWidgetPrivate)
         f.onDataSetChanged();val fresh=host(f)
-        WidgetInteractionState.clear() // A current launcher frame remains usable after process recreation.
-        click(fresh,R.id.widget_item_text)
-        await{WidgetInteractionState.peekToken(widgetId,row)!=null}
+        WidgetInteractionState.clear()
+        click(fresh,R.id.widget_privacy);awaitFinished()
+        assertFalse(db.productDao().getById(id)!!.isWidgetPrivate)
         assertFalse(db.shoppingListEntryDao().getById(purchase)!!.isBought)
-        awaitFinished();assertNull(WidgetInteractionState.peekToken(widgetId,row))
     }
 
     @Test fun rapidRepeatsAndAnotherWidgetDoNotUndoTheRecordedPurchase():Unit=runBlocking {

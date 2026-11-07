@@ -1,5 +1,6 @@
 package com.spisokryadom.app.ui.shopcard
 
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -51,6 +52,7 @@ data class ShopCardUiState(
     val purchaseMode:String="inherit",
     val iconKey:String="",val logoUri:String?=null,
     val isFavorite:Boolean=false,
+    val photos:List<com.spisokryadom.app.data.entity.ProductPhotoEntity> = emptyList(),
     val cities:List<com.spisokryadom.app.data.entity.CityEntity> = emptyList(),
     val networkName:String="",
     val networks:List<com.spisokryadom.app.data.entity.RetailNetworkEntity> = emptyList(),
@@ -73,7 +75,7 @@ data class ShopCardUiState(
     val boostUrgentShop: UrgencyOverride = UrgencyOverride.USE_GLOBAL
 )
 
-class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopRepository):ViewModel(){
+class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopRepository,private val handle:androidx.lifecycle.SavedStateHandle=androidx.lifecycle.SavedStateHandle()):ViewModel(){
     private val sessionGeneration=com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()
     private val _uiState=MutableStateFlow(ShopCardUiState(isNew=shopId==-1L,cityId=shopRepository.locations.activeCity.value.id))
     val uiState:StateFlow<ShopCardUiState> = _uiState.asStateFlow()
@@ -115,7 +117,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
         _uiState.value=_uiState.value.copy(networks=networks,venues=venues,departmentTypes=types,allDepartmentNames=names,isNew=false,name=shop.name,iconKey=shop.iconKey,logoUri=shop.logoUri,
             purchaseMode=shopRepository.purchaseMode(shop.id),networkId=shop.networkId,networkName=pendingNetworkNames[shop.networkId].orEmpty(),
             shoppingBackground=shop.shoppingBackground,purchaseBackground=shop.purchaseBackground,address=shop.address.orEmpty(),
-            note=shop.note.orEmpty(),cityId=shop.cityId,isFavorite=shop.isFavorite,displayOrder=shop.displayOrder.toString(),
+            photos=com.spisokryadom.app.util.ShopPhotos.decode(handle.get<String>("photos-${shop.id}")?:shop.photosJson),note=shop.note.orEmpty(),cityId=shop.cityId,isFavorite=shop.isFavorite,displayOrder=shop.displayOrder.toString(),
             showUrgentInCollapsed=booleanToOverride(shop.showUrgentInCollapsed),boostUrgentShop=booleanToOverride(shop.boostUrgentShop),
             branches=shopRepository.branches(shop.id),departments=shopRepository.getDepartmentsByShopIdSync(shop.id),
             pendingDepartments=emptyList(),venueEdits=emptyMap(),isLoading=false,error=null)
@@ -132,7 +134,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
                 if(shop.cityGroupKey.isNotEmpty())cityGroupKey=shop.cityGroupKey
                 shopRepository.cityProfiles(shopId).forEach{cityProfileIds[it.cityId]=it.id}
                 loadProfile(shop)
-            }else {val city=shopRepository.locations.currentId();_uiState.value=_uiState.value.copy(cityId=city,networks=shopRepository.networks().first(),venues=shopRepository.venues().first(),departmentTypes=shopRepository.departmentTypes().first(),allDepartmentNames=shopRepository.getDistinctDepartmentNames().first(),isLoading=false)}
+            }else {val city=shopRepository.locations.currentId();_uiState.value=_uiState.value.copy(cityId=city,networks=shopRepository.networks().first(),venues=shopRepository.venues().first(),departmentTypes=shopRepository.departmentTypes().first(),allDepartmentNames=shopRepository.getDistinctDepartmentNames().first(),isLoading=false,photos=com.spisokryadom.app.util.ShopPhotos.decode(handle.get<String>("photos--1")?:"[]"))}
         }
         viewModelScope.launch { shopRepository.getDistinctDepartmentNames().collect{names->_uiState.value=_uiState.value.copy(allDepartmentNames=names)} }
     }
@@ -160,7 +162,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
                 if(peer!=null)loadProfile(peer)else{
                     currentShopId=-1L
                     val groups=departmentSpecs(before)
-                    _uiState.value=shared(before.copy(isNew=true,cityId=id,address="",branches=emptyList(),venueEdits=emptyMap(),departments=emptyList(),
+                    _uiState.value=shared(before.copy(isNew=true,cityId=id,address="",photos=emptyList(),branches=emptyList(),venueEdits=emptyMap(),departments=emptyList(),
                         pendingDepartments=groups.mapIndexed{i,group->PendingDepartment(nextTempId++,group.name,i+1,group.typeId)},
                         isLoading=false,error=null,displayOrder="0"))
                 }
@@ -180,6 +182,11 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     fun convertToVenue(kind:String=com.spisokryadom.app.data.entity.VenueKinds.UNSPECIFIED){if(!_uiState.value.isNew)saveDraft(convert=true,venueKind=kind)}
 
     fun updateBranches(value:List<com.spisokryadom.app.data.entity.ShopBranchEntity>){_uiState.value=_uiState.value.copy(branches=value.mapIndexed{i,point->point.copy(displayOrder=i)})}
+    fun updatePhotos(value:List<com.spisokryadom.app.data.entity.ProductPhotoEntity>){
+        val json=com.spisokryadom.app.util.ShopPhotos.encode(value)
+        handle["photos-$currentShopId"]=json
+        _uiState.value=_uiState.value.copy(photos=value.mapIndexed{i,p->p.copy(position=i)})
+    }
     fun updatePhotoBusy(value:Boolean){_uiState.value=_uiState.value.copy(isPhotoBusy=value)}
     fun updateNote(value:String){_uiState.value=_uiState.value.copy(note=value)}
     fun updateIcon(value:String){_uiState.value=_uiState.value.copy(iconKey=value,logoUri=null)}
@@ -200,7 +207,7 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
                 val old=if(id>0)shopRepository.getShopById(id)?:error("Магазин удалён")else null
                 val boost=overrideToBoolean(draft.boostUrgentShop)
                 val shop=ShopEntity(id=id,networkId=draft.networkId,cityGroupKey=cityGroupKey,
-                    shoppingBackground=draft.shoppingBackground,purchaseBackground=draft.purchaseBackground,iconKey=draft.iconKey,logoUri=draft.logoUri,
+                    shoppingBackground=draft.shoppingBackground,purchaseBackground=draft.purchaseBackground,iconKey=draft.iconKey,logoUri=draft.logoUri,photosJson=com.spisokryadom.app.util.ShopPhotos.encode(draft.photos),
                     name=draft.name.trim(),address=draft.address.trim().ifBlank{null},note=draft.note.trim().ifBlank{null},cityId=draft.cityId,
                     displayOrder=old?.displayOrder?:0,isFavorite=draft.isFavorite,favoriteOrder=old?.favoriteOrder?:0,
                     showUrgentInCollapsed=overrideToBoolean(draft.showUrgentInCollapsed),boostUrgentShop=boost,
@@ -239,5 +246,5 @@ class ShopCardViewModel(private val shopId:Long,private val shopRepository:ShopR
     fun sortDepartmentsAlphabetically(){setDepartments(departmentSpecs(_uiState.value).sortedBy{it.name.lowercase()})}
     fun sortPendingDepartmentsAlphabetically()=sortDepartmentsAlphabetically()
     fun deleteShop(){if(_uiState.value.isNew||_uiState.value.isSaving)return;_uiState.value=_uiState.value.copy(isSaving=true);command{shopRepository.getShopById(currentShopId)?.let{shopRepository.deleteShop(it)};_uiState.value=_uiState.value.copy(isSaving=false,isDeleted=true)}}
-    companion object{fun factory(shopId:Long):ViewModelProvider.Factory=viewModelFactory{initializer{val app=this[APPLICATION_KEY] as SpisokRyadomApp;ShopCardViewModel(shopId,app.container.shopRepository)}}}
+    companion object{fun factory(shopId:Long):ViewModelProvider.Factory=viewModelFactory{initializer{val app=this[APPLICATION_KEY] as SpisokRyadomApp;ShopCardViewModel(shopId,app.container.shopRepository,this.createSavedStateHandle())}}}
 }

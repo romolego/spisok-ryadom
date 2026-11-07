@@ -33,10 +33,10 @@ class ResetRepository(private val context:Context,private val db:AppDatabase,pri
   }}
   if(mode!=ResetMode.BUILT_INS){ProductEditorTransactions.generation.incrementAndGet();DatabaseRevision.invalidate(context)}
   if(mode==ResetMode.APPLICATION){
-   listOf("shopping_list_prefs","product_db_prefs","location_prefs","product_card_drafts","spisok_ryadom_prefs","drafts").forEach{name->
+   listOf("shopping_list_prefs","product_db_prefs","location_prefs","product_card_drafts","bulk_product_draft","spisok_ryadom_prefs","drafts").forEach{name->
     val prefs=context.getSharedPreferences(name,0);val edit=prefs.edit();prefs.all.keys.forEach{edit.remove(it)};check(edit.commit())
    }
-   listOf("product_photos","branch_photos","shop_logos","venue_photos","recovery").forEach{removeOwnedDirectory(context.filesDir,it)}
+   listOf("product_photos","branch_photos","shop_logos","shop_photos","venue_photos","recovery").forEach{removeOwnedDirectory(context.filesDir,it)}
    listOf("backups","goal-list-messages","goal-list-shares").forEach{removeOwnedDirectory(context.cacheDir,it)}
   }
  } } }

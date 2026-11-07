@@ -293,9 +293,6 @@ fun ProductCardScreen(
             )
 
             if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name,{createRecipient=false},done)},{createRecipient=false})
-            com.spisokryadom.app.ui.components.SelectionRow("Приватный товар в виджете",state.isWidgetPrivate,
-                {leaveName();viewModel.widgetPrivacy(it)},enabled=!state.isSaving,tag="widget_privacy")
-            if(state.isWidgetPrivate)Text("В виджете нажмите на скрытое название, чтобы показать его на 5 секунд.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             if(!state.isTemporary)ProductVariantsBar(state,viewModel)
             val defaultTypes=state.departmentTypes+state.pendingDepartments.filter{it.id==state.defaultDepartmentTypeId&&it.typeId==0L}.map{com.spisokryadom.app.data.entity.DepartmentTypeEntity(id=it.id,name=it.name,normalizedName=com.spisokryadom.app.util.FuzzySearch.normalize(it.name))}
             DropdownSelector(label="Группа магазинов по умолчанию",items=defaultTypes,
@@ -344,6 +341,8 @@ fun ProductCardScreen(
                         }
                     },
                     label = { Text("Цена, ₽") },
+                    allowVoice = false,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
@@ -351,7 +350,8 @@ fun ProductCardScreen(
                     value = state.priceDate,
                     onValueChange = { viewModel.updatePriceDate(it) },
                     label = { Text("Дата цены") },
-                    placeholder = { Text("дд.мм.гггг") },
+                    allowVoice = false,
+                    trailingIcon = {com.spisokryadom.app.ui.components.FieldHelp("Дата цены","Формат даты: дд.мм.гггг.")},
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
@@ -459,6 +459,11 @@ fun ProductCardScreen(
                 }
             )
 
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                com.spisokryadom.app.ui.components.SelectionRow("Приватный товар в виджете",state.isWidgetPrivate,
+                    {leaveName();viewModel.widgetPrivacy(it)},modifier=Modifier.weight(1f),enabled=!state.isSaving,tag="widget_privacy")
+                com.spisokryadom.app.ui.components.FieldHelp("Приватный товар в виджете","Глазик в виджете включает или выключает скрытие товара. Эта же настройка сохраняется в карточке товара.")
+            }
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

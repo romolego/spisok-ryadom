@@ -36,6 +36,11 @@ class Widget310CardUiTest {
     @Test fun privacyUsesExistingSelectionStyleAndManualSaveAcrossActivityRecreation(){
         ui.onNode(hasText("Товары") and SemanticsMatcher.expectValue(SemanticsProperties.Role,Role.Tab)).performClick()
         text("База товаров");text("Личный товар");ui.onAllNodesWithText("Личный товар").onLast().performClick();text("Название товара")
+        for(label in listOf("Цена, ₽","Дата цены")){
+            ui.onNodeWithText(label).performScrollTo()
+            ui.onAllNodes(hasContentDescription("Голосовой ввод") and hasAnyAncestor(hasText(label)),useUnmergedTree=true).assertCountEquals(0)
+        }
+        ui.onNodeWithText("В виджете нажмите на скрытое название, чтобы показать его на 5 секунд.").assertDoesNotExist()
         ui.onNodeWithText("Приватный товар в виджете").performScrollTo().assertIsOff().performClick().assertIsOn()
         ui.runOnIdle{
             val view=ui.activity.window.decorView

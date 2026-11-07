@@ -49,7 +49,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   try{
     val s=MediaLifecycle.mutex.withLock {
      db.withTransaction{snapshot()}.also{snapshot->
-      pinned=(snapshot.photos.map{it.uri}+snapshot.products.mapNotNull{it.photoUri}+snapshot.branches.mapNotNull{it.photoUri}+snapshot.shops.mapNotNull{it.logoUri}+snapshot.venues.mapNotNull{it.photoUri}).toSet()
+      pinned=(snapshot.photos.map{it.uri}+snapshot.products.mapNotNull{it.photoUri}+snapshot.branches.mapNotNull{it.photoUri}+snapshot.shops.mapNotNull{it.logoUri}+snapshot.shops.flatMap{com.spisokryadom.app.util.ShopPhotos.decode(it.photosJson).map{p->p.uri}}+snapshot.venues.mapNotNull{it.photoUri}).toSet()
       PhotoStore.pin(pinned)
      }
     }
@@ -94,6 +94,17 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
        val name="shop_logos/${shop.id}.png";zip.putNextEntry(ZipEntry(name));f.inputStream().use{it.copyTo(zip)};zip.closeEntry();shopRows.getJSONObject(i).put("logo",name)
       }else shopRows.getJSONObject(i).put("photoUnavailable",true)
      }}
+     s.shops.forEachIndexed{i,shop->
+      val rows=shopRows.getJSONObject(i).getJSONArray("shopPhotos")
+      com.spisokryadom.app.util.ShopPhotos.decode(shop.photosJson).forEachIndexed{position,p->
+       val f=File(p.uri);val row=rows.getJSONObject(position)
+       if(f.isFile){
+        photoBytes+=f.length();require(++photoCount<MAX_ARCHIVE_ENTRIES&&photoBytes<=MAX_PHOTO_TOTAL){"Для одной копии слишком много изображений"}
+        require(f.length()<=MAX_PHOTO){"Фотография магазина слишком большая"}
+        val name="shop_photos/${shop.id}_$position.jpg";zip.putNextEntry(ZipEntry(name));f.inputStream().use{it.copyTo(zip)};zip.closeEntry();row.put("photo",name)
+       }else row.put("photoUnavailable",true)
+      }
+     }
      val venueRows=root.getJSONObject("data").getJSONArray("venues")
      s.venues.forEachIndexed{i,venue->venue.photoUri?.let{path->
       val f=File(path)
@@ -120,6 +131,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   if(version>=12)listOf("shopCreationPresets","groupCreationPresets").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствуют преднастройки $it"}}
   if(version>=11)require(d.optJSONArray("goalLists")!=null){"В копии отсутствуют целевые списки"}
   if(version>=5)listOf("shopBranches","productBranchAvailability").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствует раздел $it"}}
+  if(version>=27){val shops=d.getJSONArray("shops");(0 until shops.length()).forEach{require(shops.getJSONObject(it).optJSONArray("shopPhotos")!=null){"В копии отсутствуют фотографии магазина"}}}
   val productRows=d.getJSONArray("products")
   val photos=d.optJSONArray("productPhotos")?:JSONArray()
   val variants=d.optJSONArray("productVariants")?:JSONArray()
@@ -128,7 +140,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   fun missing(key:String)=d.optJSONArray(key)?.let{rows->(0 until rows.length()).count{rows.getJSONObject(it).optBoolean("photoUnavailable")}}?:0
   val primaryMissing=(0 until productRows.length()).map{productRows.getJSONObject(it)}.count{it.optLong("id") !in covered&&it.optBoolean("photoUnavailable")}
   return Summary(full=root.optString("kind")=="full"&&version>=4,products=productRows.length()-children.count{id->(0 until productRows.length()).any{productRows.getJSONObject(it).optLong("id")==id}},entries=d.optJSONArray("shoppingListEntries")?.length()?:0,cities=d.optJSONArray("cities")?.length()?:0,
-   missingPhotos=primaryMissing+missing("productPhotos")+missing("shopBranches")+missing("shops")+missing("venues"),goalLists=d.optJSONArray("goalLists")?.length()?:0,variants=variants.length())
+   missingPhotos=(d.optJSONArray("shops")?.let{a->(0 until a.length()).sumOf{i->a.getJSONObject(i).optJSONArray("shopPhotos")?.let{p->(0 until p.length()).count{p.getJSONObject(it).optBoolean("photoUnavailable")}}?:0}}?:0)+primaryMissing+missing("productPhotos")+missing("shopBranches")+missing("shops")+missing("venues"),goalLists=d.optJSONArray("goalLists")?.length()?:0,variants=variants.length())
 
  }
  suspend fun importFile(file:File):Summary=mutex.withLock {
@@ -187,7 +199,16 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
      require(root.getInt("version")>=13&&name=="shop_logos/${shop.id}.png"){"Некорректный логотип магазина"}
      File(stage,name).also{require(it.isFile){"В копии отсутствует логотип ${shop.name}"}}
     }
-    shop.copy(logoUri=logo?.absolutePath)
+    val metadata=shopRows?.optJSONObject(i)?.optJSONArray("shopPhotos")
+    val gallery=com.spisokryadom.app.util.ShopPhotos.decode(shop.photosJson).mapIndexed{position,p->
+     val name=metadata!!.getJSONObject(position).optString("photo")
+     val uri=if(name.isBlank()) {require(metadata.getJSONObject(position).optBoolean("photoUnavailable")){"Отсутствует фото магазина"};"unavailable"}else{
+      require(root.getInt("version")>=27&&name=="shop_photos/${shop.id}_$position.jpg"){"Неверное имя фото магазина"}
+      File(stage,name).also{require(it.isFile){"В копии отсутствует фото магазина"}}.absolutePath
+     }
+     p.copy(uri=uri)
+    }
+    shop.copy(logoUri=logo?.absolutePath,photosJson=com.spisokryadom.app.util.ShopPhotos.encode(gallery))
    }
    val venueRows=root.getJSONObject("data").optJSONArray("venues")
    val venuesWithPhotos=raw.venues.mapIndexed{i,venue->
@@ -488,7 +509,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
    require(++count<=MAX_ARCHIVE_ENTRIES&&names.add(entry.name)){"Некорректный архив"}
    if(entry.name=="manifest.json")root=readJson(bounded(zip,MAX_JSON))
    else{
-    require(entry.name.matches(Regex("((photos/[a-zA-Z0-9_-]+|variant_photos/[a-zA-Z0-9_-]+|branch_photos/[0-9]+|venue_photos/[0-9]+)[.]jpg|shop_logos/[0-9]+[.]png)"))){"Посторонний файл в архиве"}
+    require(entry.name.matches(Regex("((photos/[a-zA-Z0-9_-]+|variant_photos/[a-zA-Z0-9_-]+|branch_photos/[0-9]+|shop_photos/[0-9]+_[0-4]|venue_photos/[0-9]+)[.]jpg|shop_logos/[0-9]+[.]png)"))){"Посторонний файл в архиве"}
     val target=File(stage,entry.name.removePrefix("photos/"));target.parentFile!!.mkdirs();val bytes=bounded(zip,MAX_PHOTO);total+=bytes.size;require(total<=MAX_PHOTO_TOTAL){"Слишком большой архив"};target.writeBytes(bytes)
    };zip.closeEntry()
   }}
@@ -496,7 +517,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=26;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=27;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}

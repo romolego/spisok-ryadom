@@ -1,3 +1,5 @@
+Итерация0.32 —[64_USABILITY_320.md](64_USABILITY_320.md). Проверенная0.32.0 подготовлена к публикации в продолжение порученной пересборки и публикации. Итоговые ссылки и квитанция будут внесены после публичного скачивания; сейчас статус pending.
+
 Итерация0.31.1 —[63_INTEGRITY_AUDIT_311.md](63_INTEGRITY_AUDIT_311.md). Публикация завершена: [PR](https://github.com/romolego/spisok-ryadom/pull/8) слит обычным merge вmain, [v0.31.1](https://github.com/romolego/spisok-ryadom/releases/tag/v0.31.1) опубликован. Все7 файлов повторно скачаны без авторизации, размеры/SHA256 и CRC ZIP совпали. Source commit `b907e27ea6ba043b620a2d716ae508639b86043a`, merge/tag `52f497b2d281c1d64954a0ca7e6fcb997ff3b8f1`. Публичный source ZIP соответствует390 проверенным файлам. Квитанция —`docs/publications/0.31.1.json`.
 
 <!-- audit311-current-end -->

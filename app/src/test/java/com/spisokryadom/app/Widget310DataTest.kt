@@ -100,7 +100,7 @@ class Widget310DataTest {
     @Test fun zipRoundTripOldZipAndMalformedPrivacyPreserveData():Unit=runBlocking {
         val id=products.saveWithLinks(ProductEntity(name="Личный товар",isWidgetPrivate=true),emptyList());val entry=basket.addProduct(id)
         val manager=BackupManager(app,db);val file=manager.exportFile();val json=manifest(file)
-        assertEquals(26,json.getInt("version"));assertTrue(json.getJSONObject("data").getJSONArray("products").getJSONObject(0).getBoolean("isWidgetPrivate"))
+        assertEquals(27,json.getInt("version"));assertTrue(json.getJSONObject("data").getJSONArray("products").getJSONObject(0).getBoolean("isWidgetPrivate"))
         db.productDao().update(db.productDao().getById(id)!!.copy(isWidgetPrivate=false));manager.importFile(file)
         assertTrue(db.productDao().getById(id)!!.isWidgetPrivate);assertEquals(entry,db.shoppingListEntryDao().getAllSync().single().id)
         val expected=db.productDao().getAllSync()
@@ -125,9 +125,9 @@ class Widget310DataTest {
             old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt)VALUES(60,41,2,'шт',1,0,100,200)")
             old.version=27
         }
-        val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_27_28).build()
+        val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_27_28,AppDatabase.MIGRATION_28_29).build()
         try {
-            assertEquals(28,migrated.openHelper.writableDatabase.version);assertTrue(migrated.productDao().getAllSync().none{it.isWidgetPrivate})
+            assertEquals(29,migrated.openHelper.writableDatabase.version);assertTrue(migrated.productDao().getAllSync().none{it.isWidgetPrivate})
             val before=migrated.shoppingListEntryDao().getById(60)!!;assertEquals(41L,before.productId);assertTrue(before.isBought)
             migrated.productDao().update(migrated.productDao().getById(41)!!.copy(isWidgetPrivate=true))
             assertTrue(migrated.productDao().getById(40)!!.isWidgetPrivate);assertEquals(before,migrated.shoppingListEntryDao().getById(60))
