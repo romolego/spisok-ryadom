@@ -130,6 +130,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
             val shared = entries.getAllSync().any { it.id != entryId && it.productId == product.id }
             if (shared) {
                 val clone = db.productDao().insert(product.copy(id = 0, stableId = java.util.UUID.randomUUID().toString(), name = safeName))
+                ProductInputRepository(db).copyDepartment(product.id,clone)
                 ProductVariantsRepository(db).savePhotos(clone,ProductVariantsRepository(db).photos(product.id))
                 entry = entry.copy(productId = clone)
             } else db.productDao().update(product.copy(name = safeName))
@@ -287,6 +288,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
         val product = db.productDao().getById(row.productId) ?: error("Товар удалён")
         val productId = if (product.isTemporary) {
             val clone=db.productDao().insert(product.copy(id = 0, stableId = java.util.UUID.randomUUID().toString()))
+            ProductInputRepository(db).copyDepartment(product.id,clone)
             ProductVariantsRepository(db).savePhotos(clone,ProductVariantsRepository(db).photos(product.id));clone
         } else product.id
         val now = System.currentTimeMillis()

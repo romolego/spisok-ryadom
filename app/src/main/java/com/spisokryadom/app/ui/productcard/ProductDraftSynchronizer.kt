@@ -41,10 +41,15 @@ class ProductDraftSynchronizer(private val preferences:SharedPreferences):Catalo
    if(old!=null&&p!=null){
     state=state.copy(
      name=if(old.name!=p.name)p.name else state.name,
-     recipientId=if(old.recipientId!=p.recipientId&&state.recipientId==old.recipientId)p.recipientId else state.recipientId,
-     productGroupId=if(old.productGroupId!=p.productGroupId&&state.productGroupId==old.productGroupId)p.productGroupId else state.productGroupId,
-     defaultUnit=if(old.defaultUnit!=p.defaultUnit&&Quantities.unit(state.defaultUnit)==Quantities.unit(old.defaultUnit.orEmpty()))p.defaultUnit.orEmpty()else state.defaultUnit,
+     recipientId=if(old.recipientId!=p.recipientId&&((draft.newSession&&!state.recipientManuallySet)||state.recipientId==old.recipientId))p.recipientId else state.recipientId,
+     recipientManuallySet=state.recipientManuallySet||old.recipientId!=p.recipientId,
+     productGroupId=if(old.productGroupId!=p.productGroupId&&((draft.newSession&&!state.categoryManuallySet)||state.productGroupId==old.productGroupId))p.productGroupId else state.productGroupId,
+     categoryManuallySet=state.categoryManuallySet||old.productGroupId!=p.productGroupId,
+     defaultUnit=if(old.defaultUnit!=p.defaultUnit&&((draft.newSession&&!state.unitManuallySet)||Quantities.unit(state.defaultUnit)==Quantities.unit(old.defaultUnit.orEmpty())))p.defaultUnit.orEmpty()else state.defaultUnit,
+     unitManuallySet=state.unitManuallySet||old.defaultUnit!=p.defaultUnit,
      isFavorite=if(old.isFavorite!=p.isFavorite)p.isFavorite else state.isFavorite,
+     isWidgetPrivate=if(old.isWidgetPrivate!=p.isWidgetPrivate)p.isWidgetPrivate else state.isWidgetPrivate,
+     widgetPrivacyKnown=state.widgetPrivacyKnown||old.isWidgetPrivate!=p.isWidgetPrivate,
      accent=if(old.accent!=p.accent)p.accent else state.accent,
      preferCityShopOrder=if(old.preferCityShopOrder!=p.preferCityShopOrder)p.preferCityShopOrder else state.preferCityShopOrder)
     val linksBefore=before.links.filter{it.productId==p.id}.associateBy{it.shopId};val linksAfter=after.links.filter{it.productId==p.id}.associateBy{it.shopId}
@@ -55,6 +60,7 @@ class ProductDraftSynchronizer(private val preferences:SharedPreferences):Catalo
     val points=state.branchSelections.toMutableMap();val priorities=state.branchPriorities.toMutableMap();val overrides=state.branchDepartments.toMutableMap()
     linksAfter.forEach{(shop,next)->
      val prior=linksBefore[shop]
+     if(prior!=null&&prior.departmentId!=next.departmentId)state=state.copy(departmentExplicitShops=state.departmentExplicitShops+shop)
      val i=ui.indexOfFirst{it.link.shopId==shop};val j=pending.indexOfFirst{it.shopId==shop}
      val rawLink=ui.getOrNull(i)?.link?:pending.getOrNull(j)?.let{ProductShopLinkEntity(productId=p.id,shopId=shop,departmentId=it.departmentId,priority=it.displayOrder,restrictBranches=shop in points)}
      // A newly materialized canonical link may already be configured in an
@@ -87,13 +93,16 @@ class ProductDraftSynchronizer(private val preferences:SharedPreferences):Catalo
    // Deleted references must also be removed from raw-only choices. A resolved
    // negative draft department must not recreate a type deliberately deleted later.
    val oldPlacements=before.departments.associateBy{it.shopId to it.typeId}
-   val types=after.types.map{it.id}.toSet();val deletedNames=before.types.filter{it.id !in types}.map{FuzzySearch.normalize(it.name)}.toSet()
+   val types=after.types.map{it.id}.toSet();
+   if(state.defaultDepartmentTypeId?.let{it>0}==true&&state.defaultDepartmentTypeId !in types)state=state.copy(defaultDepartmentTypeId=null,defaultDepartmentChosen=true,defaultDepartmentDirty=true,departmentManuallySet=true)
+   val deletedNames=before.types.filter{it.id !in types}.map{FuzzySearch.normalize(it.name)}.toSet()
    val pendingDepartments=state.pendingDepartments.mapNotNull{dep->
     val oldPlacement=if(dep.typeId>0)oldPlacements[dep.shopId to dep.typeId]else before.departments.find{it.shopId==dep.shopId&&FuzzySearch.normalize(it.name)==FuzzySearch.normalize(dep.name)}
     if(dep.shopId !in shops||(dep.typeId>0&&dep.typeId !in types)||FuzzySearch.normalize(dep.name)in deletedNames||(oldPlacement!=null&&oldPlacement.id !in departments))null
     else oldPlacement?.let{departments[it.id]}?.let{dep.copy(name=it.name,typeId=it.typeId)}?:dep
    }
    val validDrafts=pendingDepartments.map{it.id}.toSet()
+   if(state.defaultDepartmentTypeId?.let{it<0}==true&&state.defaultDepartmentTypeId !in validDrafts)state=state.copy(defaultDepartmentTypeId=null,defaultDepartmentChosen=true,defaultDepartmentDirty=true,departmentManuallySet=true)
    fun validDepartment(id:Long?)=id?.takeIf{it in departments||it in validDrafts}
    fun departmentName(id:Long?)=departments[id]?.name?:pendingDepartments.find{it.id==id}?.name
    val links=state.shopLinks.filter{it.link.shopId in shops}.map{val id=validDepartment(it.link.departmentId);it.copy(link=it.link.copy(departmentId=id),departmentName=departmentName(id))}

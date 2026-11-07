@@ -11,23 +11,34 @@ import org.json.JSONObject
 /** Raw editor values survive incomplete numbers and process death independently of valid catalogue rows. */
 data class ProductEditDraft(val stableId:String,val productId:Long,val newSession:Boolean,val allowDuplicate:Boolean,val state:ProductCardUiState,val autoPersist:Boolean=true) {
  fun applyTo(base:ProductCardUiState):ProductCardUiState=state.copy(
+  isWidgetPrivate=if(state.widgetPrivacyKnown)state.isWidgetPrivate else base.isWidgetPrivate,widgetPrivacyKnown=true,
   groups=base.groups,recipients=base.recipients,shops=base.shops,shopOrders=base.shopOrders,
   branches=base.branches,unitSuggestions=base.unitSuggestions,allDepartments=base.allDepartments,
-  departmentTypes=base.departmentTypes,productContexts=base.productContexts,variantOptions=base.variantOptions,isLoading=false)
+  departmentTypes=base.departmentTypes,productContexts=base.productContexts,variantOptions=base.variantOptions,
+  defaultDepartmentTypeId=if(!state.defaultDepartmentChosen&&!state.defaultDepartmentDirty)base.defaultDepartmentTypeId else state.defaultDepartmentTypeId,
+  defaultDepartmentChosen=state.defaultDepartmentChosen||base.defaultDepartmentChosen,isLoading=false)
  suspend fun persist(repository:ProductRepository,defaults:com.spisokryadom.app.util.ProductCreationDefaults?=null):Long {
-  val s=state
+  val hint=if(newSession)repository.input.suggest(state.name)else null
+  val s=state.copy(productGroupId=if(newSession&&!state.categoryManuallySet)hint?.categoryId else state.productGroupId,
+    defaultUnit=if(newSession&&!state.unitManuallySet)hint?.unit.orEmpty() else state.defaultUnit,
+    recipientId=repository.input.recipient(if(newSession&&!state.categoryManuallySet)hint?.categoryId else state.productGroupId,state.recipientManuallySet||!newSession,state.recipientId),
+    defaultDepartmentTypeId=if(newSession&&!state.departmentManuallySet)hint?.departmentTypeId else state.defaultDepartmentTypeId,
+    defaultDepartmentDirty=state.defaultDepartmentDirty||(newSession&&!state.departmentManuallySet&&hint?.departmentTypeId!=null))
   val fallback=defaults?.takeIf{newSession&&it.fillMissing}
   val quantity=if(s.defaultQuantity.isBlank())fallback?.missingQuantity else Quantities.parse(s.defaultQuantity)?:error("Проверьте количество")
   val price=if(s.priceValue.isBlank())null else s.priceValue.replace(',','.').toDoubleOrNull()?.takeIf{it.isFinite()&&it>=0}?:error("Проверьте цену")
   val p=ProductEntity(id=productId.coerceAtLeast(0),stableId=stableId,name=s.name.trim(),productGroupId=s.productGroupId,recipientId=s.recipientId,
-   defaultQuantity=quantity,defaultUnit=Quantities.unit(s.defaultUnit).ifBlank{fallback?.missingUnit?.ifBlank{null}},note=s.note.trim().ifBlank{null},purchaseType=s.purchaseType,
+   defaultQuantity=quantity,defaultUnit=Quantities.unit(s.defaultUnit).ifBlank{fallback?.takeUnless{s.unitManuallySet}?.missingUnit?.ifBlank{null}},note=s.note.trim().ifBlank{null},purchaseType=s.purchaseType,
    sellerUrl=s.sellerUrl.trim().ifBlank{null},productUrl=s.productUrl.trim().ifBlank{null},photoUri=s.photoUri.ifBlank{null},priceValue=price,priceDate=s.priceDate.ifBlank{null},
-   isTemporary=s.isTemporary,preferCityShopOrder=s.preferCityShopOrder,isFavorite=s.isFavorite,accent=s.accent)
+   isTemporary=s.isTemporary,preferCityShopOrder=s.preferCityShopOrder,isFavorite=s.isFavorite,accent=s.accent,isWidgetPrivate=if(s.widgetPrivacyKnown)s.isWidgetPrivate else repository.getProductByStableId(stableId)?.isWidgetPrivate?:false)
   val links=if(newSession)s.pendingShopLinks.map{ProductShopLinkEntity(productId=0,shopId=it.shopId,priority=it.displayOrder,departmentId=it.departmentId)}else s.shopLinks.map{it.link}
   val points=repository.editorBranches()
   return repository.variants.transaction {
-  val id=repository.saveEditorProduct(p,links,s.branchSelections.filterKeys{id->links.any{it.shopId==id}},s.pendingDepartments,
-   s.branchDepartments.filterKeys{id->points.any{it.id==id&&links.any{l->l.shopId==it.shopId}}},newSession,allowDuplicate,s.branchPriorities.filterKeys{id->links.any{it.shopId==id}})
+  val defaultType=repository.input.resolveDraftType(s.defaultDepartmentTypeId,s.pendingDepartments)
+  val previousLinks=if(productId>0)repository.getShopLinksForProductSync(productId)else emptyList()
+  val plannedLinks=links.map{l->if(l.departmentId==null&&l.shopId !in s.departmentExplicitShops&&(newSession||previousLinks.none{it.shopId==l.shopId})&&defaultType!=null&&repository.input.settings().inheritDepartment)l.copy(departmentId=repository.input.placement(l.shopId,defaultType))else l}
+  val id=repository.saveEditorProduct(p,plannedLinks,s.branchSelections.filterKeys{id->links.any{it.shopId==id}},s.pendingDepartments,
+   s.branchDepartments.filterKeys{id->points.any{it.id==id&&links.any{l->l.shopId==it.shopId}}},newSession,allowDuplicate,s.branchPriorities.filterKeys{id->links.any{it.shopId==id}},if(s.defaultDepartmentDirty)ProductDefaultDepartment(productId,defaultType)else null)
   repository.variants.savePhotos(id,s.photos.ifEmpty{p.photoUri?.let{listOf(ProductPhotoEntity(id,0,it))}.orEmpty()})
   id
   }
@@ -36,6 +47,10 @@ data class ProductEditDraft(val stableId:String,val productId:Long,val newSessio
   put("autoPersist",autoPersist);put("stableId",stableId);put("productId",productId);put("newSession",newSession);put("allowDuplicate",allowDuplicate)
   val s=state
   listOf("name" to s.name,"defaultUnit" to s.defaultUnit,"defaultQuantity" to s.defaultQuantity,"note" to s.note,"purchaseType" to s.purchaseType,"sellerUrl" to s.sellerUrl,"productUrl" to s.productUrl,"photoUri" to s.photoUri,"priceValue" to s.priceValue,"priceDate" to s.priceDate,"accent" to s.accent).forEach{(k,v)->put(k,v)}
+  if(s.widgetPrivacyKnown)put("isWidgetPrivate",s.isWidgetPrivate)
+  put("departmentExplicitShops",JSONArray(s.departmentExplicitShops.sorted()))
+  put("categoryManuallySet",s.categoryManuallySet);put("unitManuallySet",s.unitManuallySet);put("departmentManuallySet",s.departmentManuallySet)
+  put("defaultDepartmentTypeId",s.defaultDepartmentTypeId?:JSONObject.NULL);put("defaultDepartmentChosen",s.defaultDepartmentChosen);put("defaultDepartmentDirty",s.defaultDepartmentDirty)
   put("photos",JSONArray(s.photos.map{JSONObject().put("uri",it.uri).put("caption",it.caption)}))
   put("productGroupId",s.productGroupId?:JSONObject.NULL);put("recipientId",s.recipientId?:JSONObject.NULL)
   put("recipientManuallySet",s.recipientManuallySet);put("purchaseTypeManuallySet",s.purchaseTypeManuallySet);put("isFavorite",s.isFavorite);put("isTemporary",s.isTemporary);put("preferCityShopOrder",s.preferCityShopOrder)
@@ -52,7 +67,7 @@ data class ProductEditDraft(val stableId:String,val productId:Long,val newSessio
    fun objects(k:String)=j.getJSONArray(k).let{a->(0 until a.length()).map{a.getJSONObject(it)}}
    val productId=j.getLong("productId");val fresh=j.getBoolean("newSession")
    val points=j.getJSONObject("points");val overrides=j.getJSONObject("pointDepartments")
-   val s=ProductCardUiState(photos=j.optJSONArray("photos")?.let{a->(0 until a.length()).map{i->a.getJSONObject(i).let{ProductPhotoEntity(productId,i,it.getString("uri"),it.optString("caption"))}}}.orEmpty(),activeVariantId=productId.takeIf{it>0},recipientManuallySet=j.optBoolean("recipientManuallySet",!fresh||!j.isNull("recipientId")),purchaseTypeManuallySet=j.optBoolean("purchaseTypeManuallySet",true),isNew=fresh,isLoading=false,name=j.getString("name"),defaultUnit=j.getString("defaultUnit"),defaultQuantity=j.getString("defaultQuantity"),note=j.getString("note"),purchaseType=j.getString("purchaseType"),sellerUrl=j.getString("sellerUrl"),productUrl=j.getString("productUrl"),photoUri=j.getString("photoUri"),priceValue=j.getString("priceValue"),priceDate=j.getString("priceDate"),accent=j.getString("accent"),productGroupId=nullable(j,"productGroupId"),recipientId=nullable(j,"recipientId"),isFavorite=j.getBoolean("isFavorite"),isTemporary=j.getBoolean("isTemporary"),preferCityShopOrder=j.getBoolean("preferCityShopOrder"),
+   val s=ProductCardUiState(isWidgetPrivate=j.optBoolean("isWidgetPrivate",false),widgetPrivacyKnown=j.has("isWidgetPrivate"),departmentExplicitShops=j.optJSONArray("departmentExplicitShops")?.let{a->(0 until a.length()).map{a.getLong(it)}.toSet()}.orEmpty(),categoryManuallySet=j.optBoolean("categoryManuallySet",!fresh||!j.isNull("productGroupId")),unitManuallySet=j.optBoolean("unitManuallySet",!fresh||j.getString("defaultUnit").isNotBlank()),departmentManuallySet=j.optBoolean("departmentManuallySet",!fresh),defaultDepartmentTypeId=if(j.has("defaultDepartmentTypeId"))nullable(j,"defaultDepartmentTypeId")else null,defaultDepartmentChosen=j.optBoolean("defaultDepartmentChosen"),defaultDepartmentDirty=j.optBoolean("defaultDepartmentDirty"),photos=j.optJSONArray("photos")?.let{a->(0 until a.length()).map{i->a.getJSONObject(i).let{ProductPhotoEntity(productId,i,it.getString("uri"),it.optString("caption"))}}}.orEmpty(),activeVariantId=productId.takeIf{it>0},recipientManuallySet=j.optBoolean("recipientManuallySet",!fresh||!j.isNull("recipientId")),purchaseTypeManuallySet=j.optBoolean("purchaseTypeManuallySet",true),isNew=fresh,isLoading=false,name=j.getString("name"),defaultUnit=j.getString("defaultUnit"),defaultQuantity=j.getString("defaultQuantity"),note=j.getString("note"),purchaseType=j.getString("purchaseType"),sellerUrl=j.getString("sellerUrl"),productUrl=j.getString("productUrl"),photoUri=j.getString("photoUri"),priceValue=j.getString("priceValue"),priceDate=j.getString("priceDate"),accent=j.getString("accent"),productGroupId=nullable(j,"productGroupId"),recipientId=nullable(j,"recipientId"),isFavorite=j.getBoolean("isFavorite"),isTemporary=j.getBoolean("isTemporary"),preferCityShopOrder=j.getBoolean("preferCityShopOrder"),
     pendingShopLinks=objects("pendingLinks").map{PendingShopLink(it.getLong("tempId"),it.getLong("shopId"),it.getString("shopName"),nullable(it,"departmentId"),if(it.isNull("departmentName"))null else it.getString("departmentName"),it.getInt("order"))},
     shopLinks=objects("links").map{ShopLinkUi(ProductShopLinkEntity(id=it.getLong("id"),productId=productId,shopId=it.getLong("shopId"),departmentId=nullable(it,"departmentId"),priority=it.getInt("order"),restrictBranches=it.getBoolean("restrict")),it.getString("shopName"),if(it.isNull("departmentName"))null else it.getString("departmentName"))},
     pendingDepartments=objects("departments").map{ShopDepartmentEntity(id=it.getLong("id"),shopId=it.getLong("shopId"),name=it.getString("name"),displayOrder=it.getInt("order"),typeId=it.getLong("typeId"))},
@@ -92,8 +107,8 @@ object ProductDraftStore {
    if(product.id !in ids)return@forEach
    val old=draft.state
    val next=when(change){
-    is com.spisokryadom.app.data.repository.ProductBatchChange.Recipient->old.copy(recipientId=change.id)
-    is com.spisokryadom.app.data.repository.ProductBatchChange.Group->old.copy(productGroupId=change.id)
+    is com.spisokryadom.app.data.repository.ProductBatchChange.Recipient->old.copy(recipientId=change.id,recipientManuallySet=true)
+    is com.spisokryadom.app.data.repository.ProductBatchChange.Group->old.copy(productGroupId=change.id,categoryManuallySet=true)
     is com.spisokryadom.app.data.repository.ProductBatchChange.Favorite->old.copy(isFavorite=change.value)
     else->{
      val links=repository.getShopLinksForProductSync(product.id)
@@ -120,7 +135,7 @@ object ProductDraftStore {
      if(change is com.spisokryadom.app.data.repository.ProductBatchChange.Department){
       revised.keys.filter{branches[it]?.shopId==change.shopId}.forEach{revised.remove(it)}
      }
-     old.copy(shopLinks=ui,pendingShopLinks=pending,branchDepartments=revised)
+     old.copy(shopLinks=ui,pendingShopLinks=pending,branchDepartments=revised,departmentExplicitShops=if(change is com.spisokryadom.app.data.repository.ProductBatchChange.Department)old.departmentExplicitShops+change.shopId else old.departmentExplicitShops)
     }
    }
    write(prefs,key,draft.copy(productId=product.id,state=next))

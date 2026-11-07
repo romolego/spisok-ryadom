@@ -1,0 +1,11 @@
+{
+  "productionCodeChanged": false,
+  "files": [
+    "app/src/test/java/com/spisokryadom/app/RefinementUiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Reliability291SettingsTest.kt"
+  ],
+  "reasons": [
+    "The manual-department test explicitly disables department prefill. Ready salad is intentionally recognized by the expanded dictionary; all manual assertions remain.",
+    "The export test waits for both loading completion and temporary-file cleanup. Production publishes state just before its synchronous finally cleanup; byte/message/repeat/recreation assertions remain."
+  ]
+}

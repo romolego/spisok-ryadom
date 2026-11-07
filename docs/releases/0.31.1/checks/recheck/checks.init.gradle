@@ -1,0 +1,9 @@
+allprojects { tasks.withType(Test).configureEach {
+ filter {
+  includeTestsMatching('com.spisokryadom.app.RefinementUiTest')
+  includeTestsMatching('com.spisokryadom.app.Reliability291SettingsTest')
+  includeTestsMatching('com.spisokryadom.app.Audit311DefaultsTest')
+ }
+ testLogging { exceptionFormat='full' }
+ afterSuite { d,r -> if(d.className!=null) println('AUDIT311 '+d.className+' '+r.testCount+' failed='+r.failedTestCount) }
+} }

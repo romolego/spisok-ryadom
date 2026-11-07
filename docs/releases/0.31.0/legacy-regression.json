@@ -1,0 +1,14 @@
+{
+  "scenario": "Legacy metadata match without stableId or isWidgetPrivate must reuse a private catalogue product and retain its privacy",
+  "apis": [
+    28,
+    35
+  ],
+  "expectedProductCount": 1,
+  "actualBefore": 2,
+  "actualAfter": 1,
+  "beforeCases": 2,
+  "beforeFailures": 2,
+  "afterCases": 2,
+  "afterFailures": 0
+}

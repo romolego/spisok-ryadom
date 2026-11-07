@@ -48,6 +48,7 @@ class ProductVariantsRepository(private val db:AppDatabase,private val edits:Cat
   if(rows.isEmpty())dao.insert(ProductVariantEntity(family,family,"Основной вариант",0))
   // A new variant has its own shops and media, never foreign branch IDs copied by accident.
   val newId=db.productDao().insert(base.copy(id=0,stableId=java.util.UUID.randomUUID().toString(),photoUri=null,priceValue=null,priceDate=null,sellerUrl=null,productUrl=null,note=null))
+  ProductInputRepository(db).department(id)?.let{db.productInputDao().department(it.copy(productId=newId))}
   dao.insert(ProductVariantEntity(newId,family,label.trim(),(rows.maxOfOrNull{it.displayOrder}?:0)+1))
   newId
  }}

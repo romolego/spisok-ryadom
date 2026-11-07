@@ -47,5 +47,6 @@ data class ProductEntity(
     val stableId: String = java.util.UUID.randomUUID().toString(),
     @androidx.room.ColumnInfo(defaultValue="0") val preferCityShopOrder:Boolean=false,
     @androidx.room.ColumnInfo(defaultValue="0") val isFavorite:Boolean=false,
-    @androidx.room.ColumnInfo(defaultValue="''") val accent:String=""
+    @androidx.room.ColumnInfo(defaultValue="''") val accent:String="",
+    @androidx.room.ColumnInfo(defaultValue="0") val isWidgetPrivate:Boolean=false
 )

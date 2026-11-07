@@ -67,12 +67,16 @@ private fun mergeDraftValue(local: Any?, base: Any?, remote: Any?, path: String)
 
 /** Keep live loading/search/error/save state while applying only serialized editable values. */
 internal fun ProductEditDraft.editableOn(current: ProductCardUiState): ProductCardUiState = current.copy(
+    departmentExplicitShops=state.departmentExplicitShops,
+    categoryManuallySet=state.categoryManuallySet,unitManuallySet=state.unitManuallySet,departmentManuallySet=state.departmentManuallySet,
+    defaultDepartmentTypeId=state.defaultDepartmentTypeId,defaultDepartmentChosen=state.defaultDepartmentChosen,defaultDepartmentDirty=state.defaultDepartmentDirty,
     recipientManuallySet=state.recipientManuallySet,purchaseTypeManuallySet=state.purchaseTypeManuallySet,
     name = state.name, productGroupId = state.productGroupId, recipientId = state.recipientId,
     defaultUnit = state.defaultUnit, defaultQuantity = state.defaultQuantity, note = state.note,
     purchaseType = state.purchaseType, sellerUrl = state.sellerUrl, productUrl = state.productUrl,
     photos=state.photos,photoUri = state.photoUri, priceValue = state.priceValue, priceDate = state.priceDate,
     isTemporary = state.isTemporary, isFavorite = state.isFavorite, accent = state.accent,
+    isWidgetPrivate=state.isWidgetPrivate,widgetPrivacyKnown=state.widgetPrivacyKnown,
     preferCityShopOrder = state.preferCityShopOrder, pendingShopLinks = state.pendingShopLinks,
     shopLinks = state.shopLinks, pendingDepartments = state.pendingDepartments,
     branchSelections = state.branchSelections, branchDepartments = state.branchDepartments,

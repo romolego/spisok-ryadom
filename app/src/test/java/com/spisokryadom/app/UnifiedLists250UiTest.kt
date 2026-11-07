@@ -64,14 +64,14 @@ class UnifiedLists250UiTest {
  @Test fun searchCanCreateFullProductCardWithShopAndReturnToTheSameListBeforeAdding(){
   add();ui.onNodeWithText("Магазин").performClick();ui.onNodeWithText("Батон").performClick()
   ui.onNodeWithText("Название товара").performTextInput("Шампиньоны");waitFor{runCatching{ui.onNodeWithTag("add-create-product").assertIsEnabled()}.isSuccess}
-  ui.onNodeWithTag("add-create-product").performScrollTo().performClick();waitText("Новый товар");ui.onNodeWithText("Название товара").assertTextContains("Шампиньоны")
+  ui.onNodeWithTag("add-create-product").performScrollTo().performClick();waitText("Новый товар");waitText("Название товара");ui.onNodeWithText("Название товара").assertTextContains("Шампиньоны")
   ui.onNodeWithText("Сохранить").performClick();waitTag("add-list-contents");waitText("Выбран")
   assertTrue(runBlocking{goals.snapshot(list).entries.isEmpty()})
   val product=runBlocking{db.productDao().getAllSync().single{it.name=="Шампиньоны"}}
   assertEquals(shop,runBlocking{db.productShopLinkDao().getLinksForProductSync(product.id).single().shopId})
   ui.onNodeWithText("Добавить в список").performScrollTo().performClick();waitFor{runBlocking{goals.snapshot(list).entries.size==1}};waitTag("goal-entry-${runBlocking{goals.snapshot(list).entries.single().id}}")
   val row=runBlocking{goals.snapshot(list).entries.single()};assertEquals(product.id,row.productId);assertEquals(shop,row.assignedShopId);assertTrue(runBlocking{db.shoppingListEntryDao().getVisibleSync().isEmpty()})
-  ui.onNodeWithTag("goal-entry-${row.id}").performClick();waitText("Название товара");ui.onNodeWithText("Привязанные магазины").performScrollTo().assertExists();shot("normal-product-card-from-list")
+  ui.onNode(hasText("Шампиньоны") and hasAnyAncestor(hasTestTag("goal-entry-${row.id}")),useUnmergedTree=true).performClick();waitText("Название товара");ui.onNodeWithText("Привязанные магазины").performScrollTo().assertExists();shot("normal-product-card-from-list")
  }
  @Test fun cancellingNewProductCardDoesNotAddAnItemOrLoseTheListContext(){
   add();ui.onNodeWithText("Название товара").performTextInput("Новый несохранённый");waitFor{runCatching{ui.onNodeWithTag("add-create-product").assertIsEnabled()}.isSuccess}

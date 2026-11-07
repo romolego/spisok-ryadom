@@ -91,13 +91,13 @@ fun ProductCardScreen(
     var showAppearance by remember { mutableStateOf(false) }
     var createRecipient by remember { mutableStateOf(false) }
     var showNewGroupDialog by remember { mutableStateOf(false) }
-    var showAddShopLinkDialog by remember { mutableStateOf(false) }
+    var showAddShopLinkDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     // For new products, start in edit mode so the user can add shops immediately
-    var isShopLinksEditing by remember { mutableStateOf(productId == -1L) }
+    var isShopLinksEditing by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(productId == -1L) }
     // Department editing state
-    var editingPendingLinkId by remember { mutableStateOf<Long?>(null) }
-    var editingExistingLinkId by remember { mutableStateOf<Long?>(null) }
+    var editingPendingLinkId by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<Long?>(null) }
+    var editingExistingLinkId by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<Long?>(null) }
 
     // --- Dialogs ---
 
@@ -293,7 +293,15 @@ fun ProductCardScreen(
             )
 
             if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name,{createRecipient=false},done)},{createRecipient=false})
+            com.spisokryadom.app.ui.components.SelectionRow("Приватный товар в виджете",state.isWidgetPrivate,
+                {leaveName();viewModel.widgetPrivacy(it)},enabled=!state.isSaving,tag="widget_privacy")
+            if(state.isWidgetPrivate)Text("В виджете нажмите на скрытое название, чтобы показать его на 5 секунд.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             if(!state.isTemporary)ProductVariantsBar(state,viewModel)
+            val defaultTypes=state.departmentTypes+state.pendingDepartments.filter{it.id==state.defaultDepartmentTypeId&&it.typeId==0L}.map{com.spisokryadom.app.data.entity.DepartmentTypeEntity(id=it.id,name=it.name,normalizedName=com.spisokryadom.app.util.FuzzySearch.normalize(it.name))}
+            DropdownSelector(label="Группа магазинов по умолчанию",items=defaultTypes,
+                selectedItem=defaultTypes.find{it.id==state.defaultDepartmentTypeId},itemLabel={it.name},
+                onSelect={viewModel.updateDefaultDepartment(it?.id)},modifier=Modifier.fillMaxWidth(),
+                itemIcon={it.iconKey},itemAccent={it.accent},itemFavorite={it.isFavorite},favoriteOrder={it.favoriteOrder},alphabetical=true)
             com.spisokryadom.app.ui.components.ProductPhotos(state.photos,!state.isPhotoBusy&&!state.isSaving,viewModel::updatePhotos,viewModel::photoBusy,
                 toolbar={gallery,camera->
                     com.spisokryadom.app.ui.components.FavoriteToggle(state.isFavorite,{leaveName();viewModel.favorite(it)},enabled=!state.isSaving&&!state.isPhotoBusy)
@@ -312,7 +320,7 @@ fun ProductCardScreen(
                 onUnitChange = { viewModel.updateDefaultUnit(it) },
                 unitSuggestions = state.unitSuggestions,
                 quantityLabel = "Кол-во по умолч.",
-                unitLabel = "Ед. изм."
+                unitLabel = "Ед. изм.",allowUnitVoice=false,unitModifier=Modifier.testTag("product-unit")
             )
 
             AppTextField(
@@ -350,20 +358,8 @@ fun ProductCardScreen(
             }
 
             if (state.purchaseType != "offline") {
-                AppTextField(
-                    value = state.sellerUrl,
-                    onValueChange = { viewModel.updateSellerUrl(it) },
-                    label = { Text("Ссылка на продавца") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                AppTextField(
-                    value = state.productUrl,
-                    onValueChange = { viewModel.updateProductUrl(it) },
-                    label = { Text("Ссылка на товар") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                com.spisokryadom.app.ui.components.EditableProductLink("Ссылка на продавца",state.sellerUrl,viewModel::updateSellerUrl,enabled=!state.isSaving)
+                com.spisokryadom.app.ui.components.EditableProductLink("Ссылка на товар",state.productUrl,viewModel::updateProductUrl,enabled=!state.isSaving)
             }
 
             // --- Unified shop links section ---
@@ -575,10 +571,10 @@ private fun AddShopLinkDialog(
     val placeLabels=com.spisokryadom.app.ui.components.LocalPlaceLabels.current
     var shopId by androidx.compose.runtime.saveable.rememberSaveable{mutableLongStateOf(0L)}
     var creatingShop by remember{mutableStateOf(false)}
-    var departmentId by remember(shopId){mutableStateOf<Long?>(null)}
+    var departmentId by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf<Long?>(null)}
     var points by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf<List<Long>?>(null)}
     var priority by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf(emptyList<Long>())}
-    var userSelected by remember(shopId){mutableStateOf(false)}
+    var userSelected by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf(false)}
     LaunchedEffect(shopId){if(shopId>0)onLoadDepartments(shopId)}
     LaunchedEffect(suggestedDepartmentId,departmentsShopId){if(departmentsShopId==shopId&&!userSelected)departmentId=suggestedDepartmentId}
     val validDepartments=departmentsForShop.filter{it.shopId==shopId}

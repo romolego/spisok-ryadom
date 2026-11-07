@@ -1,0 +1,121 @@
+{
+  "version": "0.31.0",
+  "sourceCommit": "fdda62334d1fcb96af473e481b8a1f1f7ab197ff",
+  "baselineCommit": "650c23ae6ec9714a72217d7cb87a7df2829a89da",
+  "branch": "codex/widget-privacy-motion-0.31.0",
+  "verification": "focused regression plus UI class recheck after test-only lint annotation; not a full application rerun",
+  "tests": {
+    "classes": 43,
+    "tests": 673,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "broadTests": {
+    "classes": 43,
+    "tests": 673,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "recheckTests": {
+    "classes": 1,
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "baselineTests": {
+    "classes": 2,
+    "tests": 25,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "newTests": 36,
+  "newClasses": 4,
+  "legacyCompatibilityRegressionBeforeFix": {
+    "classes": 1,
+    "tests": 2,
+    "failures": 2,
+    "errors": 0,
+    "skipped": 0
+  },
+  "releaseBuild": "success",
+  "lint": {
+    "errors": 0,
+    "warnings": 73,
+    "information": 7,
+    "byIssue": {
+      "ApplySharedPref": 5,
+      "ExifInterface": 2,
+      "OldTargetApi": 1,
+      "UnusedAttribute": 3,
+      "GradleDependency": 1,
+      "ModifierFactoryExtensionFunction": 1,
+      "ModifierParameter": 8,
+      "ObsoleteSdkInt": 1,
+      "StaticFieldLeak": 2,
+      "AutoboxingStateCreation": 7,
+      "UselessLeaf": 1,
+      "UselessParent": 1,
+      "IconLauncherShape": 5,
+      "MonochromeLauncherIcon": 1,
+      "UseKtx": 37,
+      "ContentDescription": 1,
+      "HardcodedText": 2,
+      "RtlSymmetry": 1
+    }
+  },
+  "sealedFiles": 383,
+  "productionSchemaAndBuildUnchangedSinceBroadStart": true,
+  "changedTestsSinceBroadStart": [
+    "app/src/test/java/com/spisokryadom/app/Widget310UiTest.kt"
+  ],
+  "allSourcesUnchangedSinceRecheckStart": true,
+  "isolatedCheckoutMatches": true,
+  "schema": 28,
+  "tables": 26,
+  "backup": 26,
+  "apk": {
+    "path": ".local/artifacts/0.31.0/SpisokPokupok-0.31.0.apk",
+    "package": "com.spisokryadom.app.next",
+    "versionName": "0.31.0",
+    "versionCode": 43,
+    "label": "Список покупок",
+    "minSdk": 26,
+    "targetSdk": 35,
+    "debuggable": false,
+    "bytes": 2235430,
+    "sha256": "b2fca5318bfaca6f35c4a456e48c21ed1f570c155ad0e5eda5afa8dbfb17c582",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "matchesPreviousCertificate": true,
+    "physicalAndroidTested": false
+  },
+  "oldApkUnchanged": true,
+  "physicalAndroidTested": false,
+  "emulatorTested": false,
+  "deviceInventory": "adb empty; AVD list empty; hypervisor driver absent",
+  "dataUsed": "synthetic test databases only",
+  "publication": false,
+  "notTested": [
+    "physical Android and OEM widget host",
+    "actual Android process kill and launcher refresh after force stop",
+    "actual APK installation over existing app"
+  ],
+  "reviewedScreens": {
+    "bought-masked-api28.png": "df3ad8971ac2b1a920abcf441c4c4f2bad8f589b6cf545aba9846e7ac36ad73a",
+    "bought-masked-api35.png": "cc1992ff71337e1d0162e1eb2be16caf3073af131c4f1a790800c61e909eea8d",
+    "card-api28.png": "f30868f312ced1f1314789cb147172058d6351679f213f1cdaecd1912b9f7583",
+    "card-api35.png": "d31fbde918343e477af9cc64c4aaa34094fc106caea60eb3d7a081a78b4e820e",
+    "masked-api28.png": "2587fff1b1e795d5bc2d246332c5e188f6ce49ede86e218e90545e384f9c107a",
+    "masked-api35.png": "98760414a053d23194d450a9a538bb5f1a770cf37db199b6e43219ec4609bca5",
+    "revealed-api28.png": "e86053232e2a3342c2ee4fc75e4d7d8f6dc259ee290d09fbb1bc95f84f371a32",
+    "revealed-api35.png": "519758138087468a5ec757ec949eb5c0ecee7697c0b2d21efb5056a64a89c2d2",
+    "widget-regression-api35.png": "187c607c0825818ba6b609eda8e6759295694305e1163973f7c49f34bf5c73f8"
+  },
+  "unchangedWidgetAppearanceApi35Sha256": "187c607c0825818ba6b609eda8e6759295694305e1163973f7c49f34bf5c73f8",
+  "preliminaryRunsIncludedInTotals": false,
+  "interruptedPreliminaryRun": "stopped before completion to prove and fix legacy metadata matching with an absent privacy flag",
+  "verifiedAt": "2026-11-07T17:53:03.537037+07:00"
+}

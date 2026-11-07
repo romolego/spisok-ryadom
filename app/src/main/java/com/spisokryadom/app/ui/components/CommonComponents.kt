@@ -261,7 +261,8 @@ fun QuantityUnitInputWithSuggestions(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     quantityModifier: Modifier = Modifier,
-    unitModifier: Modifier = Modifier
+    unitModifier: Modifier = Modifier,
+    allowUnitVoice:Boolean=true
 ) {
     var unitExpanded by remember { mutableStateOf(false) }
     val filteredSuggestions = remember(unit, unitSuggestions) {
@@ -289,7 +290,7 @@ fun QuantityUnitInputWithSuggestions(
             modifier = Modifier.weight(1f)
         ) {
             AppTextField(
-                value = unit,
+                value = unit,allowVoice=allowUnitVoice,
                 onValueChange = { value ->
                     onUnitChange(value)
                     unitExpanded = true

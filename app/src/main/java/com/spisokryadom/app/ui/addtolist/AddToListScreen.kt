@@ -31,6 +31,8 @@ import com.spisokryadom.app.data.entity.ProductEntity
 @Composable
 fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,preselectedBranchId:Long?=null,targetListId:Long?=null,viewModel:AddToListViewModel=viewModel(factory=AddToListViewModel.factory(preselectedShopId,preselectedBranchId,targetListId)),onCreateProduct:((String,Long?)->Unit)?=null,returnedProductId:Long=-1L,onReturnHandled:()->Unit={}){
  val state by viewModel.uiState.collectAsStateWithLifecycle();val snack=remember{SnackbarHostState()}
+ var bulkOpen by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
+ if(bulkOpen&&targetListId==null)BulkProductSheet(state.selectedShopId,preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId},{bulkOpen=false},{bulkOpen=false;onNavigateBack()})
  var shopCreationOpen by remember { mutableStateOf(false) }
  LaunchedEffect(returnedProductId){if(returnedProductId>0){viewModel.selectSavedProduct(returnedProductId);onReturnHandled()}}
  val focus=androidx.compose.ui.platform.LocalFocusManager.current
@@ -97,6 +99,7 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
      }
     }
     state.error?.takeUnless{shopCreationOpen&&it==state.shopCreationError}?.let{message->item(key="error"){Text(message,color=MaterialTheme.colorScheme.error)}}
+    if(targetListId==null)item(key="bulk"){TextButton(onClick={focus.clearFocus();bulkOpen=true},enabled=!state.isLoading,modifier=Modifier.fillMaxWidth().testTag("add-bulk-products")){Icon(Icons.Filled.AddShoppingCart,null);Spacer(Modifier.width(8.dp));Text("Добавить несколько товаров")}}
     item(key="bottom"){Spacer(Modifier.height(16.dp))}
    }
   }

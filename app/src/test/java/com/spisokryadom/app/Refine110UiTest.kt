@@ -93,7 +93,7 @@ class Refine110UiTest {
   if(android.os.Build.VERSION.SDK_INT>=33)app.registerReceiver(receiver,android.content.IntentFilter(ShoppingWidgetProvider.ACTION),android.content.Context.RECEIVER_NOT_EXPORTED)
   else { @Suppress("DEPRECATION") app.registerReceiver(receiver,android.content.IntentFilter(ShoppingWidgetProvider.ACTION)) }
   try {
-   app.sendBroadcast(Intent(ShoppingWidgetProvider.ACTION).setPackage(app.packageName).putExtras(ShoppingWidgetProvider.checkIntent(token)))
+   app.sendBroadcast(Intent(ShoppingWidgetProvider.ACTION).setPackage(app.packageName).putExtras(ShoppingWidgetProvider.checkIntent(token)).putExtra("database",com.spisokryadom.app.util.DatabaseRevision.current(app)))
    ui.waitUntil(20_000){Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(20));runBlocking{db.shoppingListEntryDao().getById(entry)!!.isBought}}
   } finally {app.unregisterReceiver(receiver)}
   factory.onDataSetChanged();val position=(0 until factory.count).single{factory.getItemId(it)==entry}

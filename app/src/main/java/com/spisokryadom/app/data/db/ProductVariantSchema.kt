@@ -20,6 +20,9 @@ internal object ProductVariantSchema {
    db.execSQL("CREATE TRIGGER IF NOT EXISTS product_photo_$op BEFORE $op ON product_photos WHEN NEW.position<0 OR NEW.position>=5 OR trim(NEW.uri)='' BEGIN SELECT RAISE(ABORT,'Invalid product photo'); END")
   }
   db.execSQL("CREATE TRIGGER IF NOT EXISTS delete_product_family BEFORE DELETE ON products BEGIN DELETE FROM products WHERE id IN (SELECT productId FROM product_variants WHERE familyId=OLD.id AND productId!=OLD.id); END")
-  db.execSQL("CREATE TRIGGER IF NOT EXISTS product_family_common AFTER UPDATE OF name,productGroupId,recipientId,isFavorite,accent ON products WHEN OLD.name IS NOT NEW.name OR OLD.productGroupId IS NOT NEW.productGroupId OR OLD.recipientId IS NOT NEW.recipientId OR OLD.isFavorite IS NOT NEW.isFavorite OR OLD.accent IS NOT NEW.accent BEGIN UPDATE products SET name=NEW.name,productGroupId=NEW.productGroupId,recipientId=NEW.recipientId,isFavorite=NEW.isFavorite,accent=NEW.accent WHERE id!=NEW.id AND id IN (SELECT productId FROM product_variants WHERE familyId=(SELECT familyId FROM product_variants WHERE productId=NEW.id)) AND (name IS NOT NEW.name OR productGroupId IS NOT NEW.productGroupId OR recipientId IS NOT NEW.recipientId OR isFavorite IS NOT NEW.isFavorite OR accent IS NOT NEW.accent); END")
+  // Historical migrations install this trigger before the privacy column exists.
+  val privateColumn=db.query("PRAGMA table_info(products)").use{c->var found=false;while(c.moveToNext())if(c.getString(1)=="isWidgetPrivate")found=true;found}
+  val shared=listOf("name","productGroupId","recipientId","isFavorite","accent")+if(privateColumn)listOf("isWidgetPrivate")else emptyList()
+  db.execSQL("CREATE TRIGGER IF NOT EXISTS product_family_common AFTER UPDATE OF ${shared.joinToString(",")} ON products WHEN ${shared.joinToString(" OR "){"OLD.$it IS NOT NEW.$it"}} BEGIN UPDATE products SET ${shared.joinToString(","){"$it=NEW.$it"}} WHERE id!=NEW.id AND id IN (SELECT productId FROM product_variants WHERE familyId=(SELECT familyId FROM product_variants WHERE productId=NEW.id)) AND (${shared.joinToString(" OR "){"$it IS NOT NEW.$it"}}); END")
  }
 }

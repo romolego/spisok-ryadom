@@ -1,0 +1,146 @@
+{
+  "room": 28,
+  "backupZip": 26,
+  "unchanged": [
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/10.json",
+      "sha256": "5a2bb1eaf6740139e34d6a8f3b321085835ca4707579f3a2faaa960035977024"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/11.json",
+      "sha256": "ac4278dda3364c6ec413c75d893e2582a2e81f481aab9c971feeef8c2bcdf236"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/12.json",
+      "sha256": "a6aa5a65e58495e68d5034ac9eefc13912cf7904c7cd0277131839243ac7c92a"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/13.json",
+      "sha256": "be54d330b2d7efdf135ea196d282b31229ac75e562041e30fa189416e02c5ec4"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/14.json",
+      "sha256": "e3e0871852d1313264fae3bdf00f3dd8223e57cd5267b1104b5502a2978d1e61"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/15.json",
+      "sha256": "f3dd3b5e62b60e40850671495e7f3d6f74911ebd324e66143c85198b447aae51"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/16.json",
+      "sha256": "414aba7c42384e484f72831231add4d3e90e2312e95b8a726646020f632b5042"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/17.json",
+      "sha256": "837ee38fc2848d40c517da56c394ca12c9fb13f9c228576055046d80dab61a89"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/18.json",
+      "sha256": "b38b221be05f7c59ff865786a5df1415bc2797c0a5ff73d72c9a89967b9688b7"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/19.json",
+      "sha256": "119253a7572ceefe8779c68b70ab34f730863d316ba439c7c0804fe86a874918"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/20.json",
+      "sha256": "5f05646688f108e3c8bb32ccb0f910578e74bff8f9a53a607ac6a8dac93d1b55"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/21.json",
+      "sha256": "228dbeb20efdc5e47d2c21c48b2ffa52900b419c26149469f028f77fa0dfa3cf"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/22.json",
+      "sha256": "c64c71d2e00aa04d33e8246a7010ec0be6e7405b9d0a980d13e15a540204fab6"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/23.json",
+      "sha256": "e092def35b39d1d6ffb1f6a1b3f3f0e5c6dbf8ac56888140b758fc487f6fa34e"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/24.json",
+      "sha256": "b0d3063e335f16df30df1fbbdde2894f425791a8210d709e59c65b3437d0fc97"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/25.json",
+      "sha256": "db7b3bf742a2f7556083181f86c0dc292dc9da616e4d15d91cee785488c791cd"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/26.json",
+      "sha256": "75e5e5f16f3e96ccf3aa764a2fd889507c47854393e1226b8cf331fe0476bd35"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/27.json",
+      "sha256": "d7c8709f1f67af736a52cf7e339f553514a8924301c08f023b71c2bb3b00a8ce"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/28.json",
+      "sha256": "709da661f06888e457fa48858f74291a9841d9c2ef01f0ea1ed9972807f64483"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/8.json",
+      "sha256": "ecd126c5c5c5c51a1185e1e476e9ff99231861723bfd7f3df0fcedc64b00ac5c"
+    },
+    {
+      "path": "app/schemas/com.spisokryadom.app.data.db.AppDatabase/9.json",
+      "sha256": "4895a66fb7f3698e4e56fbb0c716b4137251407ef690e59fa725febfcc2471e3"
+    },
+    {
+      "path": "app/src/test/resources/SYNTHETIC_FIXTURES.md",
+      "sha256": "06dac909e4951a9b7f8ae194c5588ba0df1ac42aa86d88878ebb5e930d32564a"
+    },
+    {
+      "path": "app/src/test/resources/generate_synthetic_080.py",
+      "sha256": "17799ebb76e03e1ba3e37d8a6e91b66bd3ca15283b64ba06d8b8bc5880456693"
+    },
+    {
+      "path": "app/src/test/resources/schema-v10.json",
+      "sha256": "5a2bb1eaf6740139e34d6a8f3b321085835ca4707579f3a2faaa960035977024"
+    },
+    {
+      "path": "app/src/test/resources/schema-v11.json",
+      "sha256": "ac4278dda3364c6ec413c75d893e2582a2e81f481aab9c971feeef8c2bcdf236"
+    },
+    {
+      "path": "app/src/test/resources/schema-v12.json",
+      "sha256": "a6aa5a65e58495e68d5034ac9eefc13912cf7904c7cd0277131839243ac7c92a"
+    },
+    {
+      "path": "app/src/test/resources/schema-v13.json",
+      "sha256": "be54d330b2d7efdf135ea196d282b31229ac75e562041e30fa189416e02c5ec4"
+    },
+    {
+      "path": "app/src/test/resources/schema-v15.json",
+      "sha256": "f3dd3b5e62b60e40850671495e7f3d6f74911ebd324e66143c85198b447aae51"
+    },
+    {
+      "path": "app/src/test/resources/schema-v26.json",
+      "sha256": "75e5e5f16f3e96ccf3aa764a2fd889507c47854393e1226b8cf331fe0476bd35"
+    },
+    {
+      "path": "app/src/test/resources/schema-v27.json",
+      "sha256": "d7c8709f1f67af736a52cf7e339f553514a8924301c08f023b71c2bb3b00a8ce"
+    },
+    {
+      "path": "app/src/test/resources/schema-v8.json",
+      "sha256": "ecd126c5c5c5c51a1185e1e476e9ff99231861723bfd7f3df0fcedc64b00ac5c"
+    },
+    {
+      "path": "app/src/test/resources/schema-v9.json",
+      "sha256": "4895a66fb7f3698e4e56fbb0c716b4137251407ef690e59fa725febfcc2471e3"
+    },
+    {
+      "path": "app/src/test/resources/schema7.json",
+      "sha256": "3da8a46d2ec836b4648bb1460b6f3d22be023dd9b47feffa6a8071e23079b398"
+    },
+    {
+      "path": "app/src/test/resources/synthetic-backup-after-080.zip",
+      "sha256": "60922e194af2c534f5a8604e4c3edee8e98930be783518d54da4606b9c2f707a"
+    },
+    {
+      "path": "app/src/test/resources/synthetic-backup-before-080.zip",
+      "sha256": "bbf5e3570570d16c00aff4357fb2ed381437eae276df864789c4551d5133da06"
+    }
+  ]
+}

@@ -59,19 +59,23 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         validateTarget(next);entryDao.update(next)
         if(remember)variants.rememberChoice(variantId,city)
     }
-    suspend fun addNewProduct(name: String, quantity: Double, unit: String, permanent: Boolean, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null,listId:Long?=null,plannedUnitPrice:Double?=null,purchaseType:String="offline"): Long {
+    suspend fun addNewProduct(name: String, quantity: Double, unit: String, permanent: Boolean, choice: ShopChoice=ShopChoice.AUTO, shopId: Long?=null, branchId:Long?=null,listId:Long?=null,plannedUnitPrice:Double?=null,purchaseType:String="offline",allowHintUnit:Boolean=true): Long {
         val cityId=locations.currentId(); require(name.isNotBlank()) { "Введите название товара" }
         return db.withTransaction {
             validateListPrice(listId,plannedUnitPrice)
             require(purchaseType in setOf("offline","online","both"))
-            val product=ProductEntity(purchaseType=purchaseType,name=name.trim(), defaultUnit=Quantities.unit(unit).ifBlank { null },isTemporary=!permanent,preferCityShopOrder=true)
+            val input=ProductInputRepository(db);val hint=input.suggest(name)
+            val product=ProductEntity(purchaseType=purchaseType,name=name.trim(),productGroupId=hint.categoryId,recipientId=input.recipient(hint.categoryId,false,null),defaultUnit=Quantities.unit(unit).ifBlank { hint.unit.takeIf{allowHintUnit} },isTemporary=!permanent,preferCityShopOrder=true)
             val id=db.productDao().insert(product)
+            hint.departmentTypeId?.let{input.setDepartment(id,it)}
+            var departmentId:Long?=null
             if (choice==ShopChoice.EXPLICIT) {
                 val shop=db.shopDao().getById(shopId ?: -1)
                 require(shop?.cityId==cityId) { "Магазин недоступен в выбранном городе" }
-                if(permanent) db.productShopLinkDao().insert(ProductShopLinkEntity(productId=id,shopId=shopId!!))
+                departmentId=input.inheritedPlacement(id,shopId!!)
+                if(permanent) db.productShopLinkDao().insert(ProductShopLinkEntity(productId=id,shopId=shopId,departmentId=departmentId))
             }
-            val row=ShoppingListEntryEntity(productId=id,listId=listId,plannedUnitPrice=plannedUnitPrice,explicitNoShop=choice==ShopChoice.NONE,awaitingShopCityId=cityId.takeIf{choice==ShopChoice.AUTO},quantity=Quantities.valid(quantity),unit=Quantities.unit(unit),assignedShopId=if(choice==ShopChoice.EXPLICIT)shopId else null,assignedBranchId=resolveBranch(id,if(choice==ShopChoice.EXPLICIT)shopId else null,branchId))
+            val row=ShoppingListEntryEntity(productId=id,listId=listId,plannedUnitPrice=plannedUnitPrice,explicitNoShop=choice==ShopChoice.NONE,awaitingShopCityId=cityId.takeIf{choice==ShopChoice.AUTO},quantity=Quantities.valid(quantity),unit=product.defaultUnit.orEmpty(),assignedDepartmentId=departmentId,assignedShopId=if(choice==ShopChoice.EXPLICIT)shopId else null,assignedBranchId=resolveBranch(id,if(choice==ShopChoice.EXPLICIT)shopId else null,branchId))
             validateTarget(row)
             entryDao.insert(row)
         }

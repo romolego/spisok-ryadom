@@ -17,12 +17,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 
 class ShoppingWidgetProvider:AppWidgetProvider() {
     override fun onUpdate(context:Context,manager:AppWidgetManager,ids:IntArray){ids.forEach{manager.updateAppWidget(it,views(context,it))};refresh(context)}
     override fun onAppWidgetOptionsChanged(context:Context,manager:AppWidgetManager,id:Int,options:Bundle) {
         manager.updateAppWidget(id,views(context,id))
     }
+    override fun onDeleted(context:Context,ids:IntArray){ids.forEach{WidgetInteractionState.clear(it)}}
+    override fun onDisabled(context:Context){WidgetInteractionState.clear()}
     override fun onReceive(context:Context,intent:Intent) {
         super.onReceive(context,intent)
         if(intent.action==ACTION_SET_BOUGHT_VISIBILITY){
@@ -38,11 +42,50 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
         if(intent.action!=ACTION)return
         if(intent.getBooleanExtra("open",false)){context.startActivity(WidgetIntents.open(context));return}
         val row=decodeCheck(intent)?:return
+        val widgetId=intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID)
         val pending=goAsync()
+        val appContext=context.applicationContext
         scope.launch {
-            try { ShoppingWidgetData((context.applicationContext as SpisokRyadomApp).container).check(row);refresh(context) }
-            catch(e:Exception){android.util.Log.w("ShoppingWidget","Cannot update purchase",e);refresh(context)}
-            finally{pending.finish()}
+            var motion:String?=null
+            var peek:String?=null
+            try { withTimeout(8_000){
+                val data=ShoppingWidgetData((appContext as SpisokRyadomApp).container)
+                // Restore updates the database and its local identity under this same lock.
+                // Validate and apply together; hold no editor lock during the visual delay.
+                com.spisokryadom.app.data.repository.ProductEditorTransactions.locked {
+                val revision=com.spisokryadom.app.util.DatabaseRevision.current(appContext)
+                if(intent.getStringExtra("database")!=revision)return@locked
+                val prefs=appContext.getSharedPreferences(WidgetSettings.PREFS,Context.MODE_PRIVATE)
+                val settings=WidgetSettings.load(prefs)
+                // The launcher can deliver a cached row after Android recreated our process.
+                // Rebuild its action context on the first tap, without requiring a second tap.
+                if(widgetId!=AppWidgetManager.INVALID_APPWIDGET_ID&&!WidgetInteractionState.ready(widgetId,revision,settings)){
+                    WidgetInteractionState.present(widgetId,revision,settings,data.presentation(settings,prefs.all["global_default_boost_urgent_shop"] as? Boolean?:true))
+                }
+                if(intent.hasExtra("peek")){
+                    if(widgetId==AppWidgetManager.INVALID_APPWIDGET_ID)return@locked
+                    val actual=data.rows().firstOrNull{it.id==row.id&&it.productStableId==row.productStableId&&it.createdAt==row.createdAt&&it.revision==row.revision&&it.isPrivate}?:return@locked
+                    peek=WidgetInteractionState.reveal(widgetId,actual,intent.getStringExtra("peek")?:return@locked)
+                    refresh(appContext)
+                }else{
+                    motion=WidgetInteractionState.begin(widgetId,row,revision)
+                    if(data.check(row)){
+                        refresh(appContext)
+                    }else{
+                        motion?.let{WidgetInteractionState.settle(widgetId,row.id,it)}
+                        motion=null
+                    }
+                }
+                }
+                if(peek!=null)delay(WidgetInteractionState.PEEK_MS)
+                else if(motion!=null)delay(WidgetInteractionState.MOTION_MS)
+            }}
+            catch(e:Exception){android.util.Log.w("ShoppingWidget","Cannot update widget",e)}
+            finally{
+                motion?.let{WidgetInteractionState.settle(widgetId,row.id,it)}
+                peek?.let{WidgetInteractionState.conceal(widgetId,row.id,it)}
+                try{refresh(appContext)}finally{pending.finish()}
+            }
         }
     }
     companion object {
@@ -55,6 +98,7 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
             .putExtra(EXTRA_SHOW_BOUGHT,show)
         fun checkIntent(row:WidgetPurchase)=Intent().putExtra("id",row.id).putExtra("product",row.productStableId)
             .putExtra("created",row.createdAt).putExtra("updated",row.updatedAt).putExtra("bought",row.bought).putExtra("revision",row.revision)
+        fun peekIntent(row:WidgetPurchase,expected:String)=checkIntent(row).putExtra("peek",expected)
         fun decodeCheck(intent:Intent):WidgetPurchase? {
             if(!listOf("id","product","created","updated","bought","revision").all{intent.hasExtra(it)})return null
             return WidgetPurchase(intent.getLongExtra("id",-1),intent.getStringExtra("product")?:return null,
@@ -85,7 +129,7 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
             setOnClickPendingIntent(R.id.widget_bought_toggle,PendingIntent.getBroadcast(context,
                 if(settings.showBought)2 else 3,visibilityIntent(context,!settings.showBought),immutable))
             val mutable=PendingIntent.FLAG_UPDATE_CURRENT or if(Build.VERSION.SDK_INT>=31)PendingIntent.FLAG_MUTABLE else 0
-            setPendingIntentTemplate(R.id.widget_list,PendingIntent.getBroadcast(context,id,Intent(context,ShoppingWidgetProvider::class.java).setAction(ACTION).setData(Uri.parse("spisok-widget://click/$id")),mutable))
+            setPendingIntentTemplate(R.id.widget_list,PendingIntent.getBroadcast(context,id,Intent(context,ShoppingWidgetProvider::class.java).setAction(ACTION).setData(Uri.parse("spisok-widget://click/$id")).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id),mutable))
         }
         fun refresh(context:Context,updateLayout:Boolean=false) {
             val manager=AppWidgetManager.getInstance(context)

@@ -1,0 +1,271 @@
+{
+  "baselineTests": 1507,
+  "finalTests": 1573,
+  "removed": [],
+  "added": [
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "approximatePreviewOffersGenericAndSpecificCatalogueChoicesWithoutAddingAnything"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "approximatePreviewOffersGenericAndSpecificCatalogueChoicesWithoutAddingAnything[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "atomicPackageMergesRegularRowsOnlyAndTokenPreventsDoubleSubmission"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "atomicPackageMergesRegularRowsOnlyAndTokenPreventsDoubleSubmission[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "changedCityOrGenerationCannotSubmitOldPreview"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "changedCityOrGenerationCannotSubmitOldPreview[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "commonDepartmentCreatesOnlyNewPlacementsAndKeepsLocalExceptions"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "commonDepartmentCreatesOnlyNewPlacementsAndKeepsLocalExceptions[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "everyPeriodIsADelimiterAndNoQuantityOrUnitIsParsed"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "everyPeriodIsADelimiterAndNoQuantityOrUnitIsParsed[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "explicitRecipientAndCategoryRuleWinOverGlobalFallback"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "explicitRecipientAndCategoryRuleWinOverGlobalFallback[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "fullBackupRestoresSettingsDefaultsAndCommitReceiptsAndRejectsCorruption"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "fullBackupRestoresSettingsDefaultsAndCommitReceiptsAndRejectsCorruption[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "hiddenRussianHintsNeverCreateCatalogueRowsAndRecognizeTypos"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "hiddenRussianHintsNeverCreateCatalogueRowsAndRecognizeTypos[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "hintSwitchesAreIndependentAndPreserveUnrelatedFallbackRules"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "hintSwitchesAreIndependentAndPreserveUnrelatedFallbackRules[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "linkExtractionKeepsQueryAndBalancedParenthesesAndDoesNotChooseAmongSeveral"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "linkExtractionKeepsQueryAndBalancedParenthesesAndDoesNotChooseAmongSeveral[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "newProductsUseHintsButKeepExplicitUnitsAndExistingRows"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "newProductsUseHintsButKeepExplicitUnitsAndExistingRows[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "oldFullBackupRemainsReadableWithoutInventingNewRules"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "oldFullBackupRemainsReadableWithoutInventingNewRules[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "preservingAndCopyingListRowsKeepsTheirIndependentDefaultDepartment"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "preservingAndCopyingListRowsKeepsTheirIndependentDefaultDepartment[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "staleChoiceRollsBackWholePackageIncludingNewProductsAndReceipt"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "staleChoiceRollsBackWholePackageIncludingNewProductsAndReceipt[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "variantDefaultsStayIndependentAndDeletingClassifierClearsReferences"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300DataTest",
+      "name": "variantDefaultsStayIndependentAndDeletingClassifierClearsReferences[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "aNewInlineDepartmentIsSharedWithTheNextShopAndCommittedOnce"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "aNewInlineDepartmentIsSharedWithTheNextShopAndCommittedOnce[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "existingCardStillCreatesAThirdVariantWithoutChangingSharedFields"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "existingCardStillCreatesAThirdVariantWithoutChangingSharedFields[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "explicitNoDepartmentInNewShopOverridesTheProductDefault"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "explicitNoDepartmentInNewShopOverridesTheProductDefault[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "externalCatalogueChangesToNewDraftAreNotUndoneByHints"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "externalCatalogueChangesToNewDraftAreNotUndoneByHints[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "immediateSaveFillsKnownNewProductWithoutWaitingForSearchDebounce"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "immediateSaveFillsKnownNewProductWithoutWaitingForSearchDebounce[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "quickCreationKeepsAnExplicitlyClearedUnitInsteadOfReplacingItWithAHint"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "quickCreationKeepsAnExplicitlyClearedUnitInsteadOfReplacingItWithAHint[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "rawRecoveryRetainsManualClearsInsteadOfApplyingHintsOrFallbackAgain"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "rawRecoveryRetainsManualClearsInsteadOfApplyingHintsOrFallbackAgain[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "renamedNewDraftKeepsManualValuesIncludingIntentionalEmptyFields"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "renamedNewDraftKeepsManualValuesIncludingIntentionalEmptyFields[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "restoredBulkPreviewKeepsChoiceAndQuantityAndCannotCommitTwice"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "restoredBulkPreviewKeepsChoiceAndQuantityAndCannotCommitTwice[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "savedPreviewFromAnotherDatabaseRevisionCannotWriteAfterProcessRecreation"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300EditorTest",
+      "name": "savedPreviewFromAnotherDatabaseRevisionCannotWriteAfterProcessRecreation[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300MigrationTest",
+      "name": "version26MigrationRetainsIdsPhotosAndDifferentShopGroups"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300MigrationTest",
+      "name": "version26MigrationRetainsIdsPhotosAndDifferentShopGroups[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "linkPencilExtractsSharedTextAndManualCardSaveRemainsExplicit"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "linkPencilExtractsSharedTextAndManualCardSaveRemainsExplicit[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "newCardPrefillsInExistingDropdownsAndTheUnitHasNoMicrophone"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "newCardPrefillsInExistingDropdownsAndTheUnitHasNoMicrophone[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "newSettingsUseExistingScrollableLayoutInLandscape"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "newSettingsUseExistingScrollableLayoutInLandscape[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "packagePreviewShowsSourceAndChoicesAndAddsOnlyAfterConfirmation"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "packagePreviewShowsSourceAndChoicesAndAddsOnlyAfterConfirmation[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "photoViewerSupportsPinchAndEditingStillUsesThePencil"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "photoViewerSupportsPinchAndEditingStillUsesThePencil[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases[28]"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "selectedLinkFromSharedTextSurvivesActivityRecreation"
+    },
+    {
+      "class": "com.spisokryadom.app.ProductInput300UiTest",
+      "name": "selectedLinkFromSharedTextSurvivesActivityRecreation[28]"
+    }
+  ]
+}
