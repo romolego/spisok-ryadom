@@ -6,7 +6,7 @@
 
 Room29/ZIP27, миграция28→29 добавляет shops.photosJson='[]'. Прежние ID/данные/медиа/миграции и читатели копий сохранены. APK0.32.0(45) `com.spisokryadom.app.next`, прежний сертификат `25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668`, 2251306 байт, SHA256 `0d074a58d9f22820423427ecc9679eccddac40bc4beccf265fc6ab194c657ebd`. Путь —`.local/artifacts/0.32.0/SpisokPokupok-0.32.0.apk`. aapt/apksigner/zipalign успешны.
 
-Проверенная0.32.0 подготовлена к публикации в продолжение порученной пересборки и публикации. Итоговые ссылки и квитанция будут внесены после публичного скачивания; сейчас статус pending.
+Публикация завершена: [PR#9](https://github.com/romolego/spisok-ryadom/pull/9) слит обычным merge вmain, [v0.32.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.32.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC ZIP совпали. Source `ff3829072dc02219baf79d0ec6bb0aa011a1d635`, merge/tag `8356e663127be9ad0a8360e4f89f2f55b5f8d7a6`. Публичный source ZIP соответствует396 проверенным файлам. Квитанция —docs/publications/0.32.0.json.
 
 ## 0.31.1 ·7 ноября2026
 

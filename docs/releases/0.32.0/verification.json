@@ -41,5 +41,9 @@
   },
   "physicalAndroidTested": false,
   "emulatorTested": false,
-  "publication": "pending"
+  "publication": {
+    "status": "published-and-anonymously-verified",
+    "release": "https://github.com/romolego/spisok-ryadom/releases/tag/v0.32.0",
+    "receipt": "../../publications/0.32.0.json"
+  }
 }
