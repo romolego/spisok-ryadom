@@ -60,7 +60,6 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
      }
     }
     item(key="shop"){ShopChoiceField(state.shops,state.selectedShopId,viewModel::onShopSelected,enabled=!state.isLoading&&!state.isShopLocked,onCreate=viewModel::createShop,creationError=state.shopCreationError,onCreationOpenChanged={shopCreationOpen=it})}
-    if(targetListId==null)item(key="bulk"){TextButton(onClick={focus.clearFocus();bulkOpen=true},enabled=!state.isLoading,modifier=Modifier.fillMaxWidth().testTag("add-bulk-products")){Icon(Icons.Filled.AddShoppingCart,null);Spacer(Modifier.width(8.dp));Text("Добавить несколько товаров")}}
     item(key="query"){AppTextField(state.searchQuery,viewModel::onSearchQueryChanged,label={Text("Название товара")},singleLine=true,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth())}
     if(state.selectedProduct==null&&(state.searchResults.isNotEmpty()||state.searchQuery.isBlank()&&state.browseProducts))item(key="candidates"){
      OutlinedCard(Modifier.fillMaxWidth()) {
@@ -100,6 +99,7 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
      }
     }
     state.error?.takeUnless{shopCreationOpen&&it==state.shopCreationError}?.let{message->item(key="error"){Text(message,color=MaterialTheme.colorScheme.error)}}
+    if(targetListId==null)item(key="bulk"){TextButton(onClick={focus.clearFocus();bulkOpen=true},enabled=!state.isLoading,modifier=Modifier.fillMaxWidth().testTag("add-bulk-products")){Icon(Icons.Filled.AddShoppingCart,null);Spacer(Modifier.width(8.dp));Text("Добавить несколько товаров")}}
     item(key="bottom"){Spacer(Modifier.height(16.dp))}
    }
   }

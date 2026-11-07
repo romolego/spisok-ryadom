@@ -84,7 +84,7 @@ class Favorites200DataTest {
   val repo=ProductRepository(db.productDao(),db.productShopLinkDao(),db)
   val id=ProductEditDraft("new200",-1,true,false,ProductCardUiState(name="Товар",isNew=true)).persist(repo,ProductCreationDefaults.read(prefs))
   assertEquals(2.5,db.productDao().getById(id)!!.defaultQuantity!!,0.0);assertEquals("ед",db.productDao().getById(id)!!.defaultUnit)
-  val explicit=ProductEditDraft("explicit200",-1,true,false,ProductCardUiState(name="Другой",isNew=true,defaultQuantity="0,75",defaultUnit="кг")).persist(repo,ProductCreationDefaults.read(prefs))
+  val explicit=ProductEditDraft("explicit200",-1,true,false,ProductCardUiState(name="Другой",isNew=true,defaultQuantity="0,75",defaultUnit="кг",unitManuallySet=true)).persist(repo,ProductCreationDefaults.read(prefs))
   assertEquals(.75,db.productDao().getById(explicit)!!.defaultQuantity!!,0.0);assertEquals("кг",db.productDao().getById(explicit)!!.defaultUnit)
  }
  @Test fun migration17PreservesExistingClassifierOrderAndProductReferences():Unit=runBlocking{

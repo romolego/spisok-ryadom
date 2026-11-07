@@ -75,6 +75,15 @@ class ProductInput300EditorTest {
         val p=db.productDao().getById(id)!!
         assertNull(p.productGroupId);assertNull(p.defaultUnit);assertNull(p.recipientId)
         assertNotNull(db.productInputDao().department(id));assertNull(db.productInputDao().department(id)!!.typeId)
+        // A pre-0.30 raw draft has no hint flags. Its nonempty unit remains an explicit choice.
+        val legacy=org.json.JSONObject(original.encode()).apply{
+            put("stableId","input300-legacy-unit");put("name","Другой");put("defaultUnit","кг")
+            listOf("unitManuallySet","categoryManuallySet","departmentManuallySet","defaultDepartmentTypeId",
+                "defaultDepartmentChosen","defaultDepartmentDirty","departmentExplicitShops").forEach{remove(it)}
+        }
+        val legacyId=ProductEditDraft.decode(legacy.toString()).persist(products,ProductCreationDefaults(fillMissing=true,missingUnit="ед"))
+        assertEquals("кг",db.productDao().getById(legacyId)!!.defaultUnit)
+
     }
     @Test fun explicitNoDepartmentInNewShopOverridesTheProductDefault() {
         val pair=runBlocking{
