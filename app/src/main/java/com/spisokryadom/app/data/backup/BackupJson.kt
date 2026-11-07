@@ -115,6 +115,7 @@ internal object BackupJson {
   displayOrder=if(o.has("displayOrder")&&!o.isNull("displayOrder"))o.getInt("displayOrder") else 0
  )
  fun encode(value:ShopEntity):JSONObject = JSONObject().apply {
+  put("shopPhotos",JSONArray(com.spisokryadom.app.util.ShopPhotos.decode(value.photosJson).mapIndexed{i,p->JSONObject().put("position",i).put("caption",p.caption)}))
   put("cityGroupKey",value.cityGroupKey)
   put("isFavorite",value.isFavorite);put("favoriteOrder",value.favoriteOrder)
   put("id",value.id)
@@ -130,6 +131,7 @@ internal object BackupJson {
   put("shoppingBackground",value.shoppingBackground);put("iconKey",value.iconKey);put("purchaseBackground",value.purchaseBackground)
  }
  fun shops(o:JSONObject):ShopEntity = ShopEntity(
+  photosJson=shopPhotos(o),
   cityGroupKey=if(o.has("cityGroupKey"))o.get("cityGroupKey").also{require(it is String){"Неверная связь городских адресов"}} as String else "",
   isFavorite=favorite(o),favoriteOrder=favoriteOrder(o),
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,
@@ -144,6 +146,14 @@ internal object BackupJson {
   networkId=if(o.has("networkId")&&!o.isNull("networkId"))o.getLong("networkId")else null,
   shoppingBackground=o.optString("shoppingBackground",""),iconKey=o.optString("iconKey",""),purchaseBackground=if(o.has("purchaseBackground"))o.get("purchaseBackground").also{require(it is String){"Неверный фон товаров"}} as String else ""
  )
+ private fun shopPhotos(o:JSONObject):String {
+  if(!o.has("shopPhotos"))return "[]"
+  val a=o.getJSONArray("shopPhotos");require(a.length()<=5){"Слишком много фото магазина"}
+  return com.spisokryadom.app.util.ShopPhotos.encode((0 until a.length()).map{i->val p=a.getJSONObject(i)
+   require(strictLong(p,"position")==i.toLong()){ "Неверный порядок фото магазина" }
+   ProductPhotoEntity(0,i,"unavailable",strictString(p,"caption"))
+  })
+ }
  fun encode(value:ShopDepartmentEntity):JSONObject = JSONObject().apply {
   put("id",value.id)
   put("shopId",value.shopId)

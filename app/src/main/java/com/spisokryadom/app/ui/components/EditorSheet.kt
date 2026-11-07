@@ -18,17 +18,20 @@ fun EditorSheet(
     onDismiss: () -> Unit,
     busy: Boolean = false,
     scrollContent: Boolean = true,
+    onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val locked by rememberUpdatedState(busy)
     val maxHeight = (LocalConfiguration.current.screenHeightDp - 64).coerceAtLeast(200).dp
     ModalBottomSheet(
+        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = onBack == null),
         onDismissRequest = { if (!locked) onDismiss() },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true,
-            confirmValueChange = { it != SheetValue.Hidden || !locked })
+            confirmValueChange = { it != SheetValue.Hidden || (!locked && onBack == null) })
     ) {
         androidx.activity.compose.BackHandler(enabled = busy) {}
+        androidx.activity.compose.BackHandler(enabled = !busy && onBack != null) { onBack?.invoke() }
         Column(Modifier.fillMaxWidth().heightIn(max = maxHeight).imePadding()
             .testTag("editor-sheet").padding(horizontal = 20.dp).padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {

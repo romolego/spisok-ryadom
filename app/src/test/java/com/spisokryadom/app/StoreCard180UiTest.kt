@@ -42,6 +42,21 @@ class StoreCard180UiTest {
   shop=db.shopDao().insert(ShopEntity(name="Красный Яр",shoppingBackground="yellow"));branch=db.shopBranchDao().insert(ShopBranchEntity(shopId=shop,address="Весны, 1"))
  };waitText("Список пуст");ui.onNodeWithText("Магазины").performClick();waitText("Красный Яр");ui.onNodeWithText("Красный Яр").performTouchInput{longClick()};waitText("Название магазина")}
  @After fun close(){ui.activityRule.scenario.close();val end=System.nanoTime()+20_000_000_000;while(ProductEditorTransactions.mutex.isLocked&&System.nanoTime()<end){Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();Thread.sleep(5)};app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
+ @Test fun shopGalleryOpensZoomReordersAndSavesOnlyWithTheCard(){
+  ui.onNodeWithContentDescription("Назад").performClick();waitText("Красный Яр")
+  val image=Bitmap.createBitmap(320,200,Bitmap.Config.ARGB_8888);image.eraseColor(android.graphics.Color.rgb(175,205,225))
+  val photos=(0..1).map{i->val file=File(app.filesDir,"shop_photos/store320-$i.jpg");file.parentFile!!.mkdirs();file.outputStream().use{image.compress(Bitmap.CompressFormat.JPEG,90,it)};ProductPhotoEntity(0,i,file.path,if(i==0)"Вход"else "Вывеска")};image.recycle()
+  runBlocking{val old=db.shopDao().getById(shop)!!;db.shopDao().update(old.copy(photosJson=com.spisokryadom.app.util.ShopPhotos.encode(photos)))}
+  ui.onNodeWithText("Красный Яр").performTouchInput{longClick()};waitText("Название магазина")
+  ui.onNodeWithTag("product-photo-0").performScrollTo().assertIsDisplayed().performClick()
+  ui.onNodeWithContentDescription("Закрыть просмотр фото").assertIsDisplayed().performClick()
+  ui.onNodeWithContentDescription("Изменить фото 2").performScrollTo().performClick();waitText("Примечание к фото")
+  ui.onNodeWithContentDescription("Фото раньше").performClick();ui.onNodeWithText("Применить").performClick()
+  assertEquals("Вход",runBlocking{com.spisokryadom.app.util.ShopPhotos.decode(db.shopDao().getById(shop)!!.photosJson).first().caption})
+  ui.activityRule.scenario.recreate();waitText("Название магазина");ui.onNodeWithTag("product-photo-0").performScrollTo().assertIsDisplayed();shot("shop-gallery320")
+  ui.onNodeWithText("Сохранить").performClick();waitText("Магазины")
+  assertEquals(listOf("Вывеска","Вход"),runBlocking{com.spisokryadom.app.util.ShopPhotos.decode(db.shopDao().getById(shop)!!.photosJson).map{it.caption}})
+ }
  @Test fun placeIsReadOnlyUntilEditingAndKeepsIdentityAfterSave(){
   ui.onNodeWithTag("shop-place-summary").assertExists();ui.onNodeWithText("Город магазина").assertDoesNotExist();ui.onNodeWithText("Весны, 1").assertExists();shot("01-card-summary")
   ui.onNodeWithText("Править").performClick();ui.onNodeWithText("Город магазина").assertExists();ui.onNodeWithContentDescription("Изменить точку: Весны, 1").performScrollTo().performClick();ui.onNodeWithTag("branch-address-$branch").performScrollTo().performTextReplacement("Весны, 2");shot("02-place-editor");ui.onAllNodesWithText("Сохранить").onLast().performClick()

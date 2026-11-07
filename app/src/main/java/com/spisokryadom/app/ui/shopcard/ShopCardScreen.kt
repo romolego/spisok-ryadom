@@ -187,6 +187,12 @@ fun ShopCardScreen(
                 viewModel::updateShoppingBackground,viewModel::updateIcon,viewModel::updateLogo,viewModel::updatePhotoBusy,externalPhotoBusy=state.isPhotoBusy,purchaseBackground=state.purchaseBackground,onPurchaseBackground=viewModel::updatePurchaseBackground)
             }
 
+            com.spisokryadom.app.ui.components.ProductPhotos(state.photos,!state.isSaving&&!state.isPhotoBusy,viewModel::updatePhotos,viewModel::updatePhotoBusy,
+                directory="shop_photos",photoTitle="Фото магазина",toolbar={gallery,camera->
+                    Text("Фотографии магазина",Modifier.weight(1f),style=MaterialTheme.typography.titleSmall)
+                    IconButton(onClick=gallery,enabled=!state.isPhotoBusy&&state.photos.size<5){Icon(Icons.Filled.PhotoLibrary,"Выбрать фото магазина")}
+                    IconButton(onClick=camera,enabled=!state.isPhotoBusy&&state.photos.size<5){Icon(Icons.Filled.PhotoCamera,"Камера магазина")}
+                })
             ShopCardBlock("Место магазина",action={
                 TextButton(onClick={isPlaceEditing=!isPlaceEditing},enabled=!state.isPhotoBusy&&(!isPlaceEditing||validBranches)){
                     Text(if(isPlaceEditing)"Готово"else "Править")

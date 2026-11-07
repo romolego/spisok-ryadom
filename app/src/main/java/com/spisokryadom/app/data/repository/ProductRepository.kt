@@ -32,6 +32,12 @@ class ProductRepository(
 ) {
     val input=ProductInputRepository(db)
     val variants=ProductVariantsRepository(db,catalogueEdits)
+    suspend fun setWidgetPrivacy(stableId:String,expected:Boolean,value:Boolean):Boolean = withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+        val product=productDao.getByStableId(stableId)?:return@withTransaction false
+        if(product.isWidgetPrivate!=expected)return@withTransaction false
+        productDao.update(product.copy(isWidgetPrivate=value))
+        true
+    } }
     class DuplicateName:IllegalArgumentException("Товар с таким названием уже есть")
     suspend fun getProductByStableId(stableId:String)=productDao.getByStableId(stableId)
     suspend fun editorShops()=db.shopDao().getAllSync()

@@ -5,13 +5,13 @@ import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,35 +24,33 @@ import com.spisokryadom.app.util.WebLinks
     var selected by rememberSaveable(label){mutableStateOf<String?>(null)}
     var error by remember{mutableStateOf<String?>(null)}
     val context=LocalContext.current
+    val clipboard=LocalClipboardManager.current
     val urls=remember(draft){WebLinks.extract(draft)}
     LaunchedEffect(draft){if(urls.none{it==selected})selected=urls.singleOrNull()}
+    fun edit(){draft=value;selected=WebLinks.extract(value).singleOrNull();editing=true;error=null}
     OutlinedCard(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().padding(start=12.dp,end=4.dp),verticalAlignment=Alignment.CenterVertically){
-            Column(Modifier.weight(1f).clickable(enabled=enabled){
-                if(value.isBlank()){draft="";editing=true}
-                else {
+            Text(value.ifBlank{label},Modifier.weight(1f).clickable(enabled=enabled){
+                if(value.isBlank())edit() else {
                     val link=WebLinks.extract(value).singleOrNull()
                     if(link==null)error="Проверьте ссылку через карандаш"
                     else try{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(link)))}catch(_:Exception){error="Не удалось открыть ссылку"}
                 }
-            }.padding(vertical=10.dp)){
-                Text(label,style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(value.ifBlank{"Добавить ссылку"},maxLines=2,overflow=TextOverflow.Ellipsis,color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.bodyMedium)
-            }
-            if(value.isNotBlank())Icon(Icons.AutoMirrored.Filled.OpenInNew,null,Modifier.size(18.dp),tint=MaterialTheme.colorScheme.primary)
-            IconButton(onClick={draft=value;selected=WebLinks.extract(value).singleOrNull();editing=true;error=null},enabled=enabled){Icon(Icons.Filled.Edit,"Изменить: $label")}
+            }.padding(vertical=12.dp),maxLines=2,overflow=TextOverflow.Ellipsis,
+                color=if(value.isBlank())MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary)
+            IconButton(onClick=::edit,enabled=enabled){Icon(if(value.isBlank())Icons.Filled.Add else Icons.Filled.Edit,
+                if(value.isBlank())"Добавить: $label"else "Изменить: $label")}
         }
     }
-    error?.let{Text(it,color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)}
+    error?.let{AlertDialog(onDismissRequest={error=null},text={Text(it)},confirmButton={TextButton(onClick={error=null}){Text("Понятно")}})}
     if(editing)EditorSheet(label,{editing=false},actions={
         TextButton(onClick={editing=false}){Text("Отмена")}
         Button(onClick={onApply(if(draft.isBlank())"" else selected?:return@Button);editing=false},enabled=draft.isBlank()||selected!=null){Text("Применить")}
     }){
-        AppTextField(draft,{draft=it},label={Text("Ссылка или скопированный текст")},minLines=2,maxLines=6,allowVoice=false,modifier=Modifier.fillMaxWidth().testTag("product-link-input"))
-        if(urls.size>1){
-            Text("В тексте несколько ссылок. Выберите нужную.",style=MaterialTheme.typography.bodySmall)
-            DropdownSelector("Ссылка",urls,selected,{it},{selected=it},allowNone=false)
-        }else if(urls.size==1)Text(urls.single(),style=MaterialTheme.typography.bodySmall)
-        else if(draft.isNotBlank())Text("В тексте не найдена ссылка http:// или https://",color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)
+        AppTextField(draft,{draft=it},label={Text("Ссылка или скопированный текст")},minLines=2,maxLines=6,allowVoice=false,
+            trailingIcon={IconButton(onClick={clipboard.getText()?.text?.let{draft=it}}){Icon(Icons.Filled.ContentPaste,"Вставить из буфера")}},
+            topActions=true,modifier=Modifier.fillMaxWidth(),inputModifier=Modifier.testTag("product-link-input"))
+        if(urls.size>1)DropdownSelector("Ссылка",urls,selected,{it},{selected=it},allowNone=false)
+        else if(urls.isEmpty()&&draft.isNotBlank())Text("Не найдена ссылка http:// или https://",color=MaterialTheme.colorScheme.error)
     }
 }

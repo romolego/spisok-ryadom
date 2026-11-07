@@ -45,6 +45,7 @@ class ProductInput300UiTest {
     @Before fun seed(){runBlocking{
         app.getSharedPreferences("shopping_list_prefs",0).edit().clear().putBoolean("autosave_product_cards",false).commit()
         app.getSharedPreferences("product_card_drafts",0).edit().clear().commit()
+        app.getSharedPreferences("bulk_product_draft",0).edit().clear().commit()
         db.shoppingListEntryDao().deleteAll();db.goalListDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll();db.productInputDao().clearSettings();db.productInputDao().clearRuns()
         StandardCategories.install(db.openHelper.writableDatabase);app.container.locations.select(1)
         onion=db.productDao().insert(ProductEntity(name="Лук",defaultUnit="шт"));bread=db.productDao().insert(ProductEntity(name="Хлеб",defaultUnit="шт"))
@@ -73,10 +74,11 @@ class ProductInput300UiTest {
         ui.onNodeWithTag("bulk-input").performTextInput("Лук. Белый хлеб; гречка")
         ui.onNodeWithText("Проверить",substring=false).performClick();text("Проверить товары")
         assertTrue(runBlocking{db.shoppingListEntryDao().getAllSync().isEmpty()})
-        ui.onNode(hasText("Выбрать",substring=false) and hasAnyAncestor(hasTestTag("bulk-row-1"))).performScrollTo().performClick()
+        ui.onNode(hasText("Другой товар",substring=false) and hasAnyAncestor(hasTestTag("bulk-row-1"))).performScrollTo().performClick()
         text("Выбрать товар");waitFor{ui.onAllNodesWithTag("bulk-candidate-$bread").fetchSemanticsNodes().isNotEmpty()}
         ui.onNodeWithTag("bulk-candidate-$bread").performClick();text("Проверить товары")
-        ui.onNode(hasText("Выбрать",substring=false) and hasAnyAncestor(hasTestTag("bulk-row-2"))).performScrollTo().performClick()
+        ui.onNodeWithTag("bulk-preview").performScrollToNode(hasTestTag("bulk-row-2"))
+        ui.onNode(hasText("Другой товар",substring=false) and hasAnyAncestor(hasTestTag("bulk-row-2"))).performScrollTo().performClick()
         text("Выбрать товар");waitFor{runCatching{ui.onNodeWithTag("bulk-create-new").assertIsEnabled()}.isSuccess}
         ui.onNodeWithTag("bulk-create-new").performClick();text("Проверить товары")
         ui.onNodeWithTag("bulk-quantity-0").performScrollTo().performTextReplacement("2")
@@ -95,17 +97,17 @@ class ProductInput300UiTest {
         ui.activityRule.scenario.recreate();text("Проверить товары")
         ui.onNodeWithText("Добавить все",substring=false).assertIsNotEnabled()
         shot("bulk-restored")
-        ui.onNodeWithText("Отмена",substring=false).performClick();text("Добавить покупку")
+        ui.onNodeWithText("Отмена",substring=false).performClick();text("Закрыть ввод?");ui.onNodeWithText("Закрыть",substring=false).performClick();text("Добавить покупку")
         assertTrue(runBlocking{db.shoppingListEntryDao().getAllSync().isEmpty()})
     }
     @Test fun photoViewerSupportsPinchAndEditingStillUsesThePencil() {
-        openCard();ui.onNodeWithTag("product-photo-0").performScrollTo().performClick();text("Сбросить масштаб")
+        openCard();ui.onNodeWithTag("product-photo-0").performScrollTo().performClick();ui.onNodeWithContentDescription("Закрыть просмотр фото").assertIsDisplayed()
         ui.onNodeWithTag("photo-zoom-area").performTouchInput{
             val c=center
             pinch(start0=c+Offset(-30f,0f),end0=c+Offset(-110f,0f),start1=c+Offset(30f,0f),end1=c+Offset(110f,0f))
         }
         waitFor{!ui.onNodeWithTag("photo-zoom-status").fetchSemanticsNode().config[SemanticsProperties.Text].joinToString().contains("100%")}
-        shot("photo-zoom");ui.onNodeWithText("Сбросить масштаб").performClick();ui.onNodeWithTag("photo-zoom-status").assertTextContains("100%",substring=true)
+        shot("photo-zoom");ui.onNodeWithText("Сбросить масштаб").assertDoesNotExist()
         ui.onNodeWithContentDescription("Закрыть просмотр фото").performClick()
         ui.onNodeWithContentDescription("Изменить фото 1").performScrollTo().performClick();text("Примечание к фото")
         ui.onNodeWithText("Отмена",substring=false).performClick()

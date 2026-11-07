@@ -34,5 +34,6 @@ data class ShopEntity(
     @androidx.room.ColumnInfo(defaultValue="0") val isFavorite:Boolean=false,
     @androidx.room.ColumnInfo(defaultValue="0") val favoriteOrder:Int=0,
     /** Explicit siblings in other cities; an empty legacy key never merges by name. */
-    @androidx.room.ColumnInfo(defaultValue="''") val cityGroupKey:String=""
+    @androidx.room.ColumnInfo(defaultValue="''") val cityGroupKey:String="",
+    @androidx.room.ColumnInfo(defaultValue="'[]'") val photosJson:String="[]"
 )

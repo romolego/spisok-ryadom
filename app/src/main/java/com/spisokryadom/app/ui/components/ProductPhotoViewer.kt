@@ -48,9 +48,8 @@ import kotlinx.coroutines.withContext
         Surface(Modifier.fillMaxSize(),color=MaterialTheme.colorScheme.background){
             Column(Modifier.fillMaxSize().systemBarsPadding()){
                 Row(Modifier.fillMaxWidth().padding(4.dp),verticalAlignment=Alignment.CenterVertically){
-                    IconButton(onClick=onDismiss){Icon(Icons.AutoMirrored.Filled.ArrowBack,"Закрыть просмотр фото")}
                     Text(photo.caption.ifBlank{"Фото ${page+1} из ${photos.size}"},Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,maxLines=2)
-                    TextButton(onClick={scale=1f;x=0f;y=0f}){Text("Сбросить масштаб")}
+                    IconButton(onClick=onDismiss){Icon(Icons.Filled.Close,"Закрыть просмотр фото")}
                 }
                 Box(Modifier.fillMaxWidth().weight(1f).onSizeChanged{size=it}.clipToBounds().testTag("photo-zoom-area")
                     .transformable(transform).pointerInput(photo.uri){detectTapGestures(onDoubleTap={scale=if(scale>1f)1f else 2.5f;x=0f;y=0f})},contentAlignment=Alignment.Center){
