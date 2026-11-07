@@ -41,11 +41,11 @@ class ProductDraftSynchronizer(private val preferences:SharedPreferences):Catalo
    if(old!=null&&p!=null){
     state=state.copy(
      name=if(old.name!=p.name)p.name else state.name,
-     recipientId=if(old.recipientId!=p.recipientId&&(!state.recipientManuallySet||state.recipientId==old.recipientId))p.recipientId else state.recipientId,
+     recipientId=if(old.recipientId!=p.recipientId&&((draft.newSession&&!state.recipientManuallySet)||state.recipientId==old.recipientId))p.recipientId else state.recipientId,
      recipientManuallySet=state.recipientManuallySet||old.recipientId!=p.recipientId,
-     productGroupId=if(old.productGroupId!=p.productGroupId&&(!state.categoryManuallySet||state.productGroupId==old.productGroupId))p.productGroupId else state.productGroupId,
+     productGroupId=if(old.productGroupId!=p.productGroupId&&((draft.newSession&&!state.categoryManuallySet)||state.productGroupId==old.productGroupId))p.productGroupId else state.productGroupId,
      categoryManuallySet=state.categoryManuallySet||old.productGroupId!=p.productGroupId,
-     defaultUnit=if(old.defaultUnit!=p.defaultUnit&&(!state.unitManuallySet||Quantities.unit(state.defaultUnit)==Quantities.unit(old.defaultUnit.orEmpty())))p.defaultUnit.orEmpty()else state.defaultUnit,
+     defaultUnit=if(old.defaultUnit!=p.defaultUnit&&((draft.newSession&&!state.unitManuallySet)||Quantities.unit(state.defaultUnit)==Quantities.unit(old.defaultUnit.orEmpty())))p.defaultUnit.orEmpty()else state.defaultUnit,
      unitManuallySet=state.unitManuallySet||old.defaultUnit!=p.defaultUnit,
      isFavorite=if(old.isFavorite!=p.isFavorite)p.isFavorite else state.isFavorite,
      accent=if(old.accent!=p.accent)p.accent else state.accent,
