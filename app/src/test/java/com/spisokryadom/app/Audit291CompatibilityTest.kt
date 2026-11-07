@@ -69,7 +69,7 @@ class Audit291CompatibilityTest {
             source.close(); db = null
 
             suspend fun verify(opened: AppDatabase) {
-                assertEquals(26, opened.openHelper.writableDatabase.version)
+                assertEquals(27, opened.openHelper.writableDatabase.version)
                 assertEquals(2, opened.cityDao().getAllSync().size)
                 assertEquals(listOf(10L, 11L), opened.shopDao().getAllSync().map { it.id }.sorted())
                 assertEquals(7, opened.shopDao().getById(10)!!.displayOrder)

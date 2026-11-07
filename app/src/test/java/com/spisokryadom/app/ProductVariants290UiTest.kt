@@ -69,7 +69,7 @@ class ProductVariants290UiTest{
   ui.setContent{MaterialTheme{Column(Modifier.fillMaxWidth()){ProductPhotos(photos,true,{photos=it},{},toolbar={_,_->})}}}
   ui.waitUntil(20_000){ui.onAllNodesWithContentDescription("Вариант фото 0").fetchSemanticsNodes().isNotEmpty()&&ui.onAllNodesWithContentDescription("Вариант фото 1").fetchSemanticsNodes().isNotEmpty()}
   assertTrue(ui.onNodeWithTag("product-photo-0").getUnclippedBoundsInRoot().let{it.right-it.left}<ui.onNodeWithTag("product-photo-1").getUnclippedBoundsInRoot().let{it.right-it.left})
-  ui.onNodeWithTag("product-photo-0").performClick();ui.onNodeWithText("Примечание к фото").performTextReplacement("Первая булка")
+  ui.onNodeWithContentDescription("Изменить фото 1").performClick();ui.onNodeWithText("Примечание к фото").performTextReplacement("Первая булка")
   ui.onNodeWithContentDescription("Фото позже").performClick();shot("photo-caption-order")
   ui.onNodeWithText("Применить",substring=false).performClick();assertEquals(paths[1],photos.first().uri);assertEquals("Первая булка",photos.last().caption)
  }

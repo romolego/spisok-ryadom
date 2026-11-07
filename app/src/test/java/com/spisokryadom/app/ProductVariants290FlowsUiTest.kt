@@ -79,7 +79,7 @@ class ProductVariants290FlowsUiTest{
   assertEquals(3.0,runBlocking{db.productDao().getById(second)!!.defaultQuantity!!},0.0);assertEquals(1.0,runBlocking{db.productDao().getById(root)!!.defaultQuantity!!},0.0)
  }
  @Test fun createVariantInsideCardKeepsOneCatalogueProduct(){
-  card();ui.onNodeWithContentDescription("Новый вариант товара").performScrollTo().performClick();text("Марка или название варианта")
+  card();waitFor{runCatching{ui.onNodeWithContentDescription("Новый вариант товара").assertIsEnabled()}.isSuccess};ui.onNodeWithContentDescription("Новый вариант товара").performScrollTo().performClick();text("Марка или название варианта")
   ui.onNodeWithText("Марка или название варианта").performTextInput("Марка В");ui.onAllNodesWithText("Сохранить").onLast().performClick()
   text("Марка В");assertEquals(3,runBlocking{db.productDao().getAllSync().size});assertEquals(1,runBlocking{app.container.productRepository.getAllProducts().first().size})
   ui.onNodeWithText("Сохранить").performClick();text("База товаров")

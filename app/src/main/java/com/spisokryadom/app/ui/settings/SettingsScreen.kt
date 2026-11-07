@@ -38,6 +38,7 @@ fun SettingsScreen(onNavigateBack:()->Unit,viewModel:SettingsViewModel=viewModel
  val recipientId by viewModel.selectedRecipientId.collectAsStateWithLifecycle();val groupId by viewModel.selectedGroupId.collectAsStateWithLifecycle();val unitId by viewModel.selectedUnitId.collectAsStateWithLifecycle();val deptName by viewModel.selectedDepartmentGroup.collectAsStateWithLifecycle()
  val recipientProducts by viewModel.selectedRecipientProducts.collectAsStateWithLifecycle();val groupProducts by viewModel.selectedGroupProducts.collectAsStateWithLifecycle();val unitProducts by viewModel.selectedUnitProducts.collectAsStateWithLifecycle()
  val urgency by viewModel.urgencyDefaults.collectAsStateWithLifecycle();val defaults by viewModel.addToListDefaults.collectAsStateWithLifecycle()
+ val inputSettings by viewModel.productInputSettings.collectAsStateWithLifecycle()
  val groupPresets by viewModel.groupCreationPresets.collectAsStateWithLifecycle()
  var presetGroup by remember{mutableStateOf<com.spisokryadom.app.data.entity.ProductGroupEntity?>(null)}
  var presetBusy by remember{mutableStateOf(false)}
@@ -155,6 +156,7 @@ if(managerKind=="dept"){
     }}
    }
    item(key="creation_defaults"){CreationDefaultsCard(defaults,units,viewModel::setFillMissing,viewModel::setMissingQuantity,viewModel::setMissingUnit,viewModel::setDefaultPurchaseType)}
+   item(key="product_input"){ProductInputSettingsCard(inputSettings,recipients,viewModel::updateProductInput)}
    item(key="widget_settings"){WidgetSettingsCard(widgetSettings,viewModel::updateWidgetSettings)}
    item(key="favorite_settings"){FavoriteSettingsCard()}
    item(key="dropdowns_title"){Column{
@@ -171,7 +173,7 @@ if(managerKind=="dept"){
   }
  }
 }
-@Composable internal fun SettingSwitch(label:String,value:Boolean,onChange:(Boolean)->Unit,help:String?=null){Row(Modifier.fillMaxWidth().padding(vertical=6.dp).heightIn(min=48.dp).toggleable(value,role=androidx.compose.ui.semantics.Role.Switch,onValueChange=onChange).padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f).padding(end=16.dp),style=MaterialTheme.typography.bodyLarge.copy(lineHeight=21.sp));if(help!=null)HelpButton(label,help);Switch(value,null)}}
+@Composable internal fun SettingSwitch(label:String,value:Boolean,onChange:(Boolean)->Unit,help:String?=null,enabled:Boolean=true){Row(Modifier.fillMaxWidth().padding(vertical=6.dp).heightIn(min=48.dp).toggleable(value,enabled=enabled,role=androidx.compose.ui.semantics.Role.Switch,onValueChange=onChange).padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f).padding(end=16.dp),style=MaterialTheme.typography.bodyLarge.copy(lineHeight=21.sp));if(help!=null)HelpButton(label,help);Switch(value,null,enabled=enabled)}}
 @Composable private fun ManagerRow(name:String,editing:Boolean,onSelect:()->Unit,onRename:()->Unit,onDelete:()->Unit,onUp:()->Unit,onDown:()->Unit,first:Boolean,last:Boolean,accent:String="",iconKey:String="",onStyle:(()->Unit)?=null,subtitle:String?=null,onDefaults:(()->Unit)?=null,reorderable:Boolean=true,favorite:Boolean=false,onFavorite:(()->Unit)?=null){
  Column(Modifier.fillMaxWidth()){
   FavoriteMarkedLabel(name,accent,iconKey,favorite,Modifier.fillMaxWidth().clickable(onClick=onSelect).padding(vertical=12.dp))

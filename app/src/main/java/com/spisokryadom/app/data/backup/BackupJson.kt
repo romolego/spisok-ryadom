@@ -26,7 +26,10 @@ internal data class BackupSnapshot(
  val groupPresets:List<GroupCreationPreset> = emptyList(),
  val variants:List<ProductVariantEntity> = emptyList(),
  val variantCities:List<ProductVariantCityEntity> = emptyList(),
- val photos:List<ProductPhotoEntity> = emptyList()
+ val photos:List<ProductPhotoEntity> = emptyList(),
+ val inputSettings:List<ProductInputSettings> = emptyList(),
+ val defaultDepartments:List<ProductDefaultDepartment> = emptyList(),
+ val bulkRuns:List<BulkPurchaseRun> = emptyList()
 )
 internal object BackupJson {
  private fun favorite(o:JSONObject):Boolean {if(!o.has("isFavorite"))return false;require(o.get("isFavorite") is Boolean){"Неверная отметка избранного"};return o.getBoolean("isFavorite")}
@@ -249,6 +252,9 @@ internal object BackupJson {
  fun manifest(s:BackupSnapshot):JSONObject=JSONObject().put("version",BackupManager.BACKUP_VERSION).put("kind","full").put("exportedAt",java.time.LocalDateTime.now().toString()).put("preferences",s.preferences).put("data",JSONObject().apply {
   put("shopCreationPresets",JSONArray().also{a->s.shopPresets.forEach{a.put(JSONObject().put("shopId",it.shopId).put("purchaseMode",it.purchaseMode))}})
   put("groupCreationPresets",JSONArray().also{a->s.groupPresets.forEach{a.put(JSONObject().put("groupId",it.groupId).put("recipientId",it.recipientId?:JSONObject.NULL))}})
+  put("productInputSettings",JSONArray(s.inputSettings.map{v->JSONObject().put("id",v.id).put("prefillEnabled",v.prefillEnabled).put("prefillCategory",v.prefillCategory).put("prefillUnit",v.prefillUnit).put("prefillDepartment",v.prefillDepartment).put("inheritDepartment",v.inheritDepartment).put("recipientEnabled",v.recipientEnabled).put("recipientId",v.recipientId?:JSONObject.NULL)}))
+  put("productDefaultDepartments",JSONArray(s.defaultDepartments.map{JSONObject().put("productId",it.productId).put("typeId",it.typeId?:JSONObject.NULL)}))
+  put("bulkPurchaseRuns",JSONArray(s.bulkRuns.map{JSONObject().put("token",it.token).put("createdAt",it.createdAt)}))
   put("goalLists",JSONArray().also{a->s.goalLists.forEach{a.put(encode(it))}})
   put("productBranchPriorities",JSONArray().also{a->s.branchPriorities.forEach{a.put(encode(it))}})
   put("branchDepartmentOrder",JSONArray().also{a->s.branchOrder.forEach{a.put(encode(it))}})
@@ -304,6 +310,12 @@ internal object BackupJson {
  fun order(o:JSONObject,k:String):Int {val n=integer(o,k);require(n in 0..Int.MAX_VALUE.toLong());return n.toInt()}
  if(root.getInt("version")>=24)listOf("productVariants","productVariantCities","productPhotos").forEach{require(d.get(it) is JSONArray){"Отсутствует раздел вариантов $it"}}
  if(root.getInt("version")<24)listOf("productVariants","productVariantCities","productPhotos").forEach{require((d.optJSONArray(it)?.length()?:0)==0){"Варианты требуют копию новой версии"}}
+ val inputKeys=listOf("productInputSettings","productDefaultDepartments","bulkPurchaseRuns")
+ if(root.getInt("version")>=25)inputKeys.forEach{require(d.get(it) is JSONArray){"Отсутствует раздел предзаполнения $it"}}
+ else inputKeys.forEach{require((d.optJSONArray(it)?.length()?:0)==0){"Предзаполнение требует копию новой версии"}}
+ fun inputRows(key:String)=d.optJSONArray(key)?.let{a->(0 until a.length()).map{a.getJSONObject(it)}}.orEmpty()
+ fun nullableId(o:JSONObject,key:String):Long? {require(o.has(key));return if(o.isNull(key))null else integer(o,key)}
+ fun flag(o:JSONObject,key:String):Boolean {require(o.get(key) is Boolean){"Неверная настройка $key"};return o.getBoolean(key)}
  val snapshot=BackupSnapshot(
   products=d.optJSONArray("products")?.let{a->(0 until a.length()).map{products(a.getJSONObject(it))}} ?: emptyList(),
   groups=d.optJSONArray("productGroups")?.let{a->(0 until a.length()).map{groups(a.getJSONObject(it))}} ?: emptyList(),
@@ -328,6 +340,9 @@ internal object BackupJson {
   variants=d.optJSONArray("productVariants")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductVariantEntity(integer(o,"productId"),integer(o,"familyId"),strictString(o,"label"),order(o,"displayOrder"))}}}.orEmpty(),
   variantCities=d.optJSONArray("productVariantCities")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->require(o.get("enabled") is Boolean);ProductVariantCityEntity(integer(o,"productId"),integer(o,"cityId"),o.getBoolean("enabled"),order(o,"displayOrder"))}}}.orEmpty(),
   photos=d.optJSONArray("productPhotos")?.let{a->(0 until a.length()).map{a.getJSONObject(it).let{o->ProductPhotoEntity(integer(o,"productId"),order(o,"position"),"unavailable",strictString(o,"caption"))}}}.orEmpty(),
+  inputSettings=inputRows("productInputSettings").map{o->require(integer(o,"id")==1L);ProductInputSettings(1,flag(o,"prefillEnabled"),flag(o,"prefillCategory"),flag(o,"prefillUnit"),flag(o,"prefillDepartment"),flag(o,"inheritDepartment"),flag(o,"recipientEnabled"),nullableId(o,"recipientId"))},
+  defaultDepartments=inputRows("productDefaultDepartments").map{ProductDefaultDepartment(integer(it,"productId"),nullableId(it,"typeId"))},
+  bulkRuns=inputRows("bulkPurchaseRuns").map{BulkPurchaseRun(strictString(it,"token"),integer(it,"createdAt"))},
   preferences=root.optJSONObject("preferences") ?: JSONObject()
  )
  if(root.getInt("version")>=17){

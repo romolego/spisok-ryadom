@@ -21,6 +21,7 @@ class ResetRepository(private val context:Context,private val db:AppDatabase,pri
  suspend fun reset(mode:ResetMode)=MediaLifecycle.mutex.withLock { ProductEditorTransactions.locked { withContext(NonCancellable) {
   withCatalogueEdits(db,edits){db.withTransaction {
    if(mode==ResetMode.APPLICATION){
+    db.productInputDao().clearSettings();db.productInputDao().clearRuns()
     db.shoppingListEntryDao().deleteAll();db.goalListDao().deleteAll();db.productShopLinkDao().deleteAll();db.shopDepartmentDao().deleteAll()
     db.productDao().deleteAll();db.shopDao().deleteAll();db.productGroupDao().deleteAll();db.recipientDao().deleteAll();db.unitDao().deleteAll();db.shopDepartmentDao().clearTypes()
     db.retailStructureDao().clearVenues();db.retailStructureDao().clearNetworks();db.cityDao().deleteAll();db.cityDao().insert(CityEntity(1,"Мой город"))

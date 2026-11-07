@@ -55,6 +55,9 @@ data class ProductCardUiState(
     val variantOptions:List<com.spisokryadom.app.data.repository.ProductVariantOption> = emptyList(),
     val activeVariantId:Long?=null,
     val isNew: Boolean = true,
+    val categoryManuallySet:Boolean=false,val unitManuallySet:Boolean=false,
+    val departmentExplicitShops:Set<Long> = emptySet(),
+    val defaultDepartmentTypeId:Long?=null,val defaultDepartmentChosen:Boolean=false,val defaultDepartmentDirty:Boolean=false,val departmentManuallySet:Boolean=false,
     val recipientManuallySet:Boolean=false,val purchaseTypeManuallySet:Boolean=false,
     val allowedPurchaseTypes:Set<String> = com.spisokryadom.app.util.ProductPurchaseTypes.labels.keys,
     val savedProductId:Long?=null,
@@ -149,6 +152,7 @@ class ProductCardViewModel(
         draftBase=remote
         _uiState.update{merged.editableOn(it)}
     }
+    private var inputPolicy=com.spisokryadom.app.data.entity.ProductInputSettings()
     private var shopCreationRules=emptyList<com.spisokryadom.app.data.entity.ShopCreationPreset>()
     private var groupCreationRules=emptyList<com.spisokryadom.app.data.entity.GroupCreationPreset>()
     private fun edit(change:(ProductCardUiState)->ProductCardUiState){refreshExternalDraft();_uiState.update(change);applyCreationDefaults(shopCreationRules,groupCreationRules)}
@@ -168,12 +172,15 @@ class ProductCardViewModel(
     }
     private suspend fun persistCurrent():Long {
         require(editorGeneration==com.spisokryadom.app.data.repository.ProductEditorTransactions.generation.get()){ "База была восстановлена. Откройте товар заново" }
+        applyInputHints(_uiState.value.name)
+        inputPolicy=productRepository.input.settings()
         require(keepDraftLocked()){ "Товар удалён или заменён" }
         applyCreationDefaults(shopRepository.creationPresets().first(),classifierRepository.creationPresets().first())
         val draft=snapshot();val encoded=draft.encode()
         val id=if(lastCommitted==encoded)_uiState.value.savedProductId!! else draft.persist(productRepository,editingPreferences?.let{com.spisokryadom.app.util.ProductCreationDefaults.read(it)})
+        val savedDefault=if(draft.state.defaultDepartmentTypeId?.let{it<0}==true)productRepository.input.department(id)else null
         lastCommitted=encoded
-        _uiState.update { latest->latest.copy(savedProductId=id,autoSaveIssue=null,duplicateName=false) }
+        _uiState.update { latest->latest.copy(savedProductId=id,autoSaveIssue=null,duplicateName=false,defaultDepartmentTypeId=if(savedDefault!=null&&latest.defaultDepartmentTypeId==draft.state.defaultDepartmentTypeId)savedDefault.typeId else latest.defaultDepartmentTypeId) }
         return id
     }
     private fun startAutosave(){
@@ -218,12 +225,14 @@ class ProductCardViewModel(
                 val allowed=com.spisokryadom.app.util.ProductPurchaseTypes.labels.keys
                 val global=editingPreferences?.let{com.spisokryadom.app.util.ProductCreationDefaults.read(it).purchaseType}?:"offline"
                 s.copy(allowedPurchaseTypes=allowed,purchaseType=if(s.purchaseTypeManuallySet)s.purchaseType else com.spisokryadom.app.util.PurchaseModes.resolve(mode,global),
-                    recipientId=if(s.recipientManuallySet)s.recipientId else groups.find{it.groupId==s.productGroupId}?.recipientId)
+                    recipientId=if(s.recipientManuallySet)s.recipientId else groups.find{it.groupId==s.productGroupId}?.let{it.recipientId}?:inputPolicy.recipientId.takeIf{inputPolicy.recipientEnabled&&groups.none{it.groupId==s.productGroupId}})
             }
         }
     }
     private val nameQuery=MutableStateFlow(if(productId<0)initialName.trim()else "")
     init {
+        viewModelScope.launch(errors){productRepository.input.observeSettings().collect{inputPolicy=it;applyCreationDefaults(shopCreationRules,groupCreationRules)}}
+        viewModelScope.launch(errors){combine(nameQuery,productRepository.input.observeSettings(),classifierRepository.getAllGroups(),shopRepository.departmentTypes()){query,_,_,_->query}.debounce(180).collectLatest{query->applyInputHints(query)}}
         viewModelScope.launch(errors){
             combine(_uiState.map{it.activeVariantId?:it.savedProductId}.distinctUntilChanged(),shopRepository.locations.activeCity,productRepository.variants.observeMetadata()){id,city,_->id to city.id}.collectLatest{(id,city)->
                 if(id!=null)_uiState.update{it.copy(variantOptions=productRepository.variants.options(id,city))}
@@ -286,10 +295,13 @@ class ProductCardViewModel(
         if (productId != -1L) {
             viewModelScope.launch(errors) {
                 val product = productRepository.getProductById(productId) ?: error("Товар удалён")
+                val defaultDepartment=productRepository.input.department(product.id)
+                val photos=productRepository.variants.photos(product.id)
                 editorStableId=product.stableId
                 productLoaded=true
                 _uiState.update { latest->latest.copy(
-                    isNew = false,
+                    isNew = false,categoryManuallySet=true,unitManuallySet=true,departmentManuallySet=true,
+                    defaultDepartmentTypeId=defaultDepartment?.typeId,defaultDepartmentChosen=defaultDepartment!=null,
                     isTemporary = product.isTemporary,preferCityShopOrder=product.preferCityShopOrder,
                     name = product.name,isFavorite=product.isFavorite,accent=product.accent,
                     productGroupId = product.productGroupId,
@@ -303,7 +315,7 @@ class ProductCardViewModel(
                     sellerUrl = product.sellerUrl ?: "",
                     productUrl = product.productUrl ?: "",
                     photoUri = product.photoUri ?: "",
-                    activeVariantId=product.id,photos=productRepository.variants.photos(product.id),
+                    activeVariantId=product.id,photos=photos,
                     priceValue = product.priceValue?.let { v ->
                         if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
                     } ?: "",
@@ -356,8 +368,13 @@ class ProductCardViewModel(
             if(chosenPoints!=null&&(chosenPoints.isEmpty()||!branches.containsAll(chosenPoints)))return@edit s.copy(error="Выберите хотя бы одну доступную точку магазина")
             val departments=(s.allDepartments+s.pendingDepartments+s.departmentsForSelectedShop).filter{it.shopId==shopId}
             if(departmentId!=null&&departments.none{it.id==departmentId})return@edit s.copy(error="Группа магазина больше недоступна")
-            val name=departments.find{it.id==departmentId}?.name
+            val department=departments.find{it.id==departmentId}
+            val learn=!s.defaultDepartmentChosen&&department!=null&&inputPolicy.inheritDepartment
+            val name=department?.name
             s.copy(
+                departmentExplicitShops=s.departmentExplicitShops+shopId,
+                defaultDepartmentTypeId=if(learn)department?.let{if(it.typeId>0)it.typeId else it.id} else s.defaultDepartmentTypeId,
+                defaultDepartmentChosen=s.defaultDepartmentChosen||learn,defaultDepartmentDirty=s.defaultDepartmentDirty||learn,departmentManuallySet=s.departmentManuallySet||learn,
                 pendingShopLinks=s.pendingShopLinks.map{if(it.shopId==shopId)it.copy(departmentId=departmentId,departmentName=name)else it},
                 shopLinks=s.shopLinks.map{if(it.link.shopId==shopId)it.copy(link=it.link.copy(departmentId=departmentId),departmentName=name)else it},
                 branchSelections=if(chosenPoints==null)s.branchSelections-shopId else s.branchSelections+(shopId to chosenPoints),
@@ -399,8 +416,20 @@ class ProductCardViewModel(
     }
 
 
+    private suspend fun applyInputHints(query:String) {
+        if(!_uiState.value.isNew||productId>=0)return
+        val hint=productRepository.input.suggest(query)
+        _uiState.update{s->if(s.name!=query||!s.isNew)s else s.copy(
+            productGroupId=if(s.categoryManuallySet)s.productGroupId else hint.categoryId,
+            defaultUnit=if(s.unitManuallySet)s.defaultUnit else hint.unit.orEmpty(),
+            defaultDepartmentTypeId=if(s.departmentManuallySet)s.defaultDepartmentTypeId else hint.departmentTypeId,
+            defaultDepartmentChosen=if(s.departmentManuallySet)s.defaultDepartmentChosen else hint.departmentTypeId!=null,
+            defaultDepartmentDirty=s.defaultDepartmentDirty||(!s.departmentManuallySet&&s.defaultDepartmentTypeId!=hint.departmentTypeId))}
+        applyCreationDefaults(shopCreationRules,groupCreationRules)
+    }
+    fun updateDefaultDepartment(typeId:Long?) {edit{it.copy(defaultDepartmentTypeId=typeId,defaultDepartmentChosen=true,defaultDepartmentDirty=true,departmentManuallySet=true)}}
     fun updateProductGroup(groupId: Long?) {
-        edit { latest->latest.copy(productGroupId = groupId) }
+        edit { latest->latest.copy(productGroupId = groupId,categoryManuallySet=true) }
     }
 
     fun updateRecipient(recipientId: Long?) {
@@ -408,7 +437,7 @@ class ProductCardViewModel(
     }
 
     fun updateDefaultUnit(unit: String) {
-        edit { latest->latest.copy(defaultUnit = unit) }
+        edit { latest->latest.copy(defaultUnit = unit,unitManuallySet=true) }
     }
 
     fun updateDefaultQuantity(qty: String) {
@@ -456,7 +485,8 @@ class ProductCardViewModel(
             val branches=productRepository.editorBranches().associateBy{it.id}
             val available=productRepository.branchAvailability(id).map{it.branchId}.toSet()
             val raw=visitedVariants[id]?:ProductDraftStore.find(draftPreferences,p.stableId)
-            val next=raw?.applyTo(common)?:common.copy(defaultUnit=p.defaultUnit.orEmpty(),defaultQuantity=p.defaultQuantity?.let{java.math.BigDecimal.valueOf(it).stripTrailingZeros().toPlainString()}.orEmpty(),
+            val rule=productRepository.input.department(id)
+            val next=raw?.applyTo(common)?:common.copy(departmentExplicitShops=emptySet(),defaultDepartmentTypeId=rule?.typeId,defaultDepartmentChosen=rule!=null,defaultDepartmentDirty=false,departmentManuallySet=true,unitManuallySet=true,categoryManuallySet=true,defaultUnit=p.defaultUnit.orEmpty(),defaultQuantity=p.defaultQuantity?.let{java.math.BigDecimal.valueOf(it).stripTrailingZeros().toPlainString()}.orEmpty(),
                 note=p.note.orEmpty(),purchaseType=p.purchaseType,sellerUrl=p.sellerUrl.orEmpty(),productUrl=p.productUrl.orEmpty(),photoUri=p.photoUri.orEmpty(),photos=productRepository.variants.photos(id),priceValue=p.priceValue?.toString().orEmpty(),priceDate=p.priceDate.orEmpty(),preferCityShopOrder=p.preferCityShopOrder,
                 shopLinks=links.map{ShopLinkUi(it,shops[it.shopId]?.name.orEmpty(),departments[it.departmentId]?.name)},pendingShopLinks=emptyList(),pendingDepartments=emptyList(),
                 branchSelections=links.filter{it.restrictBranches}.associate{l->l.shopId to available.filter{branches[it]?.shopId==l.shopId}.toSet()},
@@ -521,14 +551,22 @@ class ProductCardViewModel(
         departmentJob?.cancel()
         edit { latest->latest.copy(departmentsShopId=shopId,departmentsForSelectedShop=emptyList(),suggestedDepartmentId=null,suggestedDepartmentReason=null) }
         departmentJob=viewModelScope.launch(errors) {
-            val depts = (_uiState.value.pendingDepartments.filter{it.shopId==shopId}+shopRepository.getDepartmentsByShopIdSync(shopId)).distinctBy{FuzzySearch.normalize(it.name)}
+            var depts = (_uiState.value.pendingDepartments.filter{it.shopId==shopId}+shopRepository.getDepartmentsByShopIdSync(shopId)).distinctBy{FuzzySearch.normalize(it.name)}
 
+            val common=_uiState.value.defaultDepartmentTypeId
+            val commonName=_uiState.value.departmentTypes.find{it.id==common}?.name
+                ?:_uiState.value.pendingDepartments.find{it.id==common}?.name
+            fun matchesCommon(dept:ShopDepartmentEntity)=common?.let{if(it>0)dept.typeId==it else commonName!=null&&FuzzySearch.normalize(dept.name)==FuzzySearch.normalize(commonName)}?:false
+            if(inputPolicy.inheritDepartment&&commonName!=null&&depts.none{matchesCommon(it)}){
+                val draft=ShopDepartmentEntity(id=-(nextTempId++),shopId=shopId,name=commonName,typeId=common?.takeIf{it>0}?:0)
+                edit{it.copy(pendingDepartments=it.pendingDepartments+draft)};depts=depts+draft
+            }
             // Compute smart suggestion based on departments already used in other links
             val usedDeptInfo = getUsedDepartmentInfo()
-            var suggestedId: Long? = null
+            var suggestedId: Long? = if(inputPolicy.inheritDepartment)depts.find{matchesCommon(it)}?.id else null
             var suggestedReason: String? = null
 
-            if (usedDeptInfo.isNotEmpty() && depts.isNotEmpty()) {
+            if (suggestedId==null&&!_uiState.value.defaultDepartmentChosen&&inputPolicy.inheritDepartment&&usedDeptInfo.isNotEmpty() && depts.isNotEmpty()) {
                 // Try exact match first (case-insensitive)
                 for ((deptName, shopName) in usedDeptInfo) {
                     val match = depts.find { it.name.equals(deptName, ignoreCase = true) }
@@ -687,7 +725,7 @@ class ProductCardViewModel(
             val state=_uiState.value
             require(productRepository.getProductById(id)!=null){"Товар удалён"}
             productRepository.adoptEditorProduct(id,editorStableId,state.pendingShopLinks.sortedBy{it.displayOrder}.map{it.shopId}.distinct(),
-                state.pendingShopLinks.map{ProductShopLinkEntity(productId=id,shopId=it.shopId,departmentId=it.departmentId)},state.branchSelections,state.pendingDepartments,state.branchDepartments)
+                state.pendingShopLinks.map{ProductShopLinkEntity(productId=id,shopId=it.shopId,departmentId=it.departmentId)},state.branchSelections,state.pendingDepartments,state.branchDepartments,state.departmentExplicitShops)
             closed=true;visitedVariants.values.forEach{ProductDraftStore.remove(draftPreferences,it.stableId)};ProductDraftStore.remove(draftPreferences,editorStableId)
             edit { latest->latest.copy(isSaving=false,usedExistingId=id) }
         }}

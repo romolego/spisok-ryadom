@@ -22,6 +22,8 @@ import kotlinx.coroutines.*
 @Composable
 fun ProductPhotos(photos:List<ProductPhotoEntity>,enabled:Boolean,onPhotos:(List<ProductPhotoEntity>)->Unit,onBusy:(Boolean)->Unit,
  toolbar:@Composable RowScope.(()->Unit,()->Unit)->Unit){
+ var viewing by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf<Int?>(null)}
+ viewing?.let{index->ProductPhotoViewer(photos,index){viewing=null}}
  var editing by remember{mutableStateOf<Int?>(null)}
  BranchPhotoEditor("",onChange={uri->if(uri!=null&&photos.size<5&&photos.none{it.uri==uri})onPhotos(photos+ProductPhotoEntity(0,photos.size,uri))},onBusyChange=onBusy,directory="product_photos",compact=true,showTitle=false,enabled=enabled,toolbar={gallery,camera->
   toolbar({if(photos.size<5)gallery()},{if(photos.size<5)camera()})
@@ -30,13 +32,13 @@ fun ProductPhotos(photos:List<ProductPhotoEntity>,enabled:Boolean,onPhotos:(List
   photos.forEachIndexed{index,photo->
    val bitmap by produceState<android.graphics.Bitmap?>(null,photo.uri){value=withContext(Dispatchers.IO){PhotoStore.load(photo.uri,480)}}
    val photoWidth=bitmap?.let{(160f*it.width/it.height).coerceIn(96f,360f).dp}?:160.dp
-   OutlinedCard(Modifier.width(photoWidth).clickable(enabled=enabled){editing=index}.testTag("product-photo-$index")){
+   OutlinedCard(Modifier.width(photoWidth).clickable(enabled=enabled){viewing=index}.testTag("product-photo-$index")){
     val image=bitmap
     if(image!=null)Image(image.asImageBitmap(),photo.caption.ifBlank{if(index==0)"Фото товара"else "Фото ${index+1}"},Modifier.fillMaxWidth().height(160.dp),contentScale=ContentScale.Fit)
     else Box(Modifier.size(160.dp),contentAlignment=Alignment.Center){Icon(Icons.Filled.BrokenImage,"Фото недоступно")}
     Row(Modifier.padding(horizontal=8.dp,vertical=4.dp),verticalAlignment=Alignment.CenterVertically){
      Text(photo.caption.ifBlank{if(index==0)"Основное фото"else "Фото ${index+1}"},Modifier.weight(1f),style=MaterialTheme.typography.labelSmall,maxLines=2)
-     Icon(Icons.Filled.Edit,"Изменить фото ${index+1}",Modifier.size(16.dp))
+     IconButton(onClick={editing=index},enabled=enabled,modifier=Modifier.size(32.dp)){Icon(Icons.Filled.Edit,"Изменить фото ${index+1}",Modifier.size(16.dp))}
     }
    }
   }

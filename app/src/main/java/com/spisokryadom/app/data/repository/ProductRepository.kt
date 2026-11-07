@@ -30,17 +30,18 @@ class ProductRepository(
     private val linkDao: ProductShopLinkDao,
     private val db: com.spisokryadom.app.data.db.AppDatabase, private val catalogueEdits:CatalogueEdits?=null
 ) {
+    val input=ProductInputRepository(db)
     val variants=ProductVariantsRepository(db,catalogueEdits)
     class DuplicateName:IllegalArgumentException("Товар с таким названием уже есть")
     suspend fun getProductByStableId(stableId:String)=productDao.getByStableId(stableId)
     suspend fun editorShops()=db.shopDao().getAllSync()
     suspend fun editorDepartments()=db.shopDepartmentDao().getAllSync()
     suspend fun editorBranches()=db.shopBranchDao().getAll()
-    suspend fun saveEditorProduct(product:ProductEntity,links:List<ProductShopLinkEntity>,availability:Map<Long,Set<Long>>,departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity>,branchDepartments:Map<Long,Long>,newSession:Boolean,allowDuplicate:Boolean,branchPriorities:Map<Long,List<Long>>?=null):Long=db.withTransaction {
+    suspend fun saveEditorProduct(product:ProductEntity,links:List<ProductShopLinkEntity>,availability:Map<Long,Set<Long>>,departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity>,branchDepartments:Map<Long,Long>,newSession:Boolean,allowDuplicate:Boolean,branchPriorities:Map<Long,List<Long>>?=null,defaultDepartment:com.spisokryadom.app.data.entity.ProductDefaultDepartment?=null):Long=db.withTransaction {
         val existing=if(newSession)productDao.getByStableId(product.stableId)else productDao.getById(product.id)
         if(!newSession)require(existing?.stableId==product.stableId){"Товар удалён или заменён"}
         if(newSession&&!allowDuplicate&&productDao.getAllSync().any{!it.isTemporary&&it.stableId!=product.stableId&&FuzzySearch.normalize(it.name)==FuzzySearch.normalize(product.name)})throw DuplicateName()
-        saveWithLinks(product.copy(id=existing?.id?:0),links,availability,departments,branchDepartments,branchPriorities)
+        saveWithLinks(product.copy(id=existing?.id?:0),links,availability,departments,branchDepartments,branchPriorities,defaultDepartment,inheritDefaults=false)
     }
     suspend fun discardNewEditorProduct(stableId:String)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         productDao.getByStableId(stableId)?.let{p->
@@ -48,10 +49,10 @@ class ProductRepository(
             productDao.delete(p)
         }
     } }
-    suspend fun adoptEditorProduct(productId:Long,editorStableId:String,shopIds:List<Long>,draftLinks:List<ProductShopLinkEntity>,availability:Map<Long,Set<Long>>,departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity>,branchDepartments:Map<Long,Long>)= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+    suspend fun adoptEditorProduct(productId:Long,editorStableId:String,shopIds:List<Long>,draftLinks:List<ProductShopLinkEntity>,availability:Map<Long,Set<Long>>,departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity>,branchDepartments:Map<Long,Long>,explicitDepartmentShops:Set<Long> = emptySet())= withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         val target=productDao.getById(productId)?:error("Товар удалён")
         if(target.stableId!=editorStableId)discardNewEditorProduct(editorStableId)
-        ensureShopLinks(productId,shopIds,draftLinks,availability,departments,branchDepartments)
+        ensureShopLinks(productId,shopIds,draftLinks,availability,departments,branchDepartments,explicitDepartmentShops)
     } }
     fun getAllProducts(): Flow<List<ProductEntity>> = productDao.getAll()
     fun getAllProductsIncludingTemporary(): Flow<List<ProductEntity>> = kotlinx.coroutines.flow.combine(productDao.getAllIncludingTemporary(),db.productVariantDao().observeVariants()){ps,vs->com.spisokryadom.app.domain.variantNames(ps,vs)}
@@ -73,6 +74,7 @@ class ProductRepository(
             if(goalRows.isNotEmpty()){
                 val name=com.spisokryadom.app.domain.variantNames(listOf(p),db.productVariantDao().variants()).single().name
                 val copy=productDao.insert(p.copy(id=0,stableId=java.util.UUID.randomUUID().toString(),isTemporary=true,name=name))
+                input.copyDepartment(member,copy)
                 variants.savePhotos(copy,variants.photos(member))
                 goalRows.forEach{db.shoppingListEntryDao().update(it.copy(productId=copy,updatedAt=System.currentTimeMillis()))}
             }
@@ -126,7 +128,7 @@ class ProductRepository(
         }
     } }
 
-    suspend fun saveWithLinks(product: ProductEntity, links: List<ProductShopLinkEntity>, availability:Map<Long,Set<Long>>?=null,departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity> = emptyList(),branchDepartments:Map<Long,Long>?=null,branchPriorities:Map<Long,List<Long>>?=null): Long = db.withTransaction {
+    suspend fun saveWithLinks(product: ProductEntity, links: List<ProductShopLinkEntity>, availability:Map<Long,Set<Long>>?=null,departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity> = emptyList(),branchDepartments:Map<Long,Long>?=null,branchPriorities:Map<Long,List<Long>>?=null,defaultDepartment:com.spisokryadom.app.data.entity.ProductDefaultDepartment?=null,inheritDefaults:Boolean=true): Long = db.withTransaction {
         require(product.name.isNotBlank()) { "Введите название товара" }
         product.defaultQuantity?.let { com.spisokryadom.app.util.Quantities.valid(it) }
         product.priceValue?.let { require(it.isFinite() && it>=0) { "Проверьте цену" } }
@@ -135,9 +137,10 @@ class ProductRepository(
         val oldAvailability=db.shopBranchDao().availability(product.id).map{it.branchId}.toSet()
         val previousLinks=if(product.id>0)linkDao.getLinksForProductSync(product.id)else emptyList()
         val id=if(product.id==0L)productDao.insert(product) else { require(productDao.getById(product.id)!=null) { "Товар удалён" };productDao.update(product);product.id }
+        if(defaultDepartment!=null)input.setDepartment(id,defaultDepartment.typeId)
         require(links.map{it.shopId}.distinct().size==links.size) { "Магазин добавлен дважды" }
         val deptIds=resolveDraftDepartments(links,departments,branchDepartments.orEmpty().values.toSet())
-        val resolvedLinks=links.map{it.copy(departmentId=deptIds[it.departmentId]?:it.departmentId)}
+        val resolvedLinks=links.map{link->link.copy(departmentId=deptIds[link.departmentId]?:link.departmentId?:if(inheritDefaults&&previousLinks.none{it.shopId==link.shopId})input.inheritedPlacement(id,link.shopId)else null)}
         resolvedLinks.forEach { link ->
             require(db.shopDao().getById(link.shopId)!=null) { "Магазин удалён" }
             if(link.departmentId!=null)require(db.shopDepartmentDao().getById(link.departmentId)?.shopId==link.shopId) { "Группа относится к другому магазину" }
@@ -219,14 +222,14 @@ class ProductRepository(
     }
     fun observeBranchAvailability()=db.shopBranchDao().observeAvailability()
     suspend fun ensureShopLink(productId:Long,shopId:Long)=ensureShopLinks(productId,listOf(shopId))
-    suspend fun ensureShopLinks(productId:Long,shopIds:List<Long>,draftLinks:List<ProductShopLinkEntity> = emptyList(),availability:Map<Long,Set<Long>> = emptyMap(),departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity> = emptyList(),branchDepartments:Map<Long,Long> = emptyMap())=withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
+    suspend fun ensureShopLinks(productId:Long,shopIds:List<Long>,draftLinks:List<ProductShopLinkEntity> = emptyList(),availability:Map<Long,Set<Long>> = emptyMap(),departments:List<com.spisokryadom.app.data.entity.ShopDepartmentEntity> = emptyList(),branchDepartments:Map<Long,Long> = emptyMap(),explicitDepartmentShops:Set<Long> = emptySet())=withCatalogueEdits(db,catalogueEdits) { db.withTransaction {
         require(productDao.getById(productId)!=null){"Товар удалён"}
         shopIds.forEach{require(db.shopDao().getById(it)!=null){"Магазин удалён"}}
         val old=linkDao.getLinksForProductSync(productId)
         val added=shopIds.distinct().filter{id->old.none{it.shopId==id}}.map{id->draftLinks.find{it.shopId==id}?:ProductShopLinkEntity(productId=productId,shopId=id)}
         val deptIds=resolveDraftDepartments(added,departments,branchDepartments.values.toSet())
         added.forEach{draft->
-            val dept=deptIds[draft.departmentId]?:draft.departmentId
+            val dept=deptIds[draft.departmentId]?:draft.departmentId?:if(draft.shopId !in explicitDepartmentShops)input.inheritedPlacement(productId,draft.shopId)else null
             if(dept!=null)require(db.shopDepartmentDao().getById(dept)?.shopId==draft.shopId){"Группа относится к другому магазину"}
             val points=availability[draft.shopId]
             if(points!=null)require(points.isNotEmpty()&&points.all{db.shopBranchDao().get(it)?.shopId==draft.shopId}){"Выберите хотя бы одну точку этого магазина"}

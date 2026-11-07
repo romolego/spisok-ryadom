@@ -294,6 +294,11 @@ fun ProductCardScreen(
 
             if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name,{createRecipient=false},done)},{createRecipient=false})
             if(!state.isTemporary)ProductVariantsBar(state,viewModel)
+            val defaultTypes=state.departmentTypes+state.pendingDepartments.filter{it.id==state.defaultDepartmentTypeId&&it.typeId==0L}.map{com.spisokryadom.app.data.entity.DepartmentTypeEntity(id=it.id,name=it.name,normalizedName=com.spisokryadom.app.util.FuzzySearch.normalize(it.name))}
+            DropdownSelector(label="Группа магазинов по умолчанию",items=defaultTypes,
+                selectedItem=defaultTypes.find{it.id==state.defaultDepartmentTypeId},itemLabel={it.name},
+                onSelect={viewModel.updateDefaultDepartment(it?.id)},modifier=Modifier.fillMaxWidth(),
+                itemIcon={it.iconKey},itemAccent={it.accent},itemFavorite={it.isFavorite},favoriteOrder={it.favoriteOrder},alphabetical=true)
             com.spisokryadom.app.ui.components.ProductPhotos(state.photos,!state.isPhotoBusy&&!state.isSaving,viewModel::updatePhotos,viewModel::photoBusy,
                 toolbar={gallery,camera->
                     com.spisokryadom.app.ui.components.FavoriteToggle(state.isFavorite,{leaveName();viewModel.favorite(it)},enabled=!state.isSaving&&!state.isPhotoBusy)
@@ -312,7 +317,7 @@ fun ProductCardScreen(
                 onUnitChange = { viewModel.updateDefaultUnit(it) },
                 unitSuggestions = state.unitSuggestions,
                 quantityLabel = "Кол-во по умолч.",
-                unitLabel = "Ед. изм."
+                unitLabel = "Ед. изм.",allowUnitVoice=false,unitModifier=Modifier.testTag("product-unit")
             )
 
             AppTextField(
@@ -350,20 +355,8 @@ fun ProductCardScreen(
             }
 
             if (state.purchaseType != "offline") {
-                AppTextField(
-                    value = state.sellerUrl,
-                    onValueChange = { viewModel.updateSellerUrl(it) },
-                    label = { Text("Ссылка на продавца") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                AppTextField(
-                    value = state.productUrl,
-                    onValueChange = { viewModel.updateProductUrl(it) },
-                    label = { Text("Ссылка на товар") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                com.spisokryadom.app.ui.components.EditableProductLink("Ссылка на продавца",state.sellerUrl,viewModel::updateSellerUrl,enabled=!state.isSaving)
+                com.spisokryadom.app.ui.components.EditableProductLink("Ссылка на товар",state.productUrl,viewModel::updateProductUrl,enabled=!state.isSaving)
             }
 
             // --- Unified shop links section ---

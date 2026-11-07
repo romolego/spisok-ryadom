@@ -207,6 +207,9 @@ class SettingsViewModel(
         )
     }
 
+    val productInputSettings=productRepository.input.observeSettings().stateIn(viewModelScope,kotlinx.coroutines.flow.SharingStarted.Eagerly,com.spisokryadom.app.data.entity.ProductInputSettings())
+    fun updateProductInput(change:(com.spisokryadom.app.data.entity.ProductInputSettings)->com.spisokryadom.app.data.entity.ProductInputSettings)=editCatalogue{productRepository.input.updateSettings(change)}
+
     val groupCreationPresets=classifierRepository.creationPresets().stateIn(viewModelScope,kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),emptyList())
     fun setGroupDefaultRecipient(groupId:Long,recipientId:Long?,done:(Boolean)->Unit={}){viewModelScope.launch{
         try{com.spisokryadom.app.data.repository.ProductEditorTransactions.inGeneration(sessionGeneration){classifierRepository.defaultRecipient(groupId,recipientId)};done(true)}catch(e:Exception){if(e is kotlinx.coroutines.CancellationException)throw e;_uiState.value=_uiState.value.copy(message=e.message?:"Преднастройка не сохранена");done(false)}

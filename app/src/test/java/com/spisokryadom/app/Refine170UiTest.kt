@@ -59,7 +59,7 @@ class Refine170UiTest {
  }
  @Test fun groupDefaultRecipientAppliesAndManualChoiceOverridesIt(){
   settings();ui.openSettingsDictionary("group");ui.onNodeWithTag("manager-edit-Товарные группы").performClick();ui.onNodeWithContentDescription("Преднастройка: Собачье").performScrollTo().performClick();waitText("Преднастройка группы")
-  ui.onNodeWithText("Получатель по умолчанию").performClick();ui.onAllNodesWithText("Злата").onLast().performClick();shot("03-group-recipient-preset");ui.onNodeWithText("Сохранить").performClick();waitFor{runBlocking{db.creationPresetDao().groups().singleOrNull()?.recipientId==pet}};waitFor{ui.onAllNodesWithText("Преднастройка группы").fetchSemanticsNodes().isEmpty()};ui.closeSettingsDictionary();back()
+  ui.onAllNodesWithText("Получатель по умолчанию").onLast().performClick();ui.onAllNodesWithText("Злата").onLast().performClick();shot("03-group-recipient-preset");ui.onNodeWithText("Сохранить").performClick();waitFor{runBlocking{db.creationPresetDao().groups().singleOrNull()?.recipientId==pet}};waitFor{ui.onAllNodesWithText("Преднастройка группы").fetchSemanticsNodes().isEmpty()};ui.closeSettingsDictionary();back()
   newProduct("Корм");ui.onNodeWithText("Товарная группа").performClick();ui.onNodeWithText("Собачье").performClick();waitText("Злата");shot("04-recipient-filled");ui.onNodeWithText("Получатель").performClick();ui.onAllNodesWithText("Рома").onLast().performClick();ui.onNodeWithText("Сохранить").performClick();waitText("База товаров");assertEquals(person,runBlocking{db.productDao().getAllSync().single().recipientId})
  }
  @Test fun globalDefaultsStayOutOfUnitFieldUntilSaving(){

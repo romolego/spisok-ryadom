@@ -31,6 +31,8 @@ import com.spisokryadom.app.data.entity.ProductEntity
 @Composable
 fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,preselectedBranchId:Long?=null,targetListId:Long?=null,viewModel:AddToListViewModel=viewModel(factory=AddToListViewModel.factory(preselectedShopId,preselectedBranchId,targetListId)),onCreateProduct:((String,Long?)->Unit)?=null,returnedProductId:Long=-1L,onReturnHandled:()->Unit={}){
  val state by viewModel.uiState.collectAsStateWithLifecycle();val snack=remember{SnackbarHostState()}
+ var bulkOpen by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(false)}
+ if(bulkOpen&&targetListId==null)BulkProductSheet(state.selectedShopId,preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId},{bulkOpen=false},{bulkOpen=false;onNavigateBack()})
  var shopCreationOpen by remember { mutableStateOf(false) }
  LaunchedEffect(returnedProductId){if(returnedProductId>0){viewModel.selectSavedProduct(returnedProductId);onReturnHandled()}}
  val focus=androidx.compose.ui.platform.LocalFocusManager.current
@@ -58,6 +60,7 @@ fun AddToListScreen(onNavigateBack:()->Unit,preselectedShopId:Long?=null,presele
      }
     }
     item(key="shop"){ShopChoiceField(state.shops,state.selectedShopId,viewModel::onShopSelected,enabled=!state.isLoading&&!state.isShopLocked,onCreate=viewModel::createShop,creationError=state.shopCreationError,onCreationOpenChanged={shopCreationOpen=it})}
+    if(targetListId==null)item(key="bulk"){TextButton(onClick={focus.clearFocus();bulkOpen=true},enabled=!state.isLoading,modifier=Modifier.fillMaxWidth().testTag("add-bulk-products")){Icon(Icons.Filled.AddShoppingCart,null);Spacer(Modifier.width(8.dp));Text("Добавить несколько товаров")}}
     item(key="query"){AppTextField(state.searchQuery,viewModel::onSearchQueryChanged,label={Text("Название товара")},singleLine=true,enabled=!state.isLoading,modifier=Modifier.fillMaxWidth())}
     if(state.selectedProduct==null&&(state.searchResults.isNotEmpty()||state.searchQuery.isBlank()&&state.browseProducts))item(key="candidates"){
      OutlinedCard(Modifier.fillMaxWidth()) {

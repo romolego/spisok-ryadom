@@ -17,6 +17,7 @@ data class AddToListUiState(
  val targetListName:String?=null,val targetAvailable:Boolean=true,val addedItems:List<AddedListItem> = emptyList(),
  val searchQuery:String="",val searchResults:List<ProductEntity> = emptyList(),val shops:List<ShopEntity> = emptyList(),
  val productContexts:Map<Long,String> = emptyMap(),val productContextsWithoutQuantity:Map<Long,String> = emptyMap(),val selectedShopId:Long? = -1L,val isShopLocked:Boolean=false,val saveToDatabase:Boolean=true,
+ val unitManuallySet:Boolean=false,
  val isNewProduct:Boolean=false,val addedMessage:String?=null,val isLoading:Boolean=false,val isSearching:Boolean=false,
  val browseProducts:Boolean=true,val browseMessage:String?=null,val pendingProductLabels:Map<Long,String> = emptyMap(),
  val favoriteResults:List<ProductEntity> = emptyList(),val selectedProduct:ProductEntity?=null,val quantity:String="1",val unit:String="",val unitSuggestions:List<String> = emptyList(),val error:String?=null,
@@ -107,7 +108,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
  }
  fun selectVariant(p:ProductEntity){_uiState.update{it.copy(selectedProduct=p,quantity=(p.defaultQuantity?.takeIf{q->q>0}?:1.0).let{q->java.math.BigDecimal.valueOf(q).stripTrailingZeros().toPlainString()},unit=p.defaultUnit.orEmpty(),error=null)}}
  fun quantity(value:String){_uiState.value=_uiState.value.copy(quantity=value,error=null)}
- fun unit(value:String){_uiState.value=_uiState.value.copy(unit=value)}
+ fun unit(value:String){_uiState.value=_uiState.value.copy(unit=value,unitManuallySet=true)}
  fun createShop(name:String,done:(Long)->Unit)=createShop(name,done,{})
  fun createShop(name:String,done:(Long)->Unit,onFinished:()->Unit){
   if(_uiState.value.isLoading){onFinished();return}
@@ -157,7 +158,7 @@ class AddToListViewModel(private val products:ProductRepository,private val shop
    else {
     val defaults=ProductCreationDefaults.read(prefs)
     val mode=state.selectedShopId?.takeIf{it>0}?.let{shopRepository.purchaseMode(it)}?:"inherit"
-    basket.addNewProduct(state.searchQuery,qty,state.unit.ifBlank{if(defaults.fillMissing)defaults.missingUnit else ""},state.saveToDatabase,choice,state.selectedShopId,preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId},listId=targetListId,purchaseType=PurchaseModes.resolve(mode,defaults.purchaseType))
+    basket.addNewProduct(state.searchQuery,qty,state.unit.ifBlank{if(state.unitManuallySet)"" else products.input.suggest(state.searchQuery).unit?:if(defaults.fillMissing)defaults.missingUnit else ""},state.saveToDatabase,choice,state.selectedShopId,preselectedBranchId.takeIf{state.selectedShopId==preselectedShopId},listId=targetListId,purchaseType=PurchaseModes.resolve(mode,defaults.purchaseType),allowHintUnit=!state.unitManuallySet)
    }
    if(keepBrowsing)_uiState.update{it.copy(isLoading=false,browseMessage="${state.selectedProduct?.name}: добавлено")}
    else _uiState.update{it.copy(isLoading=false,addedMessage="Добавлено в список")}}
