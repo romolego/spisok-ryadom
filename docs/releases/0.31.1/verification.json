@@ -1,0 +1,69 @@
+{
+  "version": "0.31.1",
+  "versionCode": 44,
+  "baselineCommit": "a11b158",
+  "codeCommit": "a50e0980b9908234bca0ad48980284d570a636ed",
+  "branch": "codex/integrity-audit-0.31.1",
+  "tests": {
+    "classes": 138,
+    "tests": 1661,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "fullSingleRun": false,
+  "validationKind": "full-suite-plus-test-setup-recheck",
+  "newCases": 52,
+  "lint": {
+    "errors": 0,
+    "warnings": 73,
+    "hints": 7
+  },
+  "sourceFiles": 390,
+  "sourceUnchangedDuringFullRun": true,
+  "fullRun": {
+    "classes": 138,
+    "tests": 1661,
+    "failures": 3,
+    "errors": 0,
+    "skipped": 0
+  },
+  "recheck": {
+    "classes": 3,
+    "tests": 41,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "modifiedAfterFullRun": [
+    "app/src/test/java/com/spisokryadom/app/RefinementUiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Reliability291SettingsTest.kt"
+  ],
+  "productionCodeUnchangedAfterFullRun": true,
+  "sourceUnchangedDuringFinalRecheck": true,
+  "room": 28,
+  "zip": 26,
+  "apk": {
+    "path": ".local/artifacts/0.31.1/SpisokPokupok-0.31.1.apk",
+    "package": "com.spisokryadom.app.next",
+    "versionName": "0.31.1",
+    "versionCode": 44,
+    "label": "Список покупок",
+    "minSdk": 26,
+    "targetSdk": 35,
+    "debuggable": false,
+    "bytes": 2235430,
+    "sha256": "a4298566fe44fd7d92b8a40ffe5b7227ccebaa8c13c77847926fdec8ca90b40c",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "matchesPreviousCertificate": true,
+    "physicalAndroidTested": false
+  },
+  "physicalAndroidTested": false,
+  "emulatorTested": false,
+  "limitations": [
+    "No attached physical Android or AVD; emulator hypervisor unavailable.",
+    "Native Robolectric does not replace real process death, background/resume, keyboard/voice, external media permissions or an OEM launcher.",
+    "Launcher may coalesce widget transitions. Force-stop during privacy reveal can delay masking until refresh."
+  ],
+  "publication": "pending"
+}

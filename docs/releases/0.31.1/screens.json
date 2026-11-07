@@ -1,0 +1,109 @@
+{
+  "newReviewed": [
+    {
+      "file": "bulk-input-landscape-api28.png",
+      "sha256": "60881c172f0bdccc6c4a98538f5bad1f9965b249fffc37cbb5904face39157b2",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "bulk-input-landscape-api35.png",
+      "sha256": "f841cd25d553a33e0364e45a78a69a34a5b803f11990a9d23afbf9478008d327",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "bulk-thirteenth-choice-api28.png",
+      "sha256": "855060e3e9307b9fff6bb93308b81f79c3d6176485bf33e6019b06a7337c3d6f",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "bulk-thirteenth-choice-api35.png",
+      "sha256": "62005b3523756494bc2cb38d5f978f10d7f8d32de088125401118230c228c5b9",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "shop-choice-restored-api28.png",
+      "sha256": "fcf84219dfcf82c483bca8883661be6f2cc339a576b25384bddc3c76225a0f5b",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "shop-choice-restored-api35.png",
+      "sha256": "0f5d327f1955923c6f5c3d202d7252c8fa39f8910d17bf49682fbe800bdcbec1",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "shop-settings-restored-api28.png",
+      "sha256": "99d5852f0db9213ebaa4a1e74d5171dbf9af9eb50ff9942d6073392d7da12fb6",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "shop-settings-restored-api35.png",
+      "sha256": "e8af4237c8ae6f2c251adbb306146750a353fd7b06467855b8338e570def2602",
+      "visuallyReviewed": true
+    }
+  ],
+  "widgetControls": [
+    {
+      "file": "widget-bought-masked-api28.png",
+      "generatedFrom": "app/build/reports/widget310/screens/bought-masked-api28.png",
+      "previousSha256": "df3ad8971ac2b1a920abcf441c4c4f2bad8f589b6cf545aba9846e7ac36ad73a",
+      "sha256": "df3ad8971ac2b1a920abcf441c4c4f2bad8f589b6cf545aba9846e7ac36ad73a",
+      "unchanged": true
+    },
+    {
+      "file": "widget-bought-masked-api35.png",
+      "generatedFrom": "app/build/reports/widget310/screens/bought-masked-api35.png",
+      "previousSha256": "cc1992ff71337e1d0162e1eb2be16caf3073af131c4f1a790800c61e909eea8d",
+      "sha256": "cc1992ff71337e1d0162e1eb2be16caf3073af131c4f1a790800c61e909eea8d",
+      "unchanged": true
+    },
+    {
+      "file": "widget-card-api28.png",
+      "generatedFrom": "app/build/reports/widget310/screens/card-api28.png",
+      "previousSha256": "f30868f312ced1f1314789cb147172058d6351679f213f1cdaecd1912b9f7583",
+      "sha256": "f30868f312ced1f1314789cb147172058d6351679f213f1cdaecd1912b9f7583",
+      "unchanged": true
+    },
+    {
+      "file": "widget-card-api35.png",
+      "generatedFrom": "app/build/reports/widget310/screens/card-api35.png",
+      "previousSha256": "d31fbde918343e477af9cc64c4aaa34094fc106caea60eb3d7a081a78b4e820e",
+      "sha256": "d31fbde918343e477af9cc64c4aaa34094fc106caea60eb3d7a081a78b4e820e",
+      "unchanged": true
+    },
+    {
+      "file": "widget-masked-api28.png",
+      "generatedFrom": "app/build/reports/widget310/screens/masked-api28.png",
+      "previousSha256": "2587fff1b1e795d5bc2d246332c5e188f6ce49ede86e218e90545e384f9c107a",
+      "sha256": "2587fff1b1e795d5bc2d246332c5e188f6ce49ede86e218e90545e384f9c107a",
+      "unchanged": true
+    },
+    {
+      "file": "widget-masked-api35.png",
+      "generatedFrom": "app/build/reports/widget310/screens/masked-api35.png",
+      "previousSha256": "98760414a053d23194d450a9a538bb5f1a770cf37db199b6e43219ec4609bca5",
+      "sha256": "98760414a053d23194d450a9a538bb5f1a770cf37db199b6e43219ec4609bca5",
+      "unchanged": true
+    },
+    {
+      "file": "widget-revealed-api28.png",
+      "generatedFrom": "app/build/reports/widget310/screens/revealed-api28.png",
+      "previousSha256": "e86053232e2a3342c2ee4fc75e4d7d8f6dc259ee290d09fbb1bc95f84f371a32",
+      "sha256": "e86053232e2a3342c2ee4fc75e4d7d8f6dc259ee290d09fbb1bc95f84f371a32",
+      "unchanged": true
+    },
+    {
+      "file": "widget-revealed-api35.png",
+      "generatedFrom": "app/build/reports/widget310/screens/revealed-api35.png",
+      "previousSha256": "519758138087468a5ec757ec949eb5c0ecee7697c0b2d21efb5056a64a89c2d2",
+      "sha256": "519758138087468a5ec757ec949eb5c0ecee7697c0b2d21efb5056a64a89c2d2",
+      "unchanged": true
+    },
+    {
+      "file": "widget-widget-regression-api35.png",
+      "generatedFrom": "app/build/reports/widget260/screens/widget-shop-and-product-colors-api35.png",
+      "previousSha256": "187c607c0825818ba6b609eda8e6759295694305e1163973f7c49f34bf5c73f8",
+      "sha256": "187c607c0825818ba6b609eda8e6759295694305e1163973f7c49f34bf5c73f8",
+      "unchanged": true
+    }
+  ]
+}

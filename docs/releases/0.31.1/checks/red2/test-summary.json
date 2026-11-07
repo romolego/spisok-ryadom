@@ -1,0 +1,51 @@
+{
+  "classes": 6,
+  "tests": 38,
+  "failures": 30,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "name": "com.spisokryadom.app.Audit311BackupTest",
+      "tests": 6,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit311CardUiTest",
+      "tests": 4,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit311DefaultsTest",
+      "tests": 16,
+      "failures": 14,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit311InputDataTest",
+      "tests": 6,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit311InputUiTest",
+      "tests": 4,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.spisokryadom.app.Audit311RecoveryTest",
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

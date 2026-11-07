@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Audit311CardUiTest" tests="4" failures="4" errors="0" skipped="0" time="107.927">
+    <testcase name="explicitNoDepartmentSurvivesRecreationAndCancelDoesNotWrite[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="22.66">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="explicitDepartmentSurvivesRecreationUntilManualCardSave[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="32.013">
+      <failure type="androidx.compose.ui.test.ComposeTimeoutException" />
+    </testcase>
+    <testcase name="explicitNoDepartmentSurvivesRecreationAndCancelDoesNotWrite" classname="com.spisokryadom.app.Audit311CardUiTest" time="21.042">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="explicitDepartmentSurvivesRecreationUntilManualCardSave" classname="com.spisokryadom.app.Audit311CardUiTest" time="32.197">
+      <failure type="androidx.compose.ui.test.ComposeTimeoutException" />
+    </testcase>
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311DefaultsTest" tests="14" failures="12" errors="0" skipped="0" time="18.521">
+    <testcase name="dictionaryAliasesAreUniqueResolvableAndOnlyUseExistingClassifiers[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="8.459" />
+    <testcase name="typosAmongEquivalentHintsStillSupplyMetadata[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.249">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="exactClassifierWinsAndDeletedOrCustomRenamedClassifiersAreNotInvented[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.248">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="ambiguousGenericNamesAndCompetingMetadataAreNotGuessed[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.107">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="preservedStandardDepartmentAliasStillSuppliesNewProductDefaults[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.125">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="everydayHouseholdBabyAndPetGapsUsePurchaseUnitsWithoutSeedingCatalogue[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.098">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="preservedStandardCategoryAliasStillSuppliesNewProductDefaults[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.108">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="dictionaryAliasesAreUniqueResolvableAndOnlyUseExistingClassifiers" classname="com.spisokryadom.app.Audit311DefaultsTest" time="8.261" />
+    <testcase name="typosAmongEquivalentHintsStillSupplyMetadata" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.182">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="exactClassifierWinsAndDeletedOrCustomRenamedClassifiersAreNotInvented" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.177">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="ambiguousGenericNamesAndCompetingMetadataAreNotGuessed" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.125">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="preservedStandardDepartmentAliasStillSuppliesNewProductDefaults" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.146">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="everydayHouseholdBabyAndPetGapsUsePurchaseUnitsWithoutSeedingCatalogue" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.098">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="preservedStandardCategoryAliasStillSuppliesNewProductDefaults" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.119">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311InputDataTest" tests="4" failures="2" errors="0" skipped="0" time="17.144">
+    <testcase name="everySameNameProductRemainsSelectableAndTheChosenIdentityIsAdded[28]" classname="com.spisokryadom.app.Audit311InputDataTest" time="8.592">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="aVariantDisabledAfterPreviewRollsBackTheWholePackage[28]" classname="com.spisokryadom.app.Audit311InputDataTest" time="0.283" />
+    <testcase name="everySameNameProductRemainsSelectableAndTheChosenIdentityIsAdded" classname="com.spisokryadom.app.Audit311InputDataTest" time="7.991">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="aVariantDisabledAfterPreviewRollsBackTheWholePackage" classname="com.spisokryadom.app.Audit311InputDataTest" time="0.267" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311InputUiTest" tests="4" failures="4" errors="0" skipped="0" time="77.699">
+    <testcase name="thirteenthSameNameCandidateCanBeSelectedAndCancellationWritesNothing[28]" classname="com.spisokryadom.app.Audit311InputUiTest" time="38.806">
+      <failure type="androidx.compose.ui.test.ComposeTimeoutException" />
+    </testcase>
+    <testcase name="landscapeInputKeepsItsExplanationReachableAndPreviewActionsVisible[28]" classname="com.spisokryadom.app.Audit311InputUiTest" time="0.373">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="thirteenthSameNameCandidateCanBeSelectedAndCancellationWritesNothing" classname="com.spisokryadom.app.Audit311InputUiTest" time="38.056">
+      <failure type="androidx.compose.ui.test.ComposeTimeoutException" />
+    </testcase>
+    <testcase name="landscapeInputKeepsItsExplanationReachableAndPreviewActionsVisible" classname="com.spisokryadom.app.Audit311InputUiTest" time="0.448">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311WidgetTest" tests="8" failures="4" errors="0" skipped="0" time="35.391">
+    <testcase name="rapidRepeatsAndAnotherWidgetDoNotUndoTheRecordedPurchase[28]" classname="com.spisokryadom.app.Audit311WidgetTest" time="11.164" />
+    <testcase name="cachedCheckboxCannotChangeAnIdenticalPurchaseAfterFullRestore[28]" classname="com.spisokryadom.app.Audit311WidgetTest" time="1.162">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="staleFactoryCannotStampItsOldRowsWithTheRestoredDatabaseIdentity[28]" classname="com.spisokryadom.app.Audit311WidgetTest" time="0.35">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="cachedRevealAndLostProcessStateRespectDatabaseIdentity[28]" classname="com.spisokryadom.app.Audit311WidgetTest" time="5.498" />
+    <testcase name="rapidRepeatsAndAnotherWidgetDoNotUndoTheRecordedPurchase" classname="com.spisokryadom.app.Audit311WidgetTest" time="9.949" />
+    <testcase name="cachedCheckboxCannotChangeAnIdenticalPurchaseAfterFullRestore" classname="com.spisokryadom.app.Audit311WidgetTest" time="1.237">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="staleFactoryCannotStampItsOldRowsWithTheRestoredDatabaseIdentity" classname="com.spisokryadom.app.Audit311WidgetTest" time="0.38">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="cachedRevealAndLostProcessStateRespectDatabaseIdentity" classname="com.spisokryadom.app.Audit311WidgetTest" time="5.623" />
+  </testsuite>
+</testsuites>

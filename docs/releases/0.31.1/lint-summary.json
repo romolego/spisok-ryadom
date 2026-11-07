@@ -1,0 +1,25 @@
+{
+  "errors": 0,
+  "warnings": 73,
+  "hints": 7,
+  "byId": {
+    "ApplySharedPref": 5,
+    "AutoboxingStateCreation": 7,
+    "ContentDescription": 1,
+    "ExifInterface": 2,
+    "GradleDependency": 1,
+    "HardcodedText": 2,
+    "IconLauncherShape": 5,
+    "ModifierFactoryExtensionFunction": 1,
+    "ModifierParameter": 8,
+    "MonochromeLauncherIcon": 1,
+    "ObsoleteSdkInt": 1,
+    "OldTargetApi": 1,
+    "RtlSymmetry": 1,
+    "StaticFieldLeak": 2,
+    "UnusedAttribute": 3,
+    "UseKtx": 37,
+    "UselessLeaf": 1,
+    "UselessParent": 1
+  }
+}

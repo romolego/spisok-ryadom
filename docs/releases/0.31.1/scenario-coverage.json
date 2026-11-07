@@ -1,0 +1,962 @@
+{
+  "format": "spisok-ryadom-scenario-coverage-v1",
+  "source_commit": "a50e0980b9908234bca0ad48980284d570a636ed",
+  "status": "Карта существующих проверок по исходникам. Полный набор1661 и повтор41 проверки после уточнения setup ручного сценария и ожидания cleanup дают1661/1661 уникальных успешных результатов. Код приложения после полного набора не менялся; изменены2 теста, assertions сохранены. Фактические результаты — test-summary.json и junit.xml; исходный полный запуск — checks/full. Ограничения физического Android указаны отдельно.",
+  "source_only": true,
+  "areas": [
+    {
+      "id": "lists",
+      "area": "Списки и отметки покупки",
+      "scope": "Обычный список и отдельные списки, реальный состав и статус, покупка, возврат из карточки, отмена создания, переносимый текст/JSON без чужих ID.",
+      "tests": [
+        {
+          "class": "UnifiedLists250DataTest",
+          "examples": [
+            "sharedAddMarkersBelongToTheirDestinationAndReloadFromRoom",
+            "newQuickItemStaysInItsListAndDeletedDestinationCannotReceiveAnything"
+          ]
+        },
+        {
+          "class": "UnifiedLists250UiTest",
+          "examples": [
+            "sharedPickerShowsRealAddedItemsAndBothFavoriteMarkersImmediatelyAndAfterRecreation",
+            "searchCanCreateFullProductCardWithShopAndReturnToTheSameListBeforeAdding",
+            "cancellingNewProductCardDoesNotAddAnItemOrLoseTheListContext"
+          ]
+        },
+        {
+          "class": "GoalListTransferTest",
+          "examples": [
+            "readableMessageRoundTripsDelimitersUnicodeMultilineDuplicatesAndPlaceChanges",
+            "jsonRoundTripsSamePortableDocumentWithoutDatabaseIdentifiers"
+          ]
+        },
+        {
+          "class": "ShoppingUiFlowTest",
+          "examples": [
+            "listTextReviewCitySwitchAndBuying"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "products_variants",
+      "area": "Товары и варианты",
+      "scope": "Один товар семейства в каталоге, настоящий ID варианта в покупках, общие и отдельные поля, ручной Save/Back, выбор и замена варианта без изменения чужой покупки.",
+      "tests": [
+        {
+          "class": "ProductVariants290DataTest",
+          "examples": [
+            "familyHasOneCatalogueItemAndKeepsOriginalPurchaseIdentity",
+            "commonFieldsPropagateButVariantFieldsAndShopsStayIndependent",
+            "replacementPreservesPurchasePlanAndRejectsStaleOrDifferentFamily",
+            "manualVariantPagesSaveTogetherAndBackDiscardsParameterChanges"
+          ]
+        },
+        {
+          "class": "ProductVariants290FlowsUiTest",
+          "examples": [
+            "cardHasOneFamilyAndSwitchesVariantsWithTheirOwnPhotos",
+            "createVariantInsideCardKeepsOneCatalogueProduct",
+            "purchaseVariantCanBeReplacedAndOptionalRememberAffectsOnlyCurrentCity"
+          ]
+        },
+        {
+          "class": "Reliability291ScenariosDataTest",
+          "examples": [
+            "physicalPointSectionKeepsTheVariantPurchaseAndChangesItsActualRow",
+            "shoppingTextPreservesTheActualVariantWithoutChangingStoredNames"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quantities_units",
+      "area": "Количество и единицы",
+      "scope": "Ручная единица и явное пустое значение, подсказки без стирания ввода, неполное/невалидное число, плюс/минус в своём списке и магазине; купленные и чужие строки сохраняются.",
+      "tests": [
+        {
+          "class": "QuickAdd241DataTest",
+          "examples": [
+            "quickFormObservesUserUnitsAndSavesChosenUnit",
+            "typingKeepsResolvedFormAndRejectsStaleQuickAddUntilLatestResult"
+          ]
+        },
+        {
+          "class": "QuickAdd241UiTest",
+          "examples": [
+            "newPurchaseOffersUnitsWithoutErasingTheTypedValue"
+          ]
+        },
+        {
+          "class": "ProductInput300EditorTest",
+          "examples": [
+            "quickCreationKeepsAnExplicitlyClearedUnitInsteadOfReplacingItWithAHint",
+            "renamedNewDraftKeepsManualValuesIncludingIntentionalEmptyFields"
+          ]
+        },
+        {
+          "class": "Audit270UiTest",
+          "examples": [
+            "rawQuantitySurvivesInvalidInputUnitSelectionAndUnrelatedRerender"
+          ]
+        },
+        {
+          "class": "ProductVariants290DataTest",
+          "examples": [
+            "pickerMinusIsScopedAndRemovesLastUnitWithoutTouchingBoughtOrOtherList"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stores_cities_priorities",
+      "area": "Магазины, города и приоритеты",
+      "scope": "Городские профили и реальные адреса, общая сеть/ТЦ, независимость маршрута и избранного, доступность и приоритет точек, общая группа с местными исключениями, Apply/Cancel/Save и восстановление редактора группы.",
+      "tests": [
+        {
+          "class": "SettingsCities280DataTest",
+          "examples": [
+            "cityDraftsKeepOriginalPhysicalIdsAndCancelWritesNothing",
+            "savingVisitedCitiesCreatesLocalAddressesAndReopeningFindsThem",
+            "switchingCityReassignsRegularPendingAndRecoversOnReturnWithoutForeignDefault",
+            "switchingCityKeepsBoughtExplicitNoneAndSeparateListPlaces",
+            "shopBatchChangesAreAtomicCityScopedAndPreserveRouteAndPurchaseIdentity"
+          ]
+        },
+        {
+          "class": "ProductCard190DataTest",
+          "examples": [
+            "allOutletsStayUnrestrictedAfterPriorityAndNewAddress",
+            "oneConfirmationUpdatesPendingButPreservesBoughtAndGoalPriceUnit",
+            "invalidEmptyOrStaleSelectionLeavesWholeShopConfigurationUntouched"
+          ]
+        },
+        {
+          "class": "Venues230DataTest",
+          "examples": [
+            "sharedAddressUpdatesAllRetailersAndTransferGoalAndWidgetPresentations",
+            "globalPointReorderPreservesExplicitProductPriorityAvailabilityAndExistingPurchase"
+          ]
+        },
+        {
+          "class": "Stores220DataTest",
+          "examples": [
+            "mixedNetworkAppearsUnderEachMallAndAsStreetStoreWithoutDuplicatingIdentity"
+          ]
+        },
+        {
+          "class": "Audit311CardUiTest",
+          "examples": [
+            "explicitDepartmentSurvivesRecreationUntilManualCardSave",
+            "explicitNoDepartmentSurvivesRecreationAndCancelDoesNotWrite",
+            "existingShopDepartmentSurvivesRecreationUntilManualCardSave",
+            "pendingShopDepartmentCanStillBeCancelledAfterRecreation",
+            "shopLinkEditingModeSurvivesRecreation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "photos_order",
+      "area": "Фотографии и их порядок",
+      "scope": "До пяти фото варианта, порядок/основное фото/подписи, восстановление из черновика и ZIP, pinch/сброс/карандаш, уменьшение и EXIF-поворот тестового изображения; старый импорт сохраняет остальные фото.",
+      "tests": [
+        {
+          "class": "ProductVariants290DataTest",
+          "examples": [
+            "fivePhotosAndCaptionsSurviveZipAndInvalidGraphRollsBack",
+            "photosValidateLimitAndDraftRoundTripKeepsOrderAndCaption",
+            "cleanupRetainsAllRawDraftPhotosAfterProcessDeath"
+          ]
+        },
+        {
+          "class": "ProductVariants290UiTest",
+          "examples": [
+            "photoStripKeepsCaptionAndFirstPositionWhenEditing"
+          ]
+        },
+        {
+          "class": "ProductInput300UiTest",
+          "examples": [
+            "photoViewerSupportsPinchAndEditingStillUsesThePencil"
+          ]
+        },
+        {
+          "class": "PhotoStoreTest",
+          "examples": [
+            "largePhotoIsDownsampledAndOriented"
+          ]
+        },
+        {
+          "class": "Audit291BackupTest",
+          "examples": [
+            "legacyPhotoReplacementUpdatesTheVisiblePrimaryAndKeepsOtherPhotos",
+            "legacyMergeWithoutPhotoRetainsAllCurrentPhotos"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search_input",
+      "area": "Поиск, быстрый и массовый ввод, встроенные подсказки, ссылки",
+      "scope": "Опечатки и неоднозначность, скрытый словарь без наполнения каталога, покупательские единицы/группы и исторические алиасы; разделители, обязательный предпросмотр, все кандидаты, отмена, атомарность и повтор UUID, извлечение URL с параметрами и Unicode-пробелами.",
+      "tests": [
+        {
+          "class": "FuzzySearchRegressionTest",
+          "examples": [
+            "boundedRankingAndTopFiveMatchFullReference",
+            "acceptedLongInputHasBoundedWork",
+            "cancellationIsCheckedDuringDistanceAndCatalogueTraversal"
+          ]
+        },
+        {
+          "class": "ProductInput300DataTest",
+          "examples": [
+            "hiddenRussianHintsNeverCreateCatalogueRowsAndRecognizeTypos",
+            "everyPeriodIsADelimiterAndNoQuantityOrUnitIsParsed",
+            "approximatePreviewOffersGenericAndSpecificCatalogueChoicesWithoutAddingAnything",
+            "atomicPackageMergesRegularRowsOnlyAndTokenPreventsDoubleSubmission",
+            "staleChoiceRollsBackWholePackageIncludingNewProductsAndReceipt"
+          ]
+        },
+        {
+          "class": "ProductInput300UiTest",
+          "examples": [
+            "packagePreviewShowsSourceAndChoicesAndAddsOnlyAfterConfirmation",
+            "linkPencilExtractsSharedTextAndManualCardSaveRemainsExplicit",
+            "selectedLinkFromSharedTextSurvivesActivityRecreation"
+          ]
+        },
+        {
+          "class": "Audit311InputDataTest",
+          "examples": [
+            "pastedLinksEndAtUnicodeSpacesWithoutLosingQueryParameters",
+            "everySameNameProductRemainsSelectableAndTheChosenIdentityIsAdded",
+            "aVariantDisabledAfterPreviewRollsBackTheWholePackage"
+          ]
+        },
+        {
+          "class": "Audit311InputUiTest",
+          "examples": [
+            "thirteenthSameNameCandidateCanBeSelectedAndCancellationWritesNothing",
+            "landscapeInputKeepsItsExplanationReachableAndPreviewActionsVisible"
+          ]
+        },
+        {
+          "class": "Audit311DefaultsTest",
+          "examples": [
+            "preservedStandardDepartmentAliasStillSuppliesNewProductDefaults",
+            "preservedStandardCategoryAliasStillSuppliesNewProductDefaults",
+            "dictionaryAliasesAreUniqueResolvableAndOnlyUseExistingClassifiers",
+            "everydayHouseholdBabyAndPetGapsUsePurchaseUnitsWithoutSeedingCatalogue",
+            "ambiguousGenericNamesAndCompetingMetadataAreNotGuessed",
+            "confidenceMarginIncludesCompetitorsJustOutsideAcceptanceThreshold"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "area": "Настройки и согласованность интерфейса",
+      "scope": "Независимые переключатели/оформление, ручные значения выше подсказок, получатель по категории/общему правилу, справочники и прежние карточки; реальные Compose-компоненты в портрете/низком viewport и тестовых IME-insets.",
+      "tests": [
+        {
+          "class": "Settings210DataTest",
+          "examples": [
+            "sixFavoriteStylesPersistIndependentlyAndLegacyKeysSeedNewContexts",
+            "defaultsOffKeepsBlankFieldsAndOnFillsOnlyNewMissingFields",
+            "restoringBuiltInsKeepsCustomDataIdsRelationsAndLocalRouteAndIsIdempotent",
+            "failedDatabaseResetRollsBackBeforePreferencesAndPhotosAreTouched"
+          ]
+        },
+        {
+          "class": "Settings280UiTest",
+          "examples": [
+            "allWidgetSettingsLiveInOneSheetAndFontUsesADropdown",
+            "dictionariesOpenOnlyOnDemandAndResetFollowsAllFourEntries",
+            "productToolbarHasStarPhotoControlsAndPaletteWithPhotoImmediatelyBelow",
+            "shopUsesTheSameStarAndPaletteLayoutAndOnlySaveChangesTheFavorite"
+          ]
+        },
+        {
+          "class": "ProductInput300DataTest",
+          "examples": [
+            "hintSwitchesAreIndependentAndPreserveUnrelatedFallbackRules",
+            "explicitRecipientAndCategoryRuleWinOverGlobalFallback"
+          ]
+        },
+        {
+          "class": "UxLayoutTest",
+          "examples": [
+            "compactKeyboardSizedViewportKeepsMultilineEditorAndActionVisible",
+            "imeInsetsAreConsumedOnceInTheActualNavigationTree",
+            "catalogAndShopCardsRemainReadableWithAddedAndLongNamedProducts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "backup_migrations",
+      "area": "Резервные копии, импорт и миграции",
+      "scope": "Синтетические старые схемы/архивы, настоящий production-open при27→28, ID/связи/медиа/настройки и close/reopen; строгая проверка до записи, старые форматы, приватность и неоднозначное legacy-сопоставление. Это не установка APK поверх на устройстве.",
+      "tests": [
+        {
+          "class": "Audit311RecoveryTest",
+          "examples": [
+            "productionOpenPreservesSchema27MediaAndPreferencesBeforeMigration28"
+          ]
+        },
+        {
+          "class": "Audit311BackupTest",
+          "examples": [
+            "weakPrivacyMatchesDoNotDependOnIncomingOrder",
+            "weakMatchesConsumeEachOriginalAtMostOnceAndPreserveSourceMultiplicity",
+            "laterIdentityMatchRemainsReservedAgainstEarlierWeakMatches"
+          ]
+        },
+        {
+          "class": "Audit291CompatibilityTest",
+          "examples": [
+            "currentDatabaseAndRestoredCopyRetainGraphAfterCloseAndReopen"
+          ]
+        },
+        {
+          "class": "Audit291BackupTest",
+          "examples": [
+            "fullBackupRejectsCoercedIdentifiersBeforeReplacingAnyData",
+            "missingPointPrioritiesRejectsModernBackupButRemainsReadableBeforeVersionNine"
+          ]
+        },
+        {
+          "class": "ProductInput300MigrationTest",
+          "examples": [
+            "version26MigrationRetainsIdsPhotosAndDifferentShopGroups"
+          ]
+        },
+        {
+          "class": "Widget310DataTest",
+          "examples": [
+            "zipRoundTripOldZipAndMalformedPrivacyPreserveData",
+            "previousDatabaseMigratesAndPrivacySurvivesCloseAndReopen"
+          ]
+        },
+        {
+          "class": "MigrationRegressionTest",
+          "examples": [
+            "schemaFromPhoneApkMigratesWithoutLosingBasket",
+            "oldestDatabaseMigratesThroughEveryVersion"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "widget",
+      "area": "Виджет",
+      "scope": "RemoteViews apply/reapply, маска без приватного текста и количества, отдельная галочка, раскрытие/таймаут/повторы/несколько экземпляров, CAS и идентичность базы после restore, фильтр без удаления, native-анимация перед пересортировкой, размеры/цвета/крупный шрифт.",
+      "tests": [
+        {
+          "class": "Audit311WidgetTest",
+          "examples": [
+            "cachedCheckboxCannotChangeAnIdenticalPurchaseAfterFullRestore",
+            "staleFactoryCannotStampItsOldRowsWithTheRestoredDatabaseIdentity",
+            "cachedRevealAndLostProcessStateRespectDatabaseIdentity",
+            "rapidRepeatsAndAnotherWidgetDoNotUndoTheRecordedPurchase"
+          ]
+        },
+        {
+          "class": "Widget310StateTest",
+          "examples": [
+            "revealExpiresAndCannotLeakToAnotherWidgetPurchaseOrRevision",
+            "repeatedTapDoesNotExtendPeekAndStaleTimeoutCannotHideNewPeek",
+            "commitImmediatelyChangesCheckmarkWhileMotionRetainsPositionThenSettles",
+            "rapidDifferentChecksAndExpiredMotionCannotLeaveGhostRows"
+          ]
+        },
+        {
+          "class": "Widget310UiTest",
+          "examples": [
+            "concealedRowAndReusedRemoteViewsContainNoPrivateTextOrQuantity",
+            "peekOnlyChangesHostPresentationAndRehidesOnExpiryOrSecondTap",
+            "productionPeekReceiverExpiresWithoutOpeningAppOrMutatingPurchase",
+            "realRemoteViewsAnimateOnlyExplicitDepartureAndThenRestoreCanonicalOrder",
+            "hiddenBoughtStillAnimatesBeforeFilteringWithoutDeletingEntry"
+          ]
+        },
+        {
+          "class": "Widget260DataTest",
+          "examples": [
+            "hidingBoughtFiltersBeforeEveryGroupingWithoutChangingAnyBasketOrOwner",
+            "filteredAndRestyledFramesStillUseFreshIdempotentPurchaseTokens"
+          ]
+        },
+        {
+          "class": "Widget260UiTest",
+          "examples": [
+            "shopAndProductTintAreIndependentAndRemoteViewsReapplyClearsRecycledColors",
+            "narrowWidgetAtLargestFontKeepsBothHeaderActionsReachableAndShowsHiddenState",
+            "lowLandscapeWidgetKeepsVisibilityActionAndScrollablePurchasesAtLargestFont"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lifecycle",
+      "area": "Жизненный цикл и восстановление пользовательского пути",
+      "scope": "ActivityScenario.recreate, восстановленный SavedStateHandle/raw-черновик, закрытие/повторное открытие файловой БД, старые команды после полной замены базы. Слова processDeath/processRecreation в именах тестов обозначают моделирование состояния, а не реальное уничтожение процесса Android.",
+      "tests": [
+        {
+          "class": "Audit311CardUiTest",
+          "examples": [
+            "explicitDepartmentSurvivesRecreationUntilManualCardSave",
+            "pendingShopDepartmentCanStillBeCancelledAfterRecreation",
+            "shopLinkEditingModeSurvivesRecreation"
+          ]
+        },
+        {
+          "class": "ProductInput300EditorTest",
+          "examples": [
+            "rawRecoveryRetainsManualClearsInsteadOfApplyingHintsOrFallbackAgain",
+            "restoredBulkPreviewKeepsChoiceAndQuantityAndCannotCommitTwice",
+            "savedPreviewFromAnotherDatabaseRevisionCannotWriteAfterProcessRecreation"
+          ]
+        },
+        {
+          "class": "ProductInput300UiTest",
+          "examples": [
+            "previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases",
+            "selectedLinkFromSharedTextSurvivesActivityRecreation"
+          ]
+        },
+        {
+          "class": "Widget310CardUiTest",
+          "examples": [
+            "privacyUsesExistingSelectionStyleAndManualSaveAcrossActivityRecreation"
+          ]
+        },
+        {
+          "class": "Audit270SessionTest",
+          "examples": [
+            "oldBatchCannotApplySelectionToRestoredIdsAndFreshWindowWorks",
+            "oldSettingsCannotRenameDeleteStyleOrSavePresetIntoRestoredDictionary",
+            "fullRestoreThroughSettingsRequestsFreshNavigation"
+          ]
+        },
+        {
+          "class": "Audit270StoreSessionsTest",
+          "examples": [
+            "oldStoreCommandsCannotMutateRestoredRowsEvenWhenIdsMatch"
+          ]
+        },
+        {
+          "class": "ShoppingWorkflowUiTest",
+          "examples": [
+            "catalogueGroupAndBasketGroupRemainCollapsedAfterRecreate",
+            "textEditsStayDuringRecreationButAreDiscardedOnClosing"
+          ]
+        }
+      ]
+    }
+  ],
+  "referenced_classes": {
+    "UnifiedLists250DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/UnifiedLists250DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "UnifiedLists250UiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/UnifiedLists250UiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "GoalListTransferTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/GoalListTransferTest.kt",
+      "runner": "JVM JUnit",
+      "class_sdk": [],
+      "native_sqlite": false,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "ShoppingUiFlowTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ShoppingUiFlowTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "ProductVariants290DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductVariants290DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "ProductVariants290FlowsUiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductVariants290FlowsUiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "Reliability291ScenariosDataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Reliability291ScenariosDataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "QuickAdd241DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/QuickAdd241DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "QuickAdd241UiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/QuickAdd241UiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "ProductInput300EditorTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductInput300EditorTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Audit270UiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit270UiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": false,
+      "legacy_sqlite": false,
+      "native_graphics": true,
+      "method_configuration_overrides": [
+        "qualifiers=\"w640dp-h360dp-xhdpi\"",
+        "qualifiers=\"w640dp-h360dp-xhdpi\""
+      ]
+    },
+    "SettingsCities280DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/SettingsCities280DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "ProductCard190DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductCard190DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Venues230DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Venues230DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Stores220DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Stores220DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Audit311CardUiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit311CardUiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "ProductVariants290UiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductVariants290UiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": false,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "ProductInput300UiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductInput300UiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true,
+      "method_configuration_overrides": [
+        "qualifiers=\"w640dp-h360dp-xhdpi\""
+      ]
+    },
+    "PhotoStoreTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/PhotoStoreTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28
+      ],
+      "native_sqlite": false,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "Audit291BackupTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit291BackupTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "FuzzySearchRegressionTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/FuzzySearchRegressionTest.kt",
+      "runner": "JVM JUnit",
+      "class_sdk": [],
+      "native_sqlite": false,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "ProductInput300DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductInput300DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Audit311InputDataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit311InputDataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Audit311InputUiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit311InputUiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true,
+      "method_configuration_overrides": [
+        "qualifiers = \"w640dp-h360dp-xhdpi\""
+      ]
+    },
+    "Audit311DefaultsTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit311DefaultsTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Settings210DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Settings210DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Settings280UiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Settings280UiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "UxLayoutTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/UxLayoutTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true,
+      "method_configuration_overrides": [
+        "sdk=[35]"
+      ]
+    },
+    "Audit311RecoveryTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit311RecoveryTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Audit311BackupTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit311BackupTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Audit291CompatibilityTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit291CompatibilityTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "ProductInput300MigrationTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ProductInput300MigrationTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Widget310DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Widget310DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "MigrationRegressionTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/MigrationRegressionTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28
+      ],
+      "native_sqlite": false,
+      "legacy_sqlite": true,
+      "native_graphics": false
+    },
+    "Audit311WidgetTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit311WidgetTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Widget310StateTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Widget310StateTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": false,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Widget310UiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Widget310UiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "Widget260DataTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Widget260DataTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Widget260UiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Widget260UiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true,
+      "method_configuration_overrides": [
+        "sdk = [35], qualifiers = \"w640dp-h240dp-land-xhdpi\""
+      ]
+    },
+    "Widget310CardUiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Widget310CardUiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    },
+    "Audit270SessionTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit270SessionTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "Audit270StoreSessionsTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/Audit270StoreSessionsTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": false
+    },
+    "ShoppingWorkflowUiTest": {
+      "path": "app/src/test/java/com/spisokryadom/app/ShoppingWorkflowUiTest.kt",
+      "runner": "Robolectric",
+      "class_sdk": [
+        28,
+        35
+      ],
+      "native_sqlite": true,
+      "legacy_sqlite": false,
+      "native_graphics": true
+    }
+  },
+  "environment_notes": [
+    "Аннотации API/SQLite/graphics приведены для каждого класса; не все проверки являются native и не все выполняются на обеих API.",
+    "MigrationRegressionTest использует Robolectric API28 и legacy SQLite; современные миграции дополнительно представлены native SQLite классами.",
+    "FuzzySearchRegressionTest и GoalListTransferTest —обычные JVM-тесты без Android API.",
+    "UI с native graphics выполняет реальную Compose/RemoteViews-разметку в Robolectric; размеры/landscape/IME могут быть заданы тестовыми qualifiers/insets.",
+    "Widget310UiTest содержит тестовый PlatformViewAnimator shadow для настоящей Android-логики анимации; это не реальный launcher/OEM-host.",
+    "Имена методов приведены как существующие примеры покрытия, не как список уже пройденных сценариев текущего запуска."
+  ],
+  "not_verified_on_device": [
+    "Физический Android и фактическая установка нового APK поверх установленного приложения.",
+    "Реальный launcher/OEM widget, его кеширование, объединение обновлений коллекции и визуальная плавность на телефоне.",
+    "Реальный OS process kill/force-stop/перезагрузка, энергосбережение и возврат из длительного фона; ActivityScenario.recreate и восстановление SavedState не равнозначны этим событиям.",
+    "Физический поворот устройства и реальная клавиатура/Gboard/IME; тестовые размеры и insets покрывают только модель компоновки.",
+    "Системная служба распознавания речи: проверяемые синтетические результаты/отмена Intent не означают проверку микрофона и голоса.",
+    "Внешние камера/галерея/поставщики файлов и реальные системные запросы, отказ и отзыв разрешений; тестовые файлы/медиа не заменяют эти проверки."
+  ],
+  "data_boundary": "Проверки отчёта используют отдельные тестовые БД/fixtures и сгенерированные данные; пользовательская рабочая БД не требуется для этой карты.",
+  "results": "test-summary.json"
+}

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Audit311CardUiTest" tests="6" failures="6" errors="0" skipped="0" time="149.94">
+    <testcase name="existingShopDepartmentSurvivesRecreationUntilManualCardSave[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="41.295">
+      <failure type="androidx.compose.ui.test.ComposeTimeoutException" />
+    </testcase>
+    <testcase name="pendingShopDepartmentCanStillBeCancelledAfterRecreation[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="32.331">
+      <failure type="androidx.compose.ui.test.ComposeTimeoutException" />
+    </testcase>
+    <testcase name="shopLinkEditingModeSurvivesRecreation[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="1.17">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="existingShopDepartmentSurvivesRecreationUntilManualCardSave" classname="com.spisokryadom.app.Audit311CardUiTest" time="41.114">
+      <failure type="androidx.compose.ui.test.ComposeTimeoutException" />
+    </testcase>
+    <testcase name="pendingShopDepartmentCanStillBeCancelledAfterRecreation" classname="com.spisokryadom.app.Audit311CardUiTest" time="32.701">
+      <failure type="androidx.compose.ui.test.ComposeTimeoutException" />
+    </testcase>
+    <testcase name="shopLinkEditingModeSurvivesRecreation" classname="com.spisokryadom.app.Audit311CardUiTest" time="1.311">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+  </testsuite>
+</testsuites>

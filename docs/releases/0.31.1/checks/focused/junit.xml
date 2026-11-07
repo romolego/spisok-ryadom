@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Audit311BackupTest" tests="6" failures="0" errors="0" skipped="0" time="17.041">
+    <testcase name="weakMatchesConsumeEachOriginalAtMostOnceAndPreserveSourceMultiplicity[28]" classname="com.spisokryadom.app.Audit311BackupTest" time="8.422" />
+    <testcase name="weakPrivacyMatchesDoNotDependOnIncomingOrder[28]" classname="com.spisokryadom.app.Audit311BackupTest" time="0.232" />
+    <testcase name="laterIdentityMatchRemainsReservedAgainstEarlierWeakMatches[28]" classname="com.spisokryadom.app.Audit311BackupTest" time="0.143" />
+    <testcase name="weakMatchesConsumeEachOriginalAtMostOnceAndPreserveSourceMultiplicity" classname="com.spisokryadom.app.Audit311BackupTest" time="7.954" />
+    <testcase name="weakPrivacyMatchesDoNotDependOnIncomingOrder" classname="com.spisokryadom.app.Audit311BackupTest" time="0.152" />
+    <testcase name="laterIdentityMatchRemainsReservedAgainstEarlierWeakMatches" classname="com.spisokryadom.app.Audit311BackupTest" time="0.125" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311CardUiTest" tests="10" failures="0" errors="0" skipped="0" time="80.137">
+    <testcase name="existingShopDepartmentSurvivesRecreationUntilManualCardSave[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="16.876" />
+    <testcase name="pendingShopDepartmentCanStillBeCancelledAfterRecreation[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="8.02" />
+    <testcase name="explicitNoDepartmentSurvivesRecreationAndCancelDoesNotWrite[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="7.156" />
+    <testcase name="shopLinkEditingModeSurvivesRecreation[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="1.171" />
+    <testcase name="explicitDepartmentSurvivesRecreationUntilManualCardSave[28]" classname="com.spisokryadom.app.Audit311CardUiTest" time="6.916" />
+    <testcase name="existingShopDepartmentSurvivesRecreationUntilManualCardSave" classname="com.spisokryadom.app.Audit311CardUiTest" time="16.858" />
+    <testcase name="pendingShopDepartmentCanStillBeCancelledAfterRecreation" classname="com.spisokryadom.app.Audit311CardUiTest" time="7.94" />
+    <testcase name="explicitNoDepartmentSurvivesRecreationAndCancelDoesNotWrite" classname="com.spisokryadom.app.Audit311CardUiTest" time="7.021" />
+    <testcase name="shopLinkEditingModeSurvivesRecreation" classname="com.spisokryadom.app.Audit311CardUiTest" time="1.182" />
+    <testcase name="explicitDepartmentSurvivesRecreationUntilManualCardSave" classname="com.spisokryadom.app.Audit311CardUiTest" time="6.98" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311DefaultsTest" tests="16" failures="0" errors="0" skipped="0" time="17.682">
+    <testcase name="dictionaryAliasesAreUniqueResolvableAndOnlyUseExistingClassifiers[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="7.358" />
+    <testcase name="typosAmongEquivalentHintsStillSupplyMetadata[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.238" />
+    <testcase name="exactClassifierWinsAndDeletedOrCustomRenamedClassifiersAreNotInvented[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.154" />
+    <testcase name="ambiguousGenericNamesAndCompetingMetadataAreNotGuessed[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.099" />
+    <testcase name="preservedStandardDepartmentAliasStillSuppliesNewProductDefaults[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.135" />
+    <testcase name="everydayHouseholdBabyAndPetGapsUsePurchaseUnitsWithoutSeedingCatalogue[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.15" />
+    <testcase name="preservedStandardCategoryAliasStillSuppliesNewProductDefaults[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.096" />
+    <testcase name="confidenceMarginIncludesCompetitorsJustOutsideAcceptanceThreshold[28]" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.076" />
+    <testcase name="dictionaryAliasesAreUniqueResolvableAndOnlyUseExistingClassifiers" classname="com.spisokryadom.app.Audit311DefaultsTest" time="8.32" />
+    <testcase name="typosAmongEquivalentHintsStillSupplyMetadata" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.205" />
+    <testcase name="exactClassifierWinsAndDeletedOrCustomRenamedClassifiersAreNotInvented" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.184" />
+    <testcase name="ambiguousGenericNamesAndCompetingMetadataAreNotGuessed" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.137" />
+    <testcase name="preservedStandardDepartmentAliasStillSuppliesNewProductDefaults" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.151" />
+    <testcase name="everydayHouseholdBabyAndPetGapsUsePurchaseUnitsWithoutSeedingCatalogue" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.172" />
+    <testcase name="preservedStandardCategoryAliasStillSuppliesNewProductDefaults" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.102" />
+    <testcase name="confidenceMarginIncludesCompetitorsJustOutsideAcceptanceThreshold" classname="com.spisokryadom.app.Audit311DefaultsTest" time="0.092" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311InputDataTest" tests="6" failures="0" errors="0" skipped="0" time="17.903">
+    <testcase name="everySameNameProductRemainsSelectableAndTheChosenIdentityIsAdded[28]" classname="com.spisokryadom.app.Audit311InputDataTest" time="8.267" />
+    <testcase name="pastedLinksEndAtUnicodeSpacesWithoutLosingQueryParameters[28]" classname="com.spisokryadom.app.Audit311InputDataTest" time="0.149" />
+    <testcase name="aVariantDisabledAfterPreviewRollsBackTheWholePackage[28]" classname="com.spisokryadom.app.Audit311InputDataTest" time="0.263" />
+    <testcase name="everySameNameProductRemainsSelectableAndTheChosenIdentityIsAdded" classname="com.spisokryadom.app.Audit311InputDataTest" time="8.814" />
+    <testcase name="pastedLinksEndAtUnicodeSpacesWithoutLosingQueryParameters" classname="com.spisokryadom.app.Audit311InputDataTest" time="0.125" />
+    <testcase name="aVariantDisabledAfterPreviewRollsBackTheWholePackage" classname="com.spisokryadom.app.Audit311InputDataTest" time="0.273" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311InputUiTest" tests="4" failures="0" errors="0" skipped="0" time="33.313">
+    <testcase name="thirteenthSameNameCandidateCanBeSelectedAndCancellationWritesNothing[28]" classname="com.spisokryadom.app.Audit311InputUiTest" time="15.879" />
+    <testcase name="landscapeInputKeepsItsExplanationReachableAndPreviewActionsVisible[28]" classname="com.spisokryadom.app.Audit311InputUiTest" time="1.048" />
+    <testcase name="thirteenthSameNameCandidateCanBeSelectedAndCancellationWritesNothing" classname="com.spisokryadom.app.Audit311InputUiTest" time="15.223" />
+    <testcase name="landscapeInputKeepsItsExplanationReachableAndPreviewActionsVisible" classname="com.spisokryadom.app.Audit311InputUiTest" time="1.149" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311RecoveryTest" tests="2" failures="0" errors="0" skipped="0" time="16.813">
+    <testcase name="productionOpenPreservesSchema27MediaAndPreferencesBeforeMigration28[28]" classname="com.spisokryadom.app.Audit311RecoveryTest" time="8.565" />
+    <testcase name="productionOpenPreservesSchema27MediaAndPreferencesBeforeMigration28" classname="com.spisokryadom.app.Audit311RecoveryTest" time="8.24" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Audit311WidgetTest" tests="8" failures="0" errors="0" skipped="0" time="42.329">
+    <testcase name="rapidRepeatsAndAnotherWidgetDoNotUndoTheRecordedPurchase[28]" classname="com.spisokryadom.app.Audit311WidgetTest" time="10.048" />
+    <testcase name="cachedCheckboxCannotChangeAnIdenticalPurchaseAfterFullRestore[28]" classname="com.spisokryadom.app.Audit311WidgetTest" time="2.787" />
+    <testcase name="staleFactoryCannotStampItsOldRowsWithTheRestoredDatabaseIdentity[28]" classname="com.spisokryadom.app.Audit311WidgetTest" time="1.429" />
+    <testcase name="cachedRevealAndLostProcessStateRespectDatabaseIdentity[28]" classname="com.spisokryadom.app.Audit311WidgetTest" time="5.936" />
+    <testcase name="rapidRepeatsAndAnotherWidgetDoNotUndoTheRecordedPurchase" classname="com.spisokryadom.app.Audit311WidgetTest" time="14.325" />
+    <testcase name="cachedCheckboxCannotChangeAnIdenticalPurchaseAfterFullRestore" classname="com.spisokryadom.app.Audit311WidgetTest" time="1.511" />
+    <testcase name="staleFactoryCannotStampItsOldRowsWithTheRestoredDatabaseIdentity" classname="com.spisokryadom.app.Audit311WidgetTest" time="0.525" />
+    <testcase name="cachedRevealAndLostProcessStateRespectDatabaseIdentity" classname="com.spisokryadom.app.Audit311WidgetTest" time="5.74" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Refine110UiTest" tests="12" failures="0" errors="0" skipped="0" time="42.01">
+    <testcase name="sharedTextUnderstandsContextualPavilionHeading[28]" classname="com.spisokryadom.app.Refine110UiTest" time="14.988" />
+    <testcase name="widgetRemoteViewsRenderScrollableRowsAndCheckedState[28]" classname="com.spisokryadom.app.Refine110UiTest" time="1.924" />
+    <testcase name="shareSendsVisibleEditedTextWithoutSavingBasket[28]" classname="com.spisokryadom.app.Refine110UiTest" time="0.95" />
+    <testcase name="productCardShowsMarketBeforePavilion[28]" classname="com.spisokryadom.app.Refine110UiTest" time="1.639" />
+    <testcase name="widgetAddIntentOpensAddPurchaseEvenFromAnotherScreen[28]" classname="com.spisokryadom.app.Refine110UiTest" time="1.21" />
+    <testcase name="movePickerSeparatesMarketAndPavilion[28]" classname="com.spisokryadom.app.Refine110UiTest" time="1.237" />
+    <testcase name="sharedTextUnderstandsContextualPavilionHeading" classname="com.spisokryadom.app.Refine110UiTest" time="14.721" />
+    <testcase name="widgetRemoteViewsRenderScrollableRowsAndCheckedState" classname="com.spisokryadom.app.Refine110UiTest" time="1.349" />
+    <testcase name="shareSendsVisibleEditedTextWithoutSavingBasket" classname="com.spisokryadom.app.Refine110UiTest" time="0.85" />
+    <testcase name="productCardShowsMarketBeforePavilion" classname="com.spisokryadom.app.Refine110UiTest" time="1.216" />
+    <testcase name="widgetAddIntentOpensAddPurchaseEvenFromAnotherScreen" classname="com.spisokryadom.app.Refine110UiTest" time="0.989" />
+    <testcase name="movePickerSeparatesMarketAndPavilion" classname="com.spisokryadom.app.Refine110UiTest" time="0.882" />
+  </testsuite>
+</testsuites>
