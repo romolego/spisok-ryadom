@@ -76,6 +76,7 @@ internal fun ProductEditDraft.editableOn(current: ProductCardUiState): ProductCa
     purchaseType = state.purchaseType, sellerUrl = state.sellerUrl, productUrl = state.productUrl,
     photos=state.photos,photoUri = state.photoUri, priceValue = state.priceValue, priceDate = state.priceDate,
     isTemporary = state.isTemporary, isFavorite = state.isFavorite, accent = state.accent,
+    isWidgetPrivate=state.isWidgetPrivate,widgetPrivacyKnown=state.widgetPrivacyKnown,
     preferCityShopOrder = state.preferCityShopOrder, pendingShopLinks = state.pendingShopLinks,
     shopLinks = state.shopLinks, pendingDepartments = state.pendingDepartments,
     branchSelections = state.branchSelections, branchDepartments = state.branchDepartments,

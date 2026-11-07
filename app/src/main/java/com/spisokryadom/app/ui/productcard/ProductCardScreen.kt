@@ -293,6 +293,9 @@ fun ProductCardScreen(
             )
 
             if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name,{createRecipient=false},done)},{createRecipient=false})
+            com.spisokryadom.app.ui.components.SelectionRow("Приватный товар в виджете",state.isWidgetPrivate,
+                {leaveName();viewModel.widgetPrivacy(it)},enabled=!state.isSaving,tag="widget_privacy")
+            if(state.isWidgetPrivate)Text("В виджете нажмите на скрытое название, чтобы показать его на 5 секунд.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             if(!state.isTemporary)ProductVariantsBar(state,viewModel)
             val defaultTypes=state.departmentTypes+state.pendingDepartments.filter{it.id==state.defaultDepartmentTypeId&&it.typeId==0L}.map{com.spisokryadom.app.data.entity.DepartmentTypeEntity(id=it.id,name=it.name,normalizedName=com.spisokryadom.app.util.FuzzySearch.normalize(it.name))}
             DropdownSelector(label="Группа магазинов по умолчанию",items=defaultTypes,

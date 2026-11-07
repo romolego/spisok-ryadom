@@ -48,6 +48,8 @@ class ProductDraftSynchronizer(private val preferences:SharedPreferences):Catalo
      defaultUnit=if(old.defaultUnit!=p.defaultUnit&&((draft.newSession&&!state.unitManuallySet)||Quantities.unit(state.defaultUnit)==Quantities.unit(old.defaultUnit.orEmpty())))p.defaultUnit.orEmpty()else state.defaultUnit,
      unitManuallySet=state.unitManuallySet||old.defaultUnit!=p.defaultUnit,
      isFavorite=if(old.isFavorite!=p.isFavorite)p.isFavorite else state.isFavorite,
+     isWidgetPrivate=if(old.isWidgetPrivate!=p.isWidgetPrivate)p.isWidgetPrivate else state.isWidgetPrivate,
+     widgetPrivacyKnown=state.widgetPrivacyKnown||old.isWidgetPrivate!=p.isWidgetPrivate,
      accent=if(old.accent!=p.accent)p.accent else state.accent,
      preferCityShopOrder=if(old.preferCityShopOrder!=p.preferCityShopOrder)p.preferCityShopOrder else state.preferCityShopOrder)
     val linksBefore=before.links.filter{it.productId==p.id}.associateBy{it.shopId};val linksAfter=after.links.filter{it.productId==p.id}.associateBy{it.shopId}

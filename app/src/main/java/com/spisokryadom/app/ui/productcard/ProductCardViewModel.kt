@@ -71,6 +71,7 @@ data class ProductCardUiState(
     val isCreatingDepartment:Boolean=false,
     val usedExistingId:Long?=null,
     val isFavorite:Boolean=false,val accent:String="",
+    val isWidgetPrivate:Boolean=false,val widgetPrivacyKnown:Boolean=true,
     val departmentTypes:List<com.spisokryadom.app.data.entity.DepartmentTypeEntity> = emptyList(),
     val name: String = "",
     val productGroupId: Long? = null,
@@ -303,7 +304,7 @@ class ProductCardViewModel(
                     isNew = false,categoryManuallySet=true,unitManuallySet=true,departmentManuallySet=true,
                     defaultDepartmentTypeId=defaultDepartment?.typeId,defaultDepartmentChosen=defaultDepartment!=null,
                     isTemporary = product.isTemporary,preferCityShopOrder=product.preferCityShopOrder,
-                    name = product.name,isFavorite=product.isFavorite,accent=product.accent,
+                    name = product.name,isFavorite=product.isFavorite,accent=product.accent,isWidgetPrivate=product.isWidgetPrivate,widgetPrivacyKnown=true,
                     productGroupId = product.productGroupId,
                     recipientId = product.recipientId,
                     defaultUnit = product.defaultUnit ?: "",
@@ -393,6 +394,7 @@ class ProductCardViewModel(
         edit { latest->latest.copy(preferCityShopOrder=value,pendingShopLinks=pending,shopLinks=links) }
     }
 
+    fun widgetPrivacy(value:Boolean){edit { latest->latest.copy(isWidgetPrivate=value,widgetPrivacyKnown=true) }}
     fun favorite(value:Boolean){edit { latest->latest.copy(isFavorite=value) }}
     fun accent(value:String){edit { latest->latest.copy(accent=value) }}
     fun createShop(name:String,done:(Long)->Unit)=createShop(name,done,{})
@@ -492,7 +494,7 @@ class ProductCardViewModel(
                 branchSelections=links.filter{it.restrictBranches}.associate{l->l.shopId to available.filter{branches[it]?.shopId==l.shopId}.toSet()},
                 branchPriorities=productRepository.branchPriorities(id).groupBy{it.shopId}.mapValues{(_,v)->v.sortedBy{it.displayOrder}.map{it.branchId}},branchDepartments=overrides)
             productId=id;editorStableId=p.stableId;lastCommitted=null;draftBase=raw
-            _uiState.value=next.copy(name=common.name,productGroupId=common.productGroupId,recipientId=common.recipientId,isFavorite=common.isFavorite,accent=common.accent,
+            _uiState.value=next.copy(name=common.name,productGroupId=common.productGroupId,recipientId=common.recipientId,isFavorite=common.isFavorite,accent=common.accent,isWidgetPrivate=common.isWidgetPrivate,widgetPrivacyKnown=common.widgetPrivacyKnown,
                 activeVariantId=id,savedProductId=id,isNew=false,isSaved=false,isLoading=false,isSaving=false,error=null,autoSaveIssue=null)
             keepDraftLocked();onReady()
         }}
@@ -759,7 +761,7 @@ class ProductCardViewModel(
                 require(keepDraftLocked()){"Товар удалён или заменён"}
                 if(_uiState.value.name.isNotBlank())productRepository.variants.transaction{
                     val common=_uiState.value
-                    visitedVariants.values.filter{it.productId!=productId}.forEach{d->d.copy(state=d.state.copy(name=common.name,productGroupId=common.productGroupId,recipientId=common.recipientId,isFavorite=common.isFavorite,accent=common.accent)).persist(productRepository)}
+                    visitedVariants.values.filter{it.productId!=productId}.forEach{d->d.copy(state=d.state.copy(name=common.name,productGroupId=common.productGroupId,recipientId=common.recipientId,isFavorite=common.isFavorite,accent=common.accent,isWidgetPrivate=common.isWidgetPrivate,widgetPrivacyKnown=common.widgetPrivacyKnown)).persist(productRepository)}
                     persistCurrent()
                 }else {
                     if(!leaving||productId>=0)error("Введите название товара")

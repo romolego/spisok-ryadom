@@ -35,9 +35,9 @@ class ProductInput300MigrationTest {
             db.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt)VALUES(60,40,2,'шт',1,0,100,200)")
             db.version=26
         }
-        val db=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_26_27).build()
+        val db=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_26_27,AppDatabase.MIGRATION_27_28).build()
         try{
-            assertEquals(27,db.openHelper.writableDatabase.version)
+            assertEquals(28,db.openHelper.writableDatabase.version)
             assertEquals("/missing-photo.jpg",db.productDao().getById(40)!!.photoUri)
             assertEquals(setOf(50L,51L,52L),db.productShopLinkDao().getAllSync().map{it.id}.toSet())
             assertEquals(20L,db.productInputDao().department(40)!!.typeId)

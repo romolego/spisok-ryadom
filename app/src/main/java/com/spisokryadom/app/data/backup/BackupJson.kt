@@ -32,6 +32,7 @@ internal data class BackupSnapshot(
  val bulkRuns:List<BulkPurchaseRun> = emptyList()
 )
 internal object BackupJson {
+ private fun privacy(o:JSONObject):Boolean {if(!o.has("isWidgetPrivate"))return false;require(o.get("isWidgetPrivate") is Boolean){"Неверная приватность товара"};return o.getBoolean("isWidgetPrivate")}
  private fun favorite(o:JSONObject):Boolean {if(!o.has("isFavorite"))return false;require(o.get("isFavorite") is Boolean){"Неверная отметка избранного"};return o.getBoolean("isFavorite")}
  private fun favoriteOrder(o:JSONObject):Int {if(!o.has("favoriteOrder"))return 0;val n=o.get("favoriteOrder");require((n is Int||n is Long)&&(n as Number).toLong() in 0..Int.MAX_VALUE.toLong()){"Неверный порядок избранного"};return (n as Number).toInt()}
 
@@ -51,9 +52,10 @@ internal object BackupJson {
   put("isTemporary",value.isTemporary)
   put("stableId",value.stableId)
   put("preferCityShopOrder",value.preferCityShopOrder)
-  put("isFavorite",value.isFavorite);put("accent",value.accent)
+  put("isFavorite",value.isFavorite);put("accent",value.accent);put("isWidgetPrivate",value.isWidgetPrivate)
  }
  fun products(o:JSONObject):ProductEntity = ProductEntity(
+  isWidgetPrivate=privacy(o),
   preferCityShopOrder=o.optBoolean("preferCityShopOrder",false),
   isFavorite=o.optBoolean("isFavorite",false),accent=o.optString("accent",""),
   id=if(o.has("id")&&!o.isNull("id"))o.getLong("id") else 0,

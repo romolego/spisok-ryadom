@@ -55,7 +55,7 @@ import com.spisokryadom.app.data.entity.UnitEntity
         ShopBranchEntity::class, ProductBranchAvailabilityEntity::class, com.spisokryadom.app.data.entity.ProductBranchPriorityEntity::class,
         CityEntity::class
     ],
-    version = 27,
+    version = 28,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -266,6 +266,11 @@ abstract class AppDatabase : RoomDatabase() {
             db.execSQL("UPDATE goal_lists SET isTemplate=0")
         }}
         val MIGRATION_26_27=object:Migration(26,27){override fun migrate(db:SupportSQLiteDatabase){ProductInputSchema.create(db);db.execSQL("INSERT INTO product_default_departments(productId,typeId) SELECT l.productId,MIN(d.typeId) FROM product_shop_links l JOIN shop_departments d ON d.id=l.departmentId GROUP BY l.productId HAVING COUNT(DISTINCT d.typeId)=1")}}
+        val MIGRATION_27_28=object:Migration(27,28){override fun migrate(db:SupportSQLiteDatabase){
+            db.execSQL("ALTER TABLE products ADD COLUMN isWidgetPrivate INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("DROP TRIGGER IF EXISTS product_family_common")
+            ProductVariantSchema.install(db)
+        }}
         val MIGRATION_25_26=object:Migration(25,26){override fun migrate(db:SupportSQLiteDatabase){
             ProductVariantSchema.create(db);ProductVariantSchema.install(db)
         }}
@@ -287,7 +292,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "spisok_ryadom.db"
                 )
                     .openHelperFactory(BeforeOpenHelperFactory{DatabaseRecovery.preserveBeforeUpgrade(appContext,27)})
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28)
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) { RetailConstraints.install(db) }
                         override fun onCreate(db: SupportSQLiteDatabase) {

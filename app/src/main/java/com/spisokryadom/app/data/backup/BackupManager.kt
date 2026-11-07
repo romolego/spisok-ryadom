@@ -142,8 +142,10 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   try{
    val root=if(isZip(file))readArchive(file,stage)else readJson(file.inputStream().use{bounded(it,MAX_JSON)})
    if(summary.full)require(!root.has("preferences")||root.get("preferences") is JSONObject){"Некорректный раздел настроек в копии"}
+   if(root.getInt("version")>=26){val rows=root.getJSONObject("data").getJSONArray("products");for(i in 0 until rows.length())require(rows.getJSONObject(i).has("isWidgetPrivate")){"Отсутствует настройка приватности товара"}}
    if(root.getInt("version")>=14)listOf("productGroups","departmentTypes").forEach{key->val a=root.getJSONObject("data").getJSONArray(key);for(i in 0 until a.length()){val row=a.getJSONObject(i);require(row.has("isFavorite")&&row.has("favoriteOrder")){"Отсутствует оформление избранных групп"}}}
    val raw=BackupJson.read(root)
+   if(summary.full&&root.getInt("version")<26)require(raw.products.none{it.isWidgetPrivate}){"Приватность требует копию новой версии"}
    if(root.getInt("version")>=23){val rows=root.getJSONObject("data").getJSONArray("shops");for(i in 0 until rows.length())require(rows.getJSONObject(i).has("cityGroupKey")){"Отсутствует связь городских адресов"}}
    if(root.getInt("version")<23)require(raw.shops.all{it.cityGroupKey.isEmpty()}&&raw.products.none{it.purchaseType=="both"}){"Городские профили и смешанный формат требуют копию новой версии"}
    if(root.getInt("version")>=22){val rows=root.getJSONObject("data").getJSONArray("shops");for(i in 0 until rows.length())require(rows.getJSONObject(i).has("isFavorite")&&rows.getJSONObject(i).has("favoriteOrder")){"Отсутствует настройка избранных магазинов"}}
@@ -229,7 +231,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
      }
     }
    }
-   else {mergeLegacy(incoming);committed=true}
+   else {val rows=root.getJSONObject("data").getJSONArray("products");val specified=(0 until rows.length()).map{rows.getJSONObject(it)}.filter{it.has("isWidgetPrivate")}.map{it.optLong("id",0)}.toSet();mergeLegacy(incoming,specified);committed=true}
    context.getSharedPreferences("spisok_ryadom_prefs",0).edit().putBoolean("DEMO_DATA_LOADED",true).apply()
    // Only after a successful commit; fresh draft photos are deliberately retained.
    runCatching{MediaLifecycle.cleanup(context,db)}
@@ -262,7 +264,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
    return null
   }
  }
- private suspend fun mergeLegacy(s:BackupSnapshot)=db.withTransaction {
+ private suspend fun mergeLegacy(s:BackupSnapshot,privacySpecified:Set<Long>)=db.withTransaction {
   validateLegacy(s)
   // Basket and preferences are not part of an old catalogue merge and need not be read.
   val before=BackupSnapshot(products=db.productDao().getAllSync(),groups=db.productGroupDao().getAllSync(),
@@ -297,7 +299,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   val previousLinks=before.links.groupBy{it.productId}
   fun linkKey(links:List<ProductShopLinkEntity>)=links.map{Triple(it.shopId,it.departmentId,it.priority)}
    .sortedWith(compareBy<Triple<Long,Long?,Int>>{it.first}.thenBy{it.second}.thenBy{it.third})
-  fun fields(p:ProductEntity)=p.copy(id=0,stableId="",photoUri=null,isTemporary=false)
+  fun fields(p:ProductEntity)=p.copy(id=0,stableId="",photoUri=null,isTemporary=false,isWidgetPrivate=false)
   val byStableId=before.products.associateBy{it.stableId}
   // Reserve identity matches before consuming any metadata matches, regardless of file order.
   val reserved=s.products.mapNotNull{byStableId[it.stableId]?.id}.toSet()
@@ -314,13 +316,13 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
    }
    val identityMatch=byStableId[product.stableId]
    val old=identityMatch?:if(mapped.photoUri==null)exactProducts.take(fields(mapped) to linkKey(links)){
-    it.id !in reserved&&it.id !in consumed
+    it.id !in reserved&&it.id !in consumed&&(product.id !in privacySpecified||it.isWidgetPrivate==mapped.isWidgetPrivate)
    }else null
    require(old==null||consumed.add(old.id)){"Несколько товаров копии имеют одну идентичность"}
    val id=when{
     old==null->db.productDao().insert(mapped)
     identityMatch!=null->{
-     db.productDao().update(mapped.copy(id=old.id,stableId=old.stableId,photoUri=mapped.photoUri?:old.photoUri));old.id
+     db.productDao().update(mapped.copy(id=old.id,stableId=old.stableId,photoUri=mapped.photoUri?:old.photoUri,isWidgetPrivate=if(product.id in privacySpecified)mapped.isWidgetPrivate else old.isWidgetPrivate));old.id
     }
     else->old.id // Exact metadata match: keep the existing record verbatim.
    }
@@ -363,7 +365,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   s.variants.forEach{v->
    require(v.productId in products&&v.familyId in products&&variants[v.familyId]?.familyId==v.familyId&&variants[v.familyId]?.productId==v.familyId&&v.label.isNotBlank()&&v.label.length<=200&&'\u0000' !in v.label&&v.displayOrder>=0){"Неверное семейство вариантов"}
    val p=productMap.getValue(v.productId);val f=productMap.getValue(v.familyId)
-   require(p.name==f.name&&p.productGroupId==f.productGroupId&&p.recipientId==f.recipientId&&p.isFavorite==f.isFavorite&&p.accent==f.accent&&!p.isTemporary&&!f.isTemporary){"Общие поля вариантов различаются"}
+   require(p.name==f.name&&p.productGroupId==f.productGroupId&&p.recipientId==f.recipientId&&p.isFavorite==f.isFavorite&&p.accent==f.accent&&p.isWidgetPrivate==f.isWidgetPrivate&&!p.isTemporary&&!f.isTemporary){"Общие поля вариантов различаются"}
   }
   require(s.variants.groupBy{it.familyId}.values.all{family->family.map{com.spisokryadom.app.util.FuzzySearch.normalize(it.label)}.distinct().size==family.size}){"Повторяющееся название варианта"}
   require(s.variantCities.map{it.productId to it.cityId}.distinct().size==s.variantCities.size){"Повторяющаяся настройка города варианта"}
@@ -491,7 +493,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=25;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=26;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}
