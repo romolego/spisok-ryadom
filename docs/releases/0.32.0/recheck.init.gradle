@@ -1,0 +1,5 @@
+allprojects { tasks.withType(Test).configureEach {
+ include 'com/spisokryadom/app/ProductInput300UiTest.class'
+ testLogging { exceptionFormat='full' }
+ afterSuite { d,r -> if(d.className!=null) println('USABILITY320 '+d.className+' '+r.testCount+' failed='+r.failedTestCount) }
+} }

@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Usability320DataTest" tests="14" failures="2" errors="0" skipped="0" time="22.608">
+    <testcase name="orderedShopGalleryRoundTripsFilesCaptionsAndMissingMedia[28]" classname="com.spisokryadom.app.Usability320DataTest" time="9.699" />
+    <testcase name="migration28KeepsExistingProductsPurchasesLogoAndPointPhotos[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.19">
+      <failure type="android.database.sqlite.SQLiteConstraintException" />
+    </testcase>
+    <testcase name="invalidShopPhotoArchiveFailsBeforeReplacingAnyData[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.267" />
+    <testcase name="tenCachedChecksCommitWithoutUndoingAnotherItem[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.583" />
+    <testcase name="widgetEyePersistsForTheFamilyAndNeverChangesPurchases[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.144" />
+    <testcase name="shopPhotoEditorSaveCancelAndCityProfilesStayIndependent[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.31" />
+    <testcase name="bulkDraftKeepsMixedChoicesAndNewNameAcrossBackAndNewViewModel[28]" classname="com.spisokryadom.app.Usability320DataTest" time="0.725" />
+    <testcase name="orderedShopGalleryRoundTripsFilesCaptionsAndMissingMedia" classname="com.spisokryadom.app.Usability320DataTest" time="8.695" />
+    <testcase name="migration28KeepsExistingProductsPurchasesLogoAndPointPhotos" classname="com.spisokryadom.app.Usability320DataTest" time="0.168">
+      <failure type="android.database.sqlite.SQLiteConstraintException" />
+    </testcase>
+    <testcase name="invalidShopPhotoArchiveFailsBeforeReplacingAnyData" classname="com.spisokryadom.app.Usability320DataTest" time="0.17" />
+    <testcase name="tenCachedChecksCommitWithoutUndoingAnotherItem" classname="com.spisokryadom.app.Usability320DataTest" time="0.365" />
+    <testcase name="widgetEyePersistsForTheFamilyAndNeverChangesPurchases" classname="com.spisokryadom.app.Usability320DataTest" time="0.163" />
+    <testcase name="shopPhotoEditorSaveCancelAndCityProfilesStayIndependent" classname="com.spisokryadom.app.Usability320DataTest" time="0.361" />
+    <testcase name="bulkDraftKeepsMixedChoicesAndNewNameAcrossBackAndNewViewModel" classname="com.spisokryadom.app.Usability320DataTest" time="0.749" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Usability320UiTest" tests="8" failures="4" errors="0" skipped="0" time="32.223">
+    <testcase name="bulkHelpIsOnDemandAndMicrophoneIsAtTheTop[28]" classname="com.spisokryadom.app.Usability320UiTest" time="14.77" />
+    <testcase name="bulkShowsInlineOptionsAndBackKeepsEveryChoiceAndTheSource[28]" classname="com.spisokryadom.app.Usability320UiTest" time="0.337">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="linkHasOneValuePlusOrPencilAndClipboardPasteWithoutDuplicatePreview[28]" classname="com.spisokryadom.app.Usability320UiTest" time="0.544">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="photoViewerUsesOnlyTopRightCloseAndKeepsPinchZoom[28]" classname="com.spisokryadom.app.Usability320UiTest" time="0.415" />
+    <testcase name="bulkHelpIsOnDemandAndMicrophoneIsAtTheTop" classname="com.spisokryadom.app.Usability320UiTest" time="14.742" />
+    <testcase name="bulkShowsInlineOptionsAndBackKeepsEveryChoiceAndTheSource" classname="com.spisokryadom.app.Usability320UiTest" time="0.335">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="linkHasOneValuePlusOrPencilAndClipboardPasteWithoutDuplicatePreview" classname="com.spisokryadom.app.Usability320UiTest" time="0.564">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase name="photoViewerUsesOnlyTopRightCloseAndKeepsPinchZoom" classname="com.spisokryadom.app.Usability320UiTest" time="0.499" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,16 @@
+{
+  "classes": 1,
+  "tests": 14,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "name": "com.spisokryadom.app.ProductInput300UiTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}
