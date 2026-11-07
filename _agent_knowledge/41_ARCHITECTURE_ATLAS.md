@@ -1,3 +1,5 @@
+Итерация0.31 —[62](62_WIDGET_PRIVACY_310.md), Room28/ZIP26. ProductEntity.isWidgetPrivate/общий family-trigger; ProductCardUiState/EditDraft/Synchronizer; BackupJson/Manager; ShoppingWidgetService/Provider и WidgetInteractionState, widget_purchase.xml/ViewFlipper +anim/widget_purchase_out.xml. Данные/CAS прежние, временные раскрытия/порядок отделены от базы.
+
 Итерация0.30 —[61_PRODUCT_INPUT_300.md](61_PRODUCT_INPUT_300.md), Room27/ZIP25. Исторические версии ниже не отменяют новые данные/сценарии.
 
 | Область0.30 | Код | Контракт |

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Widget310UiTest" tests="10" failures="0" errors="0" skipped="0" time="42.425">
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="peekOnlyChangesHostPresentationAndRehidesOnExpiryOrSecondTap[28]" time="14.205" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="productionPeekReceiverExpiresWithoutOpeningAppOrMutatingPurchase[28]" time="4.841" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="realRemoteViewsAnimateOnlyExplicitDepartureAndThenRestoreCanonicalOrder[28]" time="0.432" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="concealedRowAndReusedRemoteViewsContainNoPrivateTextOrQuantity[28]" time="0.519" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="hiddenBoughtStillAnimatesBeforeFilteringWithoutDeletingEntry[28]" time="0.495" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="peekOnlyChangesHostPresentationAndRehidesOnExpiryOrSecondTap" time="15.589" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="productionPeekReceiverExpiresWithoutOpeningAppOrMutatingPurchase" time="4.832" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="realRemoteViewsAnimateOnlyExplicitDepartureAndThenRestoreCanonicalOrder" time="0.627" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="concealedRowAndReusedRemoteViewsContainNoPrivateTextOrQuantity" time="0.473" />
+    <testcase classname="com.spisokryadom.app.Widget310UiTest" name="hiddenBoughtStillAnimatesBeforeFilteringWithoutDeletingEntry" time="0.364" />
+  </testsuite>
+</testsuites>

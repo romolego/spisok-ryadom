@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Widget260DataTest" tests="12" failures="0" errors="0" skipped="0" time="21.861">
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="storeAndProductPresentationAreIndependentAndNeverLeakAcrossOwnersOrModes[28]" time="9.451" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="malformedWidgetBooleansFailBeforeDatabasePreferencesOrGenerationChange[28]" time="0.756" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="widgetPreferencesKeepOldDefaultsAndRecoverFromWrongLocalTypes[28]" time="0.269" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="hidingBoughtFiltersBeforeEveryGroupingWithoutChangingAnyBasketOrOwner[28]" time="0.41" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="filteredAndRestyledFramesStillUseFreshIdempotentPurchaseTokens[28]" time="0.242" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="fullBackupRoundTripsWidgetOptionsAndOldCopiesUseCompatibleMissingDefaults[28]" time="0.507" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="storeAndProductPresentationAreIndependentAndNeverLeakAcrossOwnersOrModes" time="8.399" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="malformedWidgetBooleansFailBeforeDatabasePreferencesOrGenerationChange" time="0.684" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="widgetPreferencesKeepOldDefaultsAndRecoverFromWrongLocalTypes" time="0.217" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="hidingBoughtFiltersBeforeEveryGroupingWithoutChangingAnyBasketOrOwner" time="0.353" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="filteredAndRestyledFramesStillUseFreshIdempotentPurchaseTokens" time="0.197" />
+    <testcase classname="com.spisokryadom.app.Widget260DataTest" name="fullBackupRoundTripsWidgetOptionsAndOldCopiesUseCompatibleMissingDefaults" time="0.355" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Widget260UiTest" tests="13" failures="0" errors="0" skipped="0" time="47.396">
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="widgetEyePendingIntentHidesAndRestoresBoughtWithoutChangingAnyPurchase[28]" time="18.169" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="actualSettingsPersistIndependentGroupingVisibilityAndAppearanceAcrossRecreation[28]" time="2.103" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="shopAndProductTintAreIndependentAndRemoteViewsReapplyClearsRecycledColors[28]" time="0.793" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="disabledWidgetButtonDisappearsAndAnAlreadyRenderedStaleActionDoesNothing[28]" time="0.505" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="nativeRowsFollowProductGroupsAndFlatModeWithoutLosingPendingOrBoughtItems[28]" time="0.723" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="narrowWidgetAtLargestFontKeepsBothHeaderActionsReachableAndShowsHiddenState[28]" time="0.462" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="widgetEyePendingIntentHidesAndRestoresBoughtWithoutChangingAnyPurchase" time="17.409" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="actualSettingsPersistIndependentGroupingVisibilityAndAppearanceAcrossRecreation" time="2.936" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="shopAndProductTintAreIndependentAndRemoteViewsReapplyClearsRecycledColors" time="1.12" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="disabledWidgetButtonDisappearsAndAnAlreadyRenderedStaleActionDoesNothing" time="0.865" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="nativeRowsFollowProductGroupsAndFlatModeWithoutLosingPendingOrBoughtItems" time="0.894" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="narrowWidgetAtLargestFontKeepsBothHeaderActionsReachableAndShowsHiddenState" time="0.692" />
+    <testcase classname="com.spisokryadom.app.Widget260UiTest" name="lowLandscapeWidgetKeepsVisibilityActionAndScrollablePurchasesAtLargestFont" time="0.668" />
+  </testsuite>
+</testsuites>

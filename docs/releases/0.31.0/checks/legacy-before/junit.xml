@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Widget310DataTest" tests="2" failures="2" errors="0" skipped="0" time="17.687">
+    <testcase classname="com.spisokryadom.app.Widget310DataTest" name="legacyCatalogueWithoutFlagKeepsLocalPrivacyButExplicitFlagCanChangeIt[28]" time="8.896">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+    <testcase classname="com.spisokryadom.app.Widget310DataTest" name="legacyCatalogueWithoutFlagKeepsLocalPrivacyButExplicitFlagCanChangeIt" time="8.766">
+      <failure type="java.lang.AssertionError" />
+    </testcase>
+  </testsuite>
+</testsuites>

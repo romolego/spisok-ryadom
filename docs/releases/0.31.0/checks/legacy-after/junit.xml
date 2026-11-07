@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Widget310DataTest" tests="2" failures="0" errors="0" skipped="0">
+    <testcase classname="com.spisokryadom.app.Widget310DataTest" name="legacyCatalogueWithoutFlagKeepsLocalPrivacyButExplicitFlagCanChangeIt[28]" time="0.56" />
+    <testcase classname="com.spisokryadom.app.Widget310DataTest" name="legacyCatalogueWithoutFlagKeepsLocalPrivacyButExplicitFlagCanChangeIt" time="0.347" />
+  </testsuite>
+</testsuites>

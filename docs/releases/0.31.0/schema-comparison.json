@@ -1,0 +1,17 @@
+{
+  "from": 27,
+  "to": 28,
+  "entities": 26,
+  "changedTables": [
+    "products"
+  ],
+  "addedFields": [
+    {
+      "fieldPath": "isWidgetPrivate",
+      "columnName": "isWidgetPrivate",
+      "affinity": "INTEGER",
+      "notNull": true,
+      "defaultValue": "0"
+    }
+  ]
+}
