@@ -91,13 +91,13 @@ fun ProductCardScreen(
     var showAppearance by remember { mutableStateOf(false) }
     var createRecipient by remember { mutableStateOf(false) }
     var showNewGroupDialog by remember { mutableStateOf(false) }
-    var showAddShopLinkDialog by remember { mutableStateOf(false) }
+    var showAddShopLinkDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     // For new products, start in edit mode so the user can add shops immediately
-    var isShopLinksEditing by remember { mutableStateOf(productId == -1L) }
+    var isShopLinksEditing by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(productId == -1L) }
     // Department editing state
-    var editingPendingLinkId by remember { mutableStateOf<Long?>(null) }
-    var editingExistingLinkId by remember { mutableStateOf<Long?>(null) }
+    var editingPendingLinkId by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<Long?>(null) }
+    var editingExistingLinkId by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<Long?>(null) }
 
     // --- Dialogs ---
 
@@ -571,10 +571,10 @@ private fun AddShopLinkDialog(
     val placeLabels=com.spisokryadom.app.ui.components.LocalPlaceLabels.current
     var shopId by androidx.compose.runtime.saveable.rememberSaveable{mutableLongStateOf(0L)}
     var creatingShop by remember{mutableStateOf(false)}
-    var departmentId by remember(shopId){mutableStateOf<Long?>(null)}
+    var departmentId by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf<Long?>(null)}
     var points by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf<List<Long>?>(null)}
     var priority by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf(emptyList<Long>())}
-    var userSelected by remember(shopId){mutableStateOf(false)}
+    var userSelected by androidx.compose.runtime.saveable.rememberSaveable(shopId){mutableStateOf(false)}
     LaunchedEffect(shopId){if(shopId>0)onLoadDepartments(shopId)}
     LaunchedEffect(suggestedDepartmentId,departmentsShopId){if(departmentsShopId==shopId&&!userSelected)departmentId=suggestedDepartmentId}
     val validDepartments=departmentsForShop.filter{it.shopId==shopId}

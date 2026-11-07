@@ -260,7 +260,10 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   private val byKey=rows.groupBy(key).mapValues{(_,values)->java.util.ArrayDeque(values)}
   fun take(key:K,allowed:(T)->Boolean={true}):T? {
    val queue=byKey[key]?:return null
-   while(queue.isNotEmpty()){val row=queue.removeFirst();if(allowed(row))return row}
+   // A row rejected by this source item may still match a later item's privacy.
+   // Reserved/consumed identities remain excluded by the predicate on every pass.
+   val candidates=queue.iterator()
+   while(candidates.hasNext()){val row=candidates.next();if(allowed(row)){candidates.remove();return row}}
    return null
   }
  }

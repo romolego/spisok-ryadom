@@ -50,7 +50,11 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
             var peek:String?=null
             try { withTimeout(8_000){
                 val data=ShoppingWidgetData((appContext as SpisokRyadomApp).container)
+                // Restore updates the database and its local identity under this same lock.
+                // Validate and apply together; hold no editor lock during the visual delay.
+                com.spisokryadom.app.data.repository.ProductEditorTransactions.locked {
                 val revision=com.spisokryadom.app.util.DatabaseRevision.current(appContext)
+                if(intent.getStringExtra("database")!=revision)return@locked
                 val prefs=appContext.getSharedPreferences(WidgetSettings.PREFS,Context.MODE_PRIVATE)
                 val settings=WidgetSettings.load(prefs)
                 // The launcher can deliver a cached row after Android recreated our process.
@@ -59,18 +63,22 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
                     WidgetInteractionState.present(widgetId,revision,settings,data.presentation(settings,prefs.all["global_default_boost_urgent_shop"] as? Boolean?:true))
                 }
                 if(intent.hasExtra("peek")){
-                    if(widgetId==AppWidgetManager.INVALID_APPWIDGET_ID||intent.getStringExtra("database")!=revision)return@withTimeout
-                    val actual=data.rows().firstOrNull{it.id==row.id&&it.productStableId==row.productStableId&&it.createdAt==row.createdAt&&it.revision==row.revision&&it.isPrivate}?:return@withTimeout
-                    peek=WidgetInteractionState.reveal(widgetId,actual,intent.getStringExtra("peek")?:return@withTimeout)
+                    if(widgetId==AppWidgetManager.INVALID_APPWIDGET_ID)return@locked
+                    val actual=data.rows().firstOrNull{it.id==row.id&&it.productStableId==row.productStableId&&it.createdAt==row.createdAt&&it.revision==row.revision&&it.isPrivate}?:return@locked
+                    peek=WidgetInteractionState.reveal(widgetId,actual,intent.getStringExtra("peek")?:return@locked)
                     refresh(appContext)
-                    if(peek!=null)delay(WidgetInteractionState.PEEK_MS)
                 }else{
                     motion=WidgetInteractionState.begin(widgetId,row,revision)
                     if(data.check(row)){
                         refresh(appContext)
-                        if(motion!=null)delay(WidgetInteractionState.MOTION_MS)
+                    }else{
+                        motion?.let{WidgetInteractionState.settle(widgetId,row.id,it)}
+                        motion=null
                     }
                 }
+                }
+                if(peek!=null)delay(WidgetInteractionState.PEEK_MS)
+                else if(motion!=null)delay(WidgetInteractionState.MOTION_MS)
             }}
             catch(e:Exception){android.util.Log.w("ShoppingWidget","Cannot update widget",e)}
             finally{

@@ -21,24 +21,30 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
     override fun onCreate()=onDataSetChanged()
     override fun onDataSetChanged(){
         val prefs=context.getSharedPreferences(WidgetSettings.PREFS,Context.MODE_PRIVATE)
-        val settings=WidgetSettings.load(prefs)
-        val (items,departing)=runBlocking{
+        frame=runBlocking{
             val container=(context.applicationContext as SpisokRyadomApp).container
             val data=ShoppingWidgetData(container)
+            com.spisokryadom.app.data.repository.ProductEditorTransactions.locked {
+            val settings=WidgetSettings.load(prefs)
             val boost=prefs.all["global_default_boost_urgent_shop"] as? Boolean?:true
             container.database.withTransaction {
+            val revision=com.spisokryadom.app.util.DatabaseRevision.current(context)
             val canonical=data.presentation(settings,boost)
             val all=if(!settings.showBought&&WidgetInteractionState.moving(widgetId))data.presentation(settings.copy(showBought=true),boost)else canonical
-            WidgetInteractionState.present(widgetId,com.spisokryadom.app.util.DatabaseRevision.current(context),settings,canonical,all)
+            val (items,departing)=WidgetInteractionState.present(widgetId,revision,settings,canonical,all)
+            WidgetFrame(settings,items,departing,com.spisokryadom.app.util.FavoriteAppearance.read(prefs).purchaseRow,revision)
+            }
             }
         }
-        frame=WidgetFrame(settings,items,departing,com.spisokryadom.app.util.FavoriteAppearance.read(prefs).purchaseRow)
     }
     override fun onDestroy(){frame=WidgetFrame()}
     override fun getCount()=frame.items.size
     override fun getViewAt(position:Int):RemoteViews? {
         val snapshot=frame
         val item=snapshot.items.getOrNull(position)?:return null
+        // A launcher may ask an old factory for another row after full restore.
+        // Never relabel that old snapshot with the new database's action identity.
+        if(snapshot.databaseRevision!=com.spisokryadom.app.util.DatabaseRevision.current(context))return null
         val size=snapshot.settings.textSize
         if(item is WidgetItem.Header)return RemoteViews(context.packageName,R.layout.widget_section).apply {
             setInt(R.id.widget_section,"setBackgroundColor",WidgetAppearance.shopBackground(item,snapshot.settings))
@@ -72,10 +78,10 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
                 (if(row.bought)Paint.STRIKE_THRU_TEXT_FLAG else 0) or (if(bold)Paint.FAKE_BOLD_TEXT_FLAG else 0))
             setImageViewResource(R.id.widget_check,if(row.bought)R.drawable.widget_checked else R.drawable.widget_unchecked)
             setContentDescription(R.id.widget_check,(if(row.bought)"Вернуть: "else "Отметить купленным: ")+if(hidden)"скрытый товар"else row.title)
-            setOnClickFillInIntent(R.id.widget_check,ShoppingWidgetProvider.checkIntent(row))
+            setOnClickFillInIntent(R.id.widget_check,ShoppingWidgetProvider.checkIntent(row).putExtra("database",snapshot.databaseRevision))
             setContentDescription(R.id.widget_item_text,if(hidden)"Скрытый товар. Нажмите, чтобы показать на 5 секунд"else if(row.isPrivate)"${row.title}. ${row.detail}. Нажмите, чтобы скрыть"else null)
             setOnClickFillInIntent(R.id.widget_item_text,if(row.isPrivate)ShoppingWidgetProvider.peekIntent(row,peek.orEmpty())
-                .putExtra("database",com.spisokryadom.app.util.DatabaseRevision.current(context))else Intent().putExtra("open",true))
+                .putExtra("database",snapshot.databaseRevision)else Intent().putExtra("open",true))
             // ViewFlipper is supported by RemoteViews, including Android 8. No per-frame IPC.
             setInt(R.id.widget_purchase_motion,"setDisplayedChild",if(row.id in snapshot.departing)1 else 0)
         }

@@ -2,6 +2,7 @@ package com.spisokryadom.app.data.repository
 
 import androidx.room.withTransaction
 import com.spisokryadom.app.data.db.AppDatabase
+import com.spisokryadom.app.data.db.StandardCategories
 import com.spisokryadom.app.data.entity.*
 import com.spisokryadom.app.util.FuzzySearch
 import com.spisokryadom.app.domain.ProductHints
@@ -57,11 +58,18 @@ class ProductInputRepository(private val db:AppDatabase) {
         return rule.typeId?.let{placement(shopId,it)}
     }
     data class Suggestion(val categoryId:Long?,val unit:String?,val departmentTypeId:Long?)
+    private fun classifierId(name:String,standards:List<StandardCategories.Category>,rows:List<Pair<Long,String>>):Long? {
+        val key=FuzzySearch.normalize(name)
+        rows.firstOrNull{FuzzySearch.normalize(it.second)==key}?.let{return it.first}
+        // Installation preserves these historical names instead of adding a canonical duplicate.
+        val aliases=standards.find{FuzzySearch.normalize(it.name)==key}?.aliases.orEmpty().map(FuzzySearch::normalize).toSet()
+        return rows.filter{FuzzySearch.normalize(it.second) in aliases}.singleOrNull()?.first
+    }
     suspend fun suggest(name:String):Suggestion {
         val policy=settings()
         val hint=if(policy.prefillEnabled)ProductHints.match(name)else null
-        val category=hint?.takeIf{policy.prefillCategory}?.let{h->db.productGroupDao().getAllSync().find{FuzzySearch.normalize(it.name)==FuzzySearch.normalize(h.category)}?.id}
-        val department=hint?.takeIf{policy.prefillDepartment}?.let{h->db.shopDepartmentDao().types().find{FuzzySearch.normalize(it.name)==FuzzySearch.normalize(h.department)}?.id}
+        val category=hint?.takeIf{policy.prefillCategory}?.let{h->classifierId(h.category,StandardCategories.groups,db.productGroupDao().getAllSync().map{it.id to it.name})}
+        val department=hint?.takeIf{policy.prefillDepartment}?.let{h->classifierId(h.department,StandardCategories.departments,db.shopDepartmentDao().types().map{it.id to it.name})}
         return Suggestion(category,hint?.unit?.takeIf{policy.prefillUnit},department)
     }
 }

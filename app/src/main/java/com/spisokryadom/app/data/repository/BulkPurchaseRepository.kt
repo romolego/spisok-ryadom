@@ -19,7 +19,7 @@ class BulkPurchaseRepository(private val db:AppDatabase,private val basket:Shopp
         val ranked=FuzzySearch.rank(products,query,{it.name})
         val words=FuzzySearch.normalize(query).split(Regex("[\\s-]+" )).filter{it.length>=3}.distinct()
         val related=if(words.size>1)words.flatMap{word->FuzzySearch.rank(products,word,{it.name})}else emptyList()
-        return (ranked+related).distinctBy{it.id}.take(12)
+        return (ranked+related).distinctBy{it.id}
     }
     suspend fun preview(text:String,cityId:Long):List<BulkProductRow> = db.withTransaction {
         BulkProductInput.split(text).mapIndexed{index,name->

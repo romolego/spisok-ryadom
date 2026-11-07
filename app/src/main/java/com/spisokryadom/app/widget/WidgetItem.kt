@@ -15,4 +15,5 @@ sealed interface WidgetItem {
 
 data class WidgetFrame(val settings: WidgetSettings = WidgetSettings(), val items: List<WidgetItem> = emptyList(),
     val departing:Set<Long> = emptySet(),
-    val favoriteStyle: com.spisokryadom.app.util.FavoriteStyle = com.spisokryadom.app.util.FavoriteStyle(color="#F1CF78"))
+    val favoriteStyle: com.spisokryadom.app.util.FavoriteStyle = com.spisokryadom.app.util.FavoriteStyle(color="#F1CF78"),
+    val databaseRevision:String="")

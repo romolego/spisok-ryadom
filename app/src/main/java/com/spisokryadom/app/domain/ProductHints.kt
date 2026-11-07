@@ -55,6 +55,8 @@ object ProductHints {
             Имбирь|корень имбиря
             Сельдерей|стебли сельдерея
             Кукуруза в початках
+            Репа
+            Батат
         """))
         addAll(section("Продукты","Овощи/фрукты","упак","""
             Укроп
@@ -77,6 +79,8 @@ object ProductHints {
             Клюква
             Вишня
             Черешня
+            Щавель
+            Салат айсберг|айсберг
         """))
         addAll(section("Продукты","Крупы","упак","""
             Гречка|гречневая крупа
@@ -169,6 +173,7 @@ object ProductHints {
             Филе индейки|индейка
             Свинина
             Говядина
+            Баранина
             Печень
             Сосиски
             Сардельки
@@ -194,6 +199,8 @@ object ProductHints {
             Крабовые палочки
             Икра
             Рыбное филе
+            Лосось
+            Хек
         """))
         addAll(section("Продукты","Выпечка","шт","""
             Хлеб
@@ -224,6 +231,8 @@ object ProductHints {
             Огурцы солёные|солёные огурцы
             Томатная паста
             Кабачковая икра
+            Килька в томате
+            Сардины консервированные
         """))
         addAll(section("Продукты","Заморозка","упак","""
             Пельмени
@@ -236,6 +245,11 @@ object ProductHints {
             Тесто дрожжевое
             Мороженое
             Пицца замороженная
+            Фасоль стручковая замороженная|замороженная стручковая фасоль
+            Брокколи замороженная|замороженная брокколи
+        """))
+        addAll(section("Продукты","Гастроном (готовая еда)","упак","""
+            Салат готовый|готовый салат
         """))
         addAll(section("Продукты","Соусы и специи","упак","""
             Майонез
@@ -336,6 +350,11 @@ object ProductHints {
             Крем для рук
             Бальзам для волос
             Ополаскиватель для рта
+            Крем для лица
+            Крем для тела
+            Лосьон для тела
+            Средство для снятия макияжа
+            Солнцезащитный крем|крем от солнца
         """))
         addAll(section("Гигиена и косметика","Гигиена и косметика","упак","""
             Ватные диски
@@ -344,6 +363,45 @@ object ProductHints {
             Тампоны
             Бритвенные кассеты
         """))
+        addAll(section("Детские товары","Детские товары","упак","""
+            Подгузники|памперсы
+            Пелёнки одноразовые|одноразовые пелёнки
+            Детская смесь|смесь детская
+            Детская каша|каша детская
+            Детское пюре|пюре детское
+            Детское печенье
+        """))
+        addAll(section("Зоотовары","Корма и товары для животных","упак","""
+            Корм для кошек|кошачий корм
+            Корм для собак|собачий корм
+            Наполнитель для кошачьего туалета|кошачий наполнитель
+            Пелёнки для животных
+            Лакомства для кошек
+            Лакомства для собак
+        """))
+        addAll(section("Товары для дома","Товары для дома","упак","""
+            Пакеты для мусора|мусорные пакеты
+            Губки для посуды
+            Перчатки хозяйственные
+            Тряпки для уборки|салфетки для уборки
+            Мешки для пылесоса
+            Батарейки
+        """))
+        addAll(section("Товары для дома","Товары для дома","шт","""
+            Ролик для одежды
+            Щётка для обуви
+            Лампочка
+            Свеча
+        """))
+        addAll(section("Посуда и кухня","Посуда и кухня","упак","""
+            Фольга пищевая|пищевая фольга
+            Бумага для выпечки|пергамент для выпечки
+            Плёнка пищевая|пищевая плёнка
+            Пакеты для заморозки
+            Пакеты для запекания|рукав для запекания
+            Зубочистки
+            Шпажки деревянные
+        """))
     }
     private data class Alias(val text:String,val hint:Hint)
     private val aliases=entries.flatMap{h->h.aliases.map{Alias(it,h)}}
@@ -351,10 +409,18 @@ object ProductHints {
     fun match(name:String):Hint? {
         val query=FuzzySearch.normalize(name)
         if(query.length !in 3..150)return null
-        val ranked=index.search(query,0.42).distinctBy{it.hint.name}
+        // Include the full confidence margin so a close runner-up just outside the
+        // acceptance threshold cannot be mistaken for an absent competitor.
+        val ranked=index.search(query,0.52).distinctBy{it.hint.name}
         val first=ranked.firstOrNull()?:return null
         val score=FuzzySearch.score(first.text,query)
-        val second=ranked.getOrNull(1)?.let{FuzzySearch.score(it.text,query)}?:1.0
+        if(score>=0.42)return null
+        // A typo may match several milk/sugar varieties with identical defaults. The hint
+        // only fills metadata, never renames the user's product. Short prefixes stay cautious.
+        val competitor=if(score>=0.15)ranked.drop(1).firstOrNull{
+            it.hint.category!=first.hint.category||it.hint.department!=first.hint.department||it.hint.unit!=first.hint.unit
+        }else ranked.getOrNull(1)
+        val second=competitor?.let{FuzzySearch.score(it.text,query)}?:1.0
         return first.hint.takeIf{score==0.0||second-score>=0.10}
     }
 }

@@ -26,7 +26,7 @@ fun BulkProductSheet(shopId:Long?,branchId:Long?,onDismiss:()->Unit,onAdded:()->
     LaunchedEffect(state.completed){if(state.completed){viewModel.consumeCompletion();onAdded()}}
     val choosing=state.choosing!=null
     EditorSheet(if(choosing)"Выбрать товар"else if(state.preview)"Проверить товары"else "Добавить несколько товаров",onDismiss,
-        busy=state.busy,scrollContent=false,actions={
+        busy=state.busy,scrollContent=!state.preview&&!choosing,actions={
             TextButton(onClick=onDismiss,enabled=!state.busy){Text("Отмена")}
             if(state.preview||choosing)TextButton(onClick={focus.clearFocus();viewModel.back()},enabled=!state.busy){Text("Назад")}
             if(!choosing)Button(onClick={focus.clearFocus();if(state.preview)viewModel.add(shopId,branchId)else viewModel.prepare()},
