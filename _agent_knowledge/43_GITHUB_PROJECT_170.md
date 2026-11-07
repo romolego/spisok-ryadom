@@ -1,4 +1,4 @@
-Итерация0.31.1 —[63_INTEGRITY_AUDIT_311.md](63_INTEGRITY_AUDIT_311.md). Проверенная сборка подготовлена к прямо порученной пользователем публикации. Подтверждение GitHub и повторного скачивания будет внесено после фактической публикации; промежуточный статус не означает опубликованный релиз.
+Итерация0.31.1 —[63_INTEGRITY_AUDIT_311.md](63_INTEGRITY_AUDIT_311.md). Публикация завершена: [PR](https://github.com/romolego/spisok-ryadom/pull/8) слит обычным merge вmain, [v0.31.1](https://github.com/romolego/spisok-ryadom/releases/tag/v0.31.1) опубликован. Все7 файлов повторно скачаны без авторизации, размеры/SHA256 и CRC ZIP совпали. Source commit `b907e27ea6ba043b620a2d716ae508639b86043a`, merge/tag `52f497b2d281c1d64954a0ca7e6fcb997ff3b8f1`. Публичный source ZIP соответствует390 проверенным файлам. Квитанция —`docs/publications/0.31.1.json`.
 
 <!-- audit311-current-end -->
 

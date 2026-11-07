@@ -65,5 +65,9 @@
     "Native Robolectric does not replace real process death, background/resume, keyboard/voice, external media permissions or an OEM launcher.",
     "Launcher may coalesce widget transitions. Force-stop during privacy reveal can delay masking until refresh."
   ],
-  "publication": "pending"
+  "publication": {
+    "status": "published-and-anonymously-verified",
+    "release": "https://github.com/romolego/spisok-ryadom/releases/tag/v0.31.1",
+    "receipt": "../../publications/0.31.1.json"
+  }
 }

@@ -1,0 +1,76 @@
+{
+  "repository": "https://github.com/romolego/spisok-ryadom",
+  "version": "0.31.1",
+  "applicationName": "Список покупок",
+  "codeCommit": "a50e0980b9908234bca0ad48980284d570a636ed",
+  "sourceCommit": "b907e27ea6ba043b620a2d716ae508639b86043a",
+  "mergeCommit": "52f497b2d281c1d64954a0ca7e6fcb997ff3b8f1",
+  "tag": "v0.31.1",
+  "release": "https://github.com/romolego/spisok-ryadom/releases/tag/v0.31.1",
+  "releaseId": 437578622,
+  "pullRequest": "https://github.com/romolego/spisok-ryadom/pull/8",
+  "pullRequestMerged": true,
+  "publicUnauthenticatedDownloadsVerified": true,
+  "sourceArchiveMatchesSealedFiles": 390,
+  "assets": [
+    {
+      "name": "Audit-evidence-0.31.1.zip",
+      "bytes": 750798,
+      "sha256": "6fa41562268e4bfbca464c45f8b43733cb77e8e57377033574e33f3c4a559616",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.31.1/Audit-evidence-0.31.1.zip",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "Changes-0.31.1.md",
+      "bytes": 3673,
+      "sha256": "d974e49bbb9e934d151d04ed36ef35de7ba3df0afb36230e4a22277ecdc63ce9",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.31.1/Changes-0.31.1.md",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "SHA256SUMS-v0.31.1.txt",
+      "bytes": 543,
+      "sha256": "f8cc0dd6cd91870609b25e1f254d7f1a76755fe7706f4f42a4280aeecb0401bb",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.31.1/SHA256SUMS-v0.31.1.txt",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "SpisokPokupok-0.31.1.apk",
+      "bytes": 2235430,
+      "sha256": "a4298566fe44fd7d92b8a40ffe5b7227ccebaa8c13c77847926fdec8ca90b40c",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.31.1/SpisokPokupok-0.31.1.apk",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "SpisokPokupok-source-0.31.1.zip",
+      "bytes": 20267899,
+      "sha256": "6bf99810ac056fd3a18f8d64245087cf42320e8c0cffe6513e23815099717497",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.31.1/SpisokPokupok-source-0.31.1.zip",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "USER_GUIDE-0.31.1.md",
+      "bytes": 26095,
+      "sha256": "b51e00bfaa647d19f32be71cb7dbcd0f5a700e208906c05db59bd775cca6f496",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.31.1/USER_GUIDE-0.31.1.md",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    },
+    {
+      "name": "Verification-0.31.1.json",
+      "bytes": 2195,
+      "sha256": "4ff1e6e4195bd317eda29faaeaf1cd64e7206e5f26a4c1d456e5fb6a0fbe4e79",
+      "url": "https://github.com/romolego/spisok-ryadom/releases/download/v0.31.1/Verification-0.31.1.json",
+      "downloadVerified": true,
+      "authenticationUsed": false
+    }
+  ],
+  "physicalAndroidTested": false,
+  "personalArchivesPublished": false,
+  "signingKeyPublished": false
+}
