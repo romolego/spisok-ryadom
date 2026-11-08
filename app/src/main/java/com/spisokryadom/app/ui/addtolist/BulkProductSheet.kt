@@ -27,7 +27,10 @@ fun BulkProductSheet(shopId:Long?,branchId:Long?,onDismiss:()->Unit,onAdded:()->
     val focus=androidx.compose.ui.platform.LocalFocusManager.current
     val snack=remember{SnackbarHostState()}
     val scope=rememberCoroutineScope()
-    LaunchedEffect(state.completed){if(state.completed){viewModel.consumeCompletion();scope.launch{snack.showSnackbar("Товары добавлены")}}}
+    LaunchedEffect(state.completed){if(state.completed){
+        viewModel.consumeCompletion()
+        if(state.queue.isEmpty())onAdded()else scope.launch{snack.showSnackbar("Товары добавлены")}
+    }}
     val choosing=state.choosing!=null
     val close={focus.clearFocus();viewModel.enqueue();onDismiss()}
     EditorSheet(if(choosing)"Выбрать товар"else if(state.preview)"Проверить товары"else "Добавить несколько товаров",close,
