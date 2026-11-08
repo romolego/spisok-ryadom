@@ -25,7 +25,10 @@ internal object WidgetPurchaseMotion {
         // New/deleted purchases and replacement identities bypass cached presentation.
         if(canonical.filterIsInstance<WidgetItem.Purchase>().any{it.row.id !in oldIds}||
             old.any{item->actual[item.row.id]?.row?.let{it.productStableId!=item.row.productStableId||it.createdAt!=item.row.createdAt}!=false})host.leaving.clear()
-        host.leaving.entries.removeAll{(id,until)->until<=now||actual[id]?.row?.bought!=true}
+        host.leaving.entries.removeAll{(id,_)->actual[id]?.row?.bought!=true}
+        // Keep completed departures blank while a later row is still moving. Rebinding an
+        // expired row as visible in the old frame would make it jump back before sorting.
+        if(host.leaving.values.none{it>now})host.leaving.clear()
         val frame=if(host.leaving.isEmpty())canonical else host.frame.map{item->if(item is WidgetItem.Purchase)actual.getValue(item.row.id)else item}
         host.frame=frame
         return frame to host.leaving.keys.toSet()

@@ -68,6 +68,10 @@ class WidgetQueue330DataTest {
         basket.markBought(next);basket.clearBoughtEntries();val visible=basket.addProduct(product)
         assertFalse(data.rows().single{it.id==visible}.hidden)
         hideDefault=true;assertFalse(data.rows().single{it.id==visible}.hidden) // Setting is captured at creation.
+        hideDefault=false
+        assertTrue(data.visibility(data.rows().single{it.id==visible},false))
+        assertTrue(data.check(data.rows().single{it.id==visible}))
+        assertTrue("Buying must never disclose a concealed name, even with a visible creation default",db.shoppingListEntryDao().getById(visible)!!.widgetHidden)
     }
     @Test fun widgetSettingAndPurchaseDisclosureRoundTripAndOldCopyDefaultsHidden():Unit=runBlocking {
         val prefs=app.getSharedPreferences(WidgetSettings.PREFS,0);prefs.edit().clear().commit()
@@ -108,6 +112,8 @@ class WidgetQueue330DataTest {
         vm.quantity(1,"0");assertTrue(vm.state.value.rows.isEmpty())
         assertEquals("",vm.state.value.text);assertFalse(vm.state.value.preview)
         vm.clear();assertEquals("",vm.state.value.text);assertFalse(vm.state.value.preview)
+        vm.text("Лук");prepared(vm);vm.back();vm.text("")
+        assertTrue("Clearing the input must also discard its old preview",vm.state.value.rows.isEmpty())
         vm.text("Первый");vm.enqueue();val first=vm.state.value.queue.single().id
         vm.text("Второй");vm.openQueued(first);waitFor{!vm.state.value.busy}
         assertEquals(2,vm.state.value.queue.size);assertTrue(vm.state.value.queue.any{it.text=="Второй"})
@@ -147,7 +153,7 @@ class WidgetQueue330DataTest {
             migrated.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}
         }finally{migrated.close();app.deleteDatabase(name)}
     }
-    @Test fun fastIndependentMotionNeverExtendsAnotherRowsDeadline(){
+    @Test fun fastBatchKeepsDepartedRowsHiddenUntilSingleReorder(){
         val settings=WidgetSettings();val a=WidgetPurchase(1,"a",1,1,false,"А","1",false,"a")
         val b=WidgetPurchase(2,"b",2,2,false,"Б","1",false,"b")
         val before=listOf(WidgetItem.Purchase(a),WidgetItem.Purchase(b))
@@ -157,7 +163,7 @@ class WidgetQueue330DataTest {
         assertEquals(setOf(1L),WidgetPurchaseMotion.present(1,"db",settings,afterA,afterA,20).second)
         WidgetPurchaseMotion.begin(b,"db",100)
         val afterBoth=listOf(WidgetItem.Purchase(a.copy(bought=true,revision="a2")),WidgetItem.Purchase(b.copy(bought=true,revision="b2")))
-        assertEquals(setOf(2L),WidgetPurchaseMotion.present(1,"db",settings,afterBoth,afterBoth,190).second)
+        assertEquals(setOf(1L,2L),WidgetPurchaseMotion.present(1,"db",settings,afterBoth,afterBoth,190).second)
         assertEquals(emptySet<Long>(),WidgetPurchaseMotion.present(1,"db",settings,afterBoth,afterBoth,281).second)
         assertEquals(afterBoth,WidgetPurchaseMotion.present(1,"new-db",settings,afterBoth,afterBoth,282).first)
     }

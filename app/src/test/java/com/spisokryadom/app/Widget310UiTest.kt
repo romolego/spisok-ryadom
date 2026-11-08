@@ -139,8 +139,13 @@ class Widget310UiTest {
         val flipper=first.findViewById<ViewFlipper>(R.id.widget_purchase_motion)
         assertEquals(1,flipper.displayedChild);assertNotNull(flipper.outAnimation);assertEquals(140L,flipper.outAnimation.duration)
         assertNotNull(flipper.getChildAt(0).animation)
-        assertTrue(data.check(data.rows().single{it.id==plain})) // The next input never waits for motion.
-        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200));f.onDataSetChanged();rv(f,secret).reapply(app,first)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
+        val next=data.rows().single{it.id==plain}
+        assertTrue(data.check(next));WidgetPurchaseMotion.begin(next,DatabaseRevision.current(app)) // No input lock.
+        f.onDataSetChanged();rv(f,secret).reapply(app,first)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100));f.onDataSetChanged();rv(f,secret).reapply(app,first)
+        assertEquals("An earlier departure must not flash back during a later one",1,flipper.displayedChild)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100));f.onDataSetChanged();rv(f,secret).reapply(app,first)
         assertEquals(0,first.findViewById<ViewFlipper>(R.id.widget_purchase_motion).displayedChild)
         assertFalse(title(first).contains("Личный товар"));shot("bought-masked",first)
     }

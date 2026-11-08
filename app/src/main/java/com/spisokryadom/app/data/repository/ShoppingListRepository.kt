@@ -205,7 +205,7 @@ class ShoppingListRepository(private val entryDao: ShoppingListEntryDao, private
         }
     }
     suspend fun removeEntry(id: Long, strictVisible: Boolean = false, regularOnly: Boolean = false)=db.withTransaction { requireVisibleEntry(id, strictVisible, regularOnly); entryDao.deleteById(id);db.productDao().deleteUnusedTemporary() }
-    suspend fun markBought(id: Long, strictVisible: Boolean = false)=db.withTransaction { requireVisibleEntry(id, strictVisible); entryDao.markBought(id); entryDao.widgetVisibility(id,widgetDefault()) }
+    suspend fun markBought(id: Long, strictVisible: Boolean = false)=db.withTransaction { requireVisibleEntry(id, strictVisible); entryDao.markBought(id); entryDao.widgetVisibility(id,true) }
     suspend fun markNotBought(id: Long, strictVisible: Boolean = false)=db.withTransaction { requireVisibleEntry(id, strictVisible); entryDao.markNotBought(id); entryDao.widgetVisibility(id,widgetDefault()) }
     suspend fun toggleUrgent(id: Long,strictPending:Boolean=false)=db.withTransaction{requireVisibleEntry(id, strictPending);val row=entryDao.getById(id)?:error("Покупка удалена");require(!strictPending||!row.isBought){"Срочность доступна для некупленных"};entryDao.toggleUrgency(id)}
     suspend fun clearBoughtEntries()=db.withTransaction {entryDao.clearBought();db.productDao().deleteUnusedTemporary()}

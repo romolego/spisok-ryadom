@@ -89,7 +89,11 @@ class BulkProductViewModel(private val repository:BulkPurchaseRepository,private
             if(token==batchToken)update{it.copy(matches=found)}
         }catch(e:Exception){if(e is CancellationException)throw e;update{it.copy(error=e.message)}}}
     }
-    fun text(value:String){if(!_state.value.busy)update{if(value.length>BulkProductInput.MAX_TEXT)it.copy(error="Слишком длинный текст: до 16000 символов")else it.copy(text=value,error=null)}}
+    fun text(value:String){
+        if(_state.value.busy)return
+        if(value.isBlank()){clear();return}
+        update{if(value.length>BulkProductInput.MAX_TEXT)it.copy(error="Слишком длинный текст: до 16000 символов")else it.copy(text=value,error=null)}
+    }
     fun saveNew(value:Boolean){if(!_state.value.busy)update{it.copy(saveNew=value)}}
     fun prepare(){
         if(_state.value.busy)return
