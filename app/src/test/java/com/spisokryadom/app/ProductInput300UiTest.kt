@@ -86,6 +86,8 @@ class ProductInput300UiTest {
         val rows=runBlocking{db.shoppingListEntryDao().getAllSync()}
         assertEquals(2.0,rows.single{it.productId==onion}.quantity,0.0);assertTrue(rows.any{it.productId==bread})
         assertTrue(rows.all{it.listId==null});assertFalse(runBlocking{db.productDao().getAllSync().any{it.name=="Белый хлеб"}})
+        waitFor{ui.onAllNodesWithTag("bulk-input").fetchSemanticsNodes().isEmpty()}
+        text("Лук")
     }
     @Test fun previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases() {
         ui.onNodeWithContentDescription("Добавить в список").performClick();text("Добавить покупку")
