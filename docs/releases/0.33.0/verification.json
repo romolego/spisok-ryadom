@@ -1,0 +1,85 @@
+{
+  "version": "0.33.0",
+  "codeCommit": "dcc1e598ada0376574f410c5fbc8a73ef8221ed8",
+  "baselineCommit": "acb53b9b793396d84479151754f023a0d5085302",
+  "sourceFiles": 401,
+  "tests": {
+    "classes": 62,
+    "tests": 863,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "newTests": 24,
+  "apis": [
+    28,
+    35
+  ],
+  "method": "62-class regression followed by a final 17-class recheck; latest result per class, not a full single successful rerun of the application",
+  "phases": {
+    "focused2": {
+      "classes": 7,
+      "tests": 60,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "regression": {
+      "classes": 62,
+      "tests": 863,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "recheck": {
+      "classes": 17,
+      "tests": 183,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "changesAfterRegressionStart": [
+    "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+    "app/src/main/java/com/spisokryadom/app/ui/addtolist/BulkProductSheet.kt",
+    "app/src/main/java/com/spisokryadom/app/ui/addtolist/BulkProductViewModel.kt",
+    "app/src/main/java/com/spisokryadom/app/widget/WidgetPurchaseMotion.kt",
+    "app/src/test/java/com/spisokryadom/app/ProductInput300UiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Widget310CardUiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/Widget310UiTest.kt",
+    "app/src/test/java/com/spisokryadom/app/WidgetQueue330DataTest.kt"
+  ],
+  "sourceUnchangedSinceFinalRecheckSeal": true,
+  "lint": {
+    "errors": 0,
+    "warnings": 91,
+    "hints": 7
+  },
+  "apk": {
+    "path": ".local/artifacts/0.33.0/SpisokPokupok-0.33.0.apk",
+    "package": "com.spisokryadom.app.next",
+    "versionName": "0.33.0",
+    "versionCode": 46,
+    "label": "Список покупок",
+    "minSdk": 26,
+    "targetSdk": 35,
+    "debuggable": false,
+    "bytes": 2251878,
+    "sha256": "e2c7e0688b5a0a4c43108a40da2ad278b4f4696c50dc6bdd960472d96d8ff510",
+    "certificateSha256": "25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668",
+    "matchesPreviousCertificate": true,
+    "physicalAndroidTested": false
+  },
+  "room": 30,
+  "zip": 28,
+  "screensReviewed": 18,
+  "physicalAndroidTested": false,
+  "realLauncherTested": false,
+  "realProcessKillTested": false,
+  "personalDatabaseUsed": false,
+  "standWarnings": [
+    "One regression test failed during Robolectric Android environment startup because a temporary data directory was missing; cleanup threads also reported missing .obsolete files. The whole class is included in the final recheck. Raw diagnostics remain local."
+  ],
+  "rollbackBranch": "codex/before-widget-queue-0.33.0",
+  "publicationStatus": "See current state and publication receipt; source archive is sealed before publication."
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "path": "screens/queue-two-batches-api28.png",
+    "sha256": "12e78b89295afff9a61bbed7666eb48fae6654c88386adcd4ec843e7413b48be",
+    "native": true
+  },
+  {
+    "path": "screens/queue-selected-quantities-api28.png",
+    "sha256": "8a50286845d2aa7e0153ae98cadf16a253bc835437c5f53d7c95463e8eefcf26",
+    "native": true
+  },
+  {
+    "path": "screens/queue-reopened-after-picker-api28.png",
+    "sha256": "9ef4f02d3e0c89bb0d32cc961cf893a9354d20f6f334756793c376e62ba48dd0",
+    "native": true
+  },
+  {
+    "path": "screens/queue-landscape-preview-api28.png",
+    "sha256": "725c8ac197529e2c6e9d0502ae92885518f64ec87d2b45fbddc37e41008290bd",
+    "native": true
+  },
+  {
+    "path": "screens/card-api28.png",
+    "sha256": "ae2887ee11b082370c0884388d14cbaaf339bfcf41bf028f99ac7d1525e59018",
+    "native": true
+  },
+  {
+    "path": "screens/price-date-api28.png",
+    "sha256": "d80c5b52683f03ff261e39ec7da670191a5a55fce28db36adc860a0b7abd0e64",
+    "native": true
+  },
+  {
+    "path": "screens/masked-api28.png",
+    "sha256": "c377bee908745919cddb6f1305f48d281cef5d599701475ec9ff04a4bc5ed862",
+    "native": true
+  },
+  {
+    "path": "screens/revealed-api28.png",
+    "sha256": "bb4f04dcc0b1406e26ed1dd7e80822e2bb727d0f86c9be69d1eee4e48780f5ee",
+    "native": true
+  },
+  {
+    "path": "screens/bought-masked-api28.png",
+    "sha256": "14638abe5e0acb7fcee1a92786658d38be2643bfade1a4d2d2f4b0b3a6a1aca0",
+    "native": true
+  },
+  {
+    "path": "screens/queue-two-batches-api35.png",
+    "sha256": "a980a28eb0396d7b1f10887cecbf78332e421d1e4e45bc541c75fcac1f3134b8",
+    "native": true
+  },
+  {
+    "path": "screens/queue-selected-quantities-api35.png",
+    "sha256": "559b9daf240896785c06220b82f5f454e0be23c84665a126965dbdea53cdd581",
+    "native": true
+  },
+  {
+    "path": "screens/queue-reopened-after-picker-api35.png",
+    "sha256": "a7aceca7f0a6293779b64d5029c46794aa5f3dbbbf5bf0045e51a7b990af260d",
+    "native": true
+  },
+  {
+    "path": "screens/queue-landscape-preview-api35.png",
+    "sha256": "5f6e251531b1113ddfc1594ea6567e473a9af3e034a6af2ea4de93a7250c165c",
+    "native": true
+  },
+  {
+    "path": "screens/card-api35.png",
+    "sha256": "7a12a89d3e2c94e32efc01a8b51f931a6952d99a48ec7015e25f3ed3f06d50bc",
+    "native": true
+  },
+  {
+    "path": "screens/price-date-api35.png",
+    "sha256": "a64836712551d3a7e6424796bf05fc749e16e218c765f1c9e366edcbed5b1c58",
+    "native": true
+  },
+  {
+    "path": "screens/masked-api35.png",
+    "sha256": "0cf7e5036487bd9b6cbc86c048c1573e9310e1747f78d59bab19c17753aaf987",
+    "native": true
+  },
+  {
+    "path": "screens/revealed-api35.png",
+    "sha256": "06a167df11c7c840d9a5e6f45833808997a96ff6cd373d6c0d01aa882f05372a",
+    "native": true
+  },
+  {
+    "path": "screens/bought-masked-api35.png",
+    "sha256": "1c3fc2b244be3efe0b6adb3877ac499b76ae7860a597153f4143c39c4b35d1d6",
+    "native": true
+  }
+]

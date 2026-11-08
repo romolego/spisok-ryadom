@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="com.spisokryadom.app.Audit311InputUiTest" tests="4" failures="0" errors="0" skipped="0" time="35.931">
+    <testcase name="thirteenthSameNameCandidateCanBeSelectedAndCancellationWritesNothing[28]" classname="com.spisokryadom.app.Audit311InputUiTest" time="20.185" />
+    <testcase name="landscapeInputKeepsItsExplanationReachableAndPreviewActionsVisible[28]" classname="com.spisokryadom.app.Audit311InputUiTest" time="0.853" />
+    <testcase name="thirteenthSameNameCandidateCanBeSelectedAndCancellationWritesNothing" classname="com.spisokryadom.app.Audit311InputUiTest" time="13.956" />
+    <testcase name="landscapeInputKeepsItsExplanationReachableAndPreviewActionsVisible" classname="com.spisokryadom.app.Audit311InputUiTest" time="0.925" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.ProductInput300UiTest" tests="14" failures="0" errors="0" skipped="0" time="55.093">
+    <testcase name="linkPencilExtractsSharedTextAndManualCardSaveRemainsExplicit[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="14.104" />
+    <testcase name="newSettingsUseExistingScrollableLayoutInLandscape[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.238" />
+    <testcase name="previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="2.22" />
+    <testcase name="selectedLinkFromSharedTextSurvivesActivityRecreation[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.786" />
+    <testcase name="packagePreviewShowsSourceAndChoicesAndAddsOnlyAfterConfirmation[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.355" />
+    <testcase name="photoViewerSupportsPinchAndEditingStillUsesThePencil[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.23" />
+    <testcase name="newCardPrefillsInExistingDropdownsAndTheUnitHasNoMicrophone[28]" classname="com.spisokryadom.app.ProductInput300UiTest" time="6.366" />
+    <testcase name="linkPencilExtractsSharedTextAndManualCardSaveRemainsExplicit" classname="com.spisokryadom.app.ProductInput300UiTest" time="13.769" />
+    <testcase name="newSettingsUseExistingScrollableLayoutInLandscape" classname="com.spisokryadom.app.ProductInput300UiTest" time="0.913" />
+    <testcase name="previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.331" />
+    <testcase name="selectedLinkFromSharedTextSurvivesActivityRecreation" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.705" />
+    <testcase name="packagePreviewShowsSourceAndChoicesAndAddsOnlyAfterConfirmation" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.454" />
+    <testcase name="photoViewerSupportsPinchAndEditingStillUsesThePencil" classname="com.spisokryadom.app.ProductInput300UiTest" time="1.191" />
+    <testcase name="newCardPrefillsInExistingDropdownsAndTheUnitHasNoMicrophone" classname="com.spisokryadom.app.ProductInput300UiTest" time="6.415" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Usability320UiTest" tests="8" failures="0" errors="0" skipped="0" time="30.234">
+    <testcase name="bulkHelpIsOnDemandAndMicrophoneIsAtTheTop[28]" classname="com.spisokryadom.app.Usability320UiTest" time="12.177" />
+    <testcase name="bulkShowsInlineOptionsAndBackKeepsEveryChoiceAndTheSource[28]" classname="com.spisokryadom.app.Usability320UiTest" time="1.66" />
+    <testcase name="linkHasOneValuePlusOrPencilAndClipboardPasteWithoutDuplicatePreview[28]" classname="com.spisokryadom.app.Usability320UiTest" time="0.418" />
+    <testcase name="photoViewerUsesOnlyTopRightCloseAndKeepsPinchZoom[28]" classname="com.spisokryadom.app.Usability320UiTest" time="0.33" />
+    <testcase name="bulkHelpIsOnDemandAndMicrophoneIsAtTheTop" classname="com.spisokryadom.app.Usability320UiTest" time="12.966" />
+    <testcase name="bulkShowsInlineOptionsAndBackKeepsEveryChoiceAndTheSource" classname="com.spisokryadom.app.Usability320UiTest" time="1.65" />
+    <testcase name="linkHasOneValuePlusOrPencilAndClipboardPasteWithoutDuplicatePreview" classname="com.spisokryadom.app.Usability320UiTest" time="0.654" />
+    <testcase name="photoViewerUsesOnlyTopRightCloseAndKeepsPinchZoom" classname="com.spisokryadom.app.Usability320UiTest" time="0.363" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Widget310CardUiTest" tests="2" failures="0" errors="0" skipped="0" time="28.193">
+    <testcase name="privacyUsesCommonToolbarAndManualSaveAcrossActivityRecreation[28]" classname="com.spisokryadom.app.Widget310CardUiTest" time="14.16" />
+    <testcase name="privacyUsesCommonToolbarAndManualSaveAcrossActivityRecreation" classname="com.spisokryadom.app.Widget310CardUiTest" time="14.016" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.Widget310UiTest" tests="10" failures="0" errors="0" skipped="0" time="25.347">
+    <testcase name="concealedRowAndReusedRemoteViewsContainNoPrivateTextOrQuantity[28]" classname="com.spisokryadom.app.Widget310UiTest" time="10.562" />
+    <testcase name="hiddenBoughtFiltersImmediatelyWithoutDeletingEntry[28]" classname="com.spisokryadom.app.Widget310UiTest" time="0.373" />
+    <testcase name="visibilityIsDurableAndSharedAcrossWidgetHosts[28]" classname="com.spisokryadom.app.Widget310UiTest" time="0.734" />
+    <testcase name="productionVisibilityReceiverPersistsWithoutOpeningAppOrMutatingPurchase[28]" classname="com.spisokryadom.app.Widget310UiTest" time="0.993" />
+    <testcase name="realRemoteViewsAnimateDownWithoutBlockingAnotherPurchase[28]" classname="com.spisokryadom.app.Widget310UiTest" time="0.557" />
+    <testcase name="concealedRowAndReusedRemoteViewsContainNoPrivateTextOrQuantity" classname="com.spisokryadom.app.Widget310UiTest" time="10.365" />
+    <testcase name="hiddenBoughtFiltersImmediatelyWithoutDeletingEntry" classname="com.spisokryadom.app.Widget310UiTest" time="0.292" />
+    <testcase name="visibilityIsDurableAndSharedAcrossWidgetHosts" classname="com.spisokryadom.app.Widget310UiTest" time="0.45" />
+    <testcase name="productionVisibilityReceiverPersistsWithoutOpeningAppOrMutatingPurchase" classname="com.spisokryadom.app.Widget310UiTest" time="0.62" />
+    <testcase name="realRemoteViewsAnimateDownWithoutBlockingAnotherPurchase" classname="com.spisokryadom.app.Widget310UiTest" time="0.351" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.WidgetQueue330DataTest" tests="14" failures="0" errors="0" skipped="0" time="17.803">
+    <testcase name="eyeOnlyChangesThisPurchaseAndResetsOnCompletionAndNewAddition[28]" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="7.113" />
+    <testcase name="uncheckedQueueSurvivesFreshModelAndOnlyConfirmedBatchDisappears[28]" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.528" />
+    <testcase name="schema29UpgradeKeepsIdsAndInitializesOnlyNewVisibility[28]" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.225" />
+    <testcase name="fastIndependentMotionNeverExtendsAnotherRowsDeadline[28]" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.108" />
+    <testcase name="retryAfterCommitBeforeQueueCleanupNeverAddsTwice[28]" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.199" />
+    <testcase name="widgetSettingAndPurchaseDisclosureRoundTripAndOldCopyDefaultsHidden[28]" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.318" />
+    <testcase name="clearAndZeroRemoveWithoutWritingAndOpeningAnotherBatchKeepsCurrentInput[28]" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.392" />
+    <testcase name="eyeOnlyChangesThisPurchaseAndResetsOnCompletionAndNewAddition" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="7.142" />
+    <testcase name="uncheckedQueueSurvivesFreshModelAndOnlyConfirmedBatchDisappears" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.565" />
+    <testcase name="schema29UpgradeKeepsIdsAndInitializesOnlyNewVisibility" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.226" />
+    <testcase name="fastIndependentMotionNeverExtendsAnotherRowsDeadline" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.086" />
+    <testcase name="retryAfterCommitBeforeQueueCleanupNeverAddsTwice" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.196" />
+    <testcase name="widgetSettingAndPurchaseDisclosureRoundTripAndOldCopyDefaultsHidden" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.258" />
+    <testcase name="clearAndZeroRemoveWithoutWritingAndOpeningAnotherBatchKeepsCurrentInput" classname="com.spisokryadom.app.WidgetQueue330DataTest" time="0.432" />
+  </testsuite>
+  <testsuite name="com.spisokryadom.app.WidgetQueue330UiTest" tests="8" failures="0" errors="0" skipped="0" time="33.225">
+    <testcase name="pickerBackCloseAndReopenNeverTrapTheSheetOrLoseTheBatch[28]" classname="com.spisokryadom.app.WidgetQueue330UiTest" time="13.47" />
+    <testcase name="zeroFromStepperRemovesRowAndClearReturnsToUsableInput[28]" classname="com.spisokryadom.app.WidgetQueue330UiTest" time="0.59" />
+    <testcase name="queueReviewUsesInlineStepperAndRemovesOnlyTheConfirmedBatch[28]" classname="com.spisokryadom.app.WidgetQueue330UiTest" time="1.068" />
+    <testcase name="landscapeQueueAndPreviewActionsRemainReachable[28]" classname="com.spisokryadom.app.WidgetQueue330UiTest" time="0.621" />
+    <testcase name="pickerBackCloseAndReopenNeverTrapTheSheetOrLoseTheBatch" classname="com.spisokryadom.app.WidgetQueue330UiTest" time="14.813" />
+    <testcase name="zeroFromStepperRemovesRowAndClearReturnsToUsableInput" classname="com.spisokryadom.app.WidgetQueue330UiTest" time="0.777" />
+    <testcase name="queueReviewUsesInlineStepperAndRemovesOnlyTheConfirmedBatch" classname="com.spisokryadom.app.WidgetQueue330UiTest" time="1.115" />
+    <testcase name="landscapeQueueAndPreviewActionsRemainReachable" classname="com.spisokryadom.app.WidgetQueue330UiTest" time="0.758" />
+  </testsuite>
+</testsuites>

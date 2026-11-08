@@ -1,0 +1,10 @@
+[
+  "app/src/main/java/com/spisokryadom/app/data/repository/ShoppingListRepository.kt",
+  "app/src/main/java/com/spisokryadom/app/ui/addtolist/BulkProductSheet.kt",
+  "app/src/main/java/com/spisokryadom/app/ui/addtolist/BulkProductViewModel.kt",
+  "app/src/main/java/com/spisokryadom/app/widget/WidgetPurchaseMotion.kt",
+  "app/src/test/java/com/spisokryadom/app/ProductInput300UiTest.kt",
+  "app/src/test/java/com/spisokryadom/app/Widget310CardUiTest.kt",
+  "app/src/test/java/com/spisokryadom/app/Widget310UiTest.kt",
+  "app/src/test/java/com/spisokryadom/app/WidgetQueue330DataTest.kt"
+]
