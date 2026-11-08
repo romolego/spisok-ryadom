@@ -33,6 +33,11 @@ class Widget310CardUiTest {
         product=app.container.productRepository.saveWithLinks(ProductEntity(name="Личный товар"),emptyList())
     };text("Список пуст")}
     @After fun close(){ui.activityRule.scenario.close();val end=System.nanoTime()+20_000_000_000;while(ProductEditorTransactions.mutex.isLocked&&System.nanoTime()<end){Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();Thread.sleep(5)};assertFalse(ProductEditorTransactions.mutex.isLocked);app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
+    private fun shot(name:String){ui.runOnIdle{
+            val view=ui.activity.window.decorView
+            val bitmap=android.graphics.Bitmap.createBitmap(view.width,view.height,android.graphics.Bitmap.Config.ARGB_8888);view.draw(android.graphics.Canvas(bitmap))
+            val file=java.io.File("build/reports/widget310/screens/$name-api${android.os.Build.VERSION.SDK_INT}.png");file.parentFile!!.mkdirs();file.outputStream().use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()
+        }}
     @Test fun privacyUsesCommonToolbarAndManualSaveAcrossActivityRecreation(){
         ui.onNode(hasText("Товары") and SemanticsMatcher.expectValue(SemanticsProperties.Role,Role.Tab)).performClick()
         text("База товаров");text("Личный товар");ui.onAllNodesWithText("Личный товар").onLast().performClick();text("Название товара")
@@ -45,13 +50,10 @@ class Widget310CardUiTest {
         val dateBounds=ui.onNodeWithTag("product-price-date").fetchSemanticsNode().boundsInRoot
         assertEquals(priceBounds.height,dateBounds.height,1f)
         ui.onNodeWithContentDescription("Подсказка: Дата цены").assertDoesNotExist()
+        shot("price-date")
         ui.onNodeWithText("В виджете нажмите на скрытое название, чтобы показать его на 5 секунд.").assertDoesNotExist()
         ui.onNodeWithTag("widget_privacy").performScrollTo().assertIsOff().performClick().assertIsOn()
-        ui.runOnIdle{
-            val view=ui.activity.window.decorView
-            val bitmap=android.graphics.Bitmap.createBitmap(view.width,view.height,android.graphics.Bitmap.Config.ARGB_8888);view.draw(android.graphics.Canvas(bitmap))
-            val file=java.io.File("build/reports/widget310/screens/card-api${android.os.Build.VERSION.SDK_INT}.png");file.parentFile!!.mkdirs();file.outputStream().use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()
-        }
+        shot("card")
         assertFalse(runBlocking{db.productDao().getById(product)!!.isWidgetPrivate})
         ui.activityRule.scenario.recreate();text("Название товара")
         ui.onNodeWithTag("widget_privacy").performScrollTo().assertIsOn()
