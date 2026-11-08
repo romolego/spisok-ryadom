@@ -6,7 +6,8 @@ import com.spisokryadom.app.domain.PlaceLabels
 import java.math.BigDecimal
 
 data class WidgetPurchase(val id:Long,val productStableId:String,val createdAt:Long,val updatedAt:Long,
-    val bought:Boolean,val title:String,val detail:String,val urgent:Boolean,val revision:String="",val isPrivate:Boolean=false)
+    val bought:Boolean,val title:String,val detail:String,val urgent:Boolean,val revision:String="",val isPrivate:Boolean=false,
+    val hidden:Boolean=isPrivate)
 
 /** Read directly from Room on the service's binder worker, including after process death. */
 class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase,private val basket:com.spisokryadom.app.data.repository.ShoppingListRepository,
@@ -37,7 +38,7 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
             val quantity=BigDecimal.valueOf(entry.quantity).stripTrailingZeros().toPlainString().replace('.',',')
             val place=shops[entry.assignedShopId]?.let{labels.place(it.name,branches[entry.assignedBranchId]).text}?:hintLabel(placeKey(entry))?.text
             WidgetPurchase(entry.id,p.stableId,entry.createdAt,entry.updatedAt,entry.isBought,p.name,
-                listOfNotNull((quantity+" "+entry.unit).trim(),place).joinToString(" · "),entry.isUrgent,revision(entry),p.isWidgetPrivate)
+                listOfNotNull((quantity+" "+entry.unit).trim(),place).joinToString(" · "),entry.isUrgent,revision(entry),p.isWidgetPrivate,p.isWidgetPrivate&&entry.widgetHidden)
         }
     }
     /** One coherent Room snapshot; presentation does not depend on collapsed app sections. */
@@ -110,6 +111,15 @@ class ShoppingWidgetData(private val db:com.spisokryadom.app.data.db.AppDatabase
         result
     }
     /** Idempotent compare-and-set: repeated taps and stale widgets never undo newer changes. */
+    suspend fun visibility(row:WidgetPurchase,expectedHidden:Boolean):Boolean = db.withTransaction {
+        val entry=db.shoppingListEntryDao().getById(row.id)?:return@withTransaction false
+        if(entry.listId!=null&&db.goalListDao().getById(entry.listId)?.let{it.showInPurchases&&!it.isTemplate}!=true)return@withTransaction false
+        val product=db.productDao().getById(entry.productId)?:return@withTransaction false
+        if(!product.isWidgetPrivate||product.stableId!=row.productStableId||entry.createdAt!=row.createdAt||
+            entry.isBought!=row.bought||revision(entry)!=row.revision||entry.widgetHidden!=expectedHidden)return@withTransaction false
+        db.shoppingListEntryDao().update(entry.copy(widgetHidden=!expectedHidden))
+        true
+    }
     suspend fun check(row:WidgetPurchase):Boolean = db.withTransaction {
         val entry=db.shoppingListEntryDao().getById(row.id)?:return@withTransaction false
         if(entry.listId!=null&&db.goalListDao().getById(entry.listId)?.let{it.showInPurchases&&!it.isTemplate}!=true)return@withTransaction false

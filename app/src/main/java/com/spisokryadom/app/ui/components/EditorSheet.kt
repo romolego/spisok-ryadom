@@ -28,7 +28,7 @@ fun EditorSheet(
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = onBack == null),
         onDismissRequest = { if (!locked) onDismiss() },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true,
-            confirmValueChange = { it != SheetValue.Hidden || (!locked && onBack == null) })
+            confirmValueChange = { it != SheetValue.Hidden || !locked })
     ) {
         androidx.activity.compose.BackHandler(enabled = busy) {}
         androidx.activity.compose.BackHandler(enabled = !busy && onBack != null) { onBack?.invoke() }

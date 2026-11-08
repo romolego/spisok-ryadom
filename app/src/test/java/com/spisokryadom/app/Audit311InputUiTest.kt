@@ -85,7 +85,7 @@ class Audit311InputUiTest {
         waitState { vm.state.value.preview || vm.state.value.error != null }
         assertNull(vm.state.value.error)
         ui.onNodeWithTag("bulk-confirm").assertIsNotEnabled()
-        ui.onNodeWithText("Другой товар", substring = false).performClick()
+        ui.onNodeWithTag("bulk-choose-0").performClick()
         waitState { !vm.state.value.searching && vm.state.value.candidates.isNotEmpty() }
         ui.onNodeWithTag("bulk-candidates").performScrollToNode(hasTestTag("bulk-candidate-$last"))
         ui.onNodeWithTag("bulk-candidate-$last").assertIsDisplayed().performClick()
@@ -93,8 +93,7 @@ class Audit311InputUiTest {
         assertEquals(last, vm.state.value.rows.single().productId)
         ui.onNodeWithTag("bulk-confirm").assertIsEnabled()
         shot("bulk-thirteenth-choice")
-        ui.onNodeWithText("Отмена", substring = false).performClick()
-        ui.onNodeWithText("Закрыть",substring=false).performClick()
+        ui.onNodeWithContentDescription("Закрыть массовый ввод").performClick()
         assertTrue(dismissed)
         assertTrue(runBlocking { db.shoppingListEntryDao().getAllSync().isEmpty() })
         assertEquals(13, runBlocking { db.productDao().getAllSync().size })
@@ -115,8 +114,7 @@ class Audit311InputUiTest {
         ui.onNodeWithTag("bulk-confirm").assertIsDisplayed().assertIsNotEnabled()
         ui.onNodeWithTag("bulk-preview").performScrollToNode(hasTestTag("bulk-row-11"))
         ui.onNodeWithTag("bulk-row-11").assertIsDisplayed()
-        ui.onNodeWithText("Отмена", substring = false).performClick()
-        ui.onNodeWithText("Закрыть",substring=false).performClick()
+        ui.onNodeWithContentDescription("Закрыть массовый ввод").performClick()
         assertTrue(dismissed)
         assertTrue(runBlocking { db.shoppingListEntryDao().getAllSync().isEmpty() })
     }

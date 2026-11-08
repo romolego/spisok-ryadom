@@ -74,13 +74,11 @@ class ProductInput300UiTest {
         ui.onNodeWithTag("bulk-input").performTextInput("Лук. Белый хлеб; гречка")
         ui.onNodeWithText("Проверить",substring=false).performClick();text("Проверить товары")
         assertTrue(runBlocking{db.shoppingListEntryDao().getAllSync().isEmpty()})
-        ui.onNode(hasText("Другой товар",substring=false) and hasAnyAncestor(hasTestTag("bulk-row-1"))).performScrollTo().performClick()
+        ui.onNodeWithTag("bulk-choose-1").performScrollTo().performClick()
         text("Выбрать товар");waitFor{ui.onAllNodesWithTag("bulk-candidate-$bread").fetchSemanticsNodes().isNotEmpty()}
         ui.onNodeWithTag("bulk-candidate-$bread").performClick();text("Проверить товары")
         ui.onNodeWithTag("bulk-preview").performScrollToNode(hasTestTag("bulk-row-2"))
-        ui.onNode(hasText("Другой товар",substring=false) and hasAnyAncestor(hasTestTag("bulk-row-2"))).performScrollTo().performClick()
-        text("Выбрать товар");waitFor{runCatching{ui.onNodeWithTag("bulk-create-new").assertIsEnabled()}.isSuccess}
-        ui.onNodeWithTag("bulk-create-new").performClick();text("Проверить товары")
+        ui.onNodeWithTag("bulk-new-2").performScrollTo().performClick();text("Проверить товары")
         ui.onNodeWithTag("bulk-quantity-0").performScrollTo().performTextReplacement("2")
         shot("bulk-preview")
         ui.onNodeWithText("Добавить все",substring=false).assertIsDisplayed().performClick()
@@ -88,6 +86,8 @@ class ProductInput300UiTest {
         val rows=runBlocking{db.shoppingListEntryDao().getAllSync()}
         assertEquals(2.0,rows.single{it.productId==onion}.quantity,0.0);assertTrue(rows.any{it.productId==bread})
         assertTrue(rows.all{it.listId==null});assertFalse(runBlocking{db.productDao().getAllSync().any{it.name=="Белый хлеб"}})
+        waitFor{ui.onAllNodesWithContentDescription("Добавить в список").fetchSemanticsNodes().isNotEmpty()}
+        ui.onNodeWithTag("bulk-confirm").assertDoesNotExist()
     }
     @Test fun previewSurvivesActivityRecreationAndCancellationDoesNotAddPurchases() {
         ui.onNodeWithContentDescription("Добавить в список").performClick();text("Добавить покупку")
@@ -97,7 +97,7 @@ class ProductInput300UiTest {
         ui.activityRule.scenario.recreate();text("Проверить товары")
         ui.onNodeWithText("Добавить все",substring=false).assertIsNotEnabled()
         shot("bulk-restored")
-        ui.onNodeWithText("Отмена",substring=false).performClick();text("Закрыть ввод?");ui.onNodeWithText("Закрыть",substring=false).performClick();text("Добавить покупку")
+        ui.onNodeWithContentDescription("Закрыть массовый ввод").performClick();text("Добавить покупку")
         assertTrue(runBlocking{db.shoppingListEntryDao().getAllSync().isEmpty()})
     }
     @Test fun photoViewerSupportsPinchAndEditingStillUsesThePencil() {

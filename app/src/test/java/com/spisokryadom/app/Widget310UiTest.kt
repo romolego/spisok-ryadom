@@ -48,7 +48,7 @@ class Widget310UiTest {
     private fun await(ms:Long=10_000,test:()->Boolean){val end=System.nanoTime()+ms*1_000_000;while(!test()&&System.nanoTime()<end){Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(20));Thread.sleep(10)};assertTrue(test())}
     @android.annotation.SuppressLint("UnspecifiedRegisterReceiverFlag") // Pre-33 Robolectric registration only; production uses its private manifest receiver.
     @Before fun seed():Unit=runBlocking {
-        prefs.edit().clear().commit();app.getSharedPreferences("product_card_drafts",0).edit().clear().commit();WidgetInteractionState.clear()
+        prefs.edit().clear().commit();app.getSharedPreferences("product_card_drafts",0).edit().clear().commit();WidgetInteractionState.clear();WidgetPurchaseMotion.clear()
         db.shoppingListEntryDao().deleteAll();db.goalListDao().deleteAll();db.productDao().deleteAll();db.shopDao().deleteAll()
         WidgetSettings(mode=com.spisokryadom.app.ui.shoppinglist.ViewMode.FLAT).save(prefs)
         val a=app.container.productRepository.saveWithLinks(ProductEntity(name="Личный товар",defaultUnit="упак",isWidgetPrivate=true),emptyList())
@@ -58,7 +58,7 @@ class Widget310UiTest {
         if(android.os.Build.VERSION.SDK_INT>=33)app.registerReceiver(receiver,filter,Context.RECEIVER_NOT_EXPORTED)
         else {@Suppress("DEPRECATION") app.registerReceiver(receiver,filter)}
     }
-    @After fun close(){app.unregisterReceiver(receiver);factories.forEach{it.onDestroy()};WidgetInteractionState.clear();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
+    @After fun close(){app.unregisterReceiver(receiver);factories.forEach{it.onDestroy()};WidgetInteractionState.clear();WidgetPurchaseMotion.clear();app.container.locations.closeForTest();db.close();org.robolectric.util.ReflectionHelpers.setStaticField(AppDatabase::class.java,"INSTANCE",null)}
     private fun factory(id:Int=310)=ShoppingWidgetFactory(app,id).also{it.onCreate();factories.add(it)}
     private fun rv(f:ShoppingWidgetFactory,id:Long)=f.getViewAt((0 until f.count).single{f.getItemId(it)==id})!!
     private fun view(f:ShoppingWidgetFactory,id:Long)=rv(f,id).apply(app,FrameLayout(app))
@@ -84,23 +84,23 @@ class Widget310UiTest {
         }finally{controller.pause().stop().destroy()}
     }
     @Test fun concealedRowAndReusedRemoteViewsContainNoPrivateTextOrQuantity():Unit=runBlocking {
-        val f=factory();val reused=view(f,plain);assertEquals("Хлеб",title(reused))
+        val f=factory();val reused=view(f,plain);assertEquals("Хлеб",title(reused));assertEquals(View.GONE,reused.findViewById<View>(R.id.widget_privacy).visibility)
         rv(f,secret).reapply(app,reused)
-        assertEquals("● ● ● ● ● ●",title(reused));assertFalse(allText(reused).contains("Личный товар"));assertFalse(allText(reused).contains("2 упак"))
+        assertEquals(View.VISIBLE,reused.findViewById<View>(R.id.widget_privacy).visibility);assertEquals("● ● ● ● ● ●",title(reused));assertFalse(allText(reused).contains("Личный товар"));assertFalse(allText(reused).contains("2 упак"))
         assertTrue(allText(reused).contains("скрытый товар"));shot("masked",reused)
         rv(f,plain).reapply(app,reused);assertEquals("Хлеб",title(reused));assertFalse(allText(reused).contains("Скрытый товар"))
     }
     @Test fun visibilityIsDurableAndSharedAcrossWidgetHosts():Unit=runBlocking {
         val f=factory();val other=factory(311);val before=db.shoppingListEntryDao().getAllSync()
         val row=data.rows().single{it.id==secret}
-        assertTrue(app.container.productRepository.setWidgetPrivacy(row.productStableId,true,false))
+        assertTrue(data.visibility(row,true))
         f.onDataSetChanged();other.onDataSetChanged()
         val revealed=view(f,secret);assertTrue(title(revealed).contains("Личный товар"))
         assertEquals("2 упак",revealed.findViewById<TextView>(R.id.widget_item_detail).text.toString())
         assertTrue(allText(view(other,secret)).contains("Личный товар"));shot("revealed",revealed)
-        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6));WidgetInteractionState.clear()
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6));WidgetInteractionState.clear();WidgetPurchaseMotion.clear()
         f.onDataSetChanged();assertTrue(title(view(f,secret)).contains("Личный товар"))
-        assertTrue(app.container.productRepository.setWidgetPrivacy(row.productStableId,false,true))
+        assertTrue(data.visibility(data.rows().single{it.id==secret},false))
         f.onDataSetChanged();assertFalse(allText(view(f,secret)).contains("Личный товар"));assertEquals(before,db.shoppingListEntryDao().getAllSync())
     }
     @Test fun productionVisibilityReceiverPersistsWithoutOpeningAppOrMutatingPurchase():Unit=runBlocking {
@@ -108,7 +108,7 @@ class Widget310UiTest {
         val action=ShoppingWidgetProvider.privacyIntent(row).setComponent(ComponentName(app,ShoppingWidgetProvider::class.java)).setAction(ShoppingWidgetProvider.ACTION)
             .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,310).putExtra("database",DatabaseRevision.current(app))
         assertFalse(action.extras!!.keySet().any{action.extras!!.get(it).toString().contains("Личный товар")})
-        WidgetInteractionState.clear() // Simulate loss of the old process with a cached launcher row.
+        WidgetInteractionState.clear();WidgetPurchaseMotion.clear() // Simulate loss of the old process with a cached launcher row.
         val host=FrameLayout(app)
         val root=ShoppingWidgetProvider.views(app,310).apply(app,host);host.addView(root)
         val list=root.findViewById<ListView>(R.id.widget_list)
@@ -127,18 +127,26 @@ class Widget310UiTest {
         host.measure(View.MeasureSpec.makeMeasureSpec(660,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(850,View.MeasureSpec.EXACTLY));host.layout(0,0,660,850)
         val index=(0 until f.count).single{f.getItemId(it)==secret}
         assertTrue(list.getChildAt(index).findViewById<View>(R.id.widget_privacy).performClick())
-        await{runBlocking{!db.productDao().getByStableId(row.productStableId)!!.isWidgetPrivate}}
+        await{runBlocking{!db.shoppingListEntryDao().getById(secret)!!.widgetHidden}}
         f.onDataSetChanged();assertTrue(title(view(f,secret)).contains("Личный товар"))
-        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6));WidgetInteractionState.clear();f.onDataSetChanged();assertTrue(title(view(f,secret)).contains("Личный товар"))
-        assertEquals(before,db.shoppingListEntryDao().getAllSync());assertNull(Shadows.shadowOf(app).nextStartedActivity)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6));WidgetInteractionState.clear();WidgetPurchaseMotion.clear();f.onDataSetChanged();assertTrue(title(view(f,secret)).contains("Личный товар"))
+        assertEquals(before.map{if(it.id==secret)it.copy(widgetHidden=false)else it},db.shoppingListEntryDao().getAllSync());assertTrue(db.productDao().getByStableId(row.productStableId)!!.isWidgetPrivate);assertNull(Shadows.shadowOf(app).nextStartedActivity)
     }
-    @Test fun realRemoteViewsImmediatelyUseCanonicalOrderWithoutAnimation():Unit=runBlocking {
+    @Test fun realRemoteViewsAnimateDownWithoutBlockingAnotherPurchase():Unit=runBlocking {
         val f=factory();val row=data.rows().single{it.id==secret};val first=view(f,secret)
-        assertTrue(data.check(row));assertTrue(db.shoppingListEntryDao().getById(secret)!!.isBought)
+        assertTrue(data.check(row));WidgetPurchaseMotion.begin(row,DatabaseRevision.current(app));assertTrue(db.shoppingListEntryDao().getById(secret)!!.isBought)
         f.onDataSetChanged();rv(f,secret).reapply(app,first)
         val flipper=first.findViewById<ViewFlipper>(R.id.widget_purchase_motion)
-        assertEquals(0,flipper.displayedChild);assertNull(flipper.outAnimation);assertNull(flipper.getChildAt(0).animation)
-        assertTrue((0 until f.count).map{f.getItemId(it)}.indexOf(secret)>(0 until f.count).map{f.getItemId(it)}.indexOf(plain))
+        assertEquals(1,flipper.displayedChild);assertNotNull(flipper.outAnimation);assertEquals(140L,flipper.outAnimation.duration)
+        assertNotNull(flipper.getChildAt(0).animation)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
+        val next=data.rows().single{it.id==plain}
+        assertTrue(data.check(next));WidgetPurchaseMotion.begin(next,DatabaseRevision.current(app)) // No input lock.
+        f.onDataSetChanged();rv(f,secret).reapply(app,first)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100));f.onDataSetChanged();rv(f,secret).reapply(app,first)
+        assertEquals("An earlier departure must not flash back during a later one",1,flipper.displayedChild)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100));f.onDataSetChanged();rv(f,secret).reapply(app,first)
+        assertEquals(0,first.findViewById<ViewFlipper>(R.id.widget_purchase_motion).displayedChild)
         assertFalse(title(first).contains("Личный товар"));shot("bought-masked",first)
     }
     @Test fun hiddenBoughtFiltersImmediatelyWithoutDeletingEntry():Unit=runBlocking {

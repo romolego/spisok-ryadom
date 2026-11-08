@@ -95,7 +95,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
         }
         val productId = db.productDao().insert(ProductEntity(name = safeName, isTemporary = true,
             defaultUnit = safeUnit.ifBlank { null }, stableId = stableId))
-        entries.insert(ShoppingListEntryEntity(productId = productId, listId = listId,
+        entries.insert(ShoppingListEntryEntity(productId = productId, listId = listId,widgetHidden=shopping.initialWidgetHidden(),
             quantity = safeQuantity, unit = safeUnit, explicitNoShop = true,
             plannedUnitPrice = price, customShopName = placeName, customShopAddress = placeAddress,
             note = safeNote, comment = safeComment))
@@ -292,7 +292,7 @@ class GoalListRepository(private val db: AppDatabase, private val shopping: Shop
             ProductVariantsRepository(db).savePhotos(clone,ProductVariantsRepository(db).photos(product.id));clone
         } else product.id
         val now = System.currentTimeMillis()
-        return row.copy(id = 0, productId = productId, listId = owner, isBought = false, createdAt = now, updatedAt = now)
+        return row.copy(id = 0, productId = productId, listId = owner, isBought = false, createdAt = now, updatedAt = now,widgetHidden=shopping.initialWidgetHidden())
     }
 
     private suspend fun requireList(id: Long) = lists.getById(id) ?: error("Список удалён")

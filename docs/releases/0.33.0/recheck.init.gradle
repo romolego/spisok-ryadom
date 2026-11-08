@@ -1,0 +1,21 @@
+allprojects { tasks.withType(Test).configureEach {
+ include 'com/spisokryadom/app/Usability320DataTest.class'
+ include 'com/spisokryadom/app/Usability320UiTest.class'
+ include 'com/spisokryadom/app/WidgetQueue330DataTest.class'
+ include 'com/spisokryadom/app/WidgetQueue330UiTest.class'
+ include 'com/spisokryadom/app/Widget310DataTest.class'
+ include 'com/spisokryadom/app/Widget310UiTest.class'
+ include 'com/spisokryadom/app/Widget310CardUiTest.class'
+ include 'com/spisokryadom/app/Audit311WidgetTest.class'
+ include 'com/spisokryadom/app/Widget260DataTest.class'
+ include 'com/spisokryadom/app/Widget260UiTest.class'
+ include 'com/spisokryadom/app/ProductInput300DataTest.class'
+ include 'com/spisokryadom/app/ProductInput300UiTest.class'
+ include 'com/spisokryadom/app/Audit311InputDataTest.class'
+ include 'com/spisokryadom/app/Audit311InputUiTest.class'
+ include 'com/spisokryadom/app/UnifiedLists250DataTest.class'
+ include 'com/spisokryadom/app/UnifiedLists250UiTest.class'
+ include 'com/spisokryadom/app/Reliability291ScenariosDataTest.class'
+ testLogging { exceptionFormat='full' }
+ afterSuite { d,r -> if(d.className!=null) println('WIDGET330 '+d.className+' '+r.testCount+' failed='+r.failedTestCount) }
+} }

@@ -69,7 +69,7 @@ class Usability320UiTest {
         ui.onNodeWithTag("bulk-new-1").performScrollTo().assertIsDisplayed().performClick()
         ui.onNodeWithTag("bulk-new-name-1").performScrollTo().performTextReplacement("Особый товар для дома")
         val chosen=vm.state.value.rows
-        ui.onNode(hasText("Другой товар") and hasAnyAncestor(hasTestTag("bulk-row-0"))).performScrollTo().performClick()
+        ui.onNodeWithTag("bulk-choose-0").performScrollTo().performClick()
         waitState{vm.state.value.choosing!=null&&!vm.state.value.searching};back()
         waitState{vm.state.value.choosing==null};assertEquals(chosen,vm.state.value.rows)
         assertTrue(vm.state.value.preview);shot("bulk-inline-preview")

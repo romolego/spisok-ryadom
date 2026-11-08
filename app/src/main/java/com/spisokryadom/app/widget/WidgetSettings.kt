@@ -11,13 +11,15 @@ data class WidgetSettings(
     val showBought: Boolean = true,
     val showBoughtToggle: Boolean = true,
     val showShopBackground: Boolean = false,
-    val showProductBackground: Boolean = false
+    val showProductBackground: Boolean = false,
+    val hidePrivateByDefault: Boolean = true
 ) {
     fun save(prefs: SharedPreferences) {
         prefs.edit().putString(MODE, mode.name).putBoolean(DEPARTMENTS, showDepartments)
             .putInt(TEXT_SIZE, textSize.coerceIn(MIN_TEXT_SIZE, MAX_TEXT_SIZE))
             .putBoolean(SHOW_BOUGHT, showBought).putBoolean(BOUGHT_TOGGLE, showBoughtToggle)
             .putBoolean(SHOP_BACKGROUND, showShopBackground).putBoolean(PRODUCT_BACKGROUND, showProductBackground)
+            .putBoolean(PRIVATE_DEFAULT, hidePrivateByDefault)
             .apply()
     }
 
@@ -30,7 +32,8 @@ data class WidgetSettings(
         const val BOUGHT_TOGGLE = "widget_bought_toggle"
         const val SHOP_BACKGROUND = "widget_shop_background"
         const val PRODUCT_BACKGROUND = "widget_product_background"
-        val booleanKeys = setOf(DEPARTMENTS, SHOW_BOUGHT, BOUGHT_TOGGLE, SHOP_BACKGROUND, PRODUCT_BACKGROUND)
+        const val PRIVATE_DEFAULT = "widget_hide_private_by_default"
+        val booleanKeys = setOf(DEPARTMENTS, SHOW_BOUGHT, BOUGHT_TOGGLE, SHOP_BACKGROUND, PRODUCT_BACKGROUND, PRIVATE_DEFAULT)
         val keys = booleanKeys + setOf(MODE, TEXT_SIZE)
         const val MIN_TEXT_SIZE = 12
         const val MAX_TEXT_SIZE = 22
@@ -43,7 +46,8 @@ data class WidgetSettings(
                 ?.coerceIn(MIN_TEXT_SIZE.toLong(), MAX_TEXT_SIZE.toLong())?.toInt() ?: 16
             return WidgetSettings(mode, values[DEPARTMENTS] as? Boolean ?: true, size,
                 values[SHOW_BOUGHT] as? Boolean ?: true, values[BOUGHT_TOGGLE] as? Boolean ?: true,
-                values[SHOP_BACKGROUND] as? Boolean ?: false, values[PRODUCT_BACKGROUND] as? Boolean ?: false)
+                values[SHOP_BACKGROUND] as? Boolean ?: false, values[PRODUCT_BACKGROUND] as? Boolean ?: false,
+                values[PRIVATE_DEFAULT] as? Boolean ?: true)
         }
     }
 }

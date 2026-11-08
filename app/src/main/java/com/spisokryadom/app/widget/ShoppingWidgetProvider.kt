@@ -25,8 +25,8 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
     override fun onAppWidgetOptionsChanged(context:Context,manager:AppWidgetManager,id:Int,options:Bundle) {
         manager.updateAppWidget(id,views(context,id))
     }
-    override fun onDeleted(context:Context,ids:IntArray){ids.forEach{WidgetInteractionState.clear(it)}}
-    override fun onDisabled(context:Context){WidgetInteractionState.clear()}
+    override fun onDeleted(context:Context,ids:IntArray){ids.forEach{WidgetInteractionState.clear(it);WidgetPurchaseMotion.clear(it)}}
+    override fun onDisabled(context:Context){WidgetInteractionState.clear();WidgetPurchaseMotion.clear()}
     override fun onReceive(context:Context,intent:Intent) {
         super.onReceive(context,intent)
         if(intent.action==ACTION_SET_BOUGHT_VISIBILITY){
@@ -42,22 +42,23 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
         if(intent.action!=ACTION)return
         if(intent.getBooleanExtra("open",false)){context.startActivity(WidgetIntents.open(context));return}
         val row=decodeCheck(intent)?:return
-        val widgetId=intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID)
         val pending=goAsync()
         val appContext=context.applicationContext
         scope.launch {
+            var moving=false
             try { withTimeout(8_000){
                 val app=appContext as SpisokRyadomApp
                 val data=ShoppingWidgetData(app.container)
                 com.spisokryadom.app.data.repository.ProductEditorTransactions.locked {
                     val revision=com.spisokryadom.app.util.DatabaseRevision.current(appContext)
                     if(intent.getStringExtra("database")!=revision)return@locked
-                    if(intent.hasExtra("private")) {
-                        val actual=data.rows().firstOrNull{it.id==row.id&&it.productStableId==row.productStableId&&it.createdAt==row.createdAt&&it.revision==row.revision}?:return@locked
-                        val expected=intent.getBooleanExtra("private",false)
-                        if(actual.isPrivate==expected)app.container.productRepository.setWidgetPrivacy(row.productStableId,expected,!expected)
-                    }else if(!intent.hasExtra("peek"))data.check(row)
+                    if(intent.hasExtra("hidden"))data.visibility(row,intent.getBooleanExtra("hidden",true))
+                    // Old permanent-privacy and timed-peek broadcasts must never change the new state.
+                    else if(!intent.hasExtra("private")&&!intent.hasExtra("peek")&&data.check(row)){
+                        WidgetPurchaseMotion.begin(row,revision);moving=!row.bought
+                    }
                 }
+                if(moving){refresh(appContext);delay(WidgetPurchaseMotion.SETTLE_MS)}
             }}catch(e:Exception){android.util.Log.w("ShoppingWidget","Cannot update widget",e)}
             finally{try{refresh(appContext)}finally{pending.finish()}}
         }
@@ -72,7 +73,7 @@ class ShoppingWidgetProvider:AppWidgetProvider() {
             .putExtra(EXTRA_SHOW_BOUGHT,show)
         fun checkIntent(row:WidgetPurchase)=Intent().putExtra("id",row.id).putExtra("product",row.productStableId)
             .putExtra("created",row.createdAt).putExtra("updated",row.updatedAt).putExtra("bought",row.bought).putExtra("revision",row.revision)
-        fun privacyIntent(row:WidgetPurchase)=checkIntent(row).putExtra("private",row.isPrivate)
+        fun privacyIntent(row:WidgetPurchase)=checkIntent(row).putExtra("hidden",row.hidden)
         fun peekIntent(row:WidgetPurchase,expected:String)=checkIntent(row).putExtra("peek",expected)
         fun decodeCheck(intent:Intent):WidgetPurchase? {
             if(!listOf("id","product","created","updated","bought","revision").all{intent.hasExtra(it)})return null

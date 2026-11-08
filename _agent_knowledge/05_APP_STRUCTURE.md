@@ -1,3 +1,5 @@
+Итерация0.33 —65: Entry.widgetHidden/Room30; WidgetPurchaseMotion; локальная очередь BulkQueuedDraft в прежнем BulkProductViewModel/Sheet. Остальная структура прежняя.
+
 Итерация0.32 —[64_USABILITY_320.md](64_USABILITY_320.md). ShopEntity.photosJson хранит упорядоченную галерею, первые фото —основные; ShopPhotos валидирует метаданные. ProductPhotos переиспользуется с отдельным shop_photos. Новая таблица не вводилась; прежние сущности/связи сохранены.
 
 Дополнение0.31 —[62](62_WIDGET_PRIVACY_310.md), Room28/ZIP26. ProductEntity.isWidgetPrivate —общее поле семейства, raw/backup совместимы. WidgetInteractionState хранит только временные раскрытия/переходы экземпляров; Repository/CAS прежние, RemoteViews остаётся текущим виджетом.

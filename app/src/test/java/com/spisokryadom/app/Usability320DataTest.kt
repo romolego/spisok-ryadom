@@ -110,7 +110,7 @@ class Usability320DataTest {
         assertEquals(1,manager.inspect(file).missingPhotos)
         ZipFile(file).use{zip->
             val j=JSONObject(zip.getInputStream(zip.getEntry("manifest.json")).reader().readText())
-            assertEquals(27,j.getInt("version"));assertFalse(j.toString().contains(a.path))
+            assertEquals(28,j.getInt("version"));assertFalse(j.toString().contains(a.path))
             assertNotNull(zip.getEntry("shop_photos/${id}_0.jpg"));assertArrayEquals(b.readBytes(),zip.getInputStream(zip.getEntry("shop_photos/${id}_0.jpg")).readBytes())
         }
         manager.importFile(file)
@@ -151,9 +151,9 @@ class Usability320DataTest {
             old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt)VALUES(118,99,3,'шт',1,0,100,200)")
             old.version=28
         }
-        val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_28_29).build()
+        val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_28_29,AppDatabase.MIGRATION_29_30).build()
         try{
-            assertEquals(29,migrated.openHelper.writableDatabase.version)
+            assertEquals(30,migrated.openHelper.writableDatabase.version)
             assertEquals("[]",migrated.shopDao().getById(73)!!.photosJson);assertEquals("/logo.png",migrated.shopDao().getById(73)!!.logoUri)
             assertEquals("/point.jpg",migrated.shopBranchDao().getAll().single{it.id==74L}.photoUri)
             assertTrue(migrated.productDao().getById(99)!!.isWidgetPrivate);assertEquals(3.0,migrated.shoppingListEntryDao().getById(118)!!.quantity,0.0)
