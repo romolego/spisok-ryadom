@@ -171,7 +171,7 @@ class ProductInput300DataTest {
         input.updateSettings{it.copy(prefillUnit=false,inheritDepartment=false,recipientId=recipient,recipientEnabled=true)}
         val rows=listOf(BulkProductRow(0,"Новая позиция",resolved=true));val key=token();commit(rows,key)
         val manager=BackupManager(app,db);val file=manager.exportFile()
-        assertEquals(27,manifest(file).getInt("version"));val policy=input.settings()
+        assertEquals(28,manifest(file).getInt("version"));val policy=input.settings()
         input.updateSettings{it.copy(prefillUnit=true,inheritDepartment=true)};manager.importFile(file)
         assertEquals(policy,input.settings());assertEquals(type("Крупы"),input.department(id)!!.typeId);assertFalse(commit(rows,key))
         val count=db.shoppingListEntryDao().getAllSync().size;val generation=ProductEditorTransactions.generation.get()

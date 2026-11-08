@@ -196,7 +196,7 @@ class ProductVariants290DataTest{
   val (a,b)=family();db.productDao().update(db.productDao().getById(a)!!.copy(stableId="backup290"));db.productDao().update(db.productDao().getById(b)!!.copy(stableId="backup290_0"));photos(a,5);photos(b,2);products.variants.configureCity(a,2,listOf(b to true,a to false))
   val prefs=app.getSharedPreferences("shopping_list_prefs",0);prefs.edit().putBoolean("remember_variant_choice",true).commit()
   val manager=BackupManager(app,db);val file=manager.exportFile();val root=manifest(file)
-  assertEquals(27,root.getInt("version"));assertEquals(1,manager.inspect(file).products);assertEquals(2,manager.inspect(file).variants);assertFalse(root.toString().contains(app.filesDir.absolutePath))
+  assertEquals(28,root.getInt("version"));assertEquals(1,manager.inspect(file).products);assertEquals(2,manager.inspect(file).variants);assertFalse(root.toString().contains(app.filesDir.absolutePath))
   manager.importFile(file);val restored=products.variants.photos(a);assertEquals(5,restored.size);assertEquals((0..4).map{"Подпись $it"},restored.map{it.caption});assertTrue(restored.all{File(it.uri).readBytes().contentEquals(byteArrayOf(1,2,3,4))});assertEquals(b,products.variants.resolve(a,2).id)
   val original=manager.exportFile();val bad=manifest(original);bad.getJSONObject("data").getJSONArray("productVariants").getJSONObject(1).put("familyId",99999)
   val before=db.productDao().getAllSync();val error=runCatching{manager.importFile(zip(bad,original))}.exceptionOrNull();assertNotNull(error);assertTrue(error!!.message.orEmpty().contains("семейство"));assertEquals(before,db.productDao().getAllSync());assertEquals(5,products.variants.photos(a).size)
@@ -240,8 +240,8 @@ class ProductVariants290DataTest{
    for(i in 0 until entities.length()){val e=entities.getJSONObject(i);old.execSQL(e.getString("createSql").replace("${'$'}{TABLE_NAME}",e.getString("tableName")));val indices=e.getJSONArray("indices");for(j in 0 until indices.length())old.execSQL(indices.getJSONObject(j).getString("createSql").replace("${'$'}{TABLE_NAME}",e.getString("tableName")))}
    old.execSQL("INSERT INTO cities(id,name) VALUES(1,'Красноярск')");old.execSQL("INSERT INTO products(id,name,purchaseType,isTemporary,stableId,photoUri) VALUES(7,'Хлеб','offline',0,'legacy290',?)",arrayOf(photo));old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt) VALUES(8,7,3,'шт',0,0,100,100)");old.version=25
   }
-  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_25_26,AppDatabase.MIGRATION_26_27,AppDatabase.MIGRATION_27_28,AppDatabase.MIGRATION_28_29).build()
-  try{assertEquals(29,migrated.openHelper.writableDatabase.version);assertEquals(photo,migrated.productVariantDao().photos(7).single().uri);assertEquals(7L,migrated.shoppingListEntryDao().getById(8)!!.productId);assertEquals(3.0,migrated.shoppingListEntryDao().getById(8)!!.quantity,0.0);assertTrue(migrated.productVariantDao().variants().isEmpty())}finally{migrated.close();app.deleteDatabase(name)}
+  val migrated=Room.databaseBuilder(app,AppDatabase::class.java,name).allowMainThreadQueries().addMigrations(AppDatabase.MIGRATION_25_26,AppDatabase.MIGRATION_26_27,AppDatabase.MIGRATION_27_28,AppDatabase.MIGRATION_28_29,AppDatabase.MIGRATION_29_30).build()
+  try{assertEquals(30,migrated.openHelper.writableDatabase.version);assertEquals(photo,migrated.productVariantDao().photos(7).single().uri);assertEquals(7L,migrated.shoppingListEntryDao().getById(8)!!.productId);assertEquals(3.0,migrated.shoppingListEntryDao().getById(8)!!.quantity,0.0);assertTrue(migrated.productVariantDao().variants().isEmpty())}finally{migrated.close();app.deleteDatabase(name)}
   assertEquals(a,products.variants.familyId(b))
  }
 }

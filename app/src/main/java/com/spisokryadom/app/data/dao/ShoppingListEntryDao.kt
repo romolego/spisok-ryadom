@@ -31,6 +31,9 @@ interface ShoppingListEntryDao {
     @Query("UPDATE shopping_list_entries SET isBought = 0, updatedAt = :now WHERE id = :id")
     suspend fun markNotBought(id: Long, now: Long = System.currentTimeMillis())
 
+    @Query("UPDATE shopping_list_entries SET widgetHidden=:hidden WHERE id=:id")
+    suspend fun widgetVisibility(id:Long,hidden:Boolean)
+
     @Query("DELETE FROM shopping_list_entries WHERE isBought = 1 AND (listId IS NULL OR listId IN (SELECT id FROM goal_lists WHERE showInPurchases=1 AND isTemplate=0))")
     suspend fun clearBought()
 

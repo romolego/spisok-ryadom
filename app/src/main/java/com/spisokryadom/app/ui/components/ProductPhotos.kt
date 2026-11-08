@@ -21,13 +21,14 @@ import kotlinx.coroutines.*
 
 @Composable
 fun ProductPhotos(photos:List<ProductPhotoEntity>,enabled:Boolean,onPhotos:(List<ProductPhotoEntity>)->Unit,onBusy:(Boolean)->Unit,
- directory:String="product_photos",photoTitle:String="Фото товара",toolbar:@Composable RowScope.(()->Unit,()->Unit)->Unit){
+ directory:String="product_photos",photoTitle:String="Фото товара",beforePhotos:@Composable ()->Unit={},toolbar:@Composable RowScope.(()->Unit,()->Unit)->Unit){
  var viewing by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf<Int?>(null)}
  viewing?.let{index->ProductPhotoViewer(photos,index){viewing=null}}
  var editing by remember{mutableStateOf<Int?>(null)}
  BranchPhotoEditor("",onChange={uri->if(uri!=null&&photos.size<5&&photos.none{it.uri==uri})onPhotos(photos+ProductPhotoEntity(0,photos.size,uri))},onBusyChange=onBusy,directory=directory,compact=true,showTitle=false,enabled=enabled,toolbar={gallery,camera->
   toolbar({if(photos.size<5)gallery()},{if(photos.size<5)camera()})
  })
+ beforePhotos()
  if(photos.isNotEmpty())Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).testTag("product-photo-strip"),horizontalArrangement=Arrangement.spacedBy(10.dp)){
   photos.forEachIndexed{index,photo->
    val bitmap by produceState<android.graphics.Bitmap?>(null,photo.uri){value=withContext(Dispatchers.IO){PhotoStore.load(photo.uri,480)}}

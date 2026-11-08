@@ -1,4 +1,7 @@
 package com.spisokryadom.app.ui.productcard
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import com.spisokryadom.app.ui.components.AppTextField
 
 import androidx.compose.foundation.background
@@ -293,19 +296,23 @@ fun ProductCardScreen(
             )
 
             if(createRecipient)com.spisokryadom.app.ui.components.InlineCreateValue("Имя получателя",{name,done->viewModel.createRecipient(name,{createRecipient=false},done)},{createRecipient=false})
-            if(!state.isTemporary)ProductVariantsBar(state,viewModel)
             val defaultTypes=state.departmentTypes+state.pendingDepartments.filter{it.id==state.defaultDepartmentTypeId&&it.typeId==0L}.map{com.spisokryadom.app.data.entity.DepartmentTypeEntity(id=it.id,name=it.name,normalizedName=com.spisokryadom.app.util.FuzzySearch.normalize(it.name))}
             DropdownSelector(label="Группа магазинов по умолчанию",items=defaultTypes,
                 selectedItem=defaultTypes.find{it.id==state.defaultDepartmentTypeId},itemLabel={it.name},
                 onSelect={viewModel.updateDefaultDepartment(it?.id)},modifier=Modifier.fillMaxWidth(),
                 itemIcon={it.iconKey},itemAccent={it.accent},itemFavorite={it.isFavorite},favoriteOrder={it.favoriteOrder},alphabetical=true)
             com.spisokryadom.app.ui.components.ProductPhotos(state.photos,!state.isPhotoBusy&&!state.isSaving,viewModel::updatePhotos,viewModel::photoBusy,
+                beforePhotos={if(!state.isTemporary)ProductVariantsBar(state,viewModel)},
                 toolbar={gallery,camera->
                     com.spisokryadom.app.ui.components.FavoriteToggle(state.isFavorite,{leaveName();viewModel.favorite(it)},enabled=!state.isSaving&&!state.isPhotoBusy)
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick=gallery,enabled=!state.isPhotoBusy&&!state.isSaving&&state.photos.size<5){Icon(Icons.Filled.PhotoLibrary,"Выбрать фото")}
                     IconButton(onClick=camera,enabled=!state.isPhotoBusy&&!state.isSaving&&state.photos.size<5){Icon(Icons.Filled.PhotoCamera,"Камера")}
                     Spacer(Modifier.weight(1f))
+                    IconToggleButton(checked=state.isWidgetPrivate,onCheckedChange={leaveName();viewModel.widgetPrivacy(it)},enabled=!state.isSaving,
+                        modifier=Modifier.testTag("widget_privacy")){
+                        Icon(if(state.isWidgetPrivate)Icons.Filled.VisibilityOff else Icons.Filled.Visibility,"Скрытие товара в виджете")
+                    }
                     IconButton(onClick={showAppearance=true},enabled=!state.isPhotoBusy&&!state.isSaving){Icon(Icons.Filled.Palette,"Цвет товара")}
                 })
             PurchaseTypeSelector(selectedType=state.purchaseType,onTypeChange=viewModel::updatePurchaseType,allowedTypes=state.allowedPurchaseTypes)
@@ -344,16 +351,15 @@ fun ProductCardScreen(
                     allowVoice = false,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Decimal),
                     singleLine = true,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).testTag("product-price")
                 )
                 AppTextField(
                     value = state.priceDate,
                     onValueChange = { viewModel.updatePriceDate(it) },
-                    label = { Text("Дата цены") },
+                    label = { Text("Дата цены",maxLines=1) },
                     allowVoice = false,
-                    trailingIcon = {com.spisokryadom.app.ui.components.FieldHelp("Дата цены","Формат даты: дд.мм.гггг.")},
                     singleLine = true,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).testTag("product-price-date")
                 )
             }
 
@@ -459,11 +465,6 @@ fun ProductCardScreen(
                 }
             )
 
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-                com.spisokryadom.app.ui.components.SelectionRow("Приватный товар в виджете",state.isWidgetPrivate,
-                    {leaveName();viewModel.widgetPrivacy(it)},modifier=Modifier.weight(1f),enabled=!state.isSaving,tag="widget_privacy")
-                com.spisokryadom.app.ui.components.FieldHelp("Приватный товар в виджете","Глазик в виджете включает или выключает скрытие товара. Эта же настройка сохраняется в карточке товара.")
-            }
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

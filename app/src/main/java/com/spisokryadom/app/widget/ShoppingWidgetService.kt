@@ -30,7 +30,9 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
             container.database.withTransaction {
             val revision=com.spisokryadom.app.util.DatabaseRevision.current(context)
             val canonical=data.presentation(settings,boost)
-            WidgetFrame(settings,canonical,emptySet(),com.spisokryadom.app.util.FavoriteAppearance.read(prefs).purchaseRow,revision)
+            val current=if(settings.showBought)canonical else data.presentation(settings.copy(showBought=true),boost)
+            val (items,departing)=WidgetPurchaseMotion.present(widgetId,revision,settings,canonical,current)
+            WidgetFrame(settings,items,departing,com.spisokryadom.app.util.FavoriteAppearance.read(prefs).purchaseRow,revision)
             }
             }
         }
@@ -59,7 +61,7 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
         }
         val purchase=item as WidgetItem.Purchase
         val row=purchase.row
-        val hidden=row.isPrivate
+        val hidden=row.hidden
         return RemoteViews(context.packageName,R.layout.widget_purchase).apply {
             setInt(R.id.widget_purchase_root,"setBackgroundColor",WidgetAppearance.shopBackground(purchase,snapshot.settings))
             // Tint the rounded drawable itself: XML clipToOutline is unavailable below API31.
@@ -79,9 +81,10 @@ class ShoppingWidgetFactory(private val context:Context,private val widgetId:Int
             setContentDescription(R.id.widget_item_text,if(hidden)"Скрытый товар"else null)
             setOnClickFillInIntent(R.id.widget_item_text,Intent().putExtra("open",true))
             setImageViewResource(R.id.widget_privacy,if(hidden)R.drawable.widget_visibility_off else R.drawable.widget_visibility)
+            setViewVisibility(R.id.widget_privacy,if(row.isPrivate)View.VISIBLE else View.GONE)
             setContentDescription(R.id.widget_privacy,if(hidden)"Показать товар"else "Скрыть товар")
             setOnClickFillInIntent(R.id.widget_privacy,ShoppingWidgetProvider.privacyIntent(row).putExtra("database",snapshot.databaseRevision))
-            setInt(R.id.widget_purchase_motion,"setDisplayedChild",0)
+            setInt(R.id.widget_purchase_motion,"setDisplayedChild",if(row.id in snapshot.departing)1 else 0)
         }
     }
     override fun getLoadingView():RemoteViews?=null

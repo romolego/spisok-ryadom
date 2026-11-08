@@ -27,7 +27,8 @@ class AppContainer(context: Context) {
     )
 
     val shoppingListRepository = ShoppingListRepository(
-        database.shoppingListEntryDao(), database, locations,catalogueEdits
+        database.shoppingListEntryDao(), database, locations,catalogueEdits,
+        widgetDefault={com.spisokryadom.app.widget.WidgetSettings.load(context.getSharedPreferences("shopping_list_prefs",Context.MODE_PRIVATE)).hidePrivateByDefault}
     )
 
     val goalListRepository = com.spisokryadom.app.data.repository.GoalListRepository(database,shoppingListRepository)

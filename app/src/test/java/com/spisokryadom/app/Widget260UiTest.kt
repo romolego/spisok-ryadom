@@ -197,13 +197,14 @@ class Widget260UiTest {
         group("По товарным группам", ViewMode.BY_GROUPS)
         switch("widget-show-bought")
         switch("widget-bought-toggle")
+        ui.onNodeWithTag("widget-private-default").performScrollTo().assertIsOn().performClick().assertIsOff()
         ui.onNodeWithTag("widget-shop-background").performScrollTo().performClick()
         ui.onNodeWithTag("widget-product-background").performScrollTo().performClick()
         ui.onNodeWithTag("widget-shop-background").assertIsOn()
         ui.onNodeWithTag("widget-product-background").assertIsOn()
         shot("appearance-settings")
         ui.onAllNodesWithText("Готово").onLast().performClick()
-        waitFor { WidgetSettings.load(prefs).let { !it.showBought && !it.showBoughtToggle && it.showShopBackground && it.showProductBackground } }
+        waitFor { WidgetSettings.load(prefs).let { !it.showBought && !it.showBoughtToggle && !it.hidePrivateByDefault && it.showShopBackground && it.showProductBackground } }
         assertEquals(ViewMode.FLAT.name, prefs.getString("shopping_list_view_mode", null))
         scenario!!.recreate()
         scenario!!.onActivity { activity = it }
@@ -211,6 +212,7 @@ class Widget260UiTest {
         if(ui.onAllNodesWithTag("widget-grouping").fetchSemanticsNodes().isEmpty()){ui.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("widget-settings"));ui.onNodeWithTag("widget-settings").performClick()}
         ui.onNodeWithTag("widget-show-bought").assertIsOff()
         ui.onNodeWithTag("widget-bought-toggle").assertIsOff()
+        ui.onNodeWithTag("widget-private-default").assertIsOff()
         ui.onNode(hasText("По товарным группам") and hasAnyAncestor(hasTestTag("widget-grouping"))).assertExists()
         ui.onNodeWithTag("widget-shop-background").assertIsOn()
         ui.onNodeWithTag("widget-product-background").assertIsOn()

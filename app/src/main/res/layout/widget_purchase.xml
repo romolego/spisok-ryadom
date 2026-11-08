@@ -3,7 +3,7 @@
     android:id="@+id/widget_purchase_root" android:layout_width="match_parent" android:layout_height="wrap_content"
     android:paddingHorizontal="4dp" android:paddingVertical="2dp">
     <ViewFlipper android:id="@+id/widget_purchase_motion" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:measureAllChildren="true" android:animateFirstView="false">
+        android:measureAllChildren="true" android:animateFirstView="false" android:outAnimation="@anim/widget_purchase_out">
     <FrameLayout android:id="@+id/widget_purchase_card" android:layout_width="match_parent" android:layout_height="wrap_content"
         >
         <ImageView android:id="@+id/widget_purchase_background" android:layout_width="match_parent" android:layout_height="match_parent"

@@ -185,6 +185,7 @@ internal object BackupJson {
   departmentId=if(o.has("departmentId")&&!o.isNull("departmentId"))o.getLong("departmentId") else null
  )
  fun encode(value:ShoppingListEntryEntity):JSONObject = JSONObject().apply {
+  put("widgetHidden",value.widgetHidden)
   put("listId",value.listId?:JSONObject.NULL);put("plannedUnitPrice",value.plannedUnitPrice?:JSONObject.NULL);put("customShopName",value.customShopName?:JSONObject.NULL);put("customShopAddress",value.customShopAddress?:JSONObject.NULL)
   put("awaitingShopCityId",value.awaitingShopCityId?:JSONObject.NULL);put("explicitNoShop",value.explicitNoShop)
   put("id",value.id)
@@ -202,6 +203,7 @@ internal object BackupJson {
   put("updatedAt",value.updatedAt)
  }
  fun entries(o:JSONObject):ShoppingListEntryEntity = ShoppingListEntryEntity(
+  widgetHidden=if(o.has("widgetHidden"))strictBoolean(o,"widgetHidden")else true,
   listId=if(o.has("listId")&&!o.isNull("listId"))strictLong(o,"listId")else null,
   plannedUnitPrice=if(o.has("plannedUnitPrice")&&!o.isNull("plannedUnitPrice"))strictNumber(o,"plannedUnitPrice")else null,
   customShopName=if(o.has("customShopName")&&!o.isNull("customShopName"))strictString(o,"customShopName")else null,
@@ -312,6 +314,9 @@ internal object BackupJson {
     identifiers.forEach{key->if(row.has(key)&&!(key in nullable&&row.isNull(key)))strictLong(row,key)}
    }}
   }
+ }
+ if(root.getInt("version")>=28)d.getJSONArray("shoppingListEntries").let{a->
+  (0 until a.length()).forEach{i->strictBoolean(a.getJSONObject(i),"widgetHidden")}
  }
  if(root.getInt("version")>=11)d.optJSONArray("shoppingListEntries")?.let{a->
   (0 until a.length()).forEach{i->val row=a.getJSONObject(i)

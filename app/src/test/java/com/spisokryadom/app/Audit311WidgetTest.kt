@@ -122,7 +122,8 @@ class Audit311WidgetTest {
         f.onDataSetChanged();val fresh=host(f)
         WidgetInteractionState.clear()
         click(fresh,R.id.widget_privacy);awaitFinished()
-        assertFalse(db.productDao().getById(id)!!.isWidgetPrivate)
+        assertTrue(db.productDao().getById(id)!!.isWidgetPrivate)
+        assertFalse(db.shoppingListEntryDao().getById(purchase)!!.widgetHidden)
         assertFalse(db.shoppingListEntryDao().getById(purchase)!!.isBought)
     }
 

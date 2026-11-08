@@ -57,5 +57,6 @@ data class ShoppingListEntryEntity(
     @androidx.room.ColumnInfo(defaultValue="NULL") val listId:Long?=null,
     @androidx.room.ColumnInfo(defaultValue="NULL") val plannedUnitPrice:Double?=null,
     @androidx.room.ColumnInfo(defaultValue="NULL") val customShopName:String?=null,
-    @androidx.room.ColumnInfo(defaultValue="NULL") val customShopAddress:String?=null
+    @androidx.room.ColumnInfo(defaultValue="NULL") val customShopAddress:String?=null,
+    @androidx.room.ColumnInfo(defaultValue="1") val widgetHidden:Boolean=true
 )

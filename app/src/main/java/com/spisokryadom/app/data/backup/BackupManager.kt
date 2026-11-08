@@ -132,6 +132,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
   if(version>=11)require(d.optJSONArray("goalLists")!=null){"В копии отсутствуют целевые списки"}
   if(version>=5)listOf("shopBranches","productBranchAvailability").forEach{require(d.optJSONArray(it)!=null){"В копии отсутствует раздел $it"}}
   if(version>=27){val shops=d.getJSONArray("shops");(0 until shops.length()).forEach{require(shops.getJSONObject(it).optJSONArray("shopPhotos")!=null){"В копии отсутствуют фотографии магазина"}}}
+  if(version>=28){val entries=d.getJSONArray("shoppingListEntries");(0 until entries.length()).forEach{require(entries.getJSONObject(it).opt("widgetHidden") is Boolean){"Неверная видимость покупки в виджете"}}}
   val productRows=d.getJSONArray("products")
   val photos=d.optJSONArray("productPhotos")?:JSONArray()
   val variants=d.optJSONArray("productVariants")?:JSONArray()
@@ -517,7 +518,7 @@ class BackupManager(private val context:Context,private val db:AppDatabase,priva
  }
  fun discard(file:File){if(file.canonicalPath.startsWith(cacheDir.canonicalPath+File.separator))file.delete()}
  companion object{
-  const val BACKUP_VERSION=27;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
+  const val BACKUP_VERSION=28;const val BACKUP_FILE_MIME="application/zip";const val BACKUP_FILE_NAME_PREFIX="spisok_ryadom_full"
   private const val MAX_JSON=32*1024*1024;private const val MAX_PHOTO=8*1024*1024
   private const val MAX_PHOTO_TOTAL=450L*1024*1024;private const val MAX_ARCHIVE_ENTRIES=20000
   private fun isZip(file:File)=file.inputStream().use{it.read()==0x50&&it.read()==0x4b}

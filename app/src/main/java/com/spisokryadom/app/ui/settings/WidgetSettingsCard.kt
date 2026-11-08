@@ -43,6 +43,10 @@ fun WidgetSettingsCard(value: WidgetSettings, onChange: (WidgetSettings) -> Unit
         if(value.mode==ViewMode.BY_SHOPS)WidgetSwitch("Группы внутри магазинов",value.showDepartments,"widget-departments"){onChange(value.copy(showDepartments=it))}
         WidgetSwitch("Показывать купленные",value.showBought,"widget-show-bought"){onChange(value.copy(showBought=it))}
         WidgetSwitch("Кнопка скрытия купленных",value.showBoughtToggle,"widget-bought-toggle"){onChange(value.copy(showBoughtToggle=it))}
+        Row(verticalAlignment=Alignment.CenterVertically){
+            Box(Modifier.weight(1f)){WidgetSwitch("Скрывать приватные товары при добавлении",value.hidePrivateByDefault,"widget-private-default"){onChange(value.copy(hidePrivateByDefault=it))}}
+            com.spisokryadom.app.ui.components.FieldHelp("Приватные товары","Относится к товарам с включённым глазиком в карточке. Видимость можно менять в виджете до завершения покупки; при новом добавлении применяется эта настройка.")
+        }
         DropdownSelector("Размер текста",(WidgetSettings.MIN_TEXT_SIZE..WidgetSettings.MAX_TEXT_SIZE).toList(),value.textSize,
             {"$it"},{it?.let{size->onChange(value.copy(textSize=size))}},allowNone=false,modifier=Modifier.testTag("widget-font-size"))
         WidgetSwitch("Подложки магазинов",value.showShopBackground,"widget-shop-background"){onChange(value.copy(showShopBackground=it))}

@@ -41,11 +41,11 @@ class Audit311RecoveryTest {
             old.execSQL("INSERT INTO shopping_list_entries(id,productId,quantity,unit,isBought,isUrgent,createdAt,updatedAt)VALUES(41,31,3,'шт',0,0,100,200)")
             old.version=27
         }
-        val recovery=File(app.filesDir,"recovery/schema-27-before-29")
+        val recovery=File(app.filesDir,"recovery/schema-27-before-30")
         val db=AppDatabase.getInstance(app).also{opened=it}
         assertFalse("Construction must not copy data on the main thread",recovery.exists())
         withContext(Dispatchers.IO){
-            assertEquals(29,db.openHelper.writableDatabase.version)
+            assertEquals(30,db.openHelper.writableDatabase.version)
             assertFalse(db.productDao().getById(31)!!.isWidgetPrivate)
             assertEquals("audit311-original",db.productDao().getById(31)!!.stableId)
             assertEquals(3.0,db.shoppingListEntryDao().getById(41)!!.quantity,0.0)

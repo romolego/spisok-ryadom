@@ -12,6 +12,8 @@ data class BulkProductRow(val key:Int,val source:String,val name:String=source,v
 
 class BulkPurchaseRepository(private val db:AppDatabase,private val basket:ShoppingListRepository,private val locations:LocationRepository) {
     suspend fun cityId()=locations.currentId()
+    suspend fun product(id:Long)=com.spisokryadom.app.domain.variantNames(db.productDao().getAllSync(),db.productVariantDao().variants()).find{it.id==id&&!it.isTemporary}
+    suspend fun committed(token:String)=db.productInputDao().run(token)!=null
     suspend fun candidates(query:String,cityId:Long):List<ProductEntity> {
         val variants=db.productVariantDao().variants()
         val disabled=db.productVariantDao().cities().filter{it.cityId==cityId&&!it.enabled}.map{it.productId}.toSet()
