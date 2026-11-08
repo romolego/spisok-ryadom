@@ -14,7 +14,7 @@ Room30/ZIP28:29→30 добавляет только widgetHidden, старые 
 
 Исходный чистый acb53b9 сохранён вcodex/before-widget-queue-0.33.0 и .local/widget330/baseline-source.zip. Откат кода при чистом дереве: `git switch codex/before-widget-queue-0.33.0`. Это не понижение версии установленной базы30.
 
-Проверка/сборка завершены. Порученная публикация проверенного результата готовится; точный GitHub-статус будет зафиксирован после загрузки и анонимной проверки файлов.
+Публикация завершена: [PR#10](https://github.com/romolego/spisok-ryadom/pull/10) слит обычным merge вmain, [v0.33.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.33.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC ZIP совпали. Source `11cb79a769174cd32f75e69e3e7cf17d69f07676`, merge/tag `8a6cd201c22862306802dcebc0a4112ee4e16771`. Публичный source ZIP соответствует401 проверенному файлу. Квитанция —docs/publications/0.33.0.json. Рабочая ветка после публикации —main.
 
 Ниже —история предыдущих итераций.
 

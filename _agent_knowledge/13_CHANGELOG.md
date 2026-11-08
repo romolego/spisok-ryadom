@@ -8,7 +8,7 @@
 
 Room30/ZIP28:29→30 добавляет только widgetHidden, старые поля/ID/FK/индексы/медиа/миграции и читатели копий сохранены. Recovery target30. APK0.33.0(46) `com.spisokryadom.app.next`, сертификат `25617a1a32efbc2acc95aab36a5e108fdaa37ef4bf362025cd39ede92a522668` совпал с0.32.0; 2251878 байт, SHA256 `e2c7e0688b5a0a4c43108a40da2ad278b4f4696c50dc6bdd960472d96d8ff510`. aapt/apksigner/zipalign успешны. Путь —`.local/artifacts/0.33.0/SpisokPokupok-0.33.0.apk`.
 
-Проверка/сборка завершены. Порученная публикация проверенного результата готовится; точный GitHub-статус будет зафиксирован после загрузки и анонимной проверки файлов.
+Публикация завершена: [PR#10](https://github.com/romolego/spisok-ryadom/pull/10) слит обычным merge вmain, [v0.33.0](https://github.com/romolego/spisok-ryadom/releases/tag/v0.33.0) опубликован. Все7 файлов повторно скачаны без авторизации; размеры/SHA256 и CRC ZIP совпали. Source `11cb79a769174cd32f75e69e3e7cf17d69f07676`, merge/tag `8a6cd201c22862306802dcebc0a4112ee4e16771`. Публичный source ZIP соответствует401 проверенному файлу. Квитанция —docs/publications/0.33.0.json. Рабочая ветка после публикации —main.
 
 ## 0.32.0 ·исправления удобства
 
